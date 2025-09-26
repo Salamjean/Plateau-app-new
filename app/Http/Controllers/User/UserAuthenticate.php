@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class UserAuthenticate extends Controller
 {
@@ -164,6 +166,103 @@ class UserAuthenticate extends Controller
             
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['error' => 'Demande non trouvée'], 404);
+        }
+    }
+
+    public function profil(){
+        return view('user.auth.profil');
+    }
+
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+
+        if (!Hash::check($request->password, Auth::user()->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mot de passe incorrect'
+            ], 401);
+        }
+
+        // Stocker en session que le mot de passe est vérifié
+        session(['password_verified' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mot de passe vérifié avec succès'
+        ]);
+    }
+
+    // Méthode de mise à jour du profil
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        try {
+            // Vérification de la session (au lieu de vérifier le mot de passe directement)
+            if (!session('password_verified')) {
+                return back()->withErrors(['error' => 'Vérification de sécurité requise. Veuillez confirmer votre mot de passe.']);
+            }
+
+            $user = Auth::user();
+            
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'prenom' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'commune' => 'required|string|max:255',
+                'indicatif' => 'required|string|max:10',
+                'contact' => 'required|string|max:20',
+                'CMU' => 'nullable|string|max:50',
+                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'diaspora' => 'nullable|boolean',
+                'pays_residence' => 'nullable|string|max:255',
+                'ville_residence' => 'nullable|string|max:255',
+                'adresse_etrangere' => 'nullable|string|max:500',
+            ]);
+
+            // Gestion de la photo de profil
+            if ($request->hasFile('profile_picture')) {
+                if ($user->profile_picture) {
+                    Storage::disk('public')->delete($user->profile_picture);
+                }
+                $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+                $user->profile_picture = $profilePicturePath;
+            }
+
+            // Mise à jour des informations de base
+            $user->name = $validated['name'];
+            $user->prenom = $validated['prenom'];
+            $user->email = $validated['email'];
+            $user->commune = $validated['commune'];
+            $user->indicatif = $validated['indicatif'];
+            $user->contact = $validated['contact'];
+            $user->CMU = $validated['CMU'];
+
+            // Gestion de la diaspora
+            $user->diaspora = $request->has('diaspora') ? true : false;
+            
+            if ($user->diaspora) {
+                $user->pays_residence = $validated['pays_residence'];
+                $user->ville_residence = $validated['ville_residence'];
+                $user->adresse_etrangere = $validated['adresse_etrangere'];
+            } else {
+                // Nettoyer les champs diaspora si non cochée
+                $user->pays_residence = null;
+                $user->ville_residence = null;
+                $user->adresse_etrangere = null;
+            }
+
+            $user->save();
+
+            // Nettoyer la session après utilisation
+            session()->forget('password_verified');
+
+            return redirect()->route('user.profil')->with('success', 'Profil mis à jour avec succès!');
+
+        } catch (\Exception $e) {
+            Log::error('Error during profile update: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Erreur lors de la mise à jour. Veuillez réessayer.'])->withInput();
         }
     }
 }

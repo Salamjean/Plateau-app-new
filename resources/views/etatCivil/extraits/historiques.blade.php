@@ -500,6 +500,7 @@
               <th style="text-align: center">Date de demande</th>
               <th style="text-align: center">Date de traitement</th>
               <th style="text-align: center">Statut</th>
+              <th style="text-align: center">Agent</th>
             </tr>
           </thead>
           <tbody>
@@ -532,10 +533,11 @@
                 <td style="text-align: center" data-label="Statut">
                   <span class="badge-status badge-completed">Terminé</span>
                 </td>
+                <td style="text-align: center" data-label="Référence"><strong>{{ $task->agent->name.' '.$task->agent->prenom ?? 'Non attribué' }}</strong></td>
               </tr>
             @empty
               <tr>
-                <td style="text-align: center" colspan="7" class="empty-state">
+                <td style="text-align: center" colspan="8" class="empty-state">
                   <i class="fas fa-inbox"></i>
                   <h5>Aucune demande terminée</h5>
                   <p>Vous n'avez aucune demande de ce type marquée comme terminée.</p>

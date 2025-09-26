@@ -28,6 +28,7 @@ use App\Http\Controllers\EtatCivil\Extrait\EtatDecesController;
 use App\Http\Controllers\EtatCivil\Extrait\EtatHistoriquesController;
 use App\Http\Controllers\EtatCivil\Extrait\EtatMariageController;
 use App\Http\Controllers\EtatCivil\Extrait\EtatNaissanceController;
+use App\Http\Controllers\EtatCivil\RapportController;
 use App\Http\Controllers\Finance\AuthenticateFinance;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Finance\FinanceDashboard;
@@ -47,10 +48,12 @@ use App\Http\Controllers\Poste\PosteDashboard;
 use App\Http\Controllers\User\Extrait\Deces\DecesController;
 use App\Http\Controllers\User\Extrait\Mariage\MariageController;
 use App\Http\Controllers\User\Extrait\Naissance\NaissanceController;
+use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\RendezVousController;
 use App\Http\Controllers\User\UserAuthenticate;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::prefix('/')->group( function(){
     Route::get('/',[HomeController::class,'home'])->name('home');
@@ -160,6 +163,9 @@ Route::prefix('state')->group(function(){
 Route::middleware('etatCivil')->prefix('state')->group(function(){
      Route::get('/dashboard',[EtatCivilDashboard::class,'dashboard'])->name('etat_civil.dashboard');
      Route::get('/logout', [EtatCivilDashboard::class, 'logout'])->name('etat_civil.logout');
+     Route::get('/etat-civil/rapports', [RapportController::class, 'rapports'])->name('etatCivil.rapports');
+     Route::get('/etat-civil/rapports/export-pdf', [RapportController::class, 'exportPdf'])->name('etatCivil.rapports.export');
+     Route::get('/etat-civil/rapports/preview-pdf', [RapportController::class, 'previewPdf'])->name('etatCivil.rapports.preview');
 
      //Les routes pour la liste des demandes 
      Route::prefix('request')->group(function(){
@@ -173,6 +179,11 @@ Route::middleware('etatCivil')->prefix('state')->group(function(){
         Route::get('/index',[AgentController::class,'index'])->name('etat_civil.agent.state.index');
         Route::get('/create',[AgentController::class,'create'])->name('etat_civil.agent.state.create');
         Route::post('/create',[AgentController::class,'store'])->name('etat_civil.agent.state.store');
+        Route::get('/agents/{agent}', [AgentController::class, 'show'])->name('agents.show');
+        Route::get('/agents/{agent}/edit', [AgentController::class, 'edit'])->name('agents.edit');
+        Route::put('/agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
+        Route::post('/agents/{agent}/archive', [AgentController::class, 'archive'])->name('agents.archive');
+        Route::post('/agents/{agent}/unarchive', [AgentController::class, 'unarchive'])->name('agents.unarchive');
      });
 
      //Historiques des traitements de tous les agents 
@@ -336,6 +347,10 @@ Route::prefix('user')->group(function(){
     Route::post('/login',[UserAuthenticate::class,'handleLogin'])->name('user.handleLogin');
     Route::get('/register',[UserAuthenticate::class,'register'])->name('user.register');
     Route::post('/register',[UserAuthenticate::class,'handleRegister'])->name('user.handleRegister');
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('user.password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('user.password.email');
+    Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('user.password.reset');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('user.password.update');
 });
 
 Route::middleware('auth')->prefix('user')->group(function(){
@@ -368,6 +383,11 @@ Route::middleware('auth')->prefix('user')->group(function(){
     //la route de gestion des historiques 
     Route::get('/history/ends',[UserAuthenticate::class,'history'])->name('user.history');
     Route::get('/demande-details/{type}/{id}', [UserAuthenticate::class, 'getDemandeDetails'])->name('demande.details.json');
+
+    //Modification de profil user 
+    Route::get('profil/edit',[UserAuthenticate::class,'profil'])->name('user.profil');
+    Route::put('/profile/update', [UserAuthenticate::class, 'updateProfile'])->name('user.profile.update');
+    Route::post('/verify-password', [UserAuthenticate::class, 'verifyPassword'])->name('user.verify.password');
 });
 
 //Les routes definition du accès 

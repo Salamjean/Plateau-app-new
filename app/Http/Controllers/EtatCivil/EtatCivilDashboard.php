@@ -321,4 +321,6 @@ class EtatCivilDashboard extends Controller
         Auth::guard('etatCivil')->logout();
         return redirect()->route('etat_civil.login');
     }
+
+ 
 }

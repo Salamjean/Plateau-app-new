@@ -22,7 +22,7 @@
                                         <span class="name_user" >{{ Auth::user()->name }} {{ Auth::user()->prenom }}</span>
                                     </a>
                                     <div class="dropdown-menu">
-                                       <a class="dropdown-item" href="profile.html">Profil</a>
+                                       <a class="dropdown-item" href="{{route('user.profil')}}"><i class="fa fa-user"></i> Profil</a>
                                        <a class="dropdown-item" href="{{route('user.logout')}}"><i class="fa fa-sign-out"></i> <span>Déconnexion</span> </a>
                                     </div>
                                  </li>

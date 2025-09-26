@@ -15,7 +15,7 @@
               </button>
               <div class="mdc-menu mdc-menu-surface" tabindex="-1">
                 <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
-                  <li>
+                  {{-- <li>
                     <a href="" class="mdc-list-item" role="menuitem">
                       <div class="item-thumbnail item-thumbnail-icon-only">
                         <i class="mdi mdi-home-edit-outline text-primary"></i>
@@ -24,7 +24,7 @@
                         <h6 class="item-subject font-weight-normal">Mon compte</h6>
                       </div>
                     </a>
-                  </li>
+                  </li> --}}
                   <li>
                     <a href="{{route('mairie.logout')}}" class="mdc-list-item" role="menuitem">
                       <div class="item-thumbnail item-thumbnail-icon-only">

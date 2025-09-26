@@ -113,7 +113,7 @@
         <!-- Graphiques et données récentes -->
         <div class="row g-4">
             <!-- Graphique circulaire -->
-            <div class="col-lg-5">
+            <div class="col-lg-6">
                 <div class="dashboard-card p-4">
                     <h5 class="section-title">Répartition des actes demandés</h5>
                     <div class="chart-container">
@@ -123,7 +123,7 @@
             </div>
             
             <!-- Données récentes -->
-            <div class="col-lg-7">
+            <div class="col-lg-6">
                 <div class="dashboard-card p-4">
                     <h5 class="section-title">Actes récents demandés</h5>
                     

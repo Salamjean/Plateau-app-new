@@ -61,16 +61,16 @@
       </div>
       <h4 class="action-title">Rapports Mensuels</h4>
       <p class="action-description">Générez et consultez les rapports d'activité</p>
-      <a href="#" class="action-btn">Voir rapports</a>
+      <a href="{{ route('etatCivil.rapports') }}" class="action-btn">Voir rapports</a>
     </div>
 
     <div class="action-card">
       <div class="action-icon">
         <i class="fas fa-chart-line"></i>
       </div>
-      <h4 class="action-title">Statistiques</h4>
-      <p class="action-description">Analyses détaillées des demandes</p>
-      <a href="#" class="action-btn">Voir stats</a>
+      <h4 class="action-title">Statistiques des 12 derniers mois</h4>
+      <p class="action-description">Analyses détaillées des demandes et des travaux des agents</p>
+      <a href="{{ route('etatCivil.rapports.preview') }}?periode=${12}" target="_blank" class="action-btn">Voir stats</a>
     </div>
   </div>
 

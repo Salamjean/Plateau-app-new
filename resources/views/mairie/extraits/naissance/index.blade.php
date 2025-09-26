@@ -196,6 +196,65 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 0.25rem rgba(255, 136, 0, 0.25);
         }
+
+        /* Styles personnalisés pour la pagination */
+        .pagination {
+            border-radius: 10px;
+            padding: 5px;
+            background: #f8f9fa;
+        }
+
+        .page-item {
+            margin: 0 2px;
+        }
+
+        .page-link {
+            border: none;
+            border-radius: 8px !important;
+            padding: 0.5rem 0.75rem;
+            color: var(--secondary);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .page-link:hover {
+            background-color: rgba(25, 119, 204, 0.1);
+            color: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(120deg, var(--secondary), #1977cc);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 8px rgba(25, 119, 204, 0.3);
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            opacity: 0.6;
+        }
+
+        /* Responsive pagination */
+        @media (max-width: 768px) {
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .page-link {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.9rem;
+            }
+            
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -355,18 +414,127 @@
                 </div>
                 
                 <!-- Pagination -->
-                @if($naissances->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div class="text-muted">
-                        Affichage de {{ $naissances->firstItem() }} à {{ $naissances->lastItem() }} sur {{ $naissances->total() }} résultats
-                    </div>
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination mb-0">
-                            {{ $naissances->withQueryString()->links() }}
-                        </ul>
-                    </nav>
+            @if($naissances->hasPages())
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Affichage de <strong>{{ $naissances->firstItem() }}</strong> à <strong>{{ $naissances->lastItem() }}</strong> sur <strong>{{ $naissances->total() }}</strong> résultats
                 </div>
-                @endif
+                
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <!-- Première page -->
+                        @if($naissances->onFirstPage())
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </span>
+                            </li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->url(1) }}" aria-label="Première page">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                        @endif
+
+                        <!-- Page précédente -->
+                        @if($naissances->onFirstPage())
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            </li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->previousPageUrl() }}" aria-label="Précédent">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        @endif
+
+                        <!-- Pages numérotées -->
+                        @php
+                            $current = $naissances->currentPage();
+                            $last = $naissances->lastPage();
+                            $start = max($current - 2, 1);
+                            $end = min($current + 2, $last);
+                            
+                            if($start > 1) {
+                                $start = max($current - 1, 1);
+                                $end = min($current + 1, $last);
+                            }
+                            
+                            if($end - $start < 2) {
+                                $start = max($current - 2, 1);
+                                $end = min($current + 2, $last);
+                            }
+                        @endphp
+
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->url(1) }}">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            @endif
+                        @endif
+
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                @if($i == $current)
+                                    <span class="page-link">{{ $i }}</span>
+                                @else
+                                    <a class="page-link" href="{{ $naissances->url($i) }}">{{ $i }}</a>
+                                @endif
+                            </li>
+                        @endfor
+
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->url($last) }}">{{ $last }}</a>
+                            </li>
+                        @endif
+
+                        <!-- Page suivante -->
+                        @if($naissances->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->nextPageUrl() }}" aria-label="Suivant">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        @else
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            </li>
+                        @endif
+
+                        <!-- Dernière page -->
+                        @if($naissances->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->url($last) }}" aria-label="Dernière page">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        @else
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </span>
+                            </li>
+                        @endif
+                    </ul>
+                </nav>
+            </div>
+            @endif
             </div>
         </div>
     </div>

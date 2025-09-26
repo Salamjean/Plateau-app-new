@@ -3,6 +3,7 @@
 <!-- Inclusion des liens CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -87,21 +88,52 @@
                                         <span class="d-block fw-medium">{{ $agent->cas_urgence ?? 'Non spécifié' }}</span>
                                     </td>
                                     <td style="text-align: center">
+                                        @if($agent->archived_at === null )
                                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill">
                                             <i class="fas fa-circle me-1 small"></i>Actif
                                         </span>
+                                        @else
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">
+                                            <i class="fas fa-circle me-1 small"></i>Archivé
+                                        </span>
+                                        @endif
                                     </td>
                                     <td style="text-align: center">
                                         <div class="d-flex justify-content-center">
-                                            <button class="btn btn-sm btn-light rounded-pill me-2" data-bs-toggle="tooltip" title="Voir détails">
+                                            <!-- Voir détails -->
+                                            <button class="btn btn-sm btn-light rounded-pill me-2 view-agent" 
+                                                    data-agent-id="{{ $agent->id }}"
+                                                    data-url="{{ route('agents.show', $agent->id) }}"
+                                                    data-bs-toggle="tooltip" title="Voir détails">
                                                 <i class="fas fa-eye text-primary"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-light rounded-pill me-2" data-bs-toggle="tooltip" title="Modifier">
+                                            
+                                            <!-- Modifier -->
+                                            <button class="btn btn-sm btn-light rounded-pill me-2 edit-agent" 
+                                                    data-agent-id="{{ $agent->id }}"
+                                                    data-url="{{ route('agents.edit', $agent->id) }}"
+                                                    data-bs-toggle="tooltip" title="Modifier">
                                                 <i class="fas fa-edit text-warning"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-light rounded-pill" data-bs-toggle="tooltip" title="Archiver">
+                                            
+                                            <!-- Archiver/Désarchiver -->
+                                            @if($agent->archived_at === null)
+                                            <button class="btn btn-sm btn-light rounded-pill archive-agent" 
+                                                    data-agent-id="{{ $agent->id }}"
+                                                    data-url="{{ route('agents.archive', $agent->id) }}"
+                                                    data-agent-name="{{ $agent->name.' '.$agent->prenom }}"
+                                                    data-bs-toggle="tooltip" title="Archiver">
                                                 <i class="fas fa-archive text-danger"></i>
                                             </button>
+                                            @else
+                                            <button class="btn btn-sm btn-light rounded-pill unarchive-agent" 
+                                                    data-agent-id="{{ $agent->id }}"
+                                                    data-url="{{ route('agents.unarchive', $agent->id) }}"
+                                                    data-agent-name="{{ $agent->name.' '.$agent->prenom }}"
+                                                    data-bs-toggle="tooltip" title="Désarchiver">
+                                                <i class="fas fa-box-open text-success"></i>
+                                            </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -341,5 +373,199 @@
                     }
                 });
             @endif
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CSRF Token pour les requêtes AJAX
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+    }
+
+    // Voir les détails de l'agent
+    document.querySelectorAll('.view-agent').forEach(button => {
+        button.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            } else {
+                console.error('URL not found for view agent');
+            }
+        });
+    });
+
+    // Modifier l'agent
+    document.querySelectorAll('.edit-agent').forEach(button => {
+        button.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            } else {
+                console.error('URL not found for edit agent');
+            }
+        });
+    });
+
+    // Archiver un agent
+    document.querySelectorAll('.archive-agent').forEach(button => {
+        button.addEventListener('click', function() {
+            const agentId = this.getAttribute('data-agent-id');
+            const agentName = this.getAttribute('data-agent-name');
+            const url = this.getAttribute('data-url');
+            
+            Swal.fire({
+                title: 'Archiver l\'agent',
+                html: `Êtes-vous sûr de vouloir archiver <strong>${agentName}</strong> ?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, archiver',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed && url) {
+                    archiveAgent(url, agentName);
+                }
+            });
+        });
+    });
+
+    // Désarchiver un agent
+    document.querySelectorAll('.unarchive-agent').forEach(button => {
+        button.addEventListener('click', function() {
+            const agentId = this.getAttribute('data-agent-id');
+            const agentName = this.getAttribute('data-agent-name');
+            const url = this.getAttribute('data-url');
+            
+            Swal.fire({
+                title: 'Désarchiver l\'agent',
+                html: `Êtes-vous sûr de vouloir désarchiver <strong>${agentName}</strong> ?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1977cc',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Oui, désarchiver',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed && url) {
+                    unarchiveAgent(url, agentName);
+                }
+            });
+        });
+    });
+
+    // Fonction pour archiver un agent
+    function archiveAgent(url, agentName) {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Archivé !',
+                    text: `L'agent ${agentName} a été archivé avec succès.`,
+                    icon: 'success',
+                    confirmButtonColor: '#1977cc'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Erreur !',
+                    text: data.message || 'Une erreur est survenue lors de l\'archivage.',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Erreur !',
+                text: 'Une erreur est survenue lors de l\'archivage.',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+        });
+    }
+
+    // Fonction pour désarchiver un agent
+    function unarchiveAgent(url, agentName) {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Désarchivé !',
+                    text: `L'agent ${agentName} a été désarchivé avec succès.`,
+                    icon: 'success',
+                    confirmButtonColor: '#1977cc'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Erreur !',
+                    text: data.message || 'Une erreur est survenue lors du désarchivage.',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Erreur !',
+                text: 'Une erreur est survenue lors du désarchivage.',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+        });
+    }
+
+    // Recherche en temps réel
+    const searchInput = document.querySelector('input[type="text"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchText = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const textContent = row.textContent.toLowerCase();
+                if (textContent.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
 </script>
 @endsection
