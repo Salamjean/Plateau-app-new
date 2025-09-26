@@ -18,7 +18,7 @@ class EtatMariageController extends Controller
         $livraison = $request->input('livraison');
         
         // Construire la requête avec les filtres
-        $query = Mariage::where('commune', $etatCivil->commune);
+        $query = Mariage::where('commune', $etatCivil->communeM);
         
         if ($etat) {
             $query->where('etat', $etat);
