@@ -18,7 +18,7 @@ class EtatDecesController extends Controller
         $livraison = $request->input('livraison');
         
         // Construire la requête avec les filtres
-        $query = Deces::where('commune', $etatCivil->commune);
+        $query = Deces::where('commune', $etatCivil->communeM);
         
         if ($etat) {
             $query->where('etat', $etat);

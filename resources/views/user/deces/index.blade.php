@@ -165,7 +165,7 @@
 
                 <!-- Section Demandes pour tierce personne -->
                 <div>
-                    <h5 class="section-header">Mes demandes d'extraits de naissance</h5>
+                    <h5 class="section-header">Mes demandes d'extraits de décès</h5>
                     <div class="table-responsive">
                         <table class="table select-table">
                             <thead>

@@ -331,7 +331,7 @@
                                     @endif
                                 </td>
                                  <td>
-                                    <div class="fw-bold text-center">{{ $dece->agent->name }} {{ $dece->agent->prenom }}</div>
+                                    <div class="fw-bold text-center">{{ $dece->agent->name ?? "Non" }} {{ $dece->agent->prenom ?? " attribuer" }}</div>
                                 </td>
                             </tr>
                             @empty

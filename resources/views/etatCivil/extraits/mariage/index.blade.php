@@ -338,7 +338,7 @@
                                     @endif
                                 </td>
                                  <td>
-                                    <div class="fw-bold text-center">{{ $mariage->agent->name }} {{ $mariage->agent->prenom }}</div>
+                                    <div class="fw-bold text-center">{{ $mariage->agent->name ?? "Non" }} {{ $mariage->agent->prenom ?? "attribuer" }}</div>
                                 </td>
                             </tr>
                             @empty

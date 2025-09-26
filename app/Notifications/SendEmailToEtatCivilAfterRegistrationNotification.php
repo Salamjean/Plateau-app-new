@@ -22,7 +22,7 @@ class SendEmailToEtatCivilAfterRegistrationNotification extends Notification
     {
         $this->code = $codeToSend;
         $this->email = $sendToemail;
-        $this->logoUrl = asset('assetsHome/img/E-ci.jpg'); // URL du logo
+        $this->logoUrl = asset('assets/assets/img/logoplateau.png'); // URL du logo
     }
 
     /**

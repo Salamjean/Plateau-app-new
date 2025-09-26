@@ -351,12 +351,12 @@
                                     @endif
                                 </td>
                                  <td>
-                                    <div class="fw-bold text-center">{{ $naissance->agent->name }} {{ $naissance->agent->prenom }}</div>
+                                    <div class="fw-bold text-center">{{ $naissance->agent->name ?? "Non" }} {{ $naissance->agent->prenom ?? " attribuer"}}</div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="10" class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                     <h5 class="text-muted">Aucune demande trouvée</h5>
                                     <p class="text-muted">Aucune demande d'extrait de naissance n'a été enregistrée pour le moment.</p>
