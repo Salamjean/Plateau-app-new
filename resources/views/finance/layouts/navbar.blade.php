@@ -10,9 +10,9 @@
                   <span class="figure">
                         <img src="{{ optional(Auth::guard('finance')->user())->profile_picture 
                           ? asset('storage/' . Auth::guard('finance')->user()->profile_picture) 
-                          : asset('assets/images/profiles/useriii.jpeg') }}" alt="Logo Yopougon"  class="user" />
+                          : asset('assets/assets/img/logo plateau.png') }}" alt="Logo Yopougon"  class="user" />
                   </span>
-                  <span class="user-name"  style="color: white; font-size:20px; font-weight:bold">Respo : {{Auth::guard('finance')->user()->name_respo}} </span>
+                  <span class="user-name"  style="color: white; font-size:20px; font-weight:bold">{{Auth::guard('finance')->user()->name_respo}} </span>
                 </span>
               </button>
               <div class="mdc-menu mdc-menu-surface" tabindex="-1">
