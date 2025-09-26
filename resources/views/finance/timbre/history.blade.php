@@ -147,7 +147,7 @@
                                         </td>
                                         <td>
                                             <span class="seller">
-                                                {{ $operation->finance->name ?? 'Rechargement'}} {{ $operation->finance->prenom ?? '' }}
+                                                {{ $operation->comptable->name ?? 'Rechargement'}} {{ $operation->comptable->prenom ?? '' }}
                                             </span>
                                         </td>
                                     </tr>
