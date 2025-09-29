@@ -25,7 +25,7 @@
           @php
             $user = Auth::guard('admin')->user();
           @endphp
-          <img class="img-profile rounded-circle" src="{{ asset('assets/images/profiles/kks.jpeg') }}" 
+          <img class="img-profile rounded-circle" src="{{ asset('assets/assets/img/logo plateau.png') }}" 
                alt="Logo {{ $user->name }}">
           <span class="ml-2 d-none d-lg-inline text-white small">{{ $user->name }}</span>
       </a>

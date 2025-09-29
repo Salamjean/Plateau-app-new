@@ -295,7 +295,7 @@
 <div class="center-container">
     <div class="attribution-card">
         <div class="attribution-header">
-            <i class="fas fa-tasks mr-2"></i> Enregistrer les colis
+            <i class="fas fa-tasks mr-2"></i> Verifier les colis
         </div>
         
         <div class="attribution-body">
@@ -359,7 +359,7 @@
 
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-attribuer" style="cursor: pointer">
-                        <i class="fas fa-paper-plane mr-2" ></i> Enregistrer un colis à ma poste
+                        <i class="fas fa-paper-plane mr-2" ></i> Verifer un colis pour le service de livraison
                     </button>
                 </div>
             </form>

@@ -26,16 +26,15 @@ class AuthenticateAgent extends Controller
     {
         // Validation des données
         $validated = $request->validate([
-            'code' => 'required|exists:reset_code_password_agents,code',
-            'password' => 'required|same:confirme_password',
-            'confirme_password' => 'required|same:password',
-        ], [
-            'code.exists' => 'Le code de réinitialisation est invalide.',
-            'code.required' => 'Le code de réinitialisation est obligatoire. Veuillez vérifier votre email.',
-            'password.required' => 'Le mot de passe est obligatoire.',
-            'password.same' => 'Les mots de passe doivent être identiques.',
-            'confirme_password.same' => 'Les mots de passe doivent être identiques.',
-            'confirme_password.required' => 'Le mot de passe de confirmation est obligatoire.',
+                'code' => 'required|exists:reset_code_password_agents,code',
+                'password' => 'required|min:8|same:confirme_password',
+                'confirme_password' => 'required|min:8|same:password',
+                ], [
+                'code.exists' => 'Le code de réinitialisation est invalide.',
+                'password.min'=> 'Le mot de passe doit avoir au moins 8 caractères.',
+                'confirme_password.min'=> 'Le mot de passe doit avoir au moins 8 caractères.',
+                'password.same' => 'Les mots de passe doivent être identiques.',
+                'confirme_password.same' => 'Les mots de passe doivent être identiques.',
         ]);
 
         try {

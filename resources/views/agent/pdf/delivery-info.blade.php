@@ -114,7 +114,7 @@
             padding: 1mm 1.5mm;
         }
         .date-cell { width: 22%; text-align: center; font-size: 11pt; }
-        .dest-cell { width: 48%; }
+        .dest-cell { width: 48%; text-align: center; font-size: 10px;}
         .exp-cell  { width: 30%; }
 
         .sub-info {
@@ -242,13 +242,13 @@
                             <span style="font-size:8pt;">{{ $naissance->created_at->format('H:i') }}</span>
                         </td>
                         <td class="dest-cell" style="text-align: center">
-                            <span>Nom & prénoms :{{ $naissance->nom_destinataire ?? $naissance->user->name }} {{ $naissance->prenom_destinataire ?? $naissance->user->prenom }}</span><br>
-                            <span>Email :{{ $naissance->email_destinataire ?? $naissance->user->contact }}</span><br>
-                            <span>Contact :{{ $naissance->contact_destinataire ?? $naissance->user->contact }}</span><br>
-                            <span class="sub-info">Adresse :{{ $naissance->adresse_livraison ?? 'Adresse non spécifiée' }}</span><br>
-                            <span class="sub-info">Ville :{{ $naissance->ville ?? 'Ville non spécifiée' }}</span><br>
-                            <span class="sub-info">Quartier :{{ $naissance->quartier ?? 'quartier non spécifiée' }}</span><br>
-                            <span class="sub-info">Code Postal :{{ $naissance->code_postal ?? 'Code postal non spécifiée' }}</span><br>
+                            <span style="font-size: 13px">Nom & prénoms :{{ $naissance->nom_destinataire ?? $naissance->user->name }} {{ $naissance->prenom_destinataire ?? $naissance->user->prenom }}</span><br>
+                            <span style="font-size: 13px">Email :{{ $naissance->email_destinataire ?? $naissance->user->contact }}</span><br>
+                            <span style="font-size: 13px">Contact :{{ $naissance->contact_destinataire ?? $naissance->user->contact }}</span><br>
+                            <span style="font-size: 13px" class="sub-info">Adresse :{{ $naissance->adresse_livraison ?? 'Adresse non spécifiée' }}</span><br>
+                            <span style="font-size: 13px" class="sub-info">Ville :{{ $naissance->ville ?? 'Ville non spécifiée' }}</span><br>
+                            <span style="font-size: 13px" class="sub-info">Quartier :{{ $naissance->quartier ?? 'quartier non spécifiée' }}</span><br>
+                            <span style="font-size: 13px" class="sub-info">Code Postal :{{ $naissance->code_postal ?? 'Code postal non spécifiée' }}</span><br>
                         </td>
                         <td class="exp-cell" style="text-align: center">
                             <span>Service État Civil</span><br>

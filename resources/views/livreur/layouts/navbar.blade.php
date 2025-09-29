@@ -11,6 +11,7 @@
                     <img src="{{asset('assets/assets/img/logo plateau.png')}}" alt="user" class="user">
                   </span>
                   <span class="user-name text-white">{{Auth::guard('livreur')->user()->name.' '.Auth::guard('livreur')->user()->prenom}} </span>
+                  <span class="ml-2 text-white">&#9662;</span>
                 </span>
               </button>
               <div class="mdc-menu mdc-menu-surface" tabindex="-1">
@@ -41,3 +42,13 @@
           </div>
         </div>
       </header>
+      <style>
+        .mdc-menu-button .ml-2 {
+            font-size: 0.9rem; /* Ajustez la taille de la flèche ici */
+            transition: transform 0.3s ease; /* Pour une animation lors de l'ouverture */
+        }
+
+        .mdc-menu-button:focus .ml-2 {
+            transform: rotate(180deg); /* Optionnel : fait pivoter la flèche quand le menu est ouvert */
+        }
+      </style>

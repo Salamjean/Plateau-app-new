@@ -317,7 +317,7 @@
                 <i class="fas fa-truck fa-lg"></i>
             </div>
             <div class="stat-value">{{ $stats['en_cours'] }}</div>
-            <div class="stat-label">Livraisons en cours</div>
+            <div class="stat-label">Colis en cours de livraison</div>
         </div>
         
         <div class="stat-card secondary">

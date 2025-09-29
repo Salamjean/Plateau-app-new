@@ -117,10 +117,10 @@
         </div>
     </div>
     <div class="stats-container">
-        <div class="stat-card secondary" style="cursor: pointer;" id="availablePackagesCard">
+        {{-- <div class="stat-card secondary" style="cursor: pointer;" id="availablePackagesCard">
             <div class="stat-title">Total de colis disponibles dans les mairies</div>
             <div class="stat-value">{{ $stats['non_attribue'] }}</div>
-        </div>
+        </div> --}}
         <div class="stat-card ">
             <div class="stat-title">Livreur(s) disponible(s) </div>
             <div class="stat-value">{{ $livreurDispo }}</div>
@@ -129,11 +129,11 @@
             <div class="stat-title">Livreur(s) indisponible(s)</div>
             <div class="stat-value">{{ $livreurIndispo }}</div>
         </div>
-        <div class="stat-card ">
-    <div class="stat-title">Solde disponible</div>
-    <div class="stat-value">{{ number_format($soldeDisponible, 0, ',', ' ') }} FCFA</div>
-    <div class="stat-subtitle">Total des livraisons effectuées</div>
-</div>
+        {{-- <div class="stat-card ">
+            <div class="stat-title">Solde disponible</div>
+            <div class="stat-value">{{ number_format($soldeDisponible, 0, ',', ' ') }} FCFA</div>
+            <div class="stat-subtitle">Total des livraisons effectuées</div>
+        </div> --}}
     </div>
 
     <!-- Graphiques côte à côte -->

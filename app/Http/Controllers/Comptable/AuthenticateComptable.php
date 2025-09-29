@@ -26,10 +26,12 @@ class AuthenticateComptable extends Controller
         // Validation des données
         $request->validate([
                 'code'=>'required|exists:reset_code_password_comptables,code',
-                'password' => 'required|same:confirme_password',
-                'confirme_password' => 'required|same:password',
+                'password' => 'required|min:8|same:confirme_password',
+                'confirme_password' => 'required|min:8|same:password',
             ], [
                 'code.exists' => 'Le code de réinitialisation est invalide.',
+                'password.min'=> 'Le mot de passe doit avoir au moins 8 caractères.',
+                'confirme_password.min'=> 'Le mot de passe doit avoir au moins 8 caractères.',
                 'password.same' => 'Les mots de passe doivent être identiques.',
                 'confirme_password.same' => 'Les mots de passe doivent être identiques.',
         ]);

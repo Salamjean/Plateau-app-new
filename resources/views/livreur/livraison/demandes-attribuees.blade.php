@@ -196,6 +196,21 @@
         opacity: 0.8;
         background-color: #f8f9fa;
     }
+
+    #searchInput {
+    border: 1px solid var(--primary-color);
+    border-radius: 20px;
+    margin-left: 30px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #searchInput:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 5px rgba(30, 136, 229, 0.5);
+    }
 </style>
 <div class="container py-3">
     <div class="d-flex justify-content-between align-items-center mb-3" style="margin: 0 25px">
@@ -207,8 +222,11 @@
                 {{ $demandes->count() }} colis pas encore livré(s)
             </span>
         </div>
+        
+        <div class="d-flex mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un colis...">
+        </div>
     </div>
-    
     <div class="small-card-container">
         @if($demandes->isEmpty())
             <div class="empty-state-small">
@@ -444,6 +462,17 @@ $(document).ready(function() {
                     }
                 });
             }
+        });
+    });
+});
+</script>
+<script>
+$(document).ready(function() {
+    // Fonction de filtrage
+    $('#searchInput').on('keyup', function() {
+        var value = $(this).val().toLowerCase();
+        $('.small-demand-card').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
         });
     });
 });

@@ -71,6 +71,13 @@ class Livreur extends Authenticatable
         ];
     }
 
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at', // Ajouter pour SoftDeletes
+        'archived_at' // Si vous utilisez archived_at
+    ];
+
     public function archive()
     {
         $this->update(['archived_at' => now()]);

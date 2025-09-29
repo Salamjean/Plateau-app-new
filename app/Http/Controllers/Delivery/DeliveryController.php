@@ -29,6 +29,8 @@ class DeliveryController extends Controller
                     $query->where('livraison_id',Auth::guard('poste')->user()->id);
                 }
             ])
+            ->whereNull('archived_at')
+            ->where('disponible',true)
             ->get()
             ->map(function ($livreur) {
                 // Calcul du total des livraisons pour tous les modèles
@@ -48,13 +50,14 @@ class DeliveryController extends Controller
                 
                 return $livreur;
             });
+        $livreursArchives = Livreur::whereNotNull('archived_at')->count();
         
         // Calcul des totaux généraux
         $totalMontantLivraisons = $livreurs->sum('montant_total');
         $totalColisLivre = $livreurs->sum('total_livraisons');
         $totalSoldeDisponible = $livreurs->sum('solde_disponible');
         
-        return view('poste.livreur.index', compact('livreurs', 'totalMontantLivraisons', 'totalColisLivre', 'totalSoldeDisponible'));
+        return view('poste.livreur.index', compact('livreurs', 'totalMontantLivraisons', 'totalColisLivre', 'totalSoldeDisponible','livreursArchives'));
     }
     public function create(){
         return view('poste.livreur.create');
@@ -132,5 +135,71 @@ class DeliveryController extends Controller
        } catch (\Exception $e) {
            return redirect()->back()->withErrors(['error' => 'Une erreur est survenue : ' . $e->getMessage()]);
        }
+    }
+
+    public function edit($delivery)
+    {
+        $livreur = Livreur::findOrFail($delivery);
+        return view('poste.livreur.edit', compact('livreur'));
+    }
+
+    public function update(Request $request, $livreur)
+    {
+        $livreur = Livreur::findOrFail($livreur);
+        
+        // Validation des données
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'email' => 'required|email|unique:livreurs,email,' . $livreur->id,
+            'contact' => 'required|string|max:20',
+            'commune' => 'required|string|max:255',
+            'cas_urgence' => 'nullable|string|max:20',
+        ]);
+
+        try {
+            // Mise à jour du livreur
+            $livreur->update($validated);
+
+            return redirect()->route('delivery.index')
+                ->with('success', 'Livreur modifié avec succès');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Erreur lors de la modification du livreur: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+    // Archiver un livreur
+    public function archive(Livreur $livreur)
+    {
+        $livreur->update([
+            'archived_at' => now(),
+            'disponible' => false,
+        ]);
+        
+        return redirect()->route('delivery.index')
+            ->with('success', 'Livreur archivé avec succès');
+    }
+
+    // Restaurer un livreur
+    public function restore($id)
+    {
+        $livreur = Livreur::whereNotNull('archived_at')->findOrFail($id);
+        $livreur->update([
+            'archived_at' => null,
+            'disponible' => true,
+        ]);
+        
+        return redirect()->route('poste.livreur.archives')
+            ->with('success', 'Livreur restauré avec succès');
+    }
+
+    // Voir les archives
+    public function archives()
+    {
+        $livreurs = Livreur::whereNotNull('archived_at')->get();
+        
+        return view('poste.livreur.archives', compact('livreurs'));
     }
 }

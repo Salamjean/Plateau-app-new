@@ -81,7 +81,7 @@ class NaissanceController extends Controller
         $user = Auth::user();
 
         // Génération de la référence
-        $communeInitiale = strtoupper(substr($user->commune ?? 'X', 0, 1)); // 'X' si commune est null ou vide
+        $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1)); 
         $anneeCourante = Carbon::now()->year;
         $reference = 'AN' . str_pad(Naissance::getNextId(), 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
 
@@ -117,11 +117,11 @@ class NaissanceController extends Controller
         }
 
          $naissance->save();
-         $phoneNumber = $user->indicatif . $user->contact;
-    Log::info('Numéro de téléphone construit : ' . $phoneNumber);
-    $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie de {$user->commune}. Référence : {$naissance->reference}.
-Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-    $smsResult = $infobipService->sendSms($phoneNumber, $message);
+//          $phoneNumber = $user->indicatif . $user->contact;
+//     Log::info('Numéro de téléphone construit : ' . $phoneNumber);
+//     $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie de {$user->commune}. Référence : {$naissance->reference}.
+// Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+//     $smsResult = $infobipService->sendSms($phoneNumber, $message);
 
         return redirect()->route('user.extrait.index')->with('success', 'Votre demande a été traitée avec succès.');
     }

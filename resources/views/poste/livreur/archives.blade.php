@@ -1,5 +1,4 @@
 @extends('poste.layouts.template')
-
 @section('content')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -413,109 +412,42 @@
 </style>
 
 <div class="container-fluid">
-  <!-- Notifications SweetAlert -->
+  <!-- Notifications -->
   <div class="row" style="width:100%; justify-content:center">
-    @if (Session::get('success1'))
-      <script>
-        Swal.fire({
-          icon: 'success',
-          title: 'Suppression réussie',
-          text: '{{ Session::get('success1') }}',
-          showConfirmButton: true,
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'custom-swal-popup',
-            confirmButton: 'btn-swal-confirm'
-          }
-        });
-      </script>
-    @endif
-
     @if (Session::get('success'))
       <script>
         Swal.fire({
           icon: 'success',
-          title: 'Action réussie',
+          title: 'Succès',
           text: '{{ Session::get('success') }}',
           showConfirmButton: true,
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'custom-swal-popup',
-            confirmButton: 'btn-swal-confirm'
-          }
-        });
-      </script>
-    @endif
-
-    @if (Session::get('error'))
-      <script>
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: '{{ Session::get('error') }}',
-          showConfirmButton: true,
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'custom-swal-popup',
-            confirmButton: 'btn-swal-confirm'
-          }
+          confirmButtonText: 'OK'
         });
       </script>
     @endif
   </div>
 
-  <!-- En-tête de page -->
+  <!-- En-tête -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="page-title"><i class="fas fa-truck me-2"></i>Liste des livreurs</h1>
+    <h1 class="page-title"><i class="fas fa-archive me-2"></i>Livreurs archivés</h1>
+    <a href="{{ route('delivery.index') }}" class="btn btn-primary">
+      <i class="fas fa-arrow-left me-2"></i>Retour aux livreurs actifs
+    </a>
   </div>
 
-  <!-- Cartes de statistiques -->
-  <div class="stats-container">
-    <div class="stat-card">
-      <i class="fas fa-users stat-icon"></i>
-      <div class="stat-title">Total des livreurs</div>
-      <div class="stat-value">{{ $livreurs->count() }}</div>
-    </div>
-    
-    <div class="stat-card secondary">
-      <i class="fas fa-money-bill-wave stat-icon"></i>
-      <div class="stat-title">Total des livraisons</div>
-      <div class="stat-value">{{ number_format($totalMontantLivraisons, 0, ',', ' ') }} FCFA</div>
-    </div>
-    
-    <div class="stat-card">
-      <i class="fas fa-box stat-icon"></i>
-      <div class="stat-title">Colis livrés</div>
-      <div class="stat-value">{{ $totalColisLivre }}</div>
-    </div>
-
-    <div class="stat-card warning">
-      <i class="fas fa-archive stat-icon"></i>
-      <div class="stat-title">Livreurs archivés</div>
-      {{-- <div class="stat-value">0</div> --}}
-      <div class="stat-value">{{ $livreursArchives, 0 }}</div>
-  </div>
-{{-- 
-    <div class="stat-card success">
-      <i class="fas fa-wallet stat-icon"></i>
-      <div class="stat-title">Solde disponible total</div>
-      <div class="stat-value">{{ number_format($totalSoldeDisponible, 0, ',', ' ') }} FCFA</div>
-    </div> --}}
-  </div>
-
-  <!-- Tableau des livreurs -->
+  <!-- Tableau des livreurs archivés -->
   <div class="row">
     <div class="col-lg-12">
       <div class="card">
         <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-center">
-          <h6 class="m-0 font-weight-bold"><i class="fas fa-list me-2"></i>Gestion des livreurs</h6>
+          <h6 class="m-0 font-weight-bold"><i class="fas fa-archive me-2"></i>Liste des livreurs archivés</h6>
           <div class="search-box mt-2 mt-md-0">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput1" class="form-control" placeholder="Rechercher...">
+            <input type="text" id="searchInputArchives" class="form-control" placeholder="Rechercher...">
           </div>
         </div>
         <div class="table-responsive">
-          <table class="table align-items-center" id="dataTable1">
+          <table class="table align-items-center" id="dataTableArchives">
             <thead>
               <tr class="text-center">
                 <th class="text-center">Nom</th>
@@ -523,11 +455,8 @@
                 <th class="text-center">Email</th>
                 <th class="text-center">Contact</th>
                 <th class="text-center">Lieu de résidence</th>
-                <th class="text-center">En cas d'urgence</th>
-                <th class="text-center">Disponibilité</th>
-                {{-- <th class="text-center">Total Livraisons</th> --}}
-                <th class="text-center">Colis Livrés</th>
-                {{-- <th class="text-center">Solde Disponible</th> --}}
+                <th class="text-center">Date d'archivage</th>
+                <th class="text-center">Ancien statut</th>
                 <th class="text-center">Actions</th>
               </tr>
             </thead>
@@ -539,66 +468,47 @@
                   <td class="text-center">{{ $livreur->email }}</td>
                   <td class="text-center">{{ $livreur->contact }}</td>
                   <td class="text-center">{{ $livreur->commune }}</td>
-                  <td class="text-center">{{ $livreur->cas_urgence }}</td>
                   <td class="text-center">
-                      <span class="badge {{ $livreur->disponible ? 'badge-success' : 'badge-unavailable' }}">
-                          {{ $livreur->disponible ? 'Disponible' : 'Indisponible' }}
-                      </span>
-                  </td>
-                  {{-- <td class="text-center">
                     <span class="badge badge-info">
-                      {{ number_format($livreur->montant_total ?? 0, 0, ',', ' ') }} FCFA
-                    </span>
-                  </td> --}}
-                  <td class="text-center">
-                    <span class="badge badge-primary">
-                      {{ $livreur->total_livraisons ?? 0 }}
+                      {{ $livreur->archived_at}}
                     </span>
                   </td>
-                  {{-- <td class="text-center">
-                    <span class="badge {{ $livreur->solde_disponible > 0 ? 'badge-success' : 'badge-unavailable' }}">
-                      {{ number_format($livreur->solde_disponible ?? 0, 0, ',', ' ') }} FCFA
-                    </span>
-                  </td> --}}
                   <td class="text-center">
-                  <div class="d-flex justify-content-center">
-                     <!-- Bouton de versement -->
-                      {{-- <button class="action-btn payment-btn me-2" title="Faire un versement"
-                              @if($livreur->solde_disponible <= 0) style="opacity: 0.5; cursor: not-allowed;" @endif>
-                        <a href="{{ route('poste.livreur.versement', $livreur->id) }}" 
-                           @if($livreur->solde_disponible <= 0) onclick="return false;" @endif>
-                          <i class="fas fa-money-bill-wave"></i>
+                    <span class="badge {{ $livreur->disponible ? 'badge-success' : 'badge-unavailable' }}">
+                      {{ $livreur->disponible ? 'Disponible' : 'Indisponible' }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center">
+                      <!-- Bouton Voir les détails -->
+                      <button class="action-btn edit-btn me-2" title="Voir les détails">
+                        <a href="{{ route('poste.livreur.edit', $livreur->id) }}">
+                          <i class="fas fa-eye"></i>
                         </a>
-                      </button> --}}
-                    <!-- Bouton Modifier -->
-                    <button class="action-btn edit-btn me-2" title="Modifier">
-                      <a href="{{ route('poste.livreur.edit', $livreur->id) }}">
-                        <i class="fas fa-edit"></i>
-                      </a>
-                    </button>
-                    
-                    <!-- Bouton Archiver -->
-                    @if ($livreur->archived_at == null)
-                      <form action="{{ route('poste.livreur.archive', $livreur->id) }}" method="POST" class="d-inline">
+                      </button>
+                      
+                      <!-- Bouton Désarchiver -->
+                      <form action="{{ route('poste.livreur.restore', $livreur->id) }}" method="POST" class="d-inline">
                         @csrf
                         @method('PUT')
-                        <button type="button" class="action-btn archive-btn me-2" title="Archiver" 
-                          onclick="confirmArchive('{{ $livreur->id }}', '{{ $livreur->name }} {{ $livreur->prenom }}')">
-                          <i class="fas fa-archive"></i>
+                        <button type="button" class="action-btn restore-btn" title="Désarchiver" 
+                          onclick="confirmRestore('{{ $livreur->id }}', '{{ $livreur->name }} {{ $livreur->prenom }}')">
+                          <i class="fas fa-undo"></i>
                         </button>
                       </form>
-                    @endif
-                  </div>
-                </td>
-                 
+                    </div>
+                  </td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="9" class="text-center py-4">
-                    <div class="empty-state">
-                      <i class="fas fa-truck-loading"></i>
-                      <h5>Aucun livreur enregistré</h5>
-                      <p class="text-muted">Commencez par ajouter un nouveau livreur</p>
+                  <td colspan="8" class="text-center py-5">
+                    <div class="empty-archive">
+                      <i class="fas fa-archive"></i>
+                      <h4>Aucun livreur archivé</h4>
+                      <p class="text-muted">Tous vos livreurs sont actuellement actifs.</p>
+                      <a href="{{ route('delivery.index') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-users me-2"></i>Voir les livreurs actifs
+                      </a>
                     </div>
                   </td>
                 </tr>
@@ -612,38 +522,55 @@
 </div>
 
 <script>
- // Fonction de confirmation d'archivage
-  function confirmArchive(id, nomLivreur) {
-      Swal.fire({
-          title: 'Confirmer l\'archivage',
-          html: `Êtes-vous sûr de vouloir archiver le livreur <strong>${nomLivreur}</strong> ?<br><br>
-                <small class="text-muted">Le livreur sera désactivé mais conservé dans les archives.</small>`,
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#ffc107',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Oui, archiver',
-          cancelButtonText: 'Annuler',
-          customClass: {
-              popup: 'custom-swal-popup'
-          }
-      }).then((result) => {
-          if (result.isConfirmed) {
-              // Soumettre le formulaire d'archivage
-              document.querySelector(`form[action*="${id}"]`).submit();
-          }
-      });
+  // Fonction de confirmation de désarchivage
+  function confirmRestore(id, nomLivreur) {
+    Swal.fire({
+      title: 'Confirmer le désarchivage',
+      html: `Êtes-vous sûr de vouloir désarchiver le livreur <strong>${nomLivreur}</strong> ?<br><br>
+             <small class="text-muted">Le livreur redeviendra actif et pourra recevoir de nouvelles livraisons.</small>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Oui, désarchiver',
+      cancelButtonText: 'Annuler',
+      customClass: {
+        popup: 'custom-swal-popup'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Soumettre le formulaire de restauration
+        document.querySelector(`form[action*="${id}"]`).submit();
+      }
+    });
   }
 
-  // Fonction de recherche dans le tableau
-  document.getElementById('searchInput1').addEventListener('keyup', function() {
+  // Recherche dans le tableau des archives
+  document.getElementById('searchInputArchives').addEventListener('keyup', function() {
     const input = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#dataTable1 tbody tr');
+    const rows = document.querySelectorAll('#dataTableArchives tbody tr');
     
     rows.forEach(row => {
       const text = row.textContent.toLowerCase();
       row.style.display = text.includes(input) ? '' : 'none';
     });
+  });
+
+  // Tri par date d'archivage (optionnel)
+  document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('dataTableArchives');
+    if (table) {
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      rows.sort((a, b) => {
+        const dateA = new Date(a.cells[5].textContent);
+        const dateB = new Date(b.cells[5].textContent);
+        return dateB - dateA; // Du plus récent au plus ancien
+      });
+      
+      const tbody = table.querySelector('tbody');
+      tbody.innerHTML = '';
+      rows.forEach(row => tbody.appendChild(row));
+    }
   });
 </script>
 

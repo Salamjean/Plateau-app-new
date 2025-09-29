@@ -10,12 +10,13 @@
                   <span class="figure">
                     <img src="{{asset('assets/assets/img/logo plateau.png')}}" alt="user" class="user">
                   </span>
-                  <span class="user-name text-white"> {{Auth::guard('poste')->user()->name}} </span>
+                  <span class="user-name text-white"> {{Auth::guard('poste')->user()->name}}</span>
+                  <span class="ml-2 text-white">&#9662;</span>
                 </span>
               </button>
               <div class="mdc-menu mdc-menu-surface" tabindex="-1">
                 <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
-                  <li>
+                  {{-- <li>
                     <a href="" class="mdc-list-item" role="menuitem">
                       <div class="item-thumbnail item-thumbnail-icon-only">
                         <i class="mdi mdi-account-edit-outline text-primary"></i>
@@ -24,7 +25,7 @@
                         <h6 class="item-subject font-weight-normal">Edit profile</h6>
                       </div>
                     </a>
-                  </li>
+                  </li> --}}
                   <li>
                     <a href="{{route('post.logout')}}" class="mdc-list-item" role="menuitem">
                       <div class="item-thumbnail item-thumbnail-icon-only">
@@ -34,10 +35,20 @@
                         <h6 class="item-subject font-weight-normal">Déconnexion</h6>
                       </div>
                     </a>
-                  </li>
+                  </li> 
                 </ul>
               </div>
             </div>
           </div>
         </div>
       </header>
+      <style>
+        .mdc-menu-button .ml-2 {
+            font-size: 0.9rem; /* Ajustez la taille de la flèche ici */
+            transition: transform 0.3s ease; /* Pour une animation lors de l'ouverture */
+        }
+
+        .mdc-menu-button:focus .ml-2 {
+            transform: rotate(180deg); /* Optionnel : fait pivoter la flèche quand le menu est ouvert */
+        }
+      </style>

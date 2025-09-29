@@ -1,136 +1,353 @@
 @extends('admin.layouts.template')
-
 @section('content')
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <div class="container-fluid" id="container-wrapper">
-
-        <!-- Total des caisses -->
-        <div class="text-center mb-4">
-            <h2 class="font-semibold text-xl text-gray-800">
-                Informations sur la mairie du plateau <br>
-            </h2>
-        </div>
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Solde Fourni</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{  number_format($soldeActuel, 0, ',', ' ') }} FCFA</div>
-                        <i class="fas fa-money-bill fa-2x text-success"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Solde Débité</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{ number_format($soldeDebite, 0, ',', ' ') }} FCFA</div>
-                        <i class="fas fa-money-bill fa-2x text-danger"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Solde Restant</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{ number_format($soldeRestant, 0, ',', ' ') }} FCFA</div>
-                        <i class="fas fa-money-bill-wave fa-2x text-warning"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Nombre de demande</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{ $total }}</div>
-                        <i class="fas fa-list fa-2x text-primary"></i>
+<div class="container-fluid">
+    <!-- Section des statistiques principales -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card" style="background-color: #ffffff; border-left: 4px solid #6777ef;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-baby fa-2x" style="color: #6777ef;"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h5 class="card-title mb-0">{{ $naissance }}</h5>
+                            <span class="text-muted">Naissances</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Total de demandes d'extraits -->
-        <div class="text-center mb-4">
-            <h2 class="font-semibold text-xl text-gray-800">
-                Total de demande d'extrait effectuée
-            </h2>
-        </div>
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Naissances</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{ $naissance }}</div>
-                        <i class="fas fa-user fa-2x text-primary"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Décès</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{ $deces }}</div>
-                        <i class="fas fa-church fa-2x text-success"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Mariages</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{ $mariage }}</div>
-                        <i class="fas fa-ring fa-2x text-danger"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Total Demandes</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">{{ $naissance + $deces + $mariage }}</div>
-                        <i class="fas fa-list fa-2x text-warning"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card" style="background-color: #ffffff; border-left: 4px solid #6777ef;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-heart fa-2x" style="color: #6777ef;"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h5 class="card-title mb-0">{{ $mariage }}</h5>
+                            <span class="text-muted">Mariages</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Total des Personnels Inscrits dans les Mairies -->
-        <div class="text-center mb-4">
-            <h2 class="font-semibold text-xl text-gray-800">
-                Total des personnels inscrits dans toutes les mairies
-            </h2>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card" style="background-color: #ffffff; border-left: 4px solid #6777ef;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-cross fa-2x" style="color: #6777ef;"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h5 class="card-title mb-0">{{ $deces }}</h5>
+                            <span class="text-muted">Décès</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="row mb-4">
-            <div class="col-xl-4 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Agents d'etat civil</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">0</div>
-                        <i class="fas fa-users fa-2x text-primary"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">agent financier</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">0</div>
-                        <i class="fas fa-cash-register fa-2x text-success"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 col-md-6 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5 class="text-xl font-weight-bold text-uppercase mb-4">Agent de déclaration</h5>
-                        <div class="h2 mb-0 font-weight-bold text-gray-800">0</div>
-                        <i class="fas fa-user-md fa-2x text-primary"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card" style="background-color: #ffffff; border-left: 4px solid #6777ef;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-city fa-2x" style="color: #6777ef;"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h5 class="card-title mb-0">{{ $mairie }}</h5>
+                            <span class="text-muted">Mairies actives</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Section des statistiques financières - Modifiée pour 4 cartes -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
+            <div class="card-body text-center">
+                <h5 class="card-title">Solde Actuel</h5>
+                <h3 class="text-primary" style="color: #6777ef !important;">{{ number_format($soldeActuel, 0, ',', ' ') }} FCFA</h3>
+                <p class="text-muted">Total des fonds disponibles</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
+            <div class="card-body text-center">
+                <h5 class="card-title">Déductions</h5>
+                <h3 class="text-danger">{{ number_format($soldeDebite, 0, ',', ' ') }} FCFA</h3>
+                <p class="text-muted">Total des déductions pour demandes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
+            <div class="card-body text-center">
+                <h5 class="card-title">Solde Restant</h5>
+                <h3 class="text-success">{{ number_format($soldeRestant, 0, ',', ' ') }} FCFA</h3>
+                <p class="text-muted">Solde après déductions</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nouvelle ligne pour le solde total des livraisons -->
+<div class="row mt-3">
+    
+    <div class="col-md-6">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
+            <div class="card-body text-center">
+                <h5 class="card-title">Livraisons - Ce Mois</h5>
+                <h3 class="text-info">{{ number_format($soldeMoisEnCours, 0, ',', ' ') }} FCFA</h3>
+                <p class="text-muted">Solde du mois en cours</p>
+                <!-- Bouton pour télécharger les rapports -->
+                <button type="button" class="btn btn-primary mt-2" style="background-color: #6777ef; border-color: #6777ef;" data-toggle="modal" data-target="#rapportModal">
+                    <i class="fas fa-download mr-2"></i>Télécharger Rapport
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #28a745;">
+            <div class="card-body text-center">
+                <h5 class="card-title">Solde Total des Livraisons</h5>
+                <h3 class="text-success">{{ number_format($soldeDisponible, 0, ',', ' ') }} FCFA</h3>
+                <p class="text-muted">Montant total encaissé sur toutes les livraisons</p>
+                 <!-- Bouton pour télécharger les rapports -->
+                <button type="button" class="btn btn-primary mt-2" style="background-color: #6777ef; border-color: #6777ef;" data-toggle="modal" data-target="#rapportModal">
+                    <i class="fas fa-download mr-2"></i>Télécharger Rapport
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Modal pour le téléchargement des rapports -->
+    <div class="modal fade" id="rapportModal" tabindex="-1" role="dialog" aria-labelledby="rapportModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #6777ef; color: white;">
+                    <h5 class="modal-title" id="rapportModalLabel">Télécharger Rapport des Livraisons</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" style="color: white;">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="rapportForm" action="{{ route('admin.rapports.download') }}" method="GET">
+                        <div class="form-group">
+                            <label for="annee">Année</label>
+                            <select class="form-control" id="annee" name="annee" required>
+                                <option value="">Sélectionner l'année</option>
+                                @for($i = date('Y'); $i >= 2020; $i--)
+                                    <option value="{{ $i }}" {{ $i == date('Y') ? 'selected' : '' }}>{{ $i }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mois">Mois</label>
+                            <select class="form-control" id="mois" name="mois" required>
+                                <option value="">Sélectionner le mois</option>
+                                <option value="01">Janvier</option>
+                                <option value="02">Février</option>
+                                <option value="03">Mars</option>
+                                <option value="04">Avril</option>
+                                <option value="05">Mai</option>
+                                <option value="06">Juin</option>
+                                <option value="07">Juillet</option>
+                                <option value="08">Août</option>
+                                <option value="09">Septembre</option>
+                                <option value="10">Octobre</option>
+                                <option value="11">Novembre</option>
+                                <option value="12">Décembre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="type_rapport">Type de Rapport</label>
+                            <select class="form-control" id="type_rapport" name="type_rapport" required>
+                                <option value="excel">Excel</option>
+                                <option value="pdf">PDF</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" style="background-color: #6777ef; border-color: #6777ef;" onclick="document.getElementById('rapportForm').submit();">
+                        <i class="fas fa-download mr-2"></i>Télécharger
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des statistiques de livraison -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card" style="background-color: #ffffff;">
+                <div class="card-header" style="background-color: #6777ef; color: white;">
+                    <h5 class="mb-0">Statistiques de Livraison</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3>{{ $total }}</h3>
+                                <p class="mb-0">Total des demandes</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3>{{ $stats['en_attente'] ?? 0 }}</h3>
+                                <p class="mb-0">En attente</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3>{{ $stats['en_cours'] ?? 0 }}</h3>
+                                <p class="mb-0">En cours</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3>{{ $stats['livre'] ?? 0 }}</h3>
+                                <p class="mb-0">Livrées</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des activités récentes -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card" style="background-color: #ffffff;">
+                <div class="card-header" style="background-color: #6777ef; color: white;">
+                    <h5 class="mb-0">Activités Récentes</h5>
+                </div>
+                <div class="card-body">
+                    @if($activites && $activites->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Utilisateur</th>
+                                        <th>Statut à la mairie</th>
+                                        <th>Statut de livraison</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($activites->take(5) as $activite)
+                                        <tr>
+                                            <td class="text-center">{{ $activite->type }}</td>
+                                            <td class="text-center">{{ $activite->created_at->format('d/m/Y H:i') }}</td>
+                                            <td class="text-center">{{ $activite->user->name.' '.$activite->user->prenom ?? 'N/A' }}</td>
+                                            <td class="text-center">
+                                                @if(isset($activite->etat ))
+                                                    <span class="badge 
+                                                        @if($activite->etat == 'terminé') badge-success
+                                                        @elseif($activite->etat == 'réçu') badge-warning
+                                                        @elseif($activite->etat == 'en attente') badge-info
+                                                        @else badge-secondary @endif">
+                                                        {{ $activite->etat  }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge badge-secondary">En attente</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                @if(isset($activite->statut_livraison ))
+                                                    <span class="badge 
+                                                        @if($activite->statut_livraison == 'livré') badge-success
+                                                        @elseif($activite->statut_livraison == 'en cours') badge-warning
+                                                        @elseif($activite->statut_livraison == 'en attente') badge-info
+                                                        @else badge-secondary @endif">
+                                                        {{ $activite->statut_livraison  }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge badge-secondary">En attente de livraison</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-center text-muted">Aucune activité récente</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(103, 119, 239, 0.1);
+    }
+    
+    .card-header {
+        border-radius: 8px 8px 0 0 !important;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .badge-success { background-color: #28a745; color: white; }
+    .badge-warning { background-color: #ffc107; color: black; }
+    .badge-info { background-color: #17a2b8; color: white; }
+    .badge-secondary { background-color: #6c757d; color: white; }
+    
+    .btn-primary {
+        background-color: #6777ef;
+        border-color: #6777ef;
+    }
+    
+    .btn-primary:hover {
+        background-color: #5a6ae0;
+        border-color: #5a6ae0;
+    }
+</style>
+
+<!-- Inclure Font Awesome pour les icônes -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<!-- Inclure Bootstrap JS pour le modal -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Script pour pré-remplir le mois actuel
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+        document.getElementById('mois').value = currentMonth;
+    });
+</script>
 @endsection

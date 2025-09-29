@@ -20,7 +20,7 @@
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-drawer-link" href="{{route('livraison.create')}}">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">save</i>
-               Enregistrer les colis
+               Verifier les colis 
               </a>
             </div>
             <div class="mdc-list-item mdc-drawer-item">
@@ -51,6 +51,11 @@
                   <div class="mdc-list-item mdc-drawer-item">
                     <a class="mdc-drawer-link" href="{{route('delivery.index')}}">
                       Liste des livreurs
+                    </a>
+                  </div>
+                  <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{{route('poste.livreur.archives')}}">
+                      Livreur archivé
                     </a>
                   </div>
                 </nav>

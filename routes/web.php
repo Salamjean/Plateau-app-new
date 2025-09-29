@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminDashboard;
 use App\Http\Controllers\Admin\AuthenticateAdmin;
+use App\Http\Controllers\Admin\Extrait\AdminExtraitController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\Agent\AgentDashboard;
 use App\Http\Controllers\Agent\AuthenticateAgent;
@@ -78,7 +79,15 @@ Route::prefix('admin')->group(function () {
 
 Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminDashboard::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/admin/rapports/download', [AdminDashboard::class, 'downloadRapport'])->name('admin.rapports.download');
     Route::get('/logout', [AdminDashboard::class, 'logout'])->name('admin.logout');
+
+    //Les routes pouvoir les demandes effectuées 
+    Route::prefix('request')->group(function(){
+        Route::get('/birth',[AdminExtraitController::class,'birth'])->name('admin.birth');
+        Route::get('/death',[AdminExtraitController::class,'death'])->name('admin.death');
+        Route::get('/wedding',[AdminExtraitController::class,'mariage'])->name('admin.mariage');
+    });
 
 
     //Les routes de gestion de la mairie par l'admin
@@ -300,9 +309,11 @@ Route::middleware('comptable')->prefix('accounting')->group(function(){
                 Route::get('/index',[DeliveryController::class, 'index'])->name('delivery.index');
                 Route::get('/create',[DeliveryController::class, 'create'])->name('delivery.create');
                 Route::post('/create',[DeliveryController::class, 'store'])->name('delivery.store');
-                Route::get('/edit/{delivery}',[DeliveryController::class, 'edit'])->name('delivery.edit');
-                Route::put('/edit/{delivery}',[DeliveryController::class, 'update'])->name('delivery.update');
-                Route::delete('/delete/{delivery}',[DeliveryController::class, 'delete'])->name('delivery.delete');
+                Route::get('/edit/{livreur}', [DeliveryController::class, 'edit'])->name('poste.livreur.edit');
+                Route::put('/{livreur}', [DeliveryController::class, 'update'])->name('poste.livreur.update');
+                Route::put('/{livreur}/archive', [DeliveryController::class, 'archive'])->name('poste.livreur.archive');
+                Route::put('/{livreur}/restore', [DeliveryController::class, 'restore'])->name('poste.livreur.restore');
+                Route::get('/archives', [DeliveryController::class, 'archives'])->name('poste.livreur.archives');
 
                 Route::get('/livreur/{livreur}/versement', [DeliveryVersement::class, 'versement'])->name('poste.livreur.versement');
                 Route::post('/livreur/{livreur}/versement', [DeliveryVersement::class, 'processVersement'])->name('poste.livreur.versement.process');
