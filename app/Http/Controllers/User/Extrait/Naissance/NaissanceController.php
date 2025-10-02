@@ -60,20 +60,22 @@ class NaissanceController extends Controller
         Log::info('Store method called', $request->all());
 
         // Configuration des chemins pour le stockage des fichiers
-        $imageBaseLink = '/images/naissances/';
         $filesToUpload = [
             'CNI' => 'cni/',
         ];
         $uploadedPaths = [];
 
-        // Traitement des fichiers uploadés
         foreach ($filesToUpload as $fileKey => $subDir) {
             if ($request->hasFile($fileKey)) {
                 $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
-                $file->storeAs("public/images/naissances/$subDir", $newFileName);
-                $uploadedPaths[$fileKey] = $imageBaseLink . "$subDir" . $newFileName;
+                
+                // Stockage avec le disque 'public' explicitement
+                $file->storeAs("images/naissances/$subDir", $newFileName, 'public');
+                
+                // Même format que mariage (sans 'storage/' au début)
+                $uploadedPaths[$fileKey] = "images/naissances/$subDir$newFileName";
             }
         }
 

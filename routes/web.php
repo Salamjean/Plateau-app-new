@@ -385,6 +385,7 @@ Route::middleware('auth')->prefix('user')->group(function(){
     Route::get('/create/wedding', [MariageController::class, 'create'])->name('user.extrait.mariage.create');
     Route::post('/create/wedding', [MariageController::class, 'store'])->name('user.extrait.mariage.store');
     Route::get('/wedding/delete/{mariage}', [MariageController::class, 'delete'])->name('user.extrait.mariage.delete');
+    
 
     //Les routes pour prendre un rendez-vous de mariage
     Route::get('/rendezvous/index', [RendezVousController::class, 'index'])->name('user.rendezvous.index');

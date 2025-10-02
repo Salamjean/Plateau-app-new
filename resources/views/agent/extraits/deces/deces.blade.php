@@ -576,6 +576,7 @@
                     @else
                       <img src="{{ $CNIPath }}"
                         alt="CNI" 
+                        style="width: 40px; height:40px"
                         class="document-preview"
                         data-bs-toggle="modal" 
                         data-bs-target="#imageModal" 
@@ -597,6 +598,7 @@
                     @else
                       <img src="{{ $CNIdclPath }}"
                         alt="CNIdcl" 
+                        style="width: 40px; height:40px"
                         class="document-preview"
                         data-bs-toggle="modal" 
                         data-bs-target="#imageModal" 
@@ -619,6 +621,7 @@
                     @else
                         <img src="{{ $documentMariagePath }}"
                             alt="documentMariage" 
+                            style="width: 40px; height:40px"
                             class="document-preview"
                             data-bs-toggle="modal" 
                             data-bs-target="#imageModal" 
@@ -639,6 +642,7 @@
                     @else
                         <img src="{{ $RequisPolicePath }}"
                             alt="RequisPolice" 
+                            style="width: 40px; height:40px"
                             class="document-preview"
                             data-bs-toggle="modal" 
                             data-bs-target="#imageModal" 
@@ -682,7 +686,7 @@
               </tr>
             @empty
               <tr>
-                <td style="text-align: center" colspan="9" class="empty-state">
+                <td style="text-align: center" colspan="10" class="empty-state">
                   <i class="fas fa-cross"></i>
                   <h5>Aucune demande d'extrait de deces en cours</h5>
                   <p>Toutes les demandes sont traitées ou vous n'avez pas encore récuperer demande.</p>

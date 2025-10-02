@@ -7,8 +7,10 @@ use App\Http\Requests\saveMariageRequest;
 use App\Models\Mariage;
 use App\Services\InfobipService;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class MariageController extends Controller
@@ -51,25 +53,24 @@ class MariageController extends Controller
 
     public function store(saveMariageRequest $request, InfobipService $infobipService)
     {
-        $imageBaseLink = '/images/mariages/';
-
-        // Liste des fichiers à traiter
-        $filesToUpload = [
-            'pieceIdentite' => 'identite/',
-            'extraitMariage' => 'extrait/', // Si ce fichier est présent
+         $filesToUpload = [
+            'pieceIdentite' => 'identite',
+            'extraitMariage' => 'extrait',
         ];
 
-        $uploadedPaths = []; // Contiendra les chemins des fichiers uploadés
+        $uploadedPaths = [];
 
         foreach ($filesToUpload as $fileKey => $subDir) {
             if ($request->hasFile($fileKey)) {
                 $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
-                $file->storeAs("public/images/mariages/$subDir", $newFileName);
-
-                // Ajouter le chemin public à $uploadedPaths
-                $uploadedPaths[$fileKey] = $imageBaseLink . "$subDir" . $newFileName;
+                
+                // Stockage avec le disque 'public' explicitement
+                $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
+                
+                // Chemin pour la base de données
+                $uploadedPaths[$fileKey] = "images/mariages/$subDir/$newFileName";
             }
         }
 
@@ -115,11 +116,24 @@ class MariageController extends Controller
         }
 
         $mariage->save();
-        $phoneNumber = $user->indicatif . $user->contact;
-        $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie de {$user->commune}. Référence: {$mariage->reference}.
-Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-        $infobipService->sendSms($phoneNumber, $message);
+//         $phoneNumber = $user->indicatif . $user->contact;
+//         $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie de {$user->commune}. Référence: {$mariage->reference}.
+// Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+//         $infobipService->sendSms($phoneNumber, $message);
 
         return redirect()->route('user.extrait.mariage.index')->with('success', 'Votre demande a été traitée avec succès.');
+    }
+
+    public function delete(Mariage $mariage)
+    {
+        try {
+            $mariage->delete();
+            return redirect()->route('user.extrait.mariage.index')->with('success', 'La demande a été supprimée avec succès.');
+        } catch (Exception $e) {
+            // Log l'erreur pour le débogage
+            Log::error('Erreur lors de la suppression de la demande : ' . $e->getMessage());
+            // Rediriger avec un message d'erreur
+            return redirect()->route('user.extrait.mariage.index')->with('error1', 'Une erreur est survenue lors de la suppression de la demande.');
+        }
     }
 }

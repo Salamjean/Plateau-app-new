@@ -49,30 +49,27 @@ class DecesController extends Controller
             'CNIdfnt.mimes' => 'Cet document doit être un format de fichier valide (png, jpg, jpeg, pdf).',
         ]);
 
-        $imageBaseLink = '/images/deces/';
-
-        // Liste des fichiers à traiter
         $filesToUpload = [
             'pActe' => '', // Pas de sous-dossier
-            'CNIdfnt' => 'cnid/', // Sous-dossier pour CNIdfnt
-            'CNIdcl' => 'cnid/', // Sous-dossier pour CNIdcl
-            'documentMariage' => 'mariage/', // Sous-dossier pour documentMariage
-            'RequisPolice' => 'police/', // Sous-dossier pour RequisPolice
+            'CNIdfnt' => 'cnid', 
+            'CNIdcl' => 'cnid',
+            'documentMariage' => 'mariage',
+            'RequisPolice' => 'police',
         ];
 
-        $uploadedPaths = []; // Contiendra les chemins des fichiers uploadés
+        $uploadedPaths = [];
 
         foreach ($filesToUpload as $fileKey => $subDir) {
             if ($request->hasFile($fileKey)) {
                 $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
-
-                // Stocker le fichier dans le bon sous-dossier
-                $file->storeAs("public/images/deces/$subDir", $newFileName);
-
-                // Ajouter le chemin public à $uploadedPaths
-                $uploadedPaths[$fileKey] = $imageBaseLink . "$subDir" . $newFileName;
+                
+                // Stockage avec le disque 'public'
+                $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
+                
+                // Même format que naissance/mariage
+                $uploadedPaths[$fileKey] = "images/deces/$subDir/$newFileName";
             }
         }
 

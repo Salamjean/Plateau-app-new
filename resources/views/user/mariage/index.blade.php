@@ -284,30 +284,34 @@
                                 <td class="d-none-tablet">
                                     {{ $mariage->nomEpoux ?: 'N/A' }} {{ $mariage->prenomEpoux ?: '' }}
                                 </td>
-                                <td>
+                               <td>
                                     <div class="d-flex justify-content-center gap-2">
-                                        @if (pathinfo($mariage->pieceIdentite, PATHINFO_EXTENSION) === 'pdf')
-                                            <a href="{{ asset('storage/' . $mariage->pieceIdentite) }}" target="_blank" title="Pièce d'identité (PDF)">
-                                                <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
-                                            </a>
-                                        @else
-                                            <img src="{{ asset('storage/' . $mariage->pieceIdentite) }}" 
-                                                alt="Pièce d'identité" 
-                                                class="document-preview"
-                                                onclick="showImage(this)"
-                                                title="Pièce d'identité">
+                                        @if ($mariage->pieceIdentite)
+                                            @if (pathinfo($mariage->pieceIdentite, PATHINFO_EXTENSION) === 'pdf')
+                                                <a href="{{ asset('storage/' . $mariage->pieceIdentite) }}" target="_blank" title="Pièce d'identité (PDF)">
+                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                </a>
+                                            @else
+                                                <img src="{{ asset('storage/' . $mariage->pieceIdentite) }}" 
+                                                    alt="Pièce d'identité" 
+                                                    class="document-preview"
+                                                    onclick="showImage(this)"
+                                                    title="Pièce d'identité">
+                                            @endif
                                         @endif
 
-                                        @if (pathinfo($mariage->extraitMariage, PATHINFO_EXTENSION) === 'pdf')
-                                            <a href="{{ asset('storage/' . $mariage->extraitMariage) }}" target="_blank" title="Extrait (PDF)">
-                                                <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
-                                            </a>
-                                        @else
-                                            <img src="{{ asset('storage/' . $mariage->extraitMariage) }}" 
-                                                alt="Extrait de mariage" 
-                                                class="document-preview"
-                                                onclick="showImage(this)"
-                                                title="Extrait de mariage">
+                                        @if ($mariage->extraitMariage)
+                                            @if (pathinfo($mariage->extraitMariage, PATHINFO_EXTENSION) === 'pdf')
+                                                <a href="{{ asset('storage/' . $mariage->extraitMariage) }}" target="_blank" title="Extrait (PDF)">
+                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                </a>
+                                            @else
+                                                <img src="{{ asset('storage/' . $mariage->extraitMariage) }}" 
+                                                    alt="Extrait de mariage" 
+                                                    class="document-preview"
+                                                    onclick="showImage(this)"
+                                                    title="Extrait de mariage">
+                                            @endif
                                         @endif
                                     </div>
                                 </td>

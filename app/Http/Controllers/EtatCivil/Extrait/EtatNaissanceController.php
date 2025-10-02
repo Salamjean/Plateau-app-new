@@ -18,7 +18,7 @@ class EtatNaissanceController extends Controller
         $livraison = $request->input('livraison');
         
         // Construire la requête avec les filtres
-        $query = Naissance::where('commune', $etatCivil->commune);
+        $query = Naissance::where('commune', $etatCivil->communeM);
         
         if ($etat) {
             $query->where('etat', $etat);

@@ -384,6 +384,30 @@
     color: white;
   }
 
+  /* Styles pour les aperçus de documents */
+  .document-preview {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid #eee;
+    margin: 2px;
+  }
+
+  .document-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .document-container {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
   @media (max-width: 768px) {
     .dashboard-container {
       padding: 15px;
@@ -517,11 +541,11 @@
             </tr>
           </thead>
           <tbody>
-            @forelse ($mariages as $naissance)
+            @forelse ($mariages as $mariage)
               <tr>
                 <td style="text-align: center">
-                  @if($naissance->choix_option == 'livraison' && $naissance->etat == 'terminé')
-                    <button class="download-btn" onclick="showDeliveryInfo({{ json_encode($naissance) }})">
+                  @if($mariage->choix_option == 'livraison' && $mariage->etat == 'terminé')
+                    <button class="download-btn" onclick="showDeliveryInfo({{ json_encode($mariage) }})">
                       <i class="fas fa-download me-1"></i>Télécharger
                     </button>
                   @else
@@ -531,104 +555,83 @@
                 <td style="text-align: center" data-label="Demandeur">
                   <div class="user-info" style="text-align: center; display:flex; justify-content:center">
                     <div class="user-avatar" style="text-align: center">
-                      {{ substr($naissance->user->name, 0, 1).''.substr($naissance->user->prenom, 0, 1) }}
+                      {{ substr($mariage->user->name, 0, 1).''.substr($mariage->user->prenom, 0, 1) }}
                     </div>
                     <div class="user-details">
-                      <div class="user-name">{{ $naissance->user->name.' '.$naissance->user->prenom }} </div>
-                      <div class="user-email">{{ $naissance->user->contact }}</div>
-                      <div class="user-email">{{ $naissance->user->email }}</div>
+                      <div class="user-name">{{ $mariage->user->name.' '.$mariage->user->prenom }} </div>
+                      <div class="user-email">{{ $mariage->user->contact }}</div>
+                      <div class="user-email">{{ $mariage->user->email }}</div>
                     </div>
                   </div>
                 </td>
-                <td style="text-align: center" data-label="Demandeur">
+                <td style="text-align: center" data-label="Conjoint(e)">
                   <div class="user-info" style="text-align: center; display:flex; justify-content:center">
                     <div class="user-details">
-                      <div class="user-name">{{ $naissance->nomEpoux == null ?  'Copie Simple' : $naissance->nomEpoux  }}</div>
-                      <div class="user-name">{{ $naissance->prenomEpoux == null ?  'Copie Simple' : $naissance->prenomEpoux }}</div>
-                      <div class="user-email">{{ $naissance->dateNaissanceEpoux == null ?  'Copie Simple' : $naissance->dateNaissanceEpoux  }}</div>
-                      <div class="user-email">{{ $naissance->lieuNaissanceEpoux == null ?  'Copie Simple' : $naissance->lieuNaissanceEpoux  }}</div>
+                      <div class="user-name">{{ $mariage->nomEpoux == null ?  'Copie Simple' : $mariage->nomEpoux  }}</div>
+                      <div class="user-name">{{ $mariage->prenomEpoux == null ?  'Copie Simple' : $mariage->prenomEpoux }}</div>
+                      <div class="user-email">{{ $mariage->dateNaissanceEpoux == null ?  'Copie Simple' : $mariage->dateNaissanceEpoux  }}</div>
+                      <div class="user-email">{{ $mariage->lieuNaissanceEpoux == null ?  'Copie Simple' : $mariage->lieuNaissanceEpoux  }}</div>
                     </div>
                   </div>
                 </td>
-                <td style="text-align: center">
-                  @if($naissance->pieceIdentite)
-                    @php
-                      $CNIPath = asset('storage/' . $naissance->pieceIdentite);
-                      $isCNIPdf = strtolower(pathinfo($CNIPath, PATHINFO_EXTENSION)) === 'pdf';
-                    @endphp
-                    @if ($isCNIPdf)
-                      <a href="{{ $CNIPath }}" target="_blank" class="document-preview">
-                        <img src="{{ asset('assets/assets/img/pdf.jpg') }}" style="width: 40px" alt="PDF" class="document-preview">
-                      </a>
-                    @else
-                      <img src="{{ $CNIPath }}"
-                        alt="CNI" 
-                        class="document-preview"
-                        data-bs-toggle="modal" 
-                        data-bs-target="#imageModal" 
-                        onclick="showImage(this)" 
-                        onerror="this.onerror=null; this.src='{{ asset('assets/images/profiles/bébé.jpg') }}'">
-                    @endif
-                  @else
-                    <span class="badge bg-secondary">N/A</span>
-                  @endif
-                  @if($naissance->extraitMariage)
-                    @php
-                      $extraitMariagePath = asset('storage/' . $naissance->extraitMariage);
-                      $isextraitMariagePdf = strtolower(pathinfo($extraitMariagePath, PATHINFO_EXTENSION)) === 'pdf';
-                    @endphp
-                    @if ($isextraitMariagePdf)
-                      <a href="{{ $extraitMariagePath }}" target="_blank" class="document-preview">
-                        <img src="{{ asset('assets/assets/img/pdf.jpg') }}" style="width: 40px" alt="PDF" class="document-preview">
-                      </a>
-                    @else
-                      <img src="{{ $extraitMariagePath }}"
-                        alt="extraitMariage" 
-                        class="document-preview"
-                        data-bs-toggle="modal" 
-                        data-bs-target="#imageModal" 
-                        onclick="showImage(this)" 
-                        onerror="this.onerror=null; this.src='{{ asset('assets/images/profiles/bébé.jpg') }}'">
-                    @endif
-                  @else
-                    <span class="badge bg-secondary">N/A</span>
-                  @endif
-                </td>
-                <td style="text-align: center" data-label="Date demande">{{ $naissance->created_at->format('d/m/Y H:i') }}</td>
-                {{-- <td style="text-align: center" data-label="Type">
-                  @if($naissance->type == 'simple')
-                    <span class="badge-status badge-pending">Copie Simple</span>
-                  @else
-                    <span class="badge-status badge-completed">Copie Integrale</span>
-                  @endif
-                </td> --}}
-                
+                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        @if ($mariage->pieceIdentite)
+                                            @if (pathinfo($mariage->pieceIdentite, PATHINFO_EXTENSION) === 'pdf')
+                                                <a href="{{ asset('storage/' . $mariage->pieceIdentite) }}" target="_blank" title="Pièce d'identité (PDF)">
+                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                </a>
+                                            @else
+                                                <img src="{{ asset('storage/' . $mariage->pieceIdentite) }}" 
+                                                    alt="Pièce d'identité" 
+                                                    class="document-preview"
+                                                    onclick="showImage(this)"
+                                                    title="Pièce d'identité">
+                                            @endif
+                                        @endif
+
+                                        @if ($mariage->extraitMariage)
+                                            @if (pathinfo($mariage->extraitMariage, PATHINFO_EXTENSION) === 'pdf')
+                                                <a href="{{ asset('storage/' . $mariage->extraitMariage) }}" target="_blank" title="Extrait (PDF)">
+                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                </a>
+                                            @else
+                                                <img src="{{ asset('storage/' . $mariage->extraitMariage) }}" 
+                                                    alt="Extrait de mariage" 
+                                                    class="document-preview"
+                                                    onclick="showImage(this)"
+                                                    title="Extrait de mariage">
+                                            @endif
+                                        @endif
+                                    </div>
+                                </td>
+                <td style="text-align: center" data-label="Date demande">{{ $mariage->created_at->format('d/m/Y H:i') }}</td>
                 <td style="text-align: center" data-label="Statut">
-                  @if($naissance->etat == 'en attente')
+                  @if($mariage->etat == 'en attente')
                     <span class="badge-status badge-pending">En attente</span>
-                  @elseif($naissance->etat == 'réçu')
+                  @elseif($mariage->etat == 'réçu')
                     <span class="badge-status badge-progress">En cours</span>
                   @else
                     <span class="badge-status badge-completed">Terminé</span>
                   @endif
                 </td>
                 <td style="text-align: center" data-label="Actions">
-                  <a href="{{ route('agent.demandes.wedding.edit', $naissance->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
+                  <a href="{{ route('agent.demandes.wedding.edit', $mariage->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
                     <i class="fas fa-edit"></i>
                   </a>
                 </td>
                 <td style="text-align: center">
                     <div class="d-flex justify-content-center gap-2">
-                        @if($naissance->choix_option == 'livraison')
-                            <a href="#" class="delivery-badge badge" data-bs-toggle="modal" data-bs-target="#livraisonModal" onclick="showLivraisonModal({{ json_encode($naissance) }})">
+                        @if($mariage->choix_option == 'livraison')
+                            <a href="#" class="delivery-badge badge" data-bs-toggle="modal" data-bs-target="#livraisonModal" onclick="showLivraisonModal({{ json_encode($mariage) }})">
                                 <i class="fas fa-truck"></i> Livraison
                             </a>
                         @else
-                            @if($naissance->etat !== 'terminé')
+                            @if($mariage->etat !== 'terminé')
                               <span class="badge"><i class="fas fa-home"></i> Retrait sur place</span>
                             @endif
-                            @if($naissance->etat == 'terminé')
-                                <button class="btn-action" onclick="markAsDelivered({{ $naissance->id }})" title="Livré l'extrait">
+                            @if($mariage->etat == 'terminé')
+                                <button class="btn-action" onclick="markAsDelivered({{ $mariage->id }})" title="Livré l'extrait">
                                     <i class="fas fa-file"></i>Retrait
                                 </button>
                             @endif
@@ -638,7 +641,7 @@
               </tr>
             @empty
               <tr>
-                <td style="text-align: center" colspan="7" class="empty-state">
+                <td style="text-align: center" colspan="8" class="empty-state">
                   <i class="fas fa-cross"></i>
                   <h5>Aucune demande d'extrait de mariage en cours</h5>
                   <p>Toutes les demandes sont traitées ou vous n'avez pas encore récuperer demande.</p>
@@ -685,7 +688,14 @@
     adaptForMobile();
     $(window).resize(adaptForMobile);
   });
+
+  // Fonction pour afficher l'image dans la modal
+  function showImage(element) {
+    const modalImage = document.getElementById('modalImage');
+    modalImage.src = element.src;
+  }
 </script>
+
 <script>
     const markAsDeliveredUrl = "{{ route('livraison.mark.mariage', ':id') }}";
     const downloadDeliveryInfoUrl = "{{ route('agent.download.mariage.delivery.info', ':id') }}";
@@ -715,7 +725,7 @@
                     data: {
                         _token: '{{ csrf_token() }}',
                         statut_livraison: 'livré',
-                        reference: result.value // Ajoutez la référence ici
+                        reference: result.value
                     },
                     success: function(response) {
                         Swal.fire('Succès!', 'La demande a été marquée comme livrée.', 'success');
@@ -731,21 +741,19 @@
     }
 
      // Fonction pour afficher les informations de livraison
-    function showDeliveryInfo(naissance) {
-        // Récupérer les informations de livraison
-        const deliveryInfo = naissance || {};
+    function showDeliveryInfo(mariage) {
+        const deliveryInfo = mariage || {};
         
-        // Formater le contenu HTML pour SweetAlert
         const htmlContent = `
             <div style="text-align: center;">
                 <h3 style="color: #1977cc; margin-bottom: 20px;">Informations de Livraison</h3>
                 
                 <div style="margin-bottom: 15px;">
-                    <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || naissance.user.name + ' ' + naissance.user.prenom}
+                    <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || mariage.user.name + ' ' + mariage.user.prenom}
                 </div>
                 
                 <div style="margin-bottom: 15px;">
-                    <strong>Téléphone:</strong> ${deliveryInfo.telephone || naissance.user.contact}
+                    <strong>Téléphone:</strong> ${deliveryInfo.contact_destinataire || mariage.user.contact}
                 </div>
                 
                 <div style="margin-bottom: 15px;">
@@ -770,7 +778,6 @@
             </div>
         `;
         
-        // Afficher les informations dans une popup SweetAlert
         Swal.fire({
             title: 'Détails de Livraison',
             html: htmlContent,
@@ -783,14 +790,12 @@
                 popup: 'delivery-info-popup'
             },
             didOpen: () => {
-                // Ajouter un style pour la popup
                 const popup = Swal.getPopup();
                 popup.style.borderRadius = '12px';
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Rediriger vers la route de téléchargement
-                const url = downloadDeliveryInfoUrl.replace(':id', naissance.id);
+                const url = downloadDeliveryInfoUrl.replace(':id', mariage.id);
                 window.open(url, '_blank');
             }
         });

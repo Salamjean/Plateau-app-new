@@ -580,6 +580,7 @@
                         alt="CNI" 
                         class="document-preview"
                         data-bs-toggle="modal" 
+                        style="width: 40px; height:40px"
                         data-bs-target="#imageModal" 
                         onclick="showImage(this)" 
                         onerror="this.onerror=null; this.src='{{ asset('assets/images/profiles/bébé.jpg') }}'">

@@ -194,26 +194,60 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-2">
-                                            @if (pathinfo($dece->CNIdcl, PATHINFO_EXTENSION) === 'pdf')
-                                                <a href="{{ asset('storage/' . $dece->CNIdcl) }}" target="_blank">
-                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
-                                                </a>
-                                            @else
-                                                <img src="{{ asset('storage/' . $dece->CNIdcl) }}" 
-                                                     alt="Certificat médical" 
-                                                     class="document-preview"
-                                                     onclick="showImage(this)">
+                                            @if ($dece->CNIdcl)
+                                                @if (pathinfo($dece->CNIdcl, PATHINFO_EXTENSION) === 'pdf')
+                                                    <a href="{{ asset('storage/' . $dece->CNIdcl) }}" target="_blank" title="CNI Déclarant (PDF)">
+                                                        <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                    </a>
+                                                @else
+                                                    <img src="{{ asset('storage/' . $dece->CNIdcl) }}" 
+                                                        alt="CNI Déclarant" 
+                                                        class="document-preview"
+                                                        onclick="showImage(this)"
+                                                        title="CNI Déclarant">
+                                                @endif
                                             @endif
 
-                                            @if (pathinfo($dece->CNIdfnt, PATHINFO_EXTENSION) === 'pdf')
-                                                <a href="{{ asset('storage/' . $dece->CNIdfnt) }}" target="_blank">
-                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
-                                                </a>
-                                            @else
-                                                <img src="{{ asset('storage/' . $dece->CNIdfnt) }}" 
-                                                     alt="CNI Défunt" 
-                                                     class="document-preview"
-                                                     onclick="showImage(this)">
+                                            @if ($dece->CNIdfnt)
+                                                @if (pathinfo($dece->CNIdfnt, PATHINFO_EXTENSION) === 'pdf')
+                                                    <a href="{{ asset('storage/' . $dece->CNIdfnt) }}" target="_blank" title="CNI Défunt (PDF)">
+                                                        <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                    </a>
+                                                @else
+                                                    <img src="{{ asset('storage/' . $dece->CNIdfnt) }}" 
+                                                        alt="CNI Défunt" 
+                                                        class="document-preview"
+                                                        onclick="showImage(this)"
+                                                        title="CNI Défunt">
+                                                @endif
+                                            @endif
+
+                                            @if ($dece->documentMariage)
+                                                @if (pathinfo($dece->documentMariage, PATHINFO_EXTENSION) === 'pdf')
+                                                    <a href="{{ asset('storage/' . $dece->documentMariage) }}" target="_blank" title="Document Mariage (PDF)">
+                                                        <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                    </a>
+                                                @else
+                                                    <img src="{{ asset('storage/' . $dece->documentMariage) }}" 
+                                                        alt="Document Mariage" 
+                                                        class="document-preview"
+                                                        onclick="showImage(this)"
+                                                        title="Document Mariage">
+                                                @endif
+                                            @endif
+
+                                            @if ($dece->RequisPolice)
+                                                @if (pathinfo($dece->RequisPolice, PATHINFO_EXTENSION) === 'pdf')
+                                                    <a href="{{ asset('storage/' . $dece->RequisPolice) }}" target="_blank" title="Réquisitoire Police (PDF)">
+                                                        <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                                    </a>
+                                                @else
+                                                    <img src="{{ asset('storage/' . $dece->RequisPolice) }}" 
+                                                        alt="Réquisitoire Police" 
+                                                        class="document-preview"
+                                                        onclick="showImage(this)"
+                                                        title="Réquisitoire Police">
+                                                @endif
                                             @endif
                                         </div>
                                     </td>
@@ -246,7 +280,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4">Aucune déclaration trouvée</td>
+                                    <td colspan="7" class="text-center py-4">Aucune déclaration trouvée</td>
                                 </tr>
                                 @endforelse
                             </tbody>

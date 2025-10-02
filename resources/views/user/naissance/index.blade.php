@@ -235,16 +235,20 @@
                                         <strong>Date:</strong> {{ $naissance->DateR }}<br>
                                     </small>
                                 </td>
-                                <td>
-                                    @if (pathinfo($naissance->CNI, PATHINFO_EXTENSION) === 'pdf')
-                                        <a href="{{ asset('storage/' . $naissance->CNI) }}" target="_blank">
-                                            <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
-                                        </a>
+                               <td>
+                                    @if($naissance->CNI)
+                                        @if (pathinfo($naissance->CNI, PATHINFO_EXTENSION) === 'pdf')
+                                            <a href="{{ asset('storage/' . $naissance->CNI) }}" target="_blank">
+                                                <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                                            </a>
+                                        @else
+                                            <img src="{{ asset('storage/' . $naissance->CNI) }}" 
+                                                alt="Pièce d'identité" 
+                                                class="document-preview"
+                                                onclick="showImage(this)">
+                                        @endif
                                     @else
-                                        <img src="{{ asset('storage/' . $naissance->CNI) }}" 
-                                             alt="Pièce d'identité" 
-                                             class="document-preview"
-                                             onclick="showImage(this)">
+                                        <span class="text-muted">Aucun document</span>
                                     @endif
                                 </td>
                                 <td>
