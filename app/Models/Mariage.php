@@ -13,14 +13,28 @@ class Mariage extends Model
         'lieuNaissanceEpoux',
         'pieceIdentite',
         'extraitMariage',
+        'reference',
         'commune',
         'etat',
-        'agent_id',  // Ajout de agent_id
-        'livraison_id', 
-        'livreur_id', 
-        'agence_id', 
-        'livraison_code', 
-        'statut_livraison', 
+        'agent_id',
+        'livraison_id',
+        'livreur_id',
+        'agence_id',
+        'livraison_code',
+        'statut_livraison',
+        // AJOUTER CES CHAMPS
+        'choix_option',
+        'montant_timbre',
+        'montant_livraison',
+        'nom_destinataire',
+        'prenom_destinataire',
+        'email_destinataire',
+        'contact_destinataire',
+        'adresse_livraison',
+        'code_postal',
+        'ville',
+        'commune_livraison',
+        'quartier'
     ];
 
     public function user()

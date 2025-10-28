@@ -8,16 +8,33 @@ class Naissance extends Model
 {
     protected $fillable = [
         'type',
+        'pour',
         'name',
         'prenom',
         'number',
+        'DateR',
+        'CNI',
+        'reference',
         'commune',
         'etat',
         'statut_livraison',
-        'user_id',  
-        'agent_id',  
-        'livreur_id', 
-        'agence_id', 
+        'user_id',
+        'agent_id',
+        'livreur_id',
+        'agence_id',
+        // AJOUTER CES CHAMPS
+        'choix_option',
+        'montant_timbre',
+        'montant_livraison',
+        'nom_destinataire',
+        'prenom_destinataire',
+        'email_destinataire',
+        'contact_destinataire',
+        'adresse_livraison',
+        'code_postal',
+        'ville',
+        'commune_livraison',
+        'quartier'
     ];
 
     public function user()

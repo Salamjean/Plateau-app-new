@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Deces extends Model
 {
-   protected $fillable = [
+    protected $fillable = [
         'name',
         'numberR',
         'dateR',
@@ -14,17 +14,30 @@ class Deces extends Model
         'CNIdcl',
         'documentMariage',
         'RequisPolice',
+        'reference',
         'commune',
         'etat',
-        'user_id',  
-        'agent_id', 
-        'livraison_id', 
-        'livreur_id', 
-        'agence_id', 
-        'livraison_code', 
-        'statut_livraison', 
+        'user_id',
+        'agent_id',
+        'livraison_id',
+        'livreur_id',
+        'agence_id',
+        'livraison_code',
+        'statut_livraison',
+        // AJOUTER CES CHAMPS
+        'choix_option',
+        'montant_timbre',
+        'montant_livraison',
+        'nom_destinataire',
+        'prenom_destinataire',
+        'email_destinataire',
+        'contact_destinataire',
+        'adresse_livraison',
+        'code_postal',
+        'ville',
+        'commune_livraison',
+        'quartier'
     ];
-
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id'); 

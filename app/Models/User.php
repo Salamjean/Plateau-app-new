@@ -2,17 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use App\Notifications\UserResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -21,8 +19,18 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'prenom', // AJOUTEZ CE CHAMP
         'email',
         'password',
+        'indicatif', // AJOUTEZ CE CHAMP
+        'contact', // AJOUTEZ CE CHAMP
+        'commune', // AJOUTEZ CE CHAMP
+        'CMU', // AJOUTEZ CE CHAMP
+        'profile_picture', // AJOUTEZ CE CHAMP
+        'diaspora', // AJOUTEZ CE CHAMP
+        'pays_residence', // AJOUTEZ CE CHAMP
+        'ville_residence', // AJOUTEZ CE CHAMP
+        'adresse_etrangere', // AJOUTEZ CE CHAMP
     ];
 
     /**
@@ -45,6 +53,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'diaspora' => 'boolean', // AJOUTEZ CE CAST
         ];
     }
 
