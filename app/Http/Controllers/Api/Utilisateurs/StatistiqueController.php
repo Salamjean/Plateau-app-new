@@ -8,7 +8,7 @@ use App\Models\Mariage;
 use App\Models\Deces;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Pagination\LengthAwarePaginator; // <-- Importez ceci
 class StatistiqueController extends Controller
 {
     /**
@@ -121,31 +121,58 @@ class StatistiqueController extends Controller
             $page = $request->get('page', 1);
             $perPage = $request->get('per_page', 20);
 
-            // Récupérer toutes les demandes avec pagination
+            // 1. Récupérer toutes les naissances avec toutes leurs colonnes
+            // Nous utilisons map() pour ajouter un champ 'type_demande'
             $naissances = Naissance::where('user_id', $user->id)
-                ->select('id', 'reference', 'etat', 'created_at', DB::raw("'naissance' as type"))
-                ->orderBy('created_at', 'desc');
+                ->get()
+                ->map(function ($item) {
+                    $item->type_demande = 'naissance';
+                    return $item;
+                });
 
+            // 2. Récupérer tous les mariages
             $mariages = Mariage::where('user_id', $user->id)
-                ->select('id', 'reference', 'etat', 'created_at', DB::raw("'mariage' as type"))
-                ->orderBy('created_at', 'desc');
+                ->get()
+                ->map(function ($item) {
+                    $item->type_demande = 'mariage';
+                    return $item;
+                });
 
+            // 3. Récupérer tous les décès
             $deces = Deces::where('user_id', $user->id)
-                ->select('id', 'reference', 'etat', 'created_at', DB::raw("'deces' as type"))
-                ->orderBy('created_at', 'desc');
+                ->get()
+                ->map(function ($item) {
+                    $item->type_demande = 'deces';
+                    return $item;
+                });
 
-            // Union des trois requêtes
-            $toutesDemandes = $naissances->union($mariages)->union($deces)
-                ->orderBy('created_at', 'desc')
-                ->paginate($perPage, ['*'], 'page', $page);
+            // 4. Fusionner les collections et les trier
+            $toutesDemandes = $naissances->merge($mariages)->merge($deces);
+            $demandesTriees = $toutesDemandes->sortByDesc('created_at');
 
+            // 5. Paginer manuellement la collection résultante
+            $total = $demandesTriees->count();
+            
+            // values() est important pour réindexer la collection après le tri
+            $itemsPourPage = $demandesTriees->forPage($page, $perPage)->values(); 
+
+            $pagination = new LengthAwarePaginator(
+                $itemsPourPage,
+                $total,
+                $perPage,
+                $page,
+                // Génère les URLs pour la pagination
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            // 6. Renvoyer la réponse JSON paginée
             return response()->json([
-                'demandes' => $toutesDemandes->items(),
+                'demandes' => $pagination->items(),
                 'pagination' => [
-                    'current_page' => $toutesDemandes->currentPage(),
-                    'last_page' => $toutesDemandes->lastPage(),
-                    'per_page' => $toutesDemandes->perPage(),
-                    'total' => $toutesDemandes->total(),
+                    'current_page' => $pagination->currentPage(),
+                    'last_page' => $pagination->lastPage(),
+                    'per_page' => $pagination->perPage(),
+                    'total' => $pagination->total(),
                 ]
             ]);
 
