@@ -143,17 +143,21 @@ class LivreurAuthenticateController extends Controller
                 ], 422);
             }
 
-            // Récupérer le livreur par son email
+            // 1. Récupérer le livreur par son email
             $livreur = Livreur::where('email', $request->email)->first();
 
-            if (!$livreur) {
+            // 2. Vérifier si le livreur est archivé
+            // (Tu avais cette vérification, elle est bonne, mais plaçons-la après la vérif du mot de passe)
+            
+            // 3. Vérifier le mot de passe manuellement
+            if (!$livreur || !Hash::check($request->password, $livreur->password)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Livreur non trouvé'
-                ], 404);
+                    'message' => 'Email ou mot de passe incorrect.' // Message générique pour la sécurité
+                ], 401);
             }
 
-            // Vérifier si le livreur est archivé
+            // 4. Vérifier si le livreur est archivé (Maintenant qu'on sait que le mdp est bon)
             if ($livreur->archived_at !== null) {
                 return response()->json([
                     'success' => false,
@@ -161,40 +165,30 @@ class LivreurAuthenticateController extends Controller
                 ], 403);
             }
 
-            // Vérifier le mot de passe manuellement d'abord
-            if (!Hash::check($request->password, $livreur->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Votre mot de passe est incorrect.'
-                ], 401);
-            }
-
-            // Tenter la connexion avec le guard
-            if (auth('livreur')->attempt($request->only('email', 'password'))) {
-                $user = auth('livreur')->user();
-                
-                // Vérifier si le modèle utilise Sanctum
-                if (method_exists($user, 'createToken')) {
-                    $token = $user->createToken('LivreurToken')->plainTextToken;
-                } else {
-                    // Fallback si Sanctum n'est pas configuré
-                    $token = bin2hex(random_bytes(32));
-                }
-
-                Log::info('Livreur Login Success', ['user_id' => $user->id]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Connexion réussie',
-                    'token' => $token,
-                    'user' => $user
-                ]);
+            // 5. TOUT EST BON : L'utilisateur existe, le mot de passe est bon, il n'est pas archivé
+            // On crée le token.
+            
+            // Vérifier si le modèle utilise bien Sanctum (HasApiTokens)
+            if (method_exists($livreur, 'createToken')) {
+                $token = $livreur->createToken('LivreurToken')->plainTextToken;
             } else {
+                Log::error('FATAL: Le modèle Livreur n\'a pas le Trait HasApiTokens.');
                 return response()->json([
                     'success' => false,
-                    'message' => 'Échec de l\'authentification'
-                ], 401);
+                    'message' => 'Erreur de configuration du serveur.'
+                ], 500);
             }
+
+            Log::info('Livreur Login Success', ['user_id' => $livreur->id]);
+
+            // 6. Renvoyer la réponse de succès
+            return response()->json([
+                'success' => true,
+                'message' => 'Connexion réussie',
+                'token' => $token,
+                'user' => $livreur
+            ]);
+
         } catch (Exception $e) {
             Log::error('Livreur Login Error: ' . $e->getMessage());
             Log::error('Stack Trace: ' . $e->getTraceAsString());

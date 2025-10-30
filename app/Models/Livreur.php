@@ -6,10 +6,10 @@ use FontLib\Table\Type\post;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
+use Laravel\Sanctum\HasApiTokens; // <-- 1. AJOUTE CECI
 class Livreur extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens,HasFactory, Notifiable;
     protected $fillable = [
         'name',
         'prenom',
