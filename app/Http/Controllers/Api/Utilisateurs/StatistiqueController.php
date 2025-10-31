@@ -287,7 +287,90 @@ class StatistiqueController extends Controller
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
+    public function suiviDemandeParReference(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            // 1. Vérifier l'authentification (Sanctum s'en charge, mais double vérification)
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
 
+            $reference = $request->input('reference');
+            
+            if (empty($reference)) {
+                return response()->json(['error' => 'La référence de la demande est requise'], 400);
+            }
+
+            // 2. Tentative de trouver la demande dans chaque modèle
+            $demande = Naissance::where('reference', $reference)->first();
+            $type = 'naissance';
+
+            if (!$demande) {
+                $demande = Mariage::where('reference', $reference)->first();
+                $type = 'mariage';
+            }
+
+            if (!$demande) {
+                $demande = Deces::where('reference', $reference)->first();
+                $type = 'deces';
+            }
+
+            // 3. Vérifier si la demande existe ET si elle appartient à l'utilisateur connecté
+            if (!$demande || $demande->user_id !== $user->id) {
+                // On renvoie 404 pour ne pas indiquer si la référence existe ou non (sécurité)
+                return response()->json(['error' => 'Demande non trouvée pour cette référence'], 404);
+            }
+            
+            // 4. Logique de construction de l'historique (similaire à suiviDemande)
+
+            // Historique des statuts
+            $historique = [
+                [
+                    'statut' => $demande->etat,
+                    'date' => $demande->updated_at ? $demande->updated_at->format('d/m/Y H:i') : 'N/A',
+                    'description' => $this->getDescriptionStatut($demande->etat)
+                ]
+            ];
+
+            // Si la demande est traitée, ajouter la date de traitement
+            if ($demande->etat === 'traité' && $demande->updated_at) {
+                $historique[] = [
+                    'statut' => 'traitement',
+                    'date' => $demande->updated_at->format('d/m/Y H:i'),
+                    'description' => 'Demande traitée avec succès'
+                ];
+            }
+
+            // Statut de création
+            $historique[] = [
+                'statut' => 'création',
+                'date' => $demande->created_at ? $demande->created_at->format('d/m/Y H:i') : 'N/A',
+                'description' => 'Demande créée'
+            ];
+
+            // Inverser pour avoir l'ordre chronologique
+            $historique = array_reverse($historique);
+
+            return response()->json([
+                'demande' => [
+                    'id' => $demande->id,
+                    'reference' => $demande->reference,
+                    'type' => $type,
+                    'statut_actuel' => $demande->etat,
+                    'date_creation' => $demande->created_at ? $demande->created_at->format('d/m/Y H:i') : 'N/A',
+                    'date_mise_a_jour' => $demande->updated_at ? $demande->updated_at->format('d/m/Y H:i') : 'N/A',
+                ],
+                'historique' => $historique,
+                'prochaines_etapes' => $this->getProchainesEtapes($demande->etat)
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur suiviDemandeParReference: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
+    }
     /**
      * Helper pour obtenir la description du statut
      */
