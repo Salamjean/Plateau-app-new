@@ -15,13 +15,13 @@ class RegisterController extends Controller
 {
     public function register(Request $request): JsonResponse
     {
-        // Validation manuelle
+        // Validation manuelle (champ 'commune' retiré)
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'commune' => 'required|string|max:255',
+            // 'commune' => 'required|string|max:255', // Retiré de la validation
             'indicatif' => 'required|string|max:10',
             'contact' => 'required|string|max:20',
             'CMU' => 'nullable|string|max:50',
@@ -49,12 +49,12 @@ class RegisterController extends Controller
                 Log::info('Profile picture stored at: ' . $profilePicturePath);
             }
             
-            // Création de l'utilisateur
+            // Création de l'utilisateur (champ 'commune' défini sur 'Plateau')
             $user = User::create([
                 'name' => $request->name,
                 'prenom' => $request->prenom,
                 'email' => $request->email,
-                'commune' => $request->commune,
+                'commune' => 'Plateau', // <-- Valeur définie automatiquement
                 'indicatif' => $request->indicatif,
                 'contact' => $request->contact,
                 'CMU' => $request->CMU,
@@ -78,7 +78,7 @@ class RegisterController extends Controller
                         'name' => $user->name,
                         'prenom' => $user->prenom,
                         'email' => $user->email,
-                        'commune' => $user->commune,
+                        'commune' => $user->commune, // Retournera 'Plateau'
                         'contact' => $user->contact,
                         'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
                         'diaspora' => $user->diaspora,
