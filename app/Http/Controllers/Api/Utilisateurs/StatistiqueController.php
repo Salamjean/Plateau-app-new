@@ -292,7 +292,7 @@ class StatistiqueController extends Controller
         try {
             $user = $request->user();
             
-            // 1. Vérifier l'authentification (Sanctum s'en charge, mais double vérification)
+            // 1. Vérifier l'authentification
             if (!$user) {
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
@@ -323,9 +323,16 @@ class StatistiqueController extends Controller
                 return response()->json(['error' => 'Demande non trouvée pour cette référence'], 404);
             }
             
-            // 4. Logique de construction de l'historique (similaire à suiviDemande)
+            // --- MODIFICATION ---
+            // Convertir le modèle en tableau pour pouvoir y ajouter notre champ 'type_demande'
+            $demandeData = $demande->toArray();
+            
+            // Ajout du type pour que le client sache de quel modèle il s'agit
+            $demandeData['type_demande'] = $type; 
+            // --- FIN MODIFICATION ---
 
-            // Historique des statuts
+
+            // 4. Logique de construction de l'historique
             $historique = [
                 [
                     'statut' => $demande->etat,
@@ -334,7 +341,6 @@ class StatistiqueController extends Controller
                 ]
             ];
 
-            // Si la demande est traitée, ajouter la date de traitement
             if ($demande->etat === 'traité' && $demande->updated_at) {
                 $historique[] = [
                     'statut' => 'traitement',
@@ -343,28 +349,21 @@ class StatistiqueController extends Controller
                 ];
             }
 
-            // Statut de création
             $historique[] = [
                 'statut' => 'création',
                 'date' => $demande->created_at ? $demande->created_at->format('d/m/Y H:i') : 'N/A',
                 'description' => 'Demande créée'
             ];
 
-            // Inverser pour avoir l'ordre chronologique
             $historique = array_reverse($historique);
 
+            // --- MODIFICATION DE LA RÉPONSE ---
             return response()->json([
-                'demande' => [
-                    'id' => $demande->id,
-                    'reference' => $demande->reference,
-                    'type' => $type,
-                    'statut_actuel' => $demande->etat,
-                    'date_creation' => $demande->created_at ? $demande->created_at->format('d/m/Y H:i') : 'N/A',
-                    'date_mise_a_jour' => $demande->updated_at ? $demande->updated_at->format('d/m/Y H:i') : 'N/A',
-                ],
+                'demande' => $demandeData, // On envoie maintenant l'objet complet avec toutes ses infos
                 'historique' => $historique,
                 'prochaines_etapes' => $this->getProchainesEtapes($demande->etat)
             ]);
+            // --- FIN MODIFICATION DE LA RÉPONSE ---
 
         } catch (\Exception $e) {
             \Log::error('Erreur suiviDemandeParReference: ' . $e->getMessage());
