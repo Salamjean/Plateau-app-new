@@ -70,7 +70,7 @@ return [
             'provider' => 'postes',
         ],
         'livreur' => [
-            'driver' => 'session',
+            'driver' => 'sanctum',
             'provider' => 'livreurs',
         ],
         
