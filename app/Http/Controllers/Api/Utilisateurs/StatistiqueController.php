@@ -9,6 +9,8 @@ use App\Models\Deces;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator; // <-- Importez ceci
+use Illuminate\Support\Facades\Log;
+
 class StatistiqueController extends Controller
 {
     /**
@@ -124,15 +126,49 @@ class StatistiqueController extends Controller
                 return response()->json(['error' => 'Demande non trouvée'], 404);
             }
 
+            // Calcul du statut selon la logique demandée
+            $statut = $this->calculerStatut($demande);
+
+            // Ajout du statut calculé à la demande
+            $demande->statut = $statut;
+
             return response()->json([
                 'demande' => $demande,
-                'type' => $type
+                'type' => $type,
+                'statut' => $statut
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Erreur getDemandeSpecifique: ' . $e->getMessage());
+            Log::error('Erreur getDemandeSpecifique: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
+    }
+
+    /**
+     * Calcule le statut d'une demande selon la logique métier
+     */
+    private function calculerStatut($demande)
+    {
+        // Si le statut de livraison est "livré", c'est la priorité maximale
+        if ($demande->statut_livraison === 'livré') {
+            return 'livrer';
+        }
+        // Si choix_option == "livraison" ET livreur_id existe → "en_cours_livraison"
+        elseif ($demande->choix_option === 'livraison' && $demande->livreur_id) {
+            return 'en_cours_livraison';
+        }
+        // Si agent_id existe, le statut est "recuperer"
+        elseif ($demande->agent_id) {
+            return 'recuperer';
+        }
+
+        // Si l'état est "en attente", le statut est "en_attente"
+        elseif ($demande->etat === 'en attente') {
+            return 'en_attente';
+        }
+
+        // Statut par défaut si aucune condition n'est remplie
+        return 'en_attente';
     }
 
     /**
