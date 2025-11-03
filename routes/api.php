@@ -79,8 +79,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     }); // Fin du groupe utilisateurs
 
-    // ROUTES LIVREUR AUTHENTIFIÉ
-    Route::prefix('livreur')->group(function () {
+     // ROUTES LIVREUR AUTHENTIFIÉ (guard spécifique = livreur)
+     Route::prefix('livreur')->middleware('auth:livreur')->group(function () {
         
         // Routes pour les livraisons
         Route::prefix('livraisons')->group(function () {
@@ -101,7 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/disponibilite', [ProfilLivreurController::class, 'updateDisponibilite']);
         });
         
-    }); // Fin du groupe livreur
+    }); // Fin du groupe livreur avec guard spécifique
 
 }); // Fin du groupe auth:sanctum
 
