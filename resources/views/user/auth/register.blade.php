@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
      <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <title>User register</title>
     <style>
         :root {
@@ -313,6 +317,27 @@
             animation: fadeIn 0.5s ease;
         }
 
+        .select2-container .select2-selection--single {
+            height: 50px !important;
+            border: 2px solid #e9ecef !important;
+            border-radius: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            padding-left: 10px !important;
+            font-size: 1rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100%;
+            right: 10px;
+        }
+
+        .select2-container--default .select2-selection--single:focus,
+        .select2-container--default .select2-selection--single:hover {
+            border-color: var(--primary-color) !important;
+        }
+
+
         textarea.input-field {
             height: auto;
             min-height: 80px;
@@ -538,7 +563,7 @@
 
                     <div class="input-group">
                         <i class="fas fa-map-marker-alt input-icon"></i>
-                        <select class="input-field" name="commune">
+                        <select class="input-field searchable-select" name="commune">
                             <option value="">Sélectionnez votre commune</option>
                             <option value="abobo" {{ old('commune') == 'abobo' ? 'selected' : '' }}>Abobo</option>
                             <option value="adjame" {{ old('commune') == 'adjame' ? 'selected' : '' }}>Adjamé</option>
@@ -565,7 +590,7 @@
                     <div class="input-group">
                         <i class="fas fa-id-card input-icon"></i>
                         <input class="input-field" type="text" name="CMU" placeholder=" " value="{{ old('CMU') }}" />
-                        <label class="input-label" for="CMU">N°CMU</label>
+                        <label class="input-label" for="CMU">N° NNI</label>
                         @error('CMU')
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i> {{ $message }}
@@ -594,7 +619,7 @@
                     <div class="form-row">
                         <div class="input-group">
                             <i class="fas fa-globe input-icon"></i>
-                            <select class="input-field" name="pays_residence">
+                            <select class="input-field searchable-select" name="pays_residence">
                                 <option value="">Sélectionnez votre pays de résidence</option>
                                 <option value="france" {{ old('pays_residence') == 'france' ? 'selected' : '' }}>France</option>
                                 <option value="usa" {{ old('pays_residence') == 'usa' ? 'selected' : '' }}>États-Unis</option>
@@ -667,6 +692,19 @@
                 const type = passwordConfirmation.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordConfirmation.setAttribute('type', type);
                 this.classList.toggle('fa-eye-slash');
+            });
+
+            $(document).ready(function() {
+                $('.searchable-select').select2({
+                    placeholder: "Sélectionnez une option",
+                    allowClear: true,
+                    width: '100%', // pour qu’il prenne toute la largeur
+                    language: {
+                        noResults: function() {
+                            return "Aucun résultat trouvé";
+                        }
+                    }
+                });
             });
 
             // Gestion de l'affichage des champs diaspora

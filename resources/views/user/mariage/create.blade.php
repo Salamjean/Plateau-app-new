@@ -303,7 +303,7 @@
                 @enderror
             </div>
             <div class="form-group">
-                <label for="CMU" class="form-label">Numéro CMU</label>
+                <label for="CMU" class="form-label">Numéro NNI</label>
                 <input type="text" id="CMU" value="{{ Auth::user()->CMU }}" name="CMU" placeholder="Entrez votre numéro CMU" class="form-control">
             </div>
         </div>

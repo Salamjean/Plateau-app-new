@@ -9,6 +9,7 @@ use App\Models\Deces;
 use App\Models\Mariage;
 use App\Models\Naissance;
 use App\Models\User;
+use App\Notifications\SendUserConfirmationNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -78,7 +79,16 @@ class UserAuthenticate extends Controller
             
             $users->save();
 
-            return redirect()->route('login')->with('success', 'Votre compte a été créé avec succès. Vous pouvez vous connecter.');
+            // Envoi de l'email de confirmation
+            try {
+                $users->notify(new SendUserConfirmationNotification($users));
+                Log::info('Confirmation email sent to: ' . $users->email);
+            } catch (\Exception $emailException) {
+                Log::error('Failed to send confirmation email: ' . $emailException->getMessage());
+                // On continue même si l'email échoue
+            }
+
+            return redirect()->route('login')->with('success', 'Votre compte a été créé avec succès. Un email de confirmation vous a été envoyé.');
 
         } catch (\Exception $e) {
             Log::error('Error during registration: ' . $e->getMessage());
