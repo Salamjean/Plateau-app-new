@@ -206,6 +206,8 @@ class StatistiqueController extends Controller
                     $item->type_demande = 'deces';
                     return $item;
                 });
+
+                
     
             // Fusionner correctement les collections
             $toutesDemandes = $naissances->concat($mariages)->concat($deces);
