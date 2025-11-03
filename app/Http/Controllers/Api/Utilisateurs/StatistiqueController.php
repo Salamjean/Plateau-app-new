@@ -341,12 +341,18 @@ class StatistiqueController extends Controller
                 return response()->json(['error' => 'Demande non trouvée pour cette référence'], 404);
             }
             
-            // --- MODIFICATION ---
-            // Convertir le modèle en tableau pour pouvoir y ajouter notre champ 'type_demande'
+            // --- MODIFICATION AJOUTÉE ---
+            // 1. Calculer le statut personnalisé en utilisant la logique métier
+            $statutCalcule = $this->calculerStatut($demande);
+
+            // 2. Convertir le modèle en tableau pour pouvoir y ajouter nos champs
             $demandeData = $demande->toArray();
             
-            // Ajout du type pour que le client sache de quel modèle il s'agit
+            // 3. Ajout du type pour que le client sache de quel modèle il s'agit
             $demandeData['type_demande'] = $type; 
+            
+            // 4. Ajout du statut calculé à l'objet demande
+            $demandeData['statut'] = $statutCalcule;
             // --- FIN MODIFICATION ---
 
 
@@ -377,9 +383,12 @@ class StatistiqueController extends Controller
 
             // --- MODIFICATION DE LA RÉPONSE ---
             return response()->json([
-                'demande' => $demandeData, // On envoie maintenant l'objet complet avec toutes ses infos
+                // $demandeData contient maintenant 'type_demande' et 'statut_calcule'
+                'demande' => $demandeData, 
                 'historique' => $historique,
-                'prochaines_etapes' => $this->getProchainesEtapes($demande->etat)
+                'prochaines_etapes' => $this->getProchainesEtapes($demande->etat),
+                // Ajout du statut en tant que clé de premier niveau pour un accès facile
+                'statut' => $statutCalcule 
             ]);
             // --- FIN MODIFICATION DE LA RÉPONSE ---
 
