@@ -22,6 +22,7 @@ class Naissance extends Model
         'agent_id',
         'livreur_id',
         'agence_id',
+        'quantite',
         // AJOUTER CES CHAMPS
         'choix_option',
         'montant_timbre',

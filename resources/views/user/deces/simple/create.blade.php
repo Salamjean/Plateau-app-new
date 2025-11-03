@@ -329,7 +329,13 @@
                     <span class="error-message">{{ $message }}</span>
                 @enderror
             </div>
-            
+            <div class="form-col" style="flex: 1;">
+                <label for="quantite" class="form-label">Quantité :</label>
+                <input type="number" id="quantite" name="quantite" class="form-control" value="{{ old('quantite', 1) }}" min="1" max="10">
+                @error('quantite')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
             <div class="form-group">
                 <label for="CNIdfnt" class="form-label">CNI/extrait de naissance du défunt(e)</label>
                 <input type="file" name="CNIdfnt" id="CNIdfnt" class="form-control">
@@ -337,15 +343,15 @@
                     <span class="error-message">{{ $message }}</span>
                 @enderror
             </div>
+        </div>
             
-            <div class="form-group">
+            <div class="form-group mb-4">
                 <label for="CNIdcl" class="form-label">Certificat médical de décès</label>
                 <input type="file" name="CNIdcl" id="CNIdcl" class="form-control">
                 @error('CNIdcl')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
             </div>
-        </div>
         
         <!-- Marriage conditional section -->
         <div class="conditional-section">
@@ -465,6 +471,7 @@
             { id: 'name', message: 'Le nom du défunt est obligatoire.' },
             { id: 'numberR', message: 'Le numéro de registre est obligatoire.' },
             { id: 'dateR', message: 'La date de registre est obligatoire.' },
+            { id: 'quantite', message: 'La quantité est obligatoire.' }, 
             { id: 'CNIdfnt', message: 'La CNI/extrait de naissance du défunt(e) est obligatoire.' },
             { id: 'CNIdcl', message: 'Le certificat médical de décès est obligatoire.' }
         ];
@@ -472,8 +479,14 @@
         fieldsToValidate.forEach(fieldInfo => {
             const inputElement = document.getElementById(fieldInfo.id);
             if (!inputElement) return; // Skip if element not found
-
-            if (inputElement.type === 'file') {
+             if (fieldInfo.id === 'quantite') {
+                const quantite = parseInt(inputElement.value);
+                if (!quantite || quantite < 1 || quantite > 10) {
+                    isValid = false;
+                    displayClientError(inputElement, 'La quantité doit être entre 1 et 10.');
+                }
+            }
+            else if (inputElement.type === 'file') {
                 if (inputElement.files.length === 0) {
                     isValid = false;
                     displayClientError(inputElement, fieldInfo.message);
@@ -678,20 +691,43 @@
     // POPUP LIVRAISON
     // ==============================
     function showLivraisonPopup() {
+        // Récupérer la quantité depuis le formulaire
+        const quantite = parseInt(document.getElementById('quantite').value) || 1;
+        const montantTimbreUnitaire = 50; // 50 FCFA par timbre
+        const montantTimbreTotal = montantTimbreUnitaire * quantite;
+        const montantLivraison = 50; // 1500 FCFA pour la livraison
+
         Swal.fire({
             title: 'Informations de Livraison',
             width: '700px',
             html: `
                 <div class="swal-delivery-grid">
                     <div>
-                        <label for="swal-montant_timbre" style="font-weight: bold">Timbre</label>
-                        <input id="swal-montant_timbre" class="swal2-input text-center" value="50" readonly>
-                        <small style="color:#666">Frais couverts par Kks-technologies</small>
+                        <label for="swal-quantite" style="font-weight: bold">Quantité</label>
+                        <input id="swal-quantite" class="swal2-input text-center" value="${quantite}" readonly>
+                        <small style="color:#666">Nombre d'exemplaires</small>
+                    </div>
+                    <div>
+                        <label for="swal-montant_timbre_unitaire" style="font-weight: bold">Timbre unitaire</label>
+                        <input id="swal-montant_timbre_unitaire" class="swal2-input text-center" value="${montantTimbreUnitaire}" readonly>
+                        <small style="color:#666">Frais par exemplaire</small>
+                    </div>
+                    <div>
+                        <label for="swal-montant_timbre" style="font-weight: bold">Total Timbre</label>
+                        <input id="swal-montant_timbre" class="swal2-input text-center" value="${montantTimbreTotal}" readonly>
+                        <small style="color:#666">${quantite} × ${montantTimbreUnitaire} FCFA</small>
                     </div>
                     <div>
                         <label for="swal-montant_livraison" style="font-weight: bold">Frais Livraison</label>
-                        <input id="swal-montant_livraison" class="swal2-input text-center" value="50" readonly>
+                        <input id="swal-montant_livraison" class="swal2-input text-center" value="${montantLivraison}" readonly>
                         <small style="color:#666">Frais fixes pour la livraison</small>
+                    </div>
+                    <div style="grid-column: 1 / -1; background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem;">
+                            <span>Total à payer :</span>
+                            <span>${montantTimbreTotal + montantLivraison} FCFA</span>
+                        </div>
+                        <small style="color:#666">Timbre (${montantTimbreTotal} FCFA) + Livraison (${montantLivraison} FCFA)</small>
                     </div>
                     <div>
                         <label for="swal-nom_destinataire" style="font-weight: bold">Nom</label>
@@ -728,7 +764,7 @@
                 </div>`,
             icon: 'info',
             showCancelButton: true,
-            confirmButtonText: 'Payer maintenant',
+            confirmButtonText: `Payer ${montantTimbreTotal + montantLivraison} FCFA`,
             cancelButtonText: 'Annuler',
             confirmButtonColor: '#1977cc',
             focusConfirm: false,
@@ -741,10 +777,8 @@
                 const ville = document.getElementById('swal-ville').value;
                 const commune_livraison = document.getElementById('swal-commune_livraison').value;
                 const quartier = document.getElementById('swal-quartier').value;
-                const montant_timbre = document.getElementById('swal-montant_timbre').value;
-                const montant_livraison = document.getElementById('swal-montant_livraison').value;
 
-                if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !montant_timbre || !montant_livraison) {
+                if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier) {
                     Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires");
                     return false;
                 }
@@ -767,8 +801,10 @@
                     ville: ville,
                     commune_livraison: commune_livraison,
                     quartier: quartier,
-                    montant_timbre: parseFloat(montant_timbre),
-                    montant_livraison: parseFloat(montant_livraison),
+                    quantite: quantite,
+                    montant_timbre_unitaire: montantTimbreUnitaire,
+                    montant_timbre: montantTimbreTotal,
+                    montant_livraison: montantLivraison,
                 };
             }
         }).then((result) => {
@@ -791,25 +827,28 @@
     });
 
     // ID de transaction
-    const transactionId = 'EXT-' + Date.now();
+    const transactionId = 'DEC-' + Date.now();
 
-    // Montant total (50 FCFA timbre + 1500 FCFA livraison)
+    // Montant total (timbre total + livraison)
     const totalAmount = formData.montant_timbre + formData.montant_livraison;
 
     // Chargement SweetAlert
     Swal.fire({
         title: 'Redirection en cours',
-        html: 'Préparation du paiement...',
+        html: `Préparation du paiement de ${totalAmount} FCFA...`,
         allowOutsideClick: true, // Prevent closing accidentally
         didOpen: () => Swal.showLoading()
     });
 
     // Données client
     const customer = {
-        name: '{{ Auth::user()->name ?? "Client" }}', // Use authenticated user's name if available
-        email: '{{ Auth::user()->email ?? "contact@client.com" }}', // Use authenticated user's email if available
-        phone: '{{ Auth::user()->telephone ?? "00000000" }}' // Use authenticated user's phone if available
+        name: '{{ Auth::user()->name ?? "Client" }}',
+        email: '{{ Auth::user()->email ?? "contact@client.com" }}',
+        phone: '{{ Auth::user()->telephone ?? "00000000" }}'
     };
+
+    // Description détaillée avec la quantité
+    const description = `Paiement pour ${formData.quantite} exemplaire(s) d'extrait de décès (Timbre: ${formData.montant_timbre} FCFA + Livraison: ${formData.montant_livraison} FCFA)`;
 
     // Paiement CinetPay
     CinetPay.getCheckout({
@@ -817,7 +856,7 @@
         amount: totalAmount,
         currency: 'XOF',
         channels: 'ALL',
-        description: `Paiement pour livraison d'extrait de décès`,
+        description: description,
         customer_name: customer.name,
         customer_email: customer.email,
         customer_phone_number: customer.phone,
@@ -844,6 +883,7 @@
                 { name: 'ville', value: formData.ville },
                 { name: 'commune_livraison', value: formData.commune_livraison },
                 { name: 'quartier', value: formData.quartier },
+                { name: 'montant_timbre_unitaire', value: formData.montant_timbre_unitaire },
                 { name: 'montant_timbre', value: formData.montant_timbre },
                 { name: 'montant_livraison', value: formData.montant_livraison },
                 { name: 'transaction_id', value: transactionId }
@@ -880,6 +920,4 @@
     });
 }
 </script>
-
-
 @endsection

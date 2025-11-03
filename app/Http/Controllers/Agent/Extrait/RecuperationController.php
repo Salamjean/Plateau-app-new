@@ -39,7 +39,7 @@ class RecuperationController extends Controller
 
             $demande->is_read = true;
             $demande->agent_id = $agent->id;
-            $demande->etat = 'en attente';
+            $demande->etat = 'réçu';
             $demande->save();
 
             return redirect()->route($successRoute)->with('success', "Demande de {$modelName} récupérée avec succès.");

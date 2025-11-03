@@ -265,6 +265,7 @@
                         <thead>
                             <tr >
                                 <th style="text-align: center">Référence</th>
+                                <th style="text-align: center">Quantité</th>
                                 <th style="text-align: center">Nom & Prénom du defunt</th>
                                 <th style="text-align: center">Date de demande</th>
                                 <th style="text-align: center">État</th>
@@ -279,6 +280,9 @@
                                     <span class="fw-bold" style="color: var(--primary); text-align: start" >
                                         {{ $dece->reference }}
                                     </span>
+                                </td>
+                                <td>
+                                    <div class="text-center">{{ $dece->quantite }} copie(s)</div>
                                 </td>
                                 <td>
                                     <div class="fw-bold text-center">{{ $dece->name }} {{ $dece->prenom }}</div>
@@ -336,7 +340,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="7" class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                     <h5 class="text-muted">Aucune demande trouvée</h5>
                                     <p class="text-muted">Aucune demande d'extrait de dece n'a été enregistrée pour le moment.</p>

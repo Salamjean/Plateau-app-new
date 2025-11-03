@@ -67,8 +67,10 @@
                                         <p class="fw-medium mb-1">État actuel:</p>
                                         <p class="h4 fw-bold mb-3" style="color: #1977cc">{{ $etatDemande }}</p>
                                         <div class="progress mt-3" style="height: 10px; border-radius: 10px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 75%; background-color: #1977cc;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div class="progress-bar" role="progressbar" style="width: 95%; background-color: #1977cc;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
+                                        <p class="fw-medium mb-1 mt-4">Livraison:</p>
+                                        <p class="h4 fw-bold mb-3" style="color: #1977cc">{{ $statutDemande }}</p>
                                     </div>
                                 @else
                                     <div class="alert border-0 rounded-3 p-4 shadow-sm" style="background-color: rgba(255, 193, 7, 0.1);" role="alert">

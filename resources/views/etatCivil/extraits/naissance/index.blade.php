@@ -273,6 +273,7 @@
                         <thead>
                             <tr >
                                 <th style="text-align: center">Référence</th>
+                                <th style="text-align: center">Quantité</th>
                                 <th style="text-align: center">Nom & Prénom</th>
                                 <th style="text-align: center">Type</th>
                                 <th style="text-align: center">Date de demande</th>
@@ -288,6 +289,9 @@
                                     <span class="fw-bold" style="color: var(--primary); text-align: start" >
                                         {{ $naissance->reference }}
                                     </span>
+                                </td>
+                                <td>
+                                    <div class="text-center">{{ $naissance->quantite }} copie(s)</div>
                                 </td>
                                 <td>
                                     <div class="fw-bold text-center">{{ $naissance->name }} {{ $naissance->prenom }}</div>
@@ -356,7 +360,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="10" class="text-center py-4">
+                                <td colspan="11" class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                     <h5 class="text-muted">Aucune demande trouvée</h5>
                                     <p class="text-muted">Aucune demande d'extrait de naissance n'a été enregistrée pour le moment.</p>

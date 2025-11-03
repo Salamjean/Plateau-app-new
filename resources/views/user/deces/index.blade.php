@@ -171,6 +171,7 @@
                             <thead>
                                 <tr style="background-color: #1977cc">
                                     <th>Référence</th>
+                                    <th>Quantité</th>
                                     <th>Défunt</th>
                                     <th>Détails</th>
                                     <th>Documents</th>
@@ -183,6 +184,7 @@
                                 @forelse ($deces as $dece)
                                 <tr>
                                     <td>{{ $dece->reference }}</td>
+                                    <td>{{ $dece->quantite }} copie(s)</td>
                                     <td>
                                         <strong>{{ $dece->name }}</strong><br>
                                     </td>
@@ -280,7 +282,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">Aucune déclaration trouvée</td>
+                                    <td colspan="8" class="text-center py-4">Aucune déclaration trouvée</td>
                                 </tr>
                                 @endforelse
                             </tbody>

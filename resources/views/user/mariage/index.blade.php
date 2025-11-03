@@ -267,6 +267,7 @@
                         <thead>
                             <tr>
                                 <th>Référence</th>
+                                <th>Quantité</th>
                                 <th class="d-none-tablet">Conjoint(e)</th>
                                 <th>Documents</th>
                                 <th>Statut</th>
@@ -281,6 +282,7 @@
                                 <td>
                                     <span class="badge bg-light text-dark">{{ $mariage->reference }}</span>
                                 </td>
+                                 <td>{{ $mariage->quantite }} copie(s)</td>
                                 <td class="d-none-tablet">
                                     {{ $mariage->nomEpoux ?: 'N/A' }} {{ $mariage->prenomEpoux ?: '' }}
                                 </td>
@@ -349,7 +351,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8">
+                                <td colspan="9">
                                     <div class="empty-state">
                                         <i class="fas fa-inbox"></i>
                                         <h5 class="mt-3">Aucune demande trouvée</h5>

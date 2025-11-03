@@ -24,6 +24,7 @@ class Deces extends Model
         'agence_id',
         'livraison_code',
         'statut_livraison',
+        'quantite',
         // AJOUTER CES CHAMPS
         'choix_option',
         'montant_timbre',

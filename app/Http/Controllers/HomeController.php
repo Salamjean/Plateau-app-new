@@ -15,6 +15,7 @@ class HomeController extends Controller
 
     public function recherche(Request $request){
         $etatDemande = null; // Initialisation de l'état de la demande
+        $statutDemande = null; // Initialisation de l'état de la demande
         $reference = null; // Initialisation de la référence recherchée
 
         if ($request->isMethod('post')) { // Vérifier si c'est une requête POST (formulaire soumis)
@@ -25,27 +26,30 @@ class HomeController extends Controller
                 $naissance = Naissance::where('reference', $reference)->first();
                 if ($naissance) {
                     $etatDemande = $naissance->etat;
-                    return view('home.recherche', compact('etatDemande', 'reference')); // Passer $etatDemande et $reference à la vue
+                    $statutDemande = $naissance->statut_livraison ?? 'Retrait à la mairie';
+                    return view('home.recherche', compact('etatDemande', 'reference','statutDemande')); // Passer $etatDemande et $reference à la vue
                 }
                 // Rechercher dans la table 'deces'
                 $deces = Deces::where('reference', $reference)->first();
                 if ($deces) {
                     $etatDemande = $deces->etat;
-                    return view('home.recherche', compact('etatDemande', 'reference'));
+                    $statutDemande = $deces->statut_livraison ?? 'Retrait à la mairie';
+                    return view('home.recherche', compact('etatDemande', 'reference','statutDemande'));
                 }
 
                 // Rechercher dans la table 'mariages'
                 $mariage = Mariage::where('reference', $reference)->first();
                 if ($mariage) {
                     $etatDemande = $mariage->etat;
-                    return view('home.recherche', compact('etatDemande', 'reference'));
+                    $statutDemande = $mariage->statut_livraison ?? 'Retrait à la mairie';
+                    return view('home.recherche', compact('etatDemande', 'reference','statutDemande'));
                 }
 
                 $etatDemande = false; // Aucune demande trouvée pour cette référence dans aucune table
             }
         }
 
-        return view('home.recherche', compact('etatDemande', 'reference')); // Passer $etatDemande et $reference à la vue
+        return view('home.recherche', compact('etatDemande', 'reference','statutDemande')); // Passer $etatDemande et $reference à la vue
     }
 
     public function about(){

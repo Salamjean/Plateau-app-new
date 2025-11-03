@@ -38,10 +38,6 @@
       </div>
       <div class="info-grid">
         <div class="info-item">
-          <span class="info-label">Reference de la demande</span>
-          <span class="info-value">{{ $deces->reference }}</span>
-        </div>
-        <div class="info-item">
           <span class="info-label">Demandeur</span>
           <span class="info-value">{{ $deces->user->name.' '.$deces->user->prenom ?? 'N/A' }}</span>
         </div>

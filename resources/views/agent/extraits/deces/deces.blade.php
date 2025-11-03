@@ -508,6 +508,7 @@
           <thead>
             <tr>
               <th style="text-align: center">Infos Livraison</th>
+              <th style="text-align: center">Quantité</th>
               <th style="text-align: center">Demandeur</th>
               <th style="text-align: center">Nom complet du défunt</th>
               <th style="text-align: center">N° Registre</th>
@@ -530,6 +531,9 @@
                   @else
                     <span class="badge bg-secondary">N/A</span>
                   @endif
+                </td>
+                <td>
+                    <div class="text-center">{{ $dece->quantite }} copie(s)</div>
                 </td>
                 <td style="text-align: center" data-label="Demandeur">
                   <div class="user-info" style="text-align: center; display:flex; justify-content:center">
@@ -661,9 +665,15 @@
                   @endif
                 </td>
                 <td style="text-align: center" data-label="Actions">
-                  <a href="{{ route('agent.demandes.deces.edit', $dece->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
-                    <i class="fas fa-edit"></i>
-                  </a>
+                    @if($dece->etat === 'terminé')
+                        <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée" style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    @else
+                        <a href="{{ route('agent.demandes.deces.edit', $dece->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    @endif
                 </td>
                 <td style="text-align: center">
                     <div class="d-flex justify-content-center gap-2">
@@ -686,7 +696,7 @@
               </tr>
             @empty
               <tr>
-                <td style="text-align: center" colspan="10" class="empty-state">
+                <td style="text-align: center" colspan="11" class="empty-state">
                   <i class="fas fa-cross"></i>
                   <h5>Aucune demande d'extrait de deces en cours</h5>
                   <p>Toutes les demandes sont traitées ou vous n'avez pas encore récuperer demande.</p>

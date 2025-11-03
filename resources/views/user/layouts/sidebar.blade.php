@@ -13,7 +13,7 @@
                         <div class="user_img"><img class=" img-responsive" src="{{ optional(Auth::user())->profile_picture 
                                                 ? asset('storage/' . Auth::user()->profile_picture) 
                                                 : asset('assets/images/profiles/useriii.jpeg') }}" 
-                                        alt="Profile Picture"/></div>
+                                        alt="Profile Picture" style="width: 80%"  /></div>
                             <div class="user_info">
                            <h6>{{ Auth::user()->name }} <br>{{ Auth::user()->prenom }}</h6>
                            <p><span class="online_animation"></span> En ligne</p>

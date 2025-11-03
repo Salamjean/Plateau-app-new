@@ -56,6 +56,7 @@ class MariageController extends Controller
          $filesToUpload = [
             'pieceIdentite' => 'identite',
             'extraitMariage' => 'extrait',
+            'quantite' => 'required|integer|min:1|max:10',
         ];
 
         $uploadedPaths = [];
@@ -92,6 +93,7 @@ class MariageController extends Controller
         $mariage->prenomEpoux = $request->prenomEpoux;
         $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;
         $mariage->lieuNaissanceEpoux = $request->lieuNaissanceEpoux;
+        $mariage->quantite = $request->quantite;
         $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
         $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
         $mariage->commune = $commune; // Utilisation de la commune spécifiée

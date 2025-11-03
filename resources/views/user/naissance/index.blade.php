@@ -210,6 +210,7 @@
                         <thead>
                             <tr>
                                 <th>Référence</th>
+                                <th>Quantité</th>
                                 <th>Type</th>
                                 <th>Nom sur l'extrait</th>
                                 <th>Détails</th>
@@ -224,6 +225,7 @@
                             @forelse ($naissances as $naissance)
                             <tr>
                                 <td>{{ $naissance->reference }}</td>
+                                <td>{{ $naissance->quantite }} copie(s)</td>
                                 <td>{{ $naissance->type }}</td>
                                 <td>
                                     <strong>{{ $naissance->name.' '.$naissance->prenom }}</strong><br>
@@ -281,7 +283,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="9" class="text-center py-4">Aucune demande d'extrait de naissance trouvée</td>
+                                <td colspan="10" class="text-center py-4">Aucune demande d'extrait de naissance trouvée</td>
                             </tr>
                             @endforelse
                         </tbody>

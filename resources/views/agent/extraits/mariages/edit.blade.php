@@ -39,10 +39,6 @@
       </div>
       <div class="info-grid">
         <div class="info-item">
-          <span class="info-label">Reference de la demande</span>
-          <span class="info-value">{{ $mariage->reference }}</span>
-        </div>
-        <div class="info-item">
           <span class="info-label">Demandeur</span>
           <span class="info-value">{{ $mariage->user->name.' '.$mariage->user->prenom ?? 'N/A' }}</span>
         </div>
@@ -56,7 +52,7 @@
             @if($mariage->etat == 'en attente')
               <span class="status-badge status-pending">En attente</span>
             @elseif($mariage->etat == 'réçu')
-              <span class="status-badge status-recu">Réçu</span>
+              <span class="status-badge status-recu">En cours</span>
             @else
               <span class="status-badge status-termine">Terminé</span>
             @endif

@@ -323,6 +323,7 @@
                         <thead>
                             <tr >
                                 <th style="text-align: center">Référence</th>
+                                <th style="text-align: center">Quantité</th>
                                 <th style="text-align: center">Type</th>
                                 <th style="text-align: center">Date de demande</th>
                                 <th style="text-align: center">État</th>
@@ -336,6 +337,9 @@
                                     <span class="fw-bold" style="color: var(--primary); text-align: start" >
                                         {{ $mariage->reference }}
                                     </span>
+                                </td>
+                                 <td>
+                                    <div class="text-center">{{ $mariage->quantite }} copie(s)</div>
                                 </td>
                                 <td style="text-align: center">
                                     @if($mariage->nomEpoux == null)
@@ -389,7 +393,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="7" class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                     <h5 class="text-muted">Aucune demande trouvée</h5>
                                     <p class="text-muted">Aucune demande d'extrait de mariage n'a été enregistrée pour le moment.</p>

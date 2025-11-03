@@ -36,6 +36,7 @@ class DecesController extends Controller
             'numberR' => 'required',
             'dateR' => 'required',
             'CNIdfnt' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
+            'quantite' => 'required|integer|min:1|max:10',
             'CNIdcl' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
         ],[
             'name.required' => 'Le nom du défunt est obligatoire.',
@@ -43,6 +44,10 @@ class DecesController extends Controller
             'dateR.required' => 'La date de l\'extrait de décès est obligatoire.',
             'CNIdfnt.required' => 'Cet document est obligatoire.',
             'CNIdcl.required' => 'Cet document est obligatoire.',
+            'quantite.required' => 'La quantité est obligatoire',
+            'quantite.integer' => 'La quantité doit être un nombre entier',
+            'quantite.min' => 'La quantité doit être au moins de 1',
+            'quantite.max' => 'La quantité ne peut pas dépasser 10',
             'documentMariage.required' => 'Cet document de mariage est obligatoire.',
             'RequisPolice.required' => 'Cet document requis de police est obligatoire.',
             'pActe.mimes' => 'Cet document d\'extrait de décès doit être un format de fichier valide (png, jpg, jpeg, pdf).',
@@ -97,6 +102,7 @@ class DecesController extends Controller
         $deces->documentMariage = $uploadedPaths['documentMariage'] ?? null;
         $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
         $deces->choix_option = $request->choix_option;
+        $deces->quantite = $request->quantite;
         $deces->commune = $request->communeD ?: $user->commune; // Déterminer la commune
         $deces->etat = 'en attente';
         $deces->user_id = $user->id; // Lier la demande à l'utilisateur connecté

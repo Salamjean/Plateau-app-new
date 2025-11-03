@@ -44,6 +44,7 @@ class NaissanceController extends Controller
             'number' => 'required',
             'DateR' => 'required',
             'commune' => 'required',
+            'quantite' => 'required|integer|min:1|max:10',
             'CNI' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
         ],[
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
@@ -53,6 +54,10 @@ class NaissanceController extends Controller
             'DateR.required' => 'La date de registre est obligatoire',
             'commune.required' => 'La commune est obligatoire',
             'CNI.required' => 'Le champ CNI est obligatoire',
+            'quantite.required' => 'La quantité est obligatoire',
+            'quantite.integer' => 'La quantité doit être un nombre entier',
+            'quantite.min' => 'La quantité doit être au moins de 1',
+            'quantite.max' => 'La quantité ne peut pas dépasser 10',
             'CNI.mimes' => 'Le format du fichier doit être PNG, JPG, JPEG ou PDF',
             'CNI.max' => 'Le fichier ne doit pas dépasser 1Mo',
         ]);
@@ -92,6 +97,7 @@ class NaissanceController extends Controller
         $naissance->pour = $request->pour;
         $naissance->type = $request->type;
         $naissance->name = $request->name;
+        $naissance->quantite = $request->quantite;
         $naissance->prenom = $request->prenom;
         $naissance->number = $request->number;
         $naissance->DateR = $request->DateR;

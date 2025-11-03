@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('DateR'); // Numéro associé
             $table->string('CNI'); // Numéro associé
             $table->string('reference');
+            $table->string('quantite');
             $table->string('commune')->nullable(); // Commune, nullable
             $table->string('etat')->default('en attente'); // État par défaut
             $table->string('statut_livraison')->nullable(); // État par défaut
@@ -30,7 +31,6 @@ return new class extends Migration
             $table->foreignId('livraison_id')->nullable()->constrained('postes')->onDelete('set null'); // Ajout de livraison
             $table->foreignId('dhl_id')->nullable()->constrained('dhls')->onDelete('set null');
             $table->foreignId('livreur_id')->nullable()->constrained('livreurs')->onDelete('set null'); // Ajout de livreur
-            // $table->foreignId('agence_id')->nullable()->constrained('d_h_l_agences')->onDelete('set null'); // Ajout de livreur
 
             //informations de livraison 
              $table->string('montant_timbre')->nullable();
