@@ -92,7 +92,7 @@ class StatistiqueController extends Controller
         ]);
 
     } catch (\Exception $e) {
-        \Log::error('Erreur statistiquesParStatut: ' . $e->getMessage());
+        Log::error('Erreur statistiquesParStatut: ' . $e->getMessage());
         return response()->json(['error' => 'Erreur serveur'], 500);
     }
 }
@@ -178,48 +178,51 @@ class StatistiqueController extends Controller
     {
         try {
             $user = $request->user();
-    
+
             if (!$user) {
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
-    
+
             // Naissances
             $naissances = Naissance::where('user_id', $user->id)
                 ->get()
                 ->map(function ($item) {
                     $item->type_demande = 'naissance';
+                    $item->statut = $this->calculerStatut($item);
                     return $item;
                 });
-    
+
             // Mariages
             $mariages = Mariage::where('user_id', $user->id)
                 ->get()
                 ->map(function ($item) {
                     $item->type_demande = 'mariage';
+                    $item->statut = $this->calculerStatut($item);
                     return $item;
                 });
-    
+
             // Décès
             $deces = Deces::where('user_id', $user->id)
                 ->get()
                 ->map(function ($item) {
                     $item->type_demande = 'deces';
+                    $item->statut = $this->calculerStatut($item);
                     return $item;
                 });
-    
+
             // Fusionner correctement les collections
             $toutesDemandes = $naissances->concat($mariages)->concat($deces);
             
             // Trier par created_at descendant
             $demandesTriees = $toutesDemandes->sortByDesc('created_at')->values();
-    
+
             return response()->json([
                 'demandes' => $demandesTriees->toArray(),
                 'total' => $demandesTriees->count(),
             ]);
-    
+
         } catch (\Exception $e) {
-            \Log::error('Erreur listeToutesDemandes: ' . $e->getMessage());
+            Log::error('Erreur listeToutesDemandes: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
@@ -296,7 +299,7 @@ class StatistiqueController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Erreur suiviDemande: ' . $e->getMessage());
+            Log::error('Erreur suiviDemande: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
@@ -379,7 +382,7 @@ class StatistiqueController extends Controller
             // --- FIN MODIFICATION DE LA RÉPONSE ---
 
         } catch (\Exception $e) {
-            \Log::error('Erreur suiviDemandeParReference: ' . $e->getMessage());
+            Log::error('Erreur suiviDemandeParReference: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
