@@ -30,7 +30,7 @@
                         <a href="#element" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fa fa-diamond purple_color"></i> <span>Extrait de naissance</span></a>
                         <ul class="collapse list-unstyled" id="element">
                            <li style="text-align: center">Demande :</li>
-                           <li><a href="{{route('user.extrait.create')}}">> <span>Fais la demande</span></a></li>
+                           <li><a href="{{route('user.extrait.create')}}">> <span>Faire la demande</span></a></li>
                            <li><a href="{{route('user.extrait.index')}}">> <span>Liste des demandes</span></a></li>
                         </ul>
                      </li>
@@ -38,7 +38,7 @@
                         <a href="#apps" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fa fa-object-group blue2_color"></i> <span>Extrait de décès</span></a>
                         <ul class="collapse list-unstyled" id="apps">
                            <li style="text-align: center">Demande :</li>
-                           <li><a href="{{route('user.extrait.deces.create')}}">> <span>Fais la demande</span></a></li>
+                           <li><a href="{{route('user.extrait.deces.create')}}">> <span>Faire la demande</span></a></li>
                            <li><a href="{{route('user.extrait.deces.index')}}">> <span>Liste des demandes</span></a></li>
                         </ul>
                      </li>
@@ -46,7 +46,7 @@
                         <a href="#additional_page" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fa fa-clone yellow_color"></i> <span>Extrait de mariage</span></a>
                         <ul class="collapse list-unstyled" id="additional_page">
                            <li style="text-align: center">Demande :</li>
-                           <li><a href="{{route('user.extrait.mariage.create')}}">> <span>fais la demande</span></a></li>
+                           <li><a href="{{route('user.extrait.mariage.create')}}">> <span>Faire la demande</span></a></li>
                            <li><a href="{{route('user.extrait.mariage.index')}}">> <span>Liste des demandes</span></a></li>
                         </ul>
                      </li>
