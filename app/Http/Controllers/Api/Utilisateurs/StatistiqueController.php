@@ -142,69 +142,46 @@ class StatistiqueController extends Controller
     {
         try {
             $user = $request->user();
-            
+    
             if (!$user) {
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
-
-            $page = $request->get('page', 1);
-            $perPage = $request->get('per_page', 20);
-
-            // 1. Récupérer toutes les naissances avec toutes leurs colonnes
-            // Nous utilisons map() pour ajouter un champ 'type_demande'
+    
+            // Naissances
             $naissances = Naissance::where('user_id', $user->id)
                 ->get()
                 ->map(function ($item) {
                     $item->type_demande = 'naissance';
                     return $item;
                 });
-
-            // 2. Récupérer tous les mariages
+    
+            // Mariages
             $mariages = Mariage::where('user_id', $user->id)
                 ->get()
                 ->map(function ($item) {
                     $item->type_demande = 'mariage';
                     return $item;
                 });
-
-            // 3. Récupérer tous les décès
+    
+            // Décès
             $deces = Deces::where('user_id', $user->id)
                 ->get()
                 ->map(function ($item) {
                     $item->type_demande = 'deces';
                     return $item;
                 });
-
-            // 4. Fusionner les collections et les trier
-            $toutesDemandes = $naissances->merge($mariages)->merge($deces);
-            $demandesTriees = $toutesDemandes->sortByDesc('created_at');
-
-            // 5. Paginer manuellement la collection résultante
-            $total = $demandesTriees->count();
+    
+            // Fusionner correctement les collections
+            $toutesDemandes = $naissances->concat($mariages)->concat($deces);
             
-            // values() est important pour réindexer la collection après le tri
-            $itemsPourPage = $demandesTriees->forPage($page, $perPage)->values(); 
-
-            $pagination = new LengthAwarePaginator(
-                $itemsPourPage,
-                $total,
-                $perPage,
-                $page,
-                // Génère les URLs pour la pagination
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            // 6. Renvoyer la réponse JSON paginée
+            // Trier par created_at descendant
+            $demandesTriees = $toutesDemandes->sortByDesc('created_at')->values();
+    
             return response()->json([
-                'demandes' => $pagination->items(),
-                'pagination' => [
-                    'current_page' => $pagination->currentPage(),
-                    'last_page' => $pagination->lastPage(),
-                    'per_page' => $pagination->perPage(),
-                    'total' => $pagination->total(),
-                ]
+                'demandes' => $demandesTriees->toArray(),
+                'total' => $demandesTriees->count(),
             ]);
-
+    
         } catch (\Exception $e) {
             \Log::error('Erreur listeToutesDemandes: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
