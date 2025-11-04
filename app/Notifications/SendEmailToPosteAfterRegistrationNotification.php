@@ -42,7 +42,7 @@ class SendEmailToPosteAfterRegistrationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Cette poste a été enregistré par Plateau-Apps') 
-            ->from('contact@edemarchee-ci.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.poste_registration', [
                 'code' => $this->code,
                 'email' => $this->email,

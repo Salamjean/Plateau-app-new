@@ -42,7 +42,7 @@ class SendEmailToFinanceAfterRegistrationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Service financier enregistré') // Sujet mis à jour
-            ->from('contact@edemarchee-ci.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.finance_registration', [
                 'code' => $this->code,
                 'email' => $this->email,

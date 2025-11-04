@@ -42,7 +42,7 @@ class SendEmailToDhlAfterRegistrationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : La DHL a été enregistré par Plateau-Apps') 
-            ->from('contact@edemarchee-ci.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.dhl_registration', [
                 'code' => $this->code,
                 'email' => $this->email,
