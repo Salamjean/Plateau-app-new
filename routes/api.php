@@ -29,7 +29,17 @@ Route::prefix('livreur')->group(function () {
     Route::post('/define-access', [LivreurAuthenticateController::class, 'defineAccess']);
     Route::post('/submit-define-access', [LivreurAuthenticateController::class, 'submitDefineAccess']);
 });
-
+// --- AJOUT DE LA SECTION WEBHOOK ---
+// Routes publiques pour les notifications de services externes (Webhooks)
+Route::prefix('webhooks')->group(function () {
+    /**
+     * C'est l'URL que CinetPay appellera après un paiement (notify_url).
+     * Le nom 'api.cinetpay.notify.deces' est celui que nous avons défini dans le contrôleur.
+     */
+    Route::post('/cinetpay/notify/deces', [DemandeDecesController::class, 'handlePaymentNotification'])
+         ->name('api.cinetpay.notify.deces');
+});
+// --- FIN DE L'AJOUT ---
 Route::middleware('auth:sanctum')->group(function () {
 
     // ROUTES UTILISATEURS AUTHENTIFIÉS
