@@ -225,7 +225,8 @@ class DemandeDecesController extends Controller
                         'apikey' => $cinetpayApiKey,
                         'site_id' => (int)$cinetpaySiteId,
                         // !! IMPORTANT : Vous devez créer cette route de webhook !!
-                        'notify_url' => route('api.cinetpay.notify.deces'), 
+                        // 'notify_url' => route('api.cinetpay.notify.deces'), 
+                      'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/deces',
                         'mode' => 'PRODUCTION' // ou 'TEST'
                     ],
                     
