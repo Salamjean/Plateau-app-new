@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User\Extrait\Naissance;
 use App\Http\Controllers\Controller;
 use App\Models\Naissance;
 use App\Services\InfobipService;
+use App\Services\OrangeSmsService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -127,7 +128,7 @@ class NaissanceController extends Controller
          $naissance->save();
          $phoneNumber = $user->indicatif . $user->contact;
     Log::info('Numéro de téléphone construit : ' . $phoneNumber);
-    $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie de {$user->commune}. Référence : {$naissance->reference}.
+    $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
     $smsResult = $infobipService->sendSms($phoneNumber, $message);
 
@@ -143,6 +144,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 //         'number' => 'required',
 //         'DateR' => 'required',
 //         'commune' => 'required',
+//         'quantite' => 'required|integer|min:1|max:10',
 //         'CNI' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
 //     ],[
 //         'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
@@ -152,6 +154,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 //         'DateR.required' => 'La date de registre est obligatoire',
 //         'commune.required' => 'La commune est obligatoire',
 //         'CNI.required' => 'Le champ CNI est obligatoire',
+//         'quantite.required' => 'La quantité est obligatoire',
+//         'quantite.integer' => 'La quantité doit être un nombre entier',
+//         'quantite.min' => 'La quantité doit être au moins de 1',
+//         'quantite.max' => 'La quantité ne peut pas dépasser 10',
 //         'CNI.mimes' => 'Le format du fichier doit être PNG, JPG, JPEG ou PDF',
 //         'CNI.max' => 'Le fichier ne doit pas dépasser 1Mo',
 //     ]);
@@ -190,6 +196,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 //     $naissance->pour = $request->pour;
 //     $naissance->type = $request->type;
 //     $naissance->name = $request->name;
+//     $naissance->quantite = $request->quantite;
 //     $naissance->prenom = $request->prenom;
 //     $naissance->number = $request->number;
 //     $naissance->DateR = $request->DateR;
