@@ -4,12 +4,14 @@ namespace App\Http\Controllers\User\Extrait\Deces;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deces;
+use App\Notifications\DemandeDecesConfirmationNotification;
 use App\Services\InfobipService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class DecesController extends Controller
@@ -128,6 +130,9 @@ class DecesController extends Controller
         $message = "Bonjour {$user->name}, votre demande d'extrait de décès a bien été transmise à la mairie du plateau. Référence: {$deces->reference}
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
         $infobipService->sendSms($phoneNumber, $message);
+
+        // Envoi de l'email de confirmation
+        Notification::send($user, new DemandeDecesConfirmationNotification($user, $deces));
 
         return redirect()->route('user.extrait.deces.index')->with('success', 'Demande envoyée avec succès.');
     }

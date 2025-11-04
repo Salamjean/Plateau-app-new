@@ -5,12 +5,14 @@ namespace App\Http\Controllers\User\Extrait\Mariage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\saveMariageRequest;
 use App\Models\Mariage;
+use App\Notifications\DemandeMariageConfirmationNotification;
 use App\Services\InfobipService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class MariageController extends Controller
@@ -122,6 +124,9 @@ class MariageController extends Controller
         $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie du plateau. Référence: {$mariage->reference}.
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
         $infobipService->sendSms($phoneNumber, $message);
+
+        // Envoi de l'email de confirmation
+        Notification::send($user, new DemandeMariageConfirmationNotification($user, $mariage));
 
         return redirect()->route('user.extrait.mariage.index')->with('success', 'Votre demande a été traitée avec succès.');
     }

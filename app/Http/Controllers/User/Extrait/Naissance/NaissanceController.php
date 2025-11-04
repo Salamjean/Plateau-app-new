@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User\Extrait\Naissance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Naissance;
+use App\Notifications\DemandeNaissanceConfirmationNotification;
 use App\Services\InfobipService;
 use App\Services\OrangeSmsService;
 use Carbon\Carbon;
@@ -11,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class NaissanceController extends Controller
@@ -131,6 +133,9 @@ class NaissanceController extends Controller
     $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
     $smsResult = $infobipService->sendSms($phoneNumber, $message);
+
+    // Envoi de l'email de confirmation
+Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $naissance));
 
         return redirect()->route('user.extrait.index')->with('success', 'Votre demande a été traitée avec succès.');
     }
