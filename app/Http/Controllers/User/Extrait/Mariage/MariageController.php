@@ -118,10 +118,10 @@ class MariageController extends Controller
         }
 
         $mariage->save();
-//         $phoneNumber = $user->indicatif . $user->contact;
-//         $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie de {$user->commune}. Référence: {$mariage->reference}.
-// Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-//         $infobipService->sendSms($phoneNumber, $message);
+        $phoneNumber = $user->indicatif . $user->contact;
+        $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie de {$user->commune}. Référence: {$mariage->reference}.
+Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+        $infobipService->sendSms($phoneNumber, $message);
 
         return redirect()->route('user.extrait.mariage.index')->with('success', 'Votre demande a été traitée avec succès.');
     }
