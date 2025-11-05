@@ -70,10 +70,14 @@ return [
             'provider' => 'postes',
         ],
         'livreur' => [
+            'driver' => 'session',
+            'provider' => 'livreurs',
+        ],
+        //Guard API
+        'livreurApi' => [
             'driver' => 'sanctum',
             'provider' => 'livreurs',
         ],
-        
     ],
 
     /*

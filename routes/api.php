@@ -90,7 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     }); // Fin du groupe utilisateurs
 
      // ROUTES LIVREUR AUTHENTIFIÉ (guard spécifique = livreur)
-     Route::prefix('livreur')->middleware('auth:livreur')->group(function () {
+     Route::prefix('livreur')->middleware('auth:livreurApi')->group(function () {
         
         // Routes pour les livraisons
         Route::prefix('livraisons')->group(function () {

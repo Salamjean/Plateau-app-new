@@ -21,7 +21,7 @@ class LivraisonController extends Controller
     public function listeLivraisons(): JsonResponse
     {
         try {
-            $livreur = Auth::guard('livreur')->user();
+            $livreur = Auth::guard('livreurApi')->user();
             
             if (!$livreur) {
                 return response()->json([
@@ -81,7 +81,7 @@ class LivraisonController extends Controller
     public function getLivraison(Request $request, $type, $id): JsonResponse
     {
         try {
-            $livreur = Auth::guard('livreur')->user();
+            $livreur = Auth::guard('livreurApi')->user();
             
             if (!$livreur) {
                 return response()->json([
@@ -144,7 +144,7 @@ class LivraisonController extends Controller
     public function validerLivraison(Request $request): JsonResponse
     {
         try {
-            $livreur = Auth::guard('livreur')->user();
+            $livreur = Auth::guard('livreurApi')->user();
             
             if (!$livreur) {
                 return response()->json([
@@ -220,7 +220,7 @@ class LivraisonController extends Controller
     public function statistiques(): JsonResponse
     {
         try {
-            $livreur = Auth::guard('livreur')->user();
+            $livreur = Auth::guard('livreurApi')->user();
             
             if (!$livreur) {
                 return response()->json([
@@ -294,7 +294,7 @@ class LivraisonController extends Controller
     public function checkReference(Request $request): JsonResponse
     {
         try {
-            $livreur = Auth::guard('livreur')->user();
+            $livreur = Auth::guard('livreurApi')->user();
             
             if (!$livreur) {
                 return response()->json([
