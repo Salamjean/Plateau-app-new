@@ -193,8 +193,8 @@ class DemandeMariageController extends Controller
                 'description' => "Paiement ({$mariage->quantite}x timbre + livr) Acte Mariage {$mariage->reference}", // Description adaptée
                 
                 // --- MODIFICATION --- : URL de notification spécifique au mariage
-                // 'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/mariage',
-                 'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/mariage', // Pour test
+                 'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/mariage',
+                //  'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/mariage', // Pour test
                 
                 'return_url' => $fallbackReturnUrl, 
                 'cancel_url' => $fallbackCancelUrl, 
