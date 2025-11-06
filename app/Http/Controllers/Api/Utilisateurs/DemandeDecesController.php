@@ -21,7 +21,6 @@ class DemandeDecesController extends Controller
      */
     public function index(): JsonResponse
     {
-        // ... (Ton code index reste inchangé)
         try {
             $user = Auth::user();
             $deces = Deces::where('user_id', $user->id)
@@ -74,8 +73,7 @@ class DemandeDecesController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        // Le validateur reste le même, il vérifie déjà les champs de livraison
-        // si choix_option=livraison
+        // 1. Validation (inchangée)
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'numberR' => 'required|string|max:255',
@@ -100,24 +98,17 @@ class DemandeDecesController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
         }
 
         try {
             $user = Auth::user();
 
-            // Upload des fichiers (inchangé)
+            // 2. Upload des fichiers (inchangé)
             $filesToUpload = [
-                'CNIdfnt' => 'cnid',
-                'CNIdcl' => 'cnid',
-                'documentMariage' => 'mariage',
-                'RequisPolice' => 'police',
+                'CNIdfnt' => 'cnid', 'CNIdcl' => 'cnid',
+                'documentMariage' => 'mariage', 'RequisPolice' => 'police',
             ];
-
             $uploadedPaths = [];
             foreach ($filesToUpload as $fileKey => $subDir) {
                 if ($request->hasFile($fileKey)) {
@@ -125,19 +116,17 @@ class DemandeDecesController extends Controller
                     $extension = $file->getClientOriginalExtension();
                     $newFileName = (string) Str::uuid() . '.' . $extension;
                     $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
-                    // !! Important : Correction du chemin stocké
-                    $uploadedPaths[$fileKey] = $path; 
+                    $uploadedPaths[$fileKey] = $path;
                 }
             }
 
-            // Génération de la référence (inchangé)
+            // 3. Génération de référence (inchangée)
             $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1));
             $anneeCourante = Carbon::now()->year;
-            // NOTE: Assurez-vous que la méthode 'getNextId()' existe sur votre modèle Deces
-            $nextId = Deces::max('id') + 1; // Solution simple si getNextId() n'existe pas
+            $nextId = Deces::max('id') + 1;
             $reference = 'AD' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
 
-            // Création de la demande
+            // 4. Création de la demande (inchangée)
             $deces = new Deces();
             $deces->name = $request->name;
             $deces->numberR = $request->numberR;
@@ -151,10 +140,7 @@ class DemandeDecesController extends Controller
             $deces->user_id = $user->id;
             $deces->reference = $reference;
 
-            // --- DEBUT DE LA NOUVELLE LOGIQUE ---
-
             if ($request->choix_option === 'livraison') {
-                // Enregistrer les informations de livraison
                 $deces->montant_timbre = $request->montant_timbre;
                 $deces->montant_livraison = $request->montant_livraison;
                 $deces->nom_destinataire = $request->nom_destinataire;
@@ -166,84 +152,86 @@ class DemandeDecesController extends Controller
                 $deces->ville = $request->ville;
                 $deces->commune_livraison = $request->commune_livraison;
                 $deces->quartier = $request->quartier;
-
-                // Définir l'état pour refléter l'attente de paiement
-                // NOTE: Vous devriez ajouter une colonne 'payment_status' (ex: 'pending', 'paid')
-                // pour une meilleure gestion. Ici, on utilise 'etat'.
                 $deces->etat = 'en attente de paiement';
                 $deces->statut_livraison = 'en attente de paiement';
-
             } else {
-                // Option "retrait"
                 $deces->etat = 'en attente';
-                $deces->statut_livraison = null; // Pas de livraison
+                $deces->statut_livraison = null;
             }
 
             $deces->save();
 
-            // --- NOUVELLE RÉPONSE CONDITIONNELLE ---
-
-            // Si c'est un simple retrait, retourner la réponse standard
+            // 5. Réponse conditionnelle (Cas "Retrait" - inchangé)
             if ($deces->choix_option === 'retrait') {
                 return response()->json([
                     'success' => true,
                     'message' => 'Demande de décès (retrait) créée avec succès',
-                    'requires_payment' => false, // Indiquer qu'aucun paiement n'est requis
-                    'data' => [
-                        'demande' => $this->formatDemandeResponse($deces)
-                    ]
+                    'requires_payment' => false,
+                    'data' => ['demande' => $this->formatDemandeResponse($deces)]
                 ], 201);
             }
 
-            // Si c'est une LIVRAISON, renvoyer les infos pour initier le paiement
-            // Le client (mobile/postman) recevra ceci et saura qu'il doit payer.
+            // --- DEBUT DE LA NOUVELLE LOGIQUE (Cas "Livraison") ---
             
-            // Calculer le montant total (basé sur ton JS)
+            // 6. Préparer l'appel à CinetPay pour générer le lien
             $totalAmount = (float)$deces->montant_timbre + (float)$deces->montant_livraison;
+            $cinetpayApiKey = '521006956621e4e7a6a3d16.70681548'; // !! A METTRE DANS .env
+            $cinetpaySiteId = '935132'; // !! A METTRE DANS .env
+            
+            $paymentData = [
+                'apikey' => $cinetpayApiKey,
+                'site_id' => $cinetpaySiteId,
+                'transaction_id' => $deces->reference,
+                'amount' => $totalAmount,
+                'currency' => 'XOF',
+                'description' => 'Paiement livraison Acte de Décès ' . $deces->reference,
+                // 'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/deces',
+               'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/deces',
+                'mode' => 'PRODUCTION',
+                'channels' => 'ALL', // Important
+                
+                // Customer info
+                'customer_name' => $deces->nom_destinataire,
+                'customer_surname' => $deces->prenom_destinataire,
+                'customer_email' => $deces->email_destinataire,
+                'customer_phone_number' => $deces->contact_destinataire,
+                'customer_address' => $deces->adresse_livraison,
+                'customer_city' => $deces->ville,
+                'customer_country' => 'CI',
+                'customer_zip_code' => $deces->code_postal ?? '00225'
+            ];
 
-            // Récupérer les infos CinetPay (basé sur ton JS)
-            // !! ATTENTION : Stockez-les dans votre .env et config/services.php !!
-            // $cinetpayApiKey = config('services.cinetpay.api_key');
-            // $cinetpaySiteId = config('services.cinetpay.site_id');
-            $cinetpayApiKey = '521006956621e4e7a6a3d16.70681548'; // PRIS DE TON JS
-            $cinetpaySiteId = '935132'; // PRIS DE TON JS
+            // 7. Faire l'appel API à CinetPay
+            // $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
+                $response = Http::post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
 
+            // 8. Gérer l'échec de l'appel à CinetPay
+            if ($response->failed() || $response->json('code') !== '201') {
+                Log::error('Erreur CinetPay (Génération lien): ' . $response->body(), ['transaction_id' => $deces->reference]);
+                // La demande est créée, mais le lien a échoué.
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Demande créée, mais échec de la génération du lien de paiement. Veuillez réessayer.',
+                    'error_details' => $response->json() ?? $response->body()
+                ], 500);
+            }
+
+            // 9. Succès ! Extraire le lien de paiement
+            $cinetpayResponseData = $response->json('data');
+
+            // 10. Renvoyer la réponse JSON avec le payment_url
             return response()->json([
                 'success' => true,
-                'message' => 'Demande créée, en attente de paiement.',
-                'requires_payment' => true, // Indique au client qu'un paiement est requis
+                'message' => 'Demande créée. Utilisez le payment_url pour payer.',
+                'requires_payment' => true,
                 
-                // Détails pour le SDK CinetPay (côté mobile)
                 'payment_details' => [
-                    'transaction_id' => $deces->reference, // Utiliser la référence unique
-                    'amount' => $totalAmount,
-                    'currency' => 'XOF',
-                    'description' => 'Paiement livraison Acte de Décès ' . $deces->reference,
-                    
-                    // Config pour le SDK Mobile CinetPay
-                    'cinetpay_config' => [
-                        'apikey' => $cinetpayApiKey,
-                        'site_id' => (int)$cinetpaySiteId,
-                        // !! IMPORTANT : Vous devez créer cette route de webhook !!
-                        // 'notify_url' => route('api.cinetpay.notify.deces'), 
-                      'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/deces',
-                        'mode' => 'PRODUCTION' // ou 'TEST'
-                    ],
-                    
-                    // Infos client pour pré-remplir le SDK
-                    'customer_info' => [
-                        'customer_name' => $deces->nom_destinataire,
-                        'customer_surname' => $deces->prenom_destinataire,
-                        'customer_email' => $deces->email_destinataire,
-                        'customer_phone_number' => $deces->contact_destinataire,
-                        'customer_address' => $deces->adresse_livraison,
-                        'customer_city' => $deces->ville,
-                        'customer_country' => 'CI',
-                        'customer_zip_code' => $deces->code_postal ?? '00225'
-                    ]
+                    'payment_url' => $cinetpayResponseData['payment_url'],
+                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'transaction_id' => $deces->reference, // Notre référence
+                    'mode' => 'PRODUCTION'
                 ],
                 
-                // Données de la demande créée
                 'data' => [
                     'demande' => $this->formatDemandeResponse($deces)
                 ]
@@ -281,55 +269,53 @@ class DemandeDecesController extends Controller
 
     public function handlePaymentNotification(Request $request): JsonResponse
     {
-        // 1. Logguer TOUJOURS la requête brute pour le débogage
+        // 1. Logguer la requête
         Log::info('Webhook CinetPay Reçu (Deces):', $request->all());
 
-        // 'cpm_transaction_id' est l'ID que NOUS avons envoyé (la référence de la demande)
-        $transaction_id = $request->input('cpm_transaction_id');
+        // --- CORRECTION ---
+        // CinetPay renvoie NOTRE référence (ex: AD0012P2025) 
+        // dans LEUR champ 'cpm_trans_id'.
         
-        // 'cpm_trans_id' est l'ID unique de CinetPay
-        $cinetpay_trans_id = $request->input('cpm_trans_id'); 
+        $transaction_id = $request->input('cpm_trans_id'); 
 
-        if (empty($transaction_id) || empty($cinetpay_trans_id)) {
-            Log::warning('Webhook CinetPay (Deces): ID de transaction manquant.');
-            // On renvoie 200 pour que CinetPay arrête de notifier
+        if (empty($transaction_id)) {
+            Log::warning('Webhook CinetPay (Deces): ID de transaction (cpm_trans_id) manquant.');
             return response()->json(['success' => false, 'message' => 'Transaction ID manquant'], 200);
         }
+        // --- FIN CORRECTION ---
 
         try {
-            // 2. Trouver la demande correspondante
+            // 2. Trouver la demande (Ce code est maintenant correct)
             $deces = Deces::where('reference', $transaction_id)
-                          ->where('etat', 'en attente de paiement') // S'assurer qu'on ne la traite pas 2 fois
+                          ->where('etat', 'en attente de paiement')
                           ->first();
 
             if (!$deces) {
                 Log::warning("Webhook CinetPay (Deces): Demande $transaction_id non trouvée ou déjà traitée.");
-                // Demande non trouvée ou déjà payée. Répondre 200 OK.
                 return response()->json(['success' => true, 'message' => 'Déjà traité ou non trouvé'], 200);
             }
 
-            // 3. !! SÉCURITÉ : VÉRIFIER LE STATUT AUPRÈS DE CINETPAY !!
-            // Ne jamais faire confiance aveuglément au webhook.
-            // On utilise l'API de CinetPay pour revérifier le statut réel de la transaction.
-            
-            // !! ATTENTION : NE PAS HARDCODER LES CLÉS EN PRODUCTION !!
-            // Utilisez config('services.cinetpay.api_key') et config('services.cinetpay.site_id')
-            $cinetpayApiKey = '521006956621e4e7a6a3d16.70681548'; // PRIS DE TON JS
-            $cinetpaySiteId = '935132'; // PRIS DE TON JS
+            // 3. VÉRIFIER LE STATUT AUPRÈS DE CINETPAY
+            $cinetpayApiKey = '521006956621e4e7a6a3d16.70681548';
+            $cinetpaySiteId = '935132';
             $cinetpayUrl = 'https://api-checkout.cinetpay.com/v2/payment/check';
 
+            // N'oubliez pas le withoutVerifying() pour votre test local !
+            // $response = Http::withoutVerifying()->post($cinetpayUrl, [
+            //     'apikey' => $cinetpayApiKey,
+            //     'site_id' => $cinetpaySiteId,
+            //     'transaction_id' => $transaction_id // On utilise notre $transaction_id
+            // ]);
             $response = Http::post($cinetpayUrl, [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
-                'transaction_id' => $transaction_id
+                'transaction_id' => $transaction_id // On utilise notre $transaction_id
             ]);
-
             if ($response->failed()) {
                 Log::error("Webhook CinetPay (Deces) $transaction_id: Échec de la vérification API.", [
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
-                // Erreur serveur. CinetPay réessaiera.
                 return response()->json(['success' => false, 'message' => 'Vérification échouée'], 500);
             }
 
@@ -337,27 +323,17 @@ class DemandeDecesController extends Controller
             Log::info("Webhook CinetPay (Deces) $transaction_id: Réponse de vérification:", $verificationData);
 
             // 4. Traiter la réponse de VÉRIFICATION
-            // On se base sur la réponse de l'API, PAS sur le webhook initial
             if (isset($verificationData['data']['status']) && $verificationData['data']['status'] === 'ACCEPTED') {
                 
                 // --- PAIEMENT CONFIRMÉ ---
                 $deces->etat = 'en attente de livraison';
                 $deces->statut_livraison = 'en attente';
-                
-                // Optionnel : stocker l'ID de CinetPay pour référence
-                // $deces->cinetpay_ref = $cinetpay_trans_id; 
-                
-                // Optionnel : si tu as une colonne 'payment_status'
-                // $deces->payment_status = 'paid';
-
                 $deces->save();
 
                 Log::info("Webhook CinetPay (Deces) $transaction_id: Paiement ACCEPTÉ et demande mise à jour.");
 
-                // (Optionnel : Envoyer un email de confirmation au client ici)
-
             } else {
-                // --- PAIEMENT ÉCHOUÉ OU EN ATTENTE ---
+                // --- PAIEMENT ÉCHOUÉ ---
                 $deces->etat = 'paiement échoué';
                 $deces->statut_livraison = 'paiement échoué';
                 $deces->save();
@@ -365,7 +341,7 @@ class DemandeDecesController extends Controller
                 Log::warning("Webhook CinetPay (Deces) $transaction_id: Paiement NON ACCEPTÉ (Statut: " . ($verificationData['data']['status'] ?? 'INCONNU') . ")");
             }
 
-            // 5. Répondre 200 OK à CinetPay pour dire "Notification reçue et traitée"
+            // 5. Répondre 200 OK
             return response()->json(['success' => true, 'message' => 'Webhook traité'], 200);
 
         } catch (\Exception $e) {
@@ -373,7 +349,6 @@ class DemandeDecesController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            // Erreur de notre côté (ex: BDD). Répondre 500 pour que CinetPay réessaie.
             return response()->json(['success' => false, 'message' => 'Erreur interne'], 500);
         }
     }
