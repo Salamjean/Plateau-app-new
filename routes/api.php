@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/deces')->group(function () {
             Route::get('/', [DemandeDecesController::class, 'index']);
             Route::post('/', [DemandeDecesController::class, 'store']);
+            Route::get('/{id}/check-payment', [DemandeDecesController::class, 'checkPaymentStatus']);
             Route::delete('/{deces}', [DemandeDecesController::class, 'destroy']);
         });
 
