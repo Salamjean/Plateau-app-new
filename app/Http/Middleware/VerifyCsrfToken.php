@@ -13,7 +13,10 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         '/deces/paiement/redirect-to-app',
+        '/mariage/paiement/redirect-to-app',
+        '/naissance/paiement/redirect-to-app',
         '/api/webhooks/cinetpay/notify/deces',
-        // Ajoutez d'autres routes webhook si nécessaire
+        '/api/webhooks/cinetpay/notify/mariage',
+        '/api/webhooks/cinetpay/notify/naissance',
     ];
 }

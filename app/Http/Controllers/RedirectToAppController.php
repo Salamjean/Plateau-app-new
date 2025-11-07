@@ -12,7 +12,8 @@ class RedirectToAppController extends Controller
         Log::info('RedirectToAppController - Méthode: ' . $request->method(), [
             'all_inputs' => $request->all(),
             'query_params' => $request->query(),
-            'headers' => $request->headers->all()
+            'headers' => $request->headers->all(),
+            'full_url' => $request->fullUrl()
         ]);
 
         // Si c'est un POST (venant de CinetPay), traiter et rediriger en GET
@@ -25,9 +26,26 @@ class RedirectToAppController extends Controller
                 'transactionId' => $transactionId
             ]);
 
+            // Extraire la référence originale si transactionId contient un suffixe
+            $originalTransactionId = $transactionId;
+            if (strpos($transactionId, '_') !== false) {
+                $parts = explode('_', $transactionId);
+                $originalTransactionId = $parts[0];
+            }
+
+            // Déterminer le type de demande basé sur l'URL
+            $currentUrl = $request->fullUrl();
+            $routeName = 'deces.redirect_to_app'; // par défaut
+            
+            if (strpos($currentUrl, '/mariage/') !== false) {
+                $routeName = 'mariage.redirect_to_app';
+            } elseif (strpos($currentUrl, '/naissance/') !== false) {
+                $routeName = 'naissance.redirect_to_app';
+            }
+
             // Rediriger vers la même URL en GET
-            return redirect()->route('deces.redirect_to_app', [
-                'transactionId' => $transactionId,
+            return redirect()->route($routeName, [
+                'transactionId' => $originalTransactionId,
                 'cinetpay' => 'true'
             ]);
         }
