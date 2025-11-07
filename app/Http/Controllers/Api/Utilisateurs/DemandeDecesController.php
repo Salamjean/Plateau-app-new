@@ -202,6 +202,8 @@ class DemandeDecesController extends Controller
              $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$deces->reference}";
              $fallbackReturnUrl = "https://plateau-apps.com/deces/paiement/redirect-to-app?transactionId={$deces->reference}";
              $fallbackCancelUrl = "https://plateau-apps.com/deces/paiement/redirect-to-app?cancel=1&transactionId={$deces->reference}";
+            // $fallbackReturnUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/deces/paiement/redirect-to-app?transactionId={$deces->reference}";
+            // $fallbackCancelUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/deces/paiement/redirect-to-app?cancel=1&transactionId={$deces->reference}";
  
              
              // --- MODIFICATION --- : Calcul du montant total
@@ -223,8 +225,8 @@ class DemandeDecesController extends Controller
                  'amount' => $totalAmount, // <-- Le montant total est maintenant correct
                  'currency' => 'XOF',
                  'description' => "Paiement ({$deces->quantite}x timbre + livr) Acte Décès {$deces->reference}", // Description mise à jour
-                  'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/deces',
-                //   'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/deces',
+                'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/deces',
+               //  'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/deces',
                  
                  'return_url' => $fallbackReturnUrl, 
                  'cancel_url' => $fallbackCancelUrl, 

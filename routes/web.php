@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\RedirectToAppController;
 use App\Http\Controllers\Admin\AdminDashboard;
 use App\Http\Controllers\Admin\AuthenticateAdmin;
 use App\Http\Controllers\Admin\Extrait\AdminExtraitController;
@@ -421,3 +421,4 @@ Route::get('/validate-dhl-account/{email}', [AuthenticateDhl::class, 'defineAcce
 Route::post('/validate-dhl-account/{email}', [AuthenticateDhl::class, 'submitDefineAccess'])->name('dhl.validate');
 // Route::get('/validate-agency-account/{email}', [AuthenticateDhlAgence::class, 'defineAccess']);
 // Route::post('/validate-agency-account/{email}', [AuthenticateDhlAgence::class, 'submitDefineAccess'])->name('agency.validate');
+Route::match(['get', 'post'], '/deces/paiement/redirect-to-app', [RedirectToAppController::class, 'show'])->name('deces.redirect_to_app');
