@@ -202,49 +202,47 @@ class DemandeDecesController extends Controller
              $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$deces->reference}";
              $fallbackReturnUrl = "https://plateau-apps.com/deces/paiement/redirect-to-app?transactionId={$deces->reference}";
              $fallbackCancelUrl = "https://plateau-apps.com/deces/paiement/redirect-to-app?cancel=1&transactionId={$deces->reference}";
-            // $fallbackReturnUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/deces/paiement/redirect-to-app?transactionId={$deces->reference}";
-            // $fallbackCancelUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/deces/paiement/redirect-to-app?cancel=1&transactionId={$deces->reference}";
+            //$fallbackReturnUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/deces/paiement/redirect-to-app?transactionId={$deces->reference}";
+           // $fallbackCancelUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/deces/paiement/redirect-to-app?cancel=1&transactionId={$deces->reference}";
  
              
              // --- MODIFICATION --- : Calcul du montant total
-             // Calculer le coût total des timbres basé sur la quantité
-             $cout_total_timbres = (float)$deces->montant_timbre * (int)$deces->quantite;
-             
-             // Calculer le montant total pour CinetPay
-             $totalAmount = $cout_total_timbres + (float)$deces->montant_livraison;
-             // --- FIN MODIFICATION ---
- 
- 
-             $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
-             $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
-             
-             $paymentData = [
-                 'apikey' => $cinetpayApiKey,
-                 'site_id' => $cinetpaySiteId,
-                 'transaction_id' => $deces->reference,
-                 'amount' => $totalAmount, // <-- Le montant total est maintenant correct
-                 'currency' => 'XOF',
-                 'description' => "Paiement ({$deces->quantite}x timbre + livr) Acte Décès {$deces->reference}", // Description mise à jour
-                'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/deces',
-               //  'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/deces',
-                 
-                 'return_url' => $fallbackReturnUrl, 
-                 'cancel_url' => $fallbackCancelUrl, 
- 
-                 'mode' => 'PRODUCTION',
-                 'channels' => 'ALL',
- 
-                 // Customer info (inchangé)
-                 'customer_name' => $deces->nom_destinataire,
-                 'customer_surname' => $deces->prenom_destinataire,
-                 'customer_email' => $deces->email_destinataire,
-                 'customer_phone_number' => $deces->contact_destinataire,
-                 'customer_address' => $deces->adresse_livraison,
-                 'customer_city' => $deces->ville,
-                 'customer_country' => 'CI',
-                 'customer_zip_code' => $deces->code_postal ?? '00225'
-             ];
- 
+           // --- Calcul du montant total ---
+$cout_total_timbres = (float)$deces->montant_timbre * (int)$deces->quantite;
+$totalAmount = $cout_total_timbres + (float)$deces->montant_livraison;
+
+$cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
+$cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+
+// GÉNÉRER UN TRANSACTION_ID UNIQUE
+$cinetpayTransactionId = $deces->reference . '_' . time(); // ou Str::random(8)
+
+$paymentData = [
+    'apikey' => $cinetpayApiKey,
+    'site_id' => $cinetpaySiteId,
+    'transaction_id' => $cinetpayTransactionId, // ← Utilisez l'ID unique
+    'amount' => $totalAmount,
+    'currency' => 'XOF',
+    'description' => "Paiement ({$deces->quantite}x timbre + livr) Acte Décès {$deces->reference}",
+    'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/deces',
+    // 'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/deces',
+    
+    'return_url' => $fallbackReturnUrl, 
+    'cancel_url' => $fallbackCancelUrl, 
+
+    'mode' => 'PRODUCTION',
+    'channels' => 'ALL',
+
+    // Customer info
+    'customer_name' => $deces->nom_destinataire,
+    'customer_surname' => $deces->prenom_destinataire,
+    'customer_email' => $deces->email_destinataire,
+    'customer_phone_number' => $deces->contact_destinataire,
+    'customer_address' => $deces->adresse_livraison,
+    'customer_city' => $deces->ville,
+    'customer_country' => 'CI',
+    'customer_zip_code' => $deces->code_postal ?? '00225'
+];
              // 7. Faire l'appel API à CinetPay (inchangé)
              $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
              // $response = Http::post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
@@ -271,7 +269,7 @@ class DemandeDecesController extends Controller
                  'payment_details' => [
                      'payment_url' => $cinetpayResponseData['payment_url'],
                      'payment_token' => $cinetpayResponseData['payment_token'],
-                     'transaction_id' => $deces->reference,
+                    'transaction_id' => $deces->reference . '_' . time(), // ou utilisez un UUID
                      'mode' => 'PRODUCTION',
                      'return_url_deep_link' => $returnUrl,
                      'cancel_url_deep_link' => $cancelUrl,
@@ -361,30 +359,34 @@ class DemandeDecesController extends Controller
 
      public function handlePaymentNotification(Request $request): JsonResponse
      {
-         // 1. Logguer la requête brute reçue du webhook (toujours)
          Log::info('Webhook CinetPay Reçu (Deces) - request:', $request->all());
      
-         // CinetPay donne normalement notre référence dans 'cpm_trans_id'
-         $transaction_id = $request->input('cpm_trans_id') 
+         // Récupérer l'ID de transaction CinetPay
+         $cinetpayTransactionId = $request->input('cpm_trans_id') 
                              ?? $request->input('transaction_id') 
                              ?? $request->input('data.cpm_trans_id') 
                              ?? null;
      
-         if (empty($transaction_id)) {
+         if (empty($cinetpayTransactionId)) {
              Log::warning('Webhook CinetPay (Deces): transaction_id manquant dans le webhook.', $request->all());
              return response()->json(['success' => false, 'message' => 'Transaction ID manquant'], 200);
          }
      
+         // Extraire la référence originale (enlever le suffixe unique)
+         $reference = $cinetpayTransactionId;
+         if (strpos($cinetpayTransactionId, '_') !== false) {
+             $parts = explode('_', $cinetpayTransactionId);
+             $reference = $parts[0]; // Prendre la partie avant le _
+         }
+     
          try {
-             // 2. Trouver la demande Deces — NE PAS forcer l'état ici (on veut tolérer)
-             $deces = Deces::where('reference', $transaction_id)->first();
+             // Trouver la demande Deces par la référence originale
+             $deces = Deces::where('reference', $reference)->first();
      
              if (!$deces) {
-                 Log::warning("Webhook CinetPay (Deces): Aucune demande trouvée pour reference {$transaction_id}.");
-                 // On répond OK pour éviter retry massif côté CinetPay, mais loguons la situation
+                 Log::warning("Webhook CinetPay (Deces): Aucune demande trouvée pour reference {$reference}.");
                  return response()->json(['success' => true, 'message' => 'Demande non trouvée'], 200);
              }
-     
              // 3. Vérifier le statut auprès de CinetPay via l'API de check
              $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
              $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
