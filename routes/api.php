@@ -31,21 +31,35 @@ Route::prefix('livreur')->group(function () {
 });
 // --- AJOUT DE LA SECTION WEBHOOK ---
 // Routes publiques pour les notifications de services externes (Webhooks)
+// --- Routes publiques Webhook et Statut ---
+
 Route::prefix('webhooks')->group(function () {
-    /**
-     * C'est l'URL que CinetPay appellera après un paiement (notify_url).
-     * Le nom 'api.cinetpay.notify.deces' est celui que nous avons défini dans le contrôleur.
-     */
     Route::post('/cinetpay/notify/deces', [DemandeDecesController::class, 'handlePaymentNotification'])
-         ->name('api.cinetpay.notify.deces');
+          ->name('api.cinetpay.notify.deces');
+    
+    Route::post('/cinetpay/notify/mariage', [DemandeMariageController::class, 'handlePaymentNotification'])
+          ->name('api.cinetpay.notify.mariage');
+
+    // ✅ AJOUTÉ
+    Route::post('/cinetpay/notify/naissance', [DemandeNaissanceController::class, 'handlePaymentNotification'])
+          ->name('api.cinetpay.notify.naissance');
 });
-// --- FIN DE L'AJOUT ---
+
+// Routes de polling de statut (publiques)
+Route::get('/deces/payment-status/{reference}', [DemandeDecesController::class, 'getPaymentStatus']);
+Route::get('/mariage/payment-status/{reference}', [DemandeMariageController::class, 'getPaymentStatus']);
+// ✅ AJOUTÉ
+Route::get('/naissance/payment-status/{reference}', [DemandeNaissanceController::class, 'getPaymentStatus']);
+
+
+// --- FIN Routes publiques ---
+
+
 Route::middleware('auth:sanctum')->group(function () {
 
     // ROUTES UTILISATEURS AUTHENTIFIÉS
     Route::prefix('utilisateurs')->group(function () {
         
-        // Route simple pour vérifier si le token est bon
         Route::get('/user', function (Request $request) {
             return $request->user();
         });
@@ -54,23 +68,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/naissance')->group(function () {
             Route::get('/', [DemandeNaissanceController::class, 'index']);
             Route::post('/', [DemandeNaissanceController::class, 'store']);
+            // ✅ AJOUTÉ
+            Route::delete('/{naissance}', [DemandeNaissanceController::class, 'destroy']);
         });
 
         // Routes pour les demandes de Mariage
         Route::prefix('demandes/mariage')->group(function () {
             Route::get('/', [DemandeMariageController::class, 'index']);
             Route::post('/', [DemandeMariageController::class, 'store']);
+            Route::delete('/{mariage}', [DemandeMariageController::class, 'destroy']);
         });
 
         // Routes pour les demandes de Décès
         Route::prefix('demandes/deces')->group(function () {
             Route::get('/', [DemandeDecesController::class, 'index']);
             Route::post('/', [DemandeDecesController::class, 'store']);
-            Route::get('/{id}/check-payment', [DemandeDecesController::class, 'checkPaymentStatus']);
             Route::delete('/{deces}', [DemandeDecesController::class, 'destroy']);
         });
 
-        // Routes pour les statistiques et suivis
+        // ... (Routes Statistiques, Profil)
         Route::prefix('demandes')->group(function () {
             Route::get('/statistiques', [StatistiqueController::class, 'statistiquesParStatut']);
             Route::get('/toutes', [StatistiqueController::class, 'listeToutesDemandes']);
@@ -79,7 +95,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/{type}/{id}/suivi', [StatistiqueController::class, 'suiviDemande']);
         });
         
-        // PROFIL UTILISATEUR
         Route::prefix('profil')->group(function () {
             Route::get('/', [UserProfilController::class, 'getProfil']);
             Route::post('/photo', [UserProfilController::class, 'updateProfilePicture']);
@@ -88,12 +103,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/password', [UserProfilController::class, 'updatePassword']);
         });
 
-    }); // Fin du groupe utilisateurs
+    }); // Fin groupe utilisateurs
 
-     // ROUTES LIVREUR AUTHENTIFIÉ (guard spécifique = livreur)
-     Route::prefix('livreur')->middleware('auth:livreurApi')->group(function () {
-        
-        // Routes pour les livraisons
+    // ... (Routes Livreur)
+    Route::prefix('livreur')->middleware('auth:livreurApi')->group(function () {
         Route::prefix('livraisons')->group(function () {
             Route::get('/', [LivraisonController::class, 'listeLivraisons']);
             Route::get('/{type}/{id}', [LivraisonController::class, 'getLivraison']);
@@ -101,8 +114,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/verifier-reference', [LivraisonController::class, 'checkReference']);
             Route::get('/statistiques/general', [LivraisonController::class, 'statistiques']);
         });
-
-        // Routes pour le profil du livreur
         Route::prefix('profil')->group(function () {
             Route::get('/', [ProfilLivreurController::class, 'getProfil']);
             Route::post('/photo', [ProfilLivreurController::class, 'updateProfilePicture']);
@@ -111,8 +122,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/password', [ProfilLivreurController::class, 'updatePassword']);
             Route::put('/disponibilite', [ProfilLivreurController::class, 'updateDisponibilite']);
         });
-        
-    }); // Fin du groupe livreur avec guard spécifique
+    }); // Fin groupe livreur
 
-}); // Fin du groupe auth:sanctum
-
+}); // Fin groupe auth:sanctum

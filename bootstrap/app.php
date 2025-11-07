@@ -31,10 +31,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'deces/paiement/redirect-to-app',       // Pour le retour CinetPay (POST)
             'api/webhooks/cinetpay/notify/deces', // Pour le webhook CinetPay (POST)
-            
-            // Si vous avez d'autres routes, ajoutez-les aussi :
-            // 'mariage/paiement/redirect-to-app',
-            // 'naissance/paiement/redirect-to-app',
+             'mariage/paiement/redirect-to-app',
+             'api/webhooks/cinetpay/notify/mariage',
+            'naissance/paiement/redirect-to-app',
+            'api/webhooks/cinetpay/notify/naissance'
         ]);
         // --- FIN DE L'AJOUT ---
 

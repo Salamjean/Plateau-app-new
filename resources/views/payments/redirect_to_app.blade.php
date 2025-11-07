@@ -3,114 +3,287 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Retour vers l'application</title>
+  <title>Statut du Paiement</title>
   <style>
-    body{font-family:Inter,Arial,Helvetica,sans-serif; padding:24px; text-align:center;}
-    .btn{display:inline-block;padding:12px 18px;border-radius:10px;text-decoration:none;background:#ff4d4f;color:#fff;margin:10px 0;}
-    .muted{color:#666;font-size:0.9rem;margin-top:8px;}
-    .small{font-size:0.85rem;color:#444}
+    :root {
+      --success: #28a745;
+      --danger: #dc3545;
+      --primary-color: #007bff;
+      --light-gray: #f4f7f6;
+      --text-color: #333;
+      --text-muted: #666;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 1rem;
+      color: var(--text-color);
+    }
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
+    .icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .icon svg { width: 32px; height: 32px; stroke-width: 3; }
+    .icon-success { background: #eaf6ec; color: var(--success); }
+    .icon-danger { background: #fbebed; color: var(--danger); }
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid var(--light-gray);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    #title { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    #status { font-size: 1rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      margin: 0.5rem;
+      transition: background-color 0.2s;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-primary { background-color: var(--primary-color); color: #fff; }
+  _ .btn-primary:hover { background-color: #0056b3; }_
+    .btn-store { background-color: #e9ecef; color: #333; }
+    .btn-store:hover { background-color: #d1d5da; }
+    #fallback-options { display: none; }
+    .store-links { border-top: 1px solid var(--light-gray); margin-top: 1.5rem; padding-top: 1rem; }
+    .small-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
   </style>
 </head>
 <body>
-  <h1>Paiement terminé</h1>
-  <p id="status" class="muted">Nous allons vous rediriger vers l'application...</p>
 
-  <p id="manualOpen" style="display:none">
-    <a id="openAppBtn" class="btn" href="#">Ouvrir l'application</a>
-  </p>
+  <div class="container">
+    
+    <div id="icon-loading" class="spinner"></div>
+    <div id="icon-success" class="icon icon-success" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+    </div>
+    <div id="icon-danger" class="icon icon-danger" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+    </div>
 
-  <div id="storeLinks" style="margin-top:18px; display:none;">
-    <p class="small">Si l'application ne s'ouvre pas, téléchargez-la depuis :</p>
-    <p id="storeButtons"></p>
+    <h1 id="title">Vérification du paiement...</h1>
+    <p id="status">Veuillez patienter, nous confirmons le statut de votre transaction.</p>
+
+    <div id="fallback-options">
+      <a id="openAppBtn" class="btn btn-primary" href="#">Ouvrir l'application</a>
+      <div class="store-links">
+        <p class="small-text">Si l'application ne s'ouvre pas, téléchargez-la :</p>
+        <p id="storeButtons"></p>
+      </div>
+    </div>
   </div>
 
 <script>
-(function(){
-  // Récupère les paramètres depuis l'URL
-  const params = new URLSearchParams(window.location.search);
-  const transactionId = params.get('transactionId') || params.get('transaction_id') || '';
-  const cancel = params.get('cancel') || '0';
-  const cinetpay = params.get('cinetpay') || 'true';
+(function() {
+  
+  // 1. Récupérer le TransactionID passé par le contrôleur PHP
+  const transactionId = @json($transactionId ?? null);
 
-  // Utiliser cinetpay parameter pour déterminer le statut
-  const paymentStatus = cinetpay === 'true' && cancel === '0';
+  // DOM Elements
+  const titleEl = document.getElementById('title');
+  const statusEl = document.getElementById('status');
+  const loadingIcon = document.getElementById('icon-loading');
+  const successIcon = document.getElementById('icon-success');
+  const dangerIcon = document.getElementById('icon-danger');
+  const fallbackOptions = document.getElementById('fallback-options');
+  const openBtn = document.getElementById('openAppBtn');
+  const storeButtons = document.getElementById('storeButtons');
 
-  if(!transactionId){
-    document.getElementById('status').textContent = 'Transaction invalide — aucun identifiant trouvé.';
+  // 2. Gérer le cas d'erreur initial
+  if (!transactionId) {
+    titleEl.textContent = 'Erreur';
+    statusEl.textContent = 'Transaction invalide ou identifiant manquant.';
+    loadingIcon.style.display = 'none';
+    dangerIcon.style.display = 'inline-flex';
     return;
   }
-    // Construire le deep link avec le bon statut
-    const deepLink = `plateauapps://payment?cinetpay=${paymentStatus ? 'true' : 'false'}&transactionId=${encodeURIComponent(transactionId)}`;
 
-  // Optional: Android intent (plus fiable sur Chrome Android)
-  // Remplace com.ton.app par ton package Android réel si tu veux l'utiliser
-  const androidIntent = `intent://payment?cinetpay=${cancel === '1' ? 'false' : 'true'}&transactionId=${encodeURIComponent(transactionId)}#Intent;scheme=plateauapps;package=com.ton.app;end`;
+  // 3. Configuration de l'application (À MODIFIER)
+  const androidPackage = 'com.votre.package.android'; 
+  const iosAppId = 'id1234567890'; 
+  const playStoreUrl = `https://play.google.com/store/apps/details?id=${androidPackage}`;
+  const appStoreUrl = `https://apps.apple.com/app/${iosAppId}`;
 
-  // Définitions store links (remplace par tes urls réelles)
-  const playStore = 'https://play.google.com/store/apps/details?id=com.ton.app';
-  const appStore = 'https://apps.apple.com/app/idTON_APP_ID';
+  let finalDeepLink = ''; // Sera défini après confirmation du statut
 
-  // Mettre à jour bouton "Ouvrir l'application" (pour clic manuel)
-  const openBtn = document.getElementById('openAppBtn');
-  openBtn.href = deepLink;
-  openBtn.addEventListener('click', function(){ document.getElementById('status').textContent = 'Ouverture de l\\'application...'; });
+  // 4. Fonctions pour mettre à jour l'interface
+  function showSuccess() {
+    titleEl.textContent = 'Paiement terminé';
+    titleEl.style.color = 'var(--success)';
+    statusEl.textContent = "Nous allons vous rediriger vers l'application...";
+    loadingIcon.style.display = 'none';
+    successIcon.style.display = 'inline-flex';
+    
+    finalDeepLink = `plateauapps://payment?cinetpay=true&transactionId=${encodeURIComponent(transactionId)}`;
+    tryOpenApp(); // Tenter l'ouverture auto
+    setupFallback(true); // Préparer les boutons au cas où
+  }
 
-  // Essayer d'ouvrir automatiquement
+  function showFailure() {
+    titleEl.textContent = 'Paiement échoué';
+    titleEl.style.color = 'var(--danger)';
+    statusEl.textContent = "Le paiement a été annulé ou a échoué. Vous allez être redirigé...";
+    loadingIcon.style.display = 'none';
+    dangerIcon.style.display = 'inline-flex';
+    
+    finalDeepLink = `plateauapps://payment?cinetpay=false&transactionId=${encodeURIComponent(transactionId)}`;
+    tryOpenApp(); // Tenter l'ouverture auto
+    setupFallback(false); // Préparer les boutons au cas où
+  }
+  
+  function showError(message) {
+      titleEl.textContent = 'Erreur de vérification';
+      statusEl.textContent = message || "Impossible de vérifier le statut de votre paiement.";
+      loadingIcon.style.display = 'none';
+      dangerIcon.style.display = 'inline-flex';
+  }
+
+  // 5. Logique de Polling (interrogation de l'API)
+  let pollCount = 0;
+  const maxPolls = 15; // (15 * 2 = 30 secondes max)
+
+  function pollStatus() {
+    pollCount++;
+    if (pollCount > maxPolls) {
+      showError("Le statut du paiement est toujours en attente. Veuillez contacter le support.");
+      return;
+    }
+
+    // *** DÉBUT DE LA CORRECTION ***
+    // Déterminer quelle API appeler en fonction du préfixe de la transaction
+    
+    let apiPath = '';
+    if (transactionId.startsWith('AD')) {
+        apiPath = `/api/deces/payment-status/${transactionId}`;
+    } else if (transactionId.startsWith('AM')) {
+        apiPath = `/api/mariage/payment-status/${transactionId}`;
+    } else if (transactionId.startsWith('AN')) {
+        // ✅ LIGNE ACTIVÉE POUR NAISSANCE
+        apiPath = `/api/naissance/payment-status/${transactionId}`; 
+    } else {
+        showError("Type de transaction inconnu. Impossible de vérifier le statut.");
+        return;
+    }
+
+    // Appelle l'API dynamique
+    fetch(apiPath)
+    // *** FIN DE LA CORRECTION ***
+    
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Transaction non trouvée.');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const status = data.status;
+        
+        // Les statuts sont les mêmes, la logique ici n'a pas besoin de changer
+        if (status === 'en attente de livraison') {
+          // SUCCÈS
+          showSuccess();
+        } else if (status === 'paiement échoué' || status === 'REFUSED') {
+          // ÉCHEC
+          showFailure();
+        } else if (status === 'en attente de paiement' || status === 'PENDING' || status === 'AWAITING') {
+          // TOUJOURS EN ATTENTE, on ré-essaie
+          setTimeout(pollStatus, 2000); // Réessayer dans 2 secondes
+        } else {
+          // Statut inconnu ou 'not_found'
+          showError('Statut de transaction inconnu.');
+        }
+      })
+      .catch(err => {
+        showError(err.message);
+      });
+  }
+
+  // 6. Logique de redirection et fallback (INCHANGÉE)
   const ua = navigator.userAgent || '';
   const isAndroid = /android/i.test(ua);
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
 
-  // Tenter l'ouverture adaptée à la plateforme
-  function tryOpen() {
+  function tryOpenApp() {
+    if (!finalDeepLink) return;
+
+    const androidIntent = `intent://payment?cinetpay=${finalDeepLink.includes('true') ? 'true' : 'false'}&transactionId=${encodeURIComponent(transactionId)}#Intent;scheme=plateauapps;package=${androidPackage};end`;
+
     if (isAndroid) {
-      // Chrome Android supporte intent:// (plus fiable que custom scheme)
       window.location = androidIntent;
     } else {
-      // iOS et desktop -> custom scheme
-      window.location = deepLink;
+      window.location = finalDeepLink;
     }
   }
 
-  // Méthode de détection : on mesure le temps passé / écoute visibilitychange
-  const start = Date.now();
-  let pageHidden = false;
+  // 7. Configurer les boutons de fallback (INCHANGÉE)
+  function setupFallback(isSuccess) {
+    let pageHidden = false;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) pageHidden = true;
+    });
 
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) pageHidden = true;
-  });
-
-  // Lancer la tentative après un court délai
-  setTimeout(() => {
-    tryOpen();
-  }, 200);
-
-  // Après délai, si la page n'a pas perdu le focus (app non ouverte), proposer store / bouton
-  setTimeout(() => {
-    const elapsed = Date.now() - start;
-    // Si la page est toujours visible, l'app n'a probablement pas été ouverte
-    if (!pageHidden && elapsed > 500) {
-      document.getElementById('status').textContent = "L'application ne s'est pas ouverte automatiquement.";
-      document.getElementById('manualOpen').style.display = 'block';
-      document.getElementById('storeLinks').style.display = 'block';
-
-      // Ajouter boutons store
-      const btns = [];
-      if (isAndroid) {
-        btns.push(`<a class="btn" href="${playStore}" target="_blank">Télécharger sur Google Play</a>`);
-      } else if (isIOS) {
-        btns.push(`<a class="btn" href="${appStore}" target="_blank">Télécharger sur l'App Store</a>`);
-      } else {
-        // Desktop
-        btns.push(`<a class="btn" href="${playStore}" target="_blank">Télécharger l'application</a>`);
-      }
-      document.getElementById('storeButtons').innerHTML = btns.join(' ');
-    } else {
-      // pageHidden true => l'app a probablement été ouverte ; on peut afficher message court
-      document.getElementById('status').textContent = 'Si vous êtes redirigé vers l’application, le processus est terminé.';
+    openBtn.href = finalDeepLink;
+    openBtn.addEventListener('click', function(e) {
+      e.preventDefault(); 
+      statusEl.textContent = "Tentative d'ouverture de l'application...";
+      tryOpenApp();
+      setTimeout(() => { window.close(); }, 500);
+    });
+    
+    let btns = `<a class="btn btn-store" href="${playStoreUrl}" target="_blank">Google Play Store</a>`;
+    if (isIOS) {
+      btns = `<a class="btn btn-store" href="${appStoreUrl}" target="_blank">App Store</a>`;
+    } else if (!isAndroid) {
+      btns += ` <a class="btn btn-store" href="${appStoreUrl}" target="_blank">App Store</a>`;
     }
-  }, 500);
+    storeButtons.innerHTML = btns;
+
+    setTimeout(() => {
+      if (!pageHidden) {
+        statusEl.textContent = "L'application ne s'est pas ouverte automatiquement.";
+        fallbackOptions.style.display = 'block';
+      }
+    }, 1500);
+  }
+
+  // 8. DÉMARRER LE PROCESSUS
+  pollStatus();
 
 })();
 </script>
+
 </body>
 </html>

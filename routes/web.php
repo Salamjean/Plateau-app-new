@@ -1,4 +1,7 @@
 <?php
+use App\Http\Controllers\Api\Utilisateurs\DemandeMariageController;
+use App\Http\Controllers\Api\Utilisateurs\DemandeDecesController;
+use App\Http\Controllers\Api\Utilisateurs\DemandeNaissanceController;
 use App\Http\Controllers\RedirectToAppController;
 use App\Http\Controllers\Admin\AdminDashboard;
 use App\Http\Controllers\Admin\AuthenticateAdmin;
@@ -422,3 +425,11 @@ Route::post('/validate-dhl-account/{email}', [AuthenticateDhl::class, 'submitDef
 // Route::get('/validate-agency-account/{email}', [AuthenticateDhlAgence::class, 'defineAccess']);
 // Route::post('/validate-agency-account/{email}', [AuthenticateDhlAgence::class, 'submitDefineAccess'])->name('agency.validate');
 Route::match(['get', 'post'], '/deces/paiement/redirect-to-app', [RedirectToAppController::class, 'show'])->name('deces.redirect_to_app');
+Route::match(['GET', 'POST'], '/deces/paiement/redirect-to-app', [\App\Http\Controllers\Api\Utilisateurs\DemandeDecesController::class, 'showRedirectPage'
+]);
+// ✅ AJOUTÉ : Route pour les mariages
+Route::match(['get', 'post'], '/mariage/paiement/redirect-to-app', [RedirectToAppController::class, 'show'])->name('deces.redirect_to_app');
+Route::match(['GET', 'POST'], '/mariage/paiement/redirect-to-app', [\App\Http\Controllers\Api\Utilisateurs\DemandeMariageController::class, 'showRedirectPage']);
+// ✅ AJOUTÉ : Route pour les naissances
+Route::match(['get', 'post'], '/naissance/paiement/redirect-to-app', [RedirectToAppController::class, 'show'])->name('deces.redirect_to_app');
+Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app',[DemandeNaissanceController::class, 'showRedirectPage']);

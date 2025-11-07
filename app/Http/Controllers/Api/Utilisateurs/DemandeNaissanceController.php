@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Utilisateurs;
 
 use App\Http\Controllers\Controller;
-use App\Models\Naissance;
+use App\Models\Naissance; // ✅ Modèle Naissance
 use App\Models\Paiement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +19,6 @@ class DemandeNaissanceController extends Controller
 {
     /**
      * Liste des demandes de naissance de l'utilisateur
-     * GET /api/utilisateurs/demandes/naissance
      */
     public function index(): JsonResponse
     {
@@ -49,10 +48,10 @@ class DemandeNaissanceController extends Controller
 
     /**
      * Créer une nouvelle demande de naissance
-     * POST /api/utilisateurs/demandes/naissance
      */
     public function store(Request $request): JsonResponse
     {
+        // 1. Validation (Spécifique à Naissance)
         $validator = Validator::make($request->all(), [
             'type' => 'required|string|max:255',
             'pour' => 'nullable|string|max:255',
@@ -88,7 +87,7 @@ class DemandeNaissanceController extends Controller
         try {
             $user = Auth::user();
 
-            // Upload du fichier CNI
+            // 2. Upload du fichier CNI
             $uploadedPaths = [];
             if ($request->hasFile('CNI')) {
                 $file = $request->file('CNI');
@@ -98,13 +97,13 @@ class DemandeNaissanceController extends Controller
                 $uploadedPaths['CNI'] = $path;
             }
 
-            // Génération de la référence
+            // 3. Génération de la référence (AN)
             $communeInitiale = strtoupper(substr($request->commune ?: 'X', 0, 1));
             $anneeCourante = Carbon::now()->year;
             $nextId = Naissance::max('id') + 1;
             $reference = 'AN' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
 
-            // Création de la demande
+            // 4. Création de la demande
             $naissance = new Naissance();
             $naissance->pour = $request->pour;
             $naissance->type = $request->type;
@@ -119,7 +118,7 @@ class DemandeNaissanceController extends Controller
             $naissance->user_id = $user->id;
             $naissance->reference = $reference;
 
-            // Informations de livraison
+            // 5. Informations de livraison
             if ($request->choix_option === 'livraison') {
                 $naissance->montant_timbre = $request->montant_timbre;
                 $naissance->montant_livraison = $request->montant_livraison;
@@ -135,13 +134,13 @@ class DemandeNaissanceController extends Controller
                 $naissance->etat = 'en attente de paiement';
                 $naissance->statut_livraison = 'en attente de paiement';
             } else {
-                 $naissance->etat = 'en attente';
-                 $naissance->statut_livraison = null;
+                $naissance->etat = 'en attente';
+                $naissance->statut_livraison = null;
             }
 
             $naissance->save();
             
-            // Cas "Retrait"
+            // 6. Cas "Retrait"
             if ($naissance->choix_option === 'retrait') {
                 return response()->json([
                     'success' => true,
@@ -151,17 +150,20 @@ class DemandeNaissanceController extends Controller
                 ], 201);
             }
 
-            // --- CORRECTION : Génération d'un transaction_id unique pour CinetPay ---
-            $cinetpayTransactionId = $naissance->reference . '_' . time();
+            // --- DEBUT LOGIQUE PAIEMENT (Cas "Livraison") ---
 
-            // Préparer l'appel à CinetPay (Cas "Livraison")
+            // 7. Préparer l'appel à CinetPay
+            $cinetpayTransactionId = $naissance->reference . '_' . time();
+            $baseUrl = config('app.url'); // ✅ URL dynamique
+
+            // URLs de retour Deep link
             $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$naissance->reference}";
             $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$naissance->reference}";
-            $fallbackReturnUrl = "https://plateau-apps.com/deces/paiement/redirect-to-app?transactionId={$naissance->reference}";
-            $fallbackCancelUrl = "https://plateau-apps.com/deces/paiement/redirect-to-app?cancel=1&transactionId={$naissance->reference}";
-            // Utilisez votre URL ngrok pour les tests
-            // $fallbackReturnUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/naissance/paiement/redirect-to-app?transactionId={$naissance->reference}";
-            // $fallbackCancelUrl = "https://sindy-overmeek-congruently.ngrok-free.dev/naissance/paiement/redirect-to-app?cancel=1&transactionId={$naissance->reference}";
+            
+            // ✅ URLs de retour Web (Corrigées pour NAISSANCE)
+            $fallbackReturnUrl = $baseUrl . "/naissance/paiement/redirect-to-app?transactionId=" . urlencode($naissance->reference);
+            $fallbackCancelUrl = $baseUrl . "/naissance/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($naissance->reference);
+            $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/naissance";
             
             // Calcul du montant total
             $cout_total_timbres = (float)$naissance->montant_timbre * (int)$naissance->quantite;
@@ -173,14 +175,13 @@ class DemandeNaissanceController extends Controller
             $paymentData = [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
-                'transaction_id' => $cinetpayTransactionId, // ← ID unique
+                'transaction_id' => $cinetpayTransactionId,
                 'amount' => $totalAmount,
                 'currency' => 'XOF',
-                'description' => "Paiement ({$naissance->quantite}x timbre + livr) Acte Naissance {$naissance->reference}",
-                'notify_url' => 'https://plateau-apps.com/api/webhooks/cinetpay/notify/naissance',
-                // 'notify_url' => 'https://sindy-overmeek-congruently.ngrok-free.dev/api/webhooks/cinetpay/notify/naissance',
-                'return_url' => $fallbackReturnUrl, 
-                'cancel_url' => $fallbackCancelUrl, 
+                'description' => "Paiement ({$naissance->quantite}x timbre + livr) Acte Naissance {$naissance->reference}", // ✅ Description Naissance
+                'notify_url' => $notifyUrl, // ✅ URL dynamique
+                'return_url' => $fallbackReturnUrl, // ✅ URL dynamique
+                'cancel_url' => $fallbackCancelUrl, // ✅ URL dynamique
                 'mode' => 'PRODUCTION',
                 'channels' => 'ALL',
                 'customer_name' => $naissance->nom_destinataire,
@@ -193,7 +194,7 @@ class DemandeNaissanceController extends Controller
                 'customer_zip_code' => $naissance->code_postal ?? '00225'
             ];
 
-            // Appel API à CinetPay
+            // 8. Appel API à CinetPay
             $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
 
             if ($response->failed() || $response->json('code') !== '201') {
@@ -207,6 +208,7 @@ class DemandeNaissanceController extends Controller
 
             $cinetpayResponseData = $response->json('data');
 
+            // 9. Renvoyer la réponse JSON
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
@@ -236,7 +238,7 @@ class DemandeNaissanceController extends Controller
     }
     
     /**
-     * Helper pour formater la réponse de la demande
+     * Helper pour formater la réponse de la demande (Spécifique à Naissance)
      */
     private function formatDemandeResponse(Naissance $naissance, bool $includeFiles = false)
     {
@@ -274,7 +276,7 @@ class DemandeNaissanceController extends Controller
         ];
 
         if ($includeFiles) {
-             $data['documents'] = [
+            $data['documents'] = [
                 'CNI' => $naissance->CNI ? Storage::url($naissance->CNI) : null,
             ];
             $data['updated_at'] = $naissance->updated_at->format('Y-m-d H:i:s');
@@ -290,26 +292,24 @@ class DemandeNaissanceController extends Controller
     {
         Log::info('Webhook CinetPay Reçu (Naissance) - request:', $request->all());
     
-        // Récupérer l'ID de transaction CinetPay
         $cinetpayTransactionId = $request->input('cpm_trans_id') 
-                            ?? $request->input('transaction_id') 
-                            ?? $request->input('data.cpm_trans_id') 
-                            ?? null;
+                                ?? $request->input('transaction_id') 
+                                ?? $request->input('data.cpm_trans_id') 
+                                ?? null;
     
         if (empty($cinetpayTransactionId)) {
             Log::warning('Webhook CinetPay (Naissance): transaction_id manquant.', $request->all());
             return response()->json(['success' => false, 'message' => 'Transaction ID manquant'], 200);
         }
 
-        // --- CORRECTION : Extraire la référence originale ---
         $reference = $cinetpayTransactionId;
         if (strpos($cinetpayTransactionId, '_') !== false) {
             $parts = explode('_', $cinetpayTransactionId);
-            $reference = $parts[0]; // Prendre la partie avant le _
+            $reference = $parts[0];
         }
     
         try {
-            // Trouver la demande Naissance par la référence originale
+            // ✅ Trouver la demande Naissance
             $naissance = Naissance::where('reference', $reference)->first();
     
             if (!$naissance) {
@@ -325,7 +325,7 @@ class DemandeNaissanceController extends Controller
             $response = Http::withoutVerifying()->post($cinetpayUrl, [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
-                'transaction_id' => $cinetpayTransactionId, // Utiliser l'ID complet pour CinetPay
+                'transaction_id' => $cinetpayTransactionId,
             ]);
     
             Log::info("CinetPay (Naissance) check response status: {$response->status()} for {$cinetpayTransactionId}");
@@ -349,7 +349,6 @@ class DemandeNaissanceController extends Controller
             $payerName = $data['customer_name'] ?? $data['payer'] ?? ($data['client_name'] ?? null);
             $currency = $data['currency'] ?? 'XOF';
     
-            // Normaliser montant
             $montantFloat = null;
             if (!is_null($amount)) {
                 $normalized = preg_replace('/[^\d\.,-]/', '', (string)$amount);
@@ -363,7 +362,7 @@ class DemandeNaissanceController extends Controller
             if (strtoupper($status) === 'ACCEPTED') {
                 try {
                     $paiement = Paiement::create([
-                        'naissance_id' => $naissance->id,
+                        'naissance_id' => $naissance->id, // ✅ Clé étrangère Naissance
                         'user_id' => $naissance->user_id ?? null,
                         'transaction_id' => $operatorTransId,
                         'operator_id' => $operatorId,
@@ -408,6 +407,122 @@ class DemandeNaissanceController extends Controller
         } catch (\Exception $e) {
             Log::error("Webhook CinetPay (Naissance) {$cinetpayTransactionId}: Exception critique : " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'Erreur interne'], 500);
+        }
+    }
+
+    /**
+     * NOUVEAU (Adapté)
+     * API pour vérifier le statut d'un paiement de naissance.
+     * GET /api/naissance/payment-status/{reference}
+     */
+    public function getPaymentStatus(Request $request, $reference): JsonResponse
+    {
+        try {
+            // 1. Trouver la demande de naissance
+            $naissance = Naissance::where('reference', $reference)->first();
+
+            if (!$naissance) {
+                return response()->json(['status' => 'not_found', 'message' => 'Demande non trouvée'], 404);
+            }
+
+            // 2. Calculer le montant total
+            $montant_total_timbres = (float)($naissance->montant_timbre ?? 0) * (int)($naissance->quantite ?? 1);
+            $montant_total = $naissance->choix_option === 'livraison' 
+                ? $montant_total_timbres + (float)($naissance->montant_livraison ?? 0) 
+                : 0;
+
+            // 3. Déterminer la date et l'heure
+            $date_heure = $naissance->created_at->format('Y-m-d H:i:s');
+            
+            if ($naissance->etat === 'en attente de livraison') {
+                $paiement = Paiement::where('naissance_id', $naissance->id) // ✅ Clé étrangère Naissance
+                                    ->where('status', 'ACCEPTED')
+                                    ->orderBy('paid_at', 'desc')
+                                    ->first();
+                if ($paiement && $paiement->paid_at) {
+                    $date_heure = Carbon::parse($paiement->paid_at)->format('Y-m-d H:i:s');
+                } else {
+                    $date_heure = $naissance->updated_at->format('Y-m-d H:i:s');
+                }
+            } elseif ($naissance->etat === 'paiement échoué') {
+                $date_heure = $naissance->updated_at->format('Y-m-d H:i:s');
+            }
+
+            // 4. Construire le JSON de réponse
+            $responseData = [
+                'status' => $naissance->etat,
+                'data' => [
+                    'type_document' => 'Acte de naissance', // ✅ Type Naissance
+                    'quantite' => (int)$naissance->quantite,
+                    'montant' => $montant_total,
+                    'date_heure' => $date_heure,
+                    'id_transaction' => $naissance->reference
+                ]
+            ];
+
+            return response()->json($responseData);
+
+        } catch (\Exception $e) {
+            Log::error("Erreur getPaymentStatus (Naissance) pour {$reference}: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur interne du serveur'
+            ], 500);
+        }
+    }
+
+    /**
+     * NOUVEAU (Générique)
+     * Affiche la page de redirection/statut après le paiement.
+     */
+    public function showRedirectPage(Request $request)
+    {
+        $transactionId = $request->input('transactionId') ?? $request->input('transaction_id');
+
+        if (!$transactionId) {
+            return view('payments.redirect_to_app', ['transactionId' => null]);
+        }
+        
+        return view('payments.redirect_to_app', [
+            'transactionId' => $transactionId
+        ]);
+    }
+
+    /**
+     * NOUVEAU (Adapté)
+     * Supprimer une demande de naissance
+     * DELETE /api/utilisateurs/demandes/naissance/{naissance}
+     */
+    public function destroy(Naissance $naissance): JsonResponse // ✅ Modèle Naissance
+    {
+        try {
+            $user = Auth::user();
+            
+            if ($naissance->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non autorisé à supprimer cette demande'
+                ], 403);
+            }
+ 
+            // Optionnel: Supprimer le fichier CNI
+            // if ($naissance->CNI) {
+            //    Storage::disk('public')->delete($naissance->CNI);
+            // }
+ 
+            $naissance->delete();
+ 
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande de naissance supprimée avec succès' // ✅ Message Naissance
+            ]);
+ 
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeNaissanceController@destroy: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression de la demande'
+            ], 500);
         }
     }
 }
