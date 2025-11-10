@@ -109,10 +109,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('livreur')->middleware('auth:livreurApi')->group(function () {
         Route::prefix('livraisons')->group(function () {
             Route::get('/', [LivraisonController::class, 'listeLivraisons']);
+            Route::get('/historique', [LivraisonController::class, 'historiqueLivraisons']);
+            Route::get('/statistiques/general', [LivraisonController::class, 'statistiques']);
             Route::get('/{type}/{id}', [LivraisonController::class, 'getLivraison']);
             Route::post('/valider', [LivraisonController::class, 'validerLivraison']);
             Route::post('/verifier-reference', [LivraisonController::class, 'checkReference']);
-            Route::get('/statistiques/general', [LivraisonController::class, 'statistiques']);
+           
         });
         Route::prefix('profil')->group(function () {
             Route::get('/', [ProfilLivreurController::class, 'getProfil']);

@@ -74,6 +74,63 @@ class LivraisonController extends Controller
             ], 500);
         }
     }
+    public function historiqueLivraisons(): JsonResponse
+    {
+        try {
+            $livreur = Auth::guard('livreurApi')->user();
+            
+            if (!$livreur) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Livreur non authentifié'
+                ], 401);
+            }
+            
+            // Récupérer toutes les demandes attribuées à ce livreur
+            $demandes = collect();
+            
+            // Liste des modèles à vérifier
+            $modeles = [
+                'Naissance',
+                'Deces',
+                'Mariage'
+            ];
+            
+            foreach ($modeles as $modele) {
+                $classeModele = "App\\Models\\$modele";
+                $demandesModele = $classeModele::where('livreur_id', $livreur->id)
+                    ->with('user', 'livreur')
+                    // MODIFICATION CLÉ : On cherche les statuts 'livré'
+                    ->where('statut_livraison', 'livré') 
+                    ->get()
+                    ->map(function($item) use ($modele) {
+                        $item->type_demande = $this->getTypeDemande($modele);
+                        $item->type_model = strtolower($modele);
+                        return $item;
+                    });
+                    
+                $demandes = $demandes->merge($demandesModele);
+            }
+            
+            // MODIFICATION CLÉ : Trier par date de livraison (les plus récentes en premier)
+            $demandes = $demandes->sortByDesc('date_livraison')->values(); 
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Historique des livraisons récupéré avec succès',
+                'data' => [
+                    'livraisons' => $demandes,
+                    'total' => $demandes->count()
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération de l\'historique: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Récupérer une livraison spécifique
@@ -229,15 +286,10 @@ class LivraisonController extends Controller
                 ], 401);
             }
 
+            // MODIFICATION : Initialisation uniquement des compteurs demandés
             $statistiques = [
-                'total' => 0,
                 'livrees' => 0,
-                'en_cours' => 0,
-                'par_type' => [
-                    'naissance' => 0,
-                    'deces' => 0,
-                    'mariage' => 0
-                ]
+                'a_livrer' => 0, // 'a_livrer' correspond à 'en cours'
             ];
 
             // Liste des modèles à vérifier
@@ -249,12 +301,6 @@ class LivraisonController extends Controller
 
             foreach ($modeles as $modele) {
                 $classeModele = "App\\Models\\$modele";
-                $type = strtolower($modele);
-                
-                // Total pour ce type
-                $totalType = $classeModele::where('livreur_id', $livreur->id)->count();
-                $statistiques['par_type'][$type] = $totalType;
-                $statistiques['total'] += $totalType;
                 
                 // Livrées pour ce type
                 $livreesType = $classeModele::where('livreur_id', $livreur->id)
@@ -262,22 +308,19 @@ class LivraisonController extends Controller
                     ->count();
                 $statistiques['livrees'] += $livreesType;
                 
-                // En cours pour ce type
+                // En cours (à livrer) pour ce type
                 $enCoursType = $classeModele::where('livreur_id', $livreur->id)
                     ->where('statut_livraison', 'en cours')
                     ->count();
-                $statistiques['en_cours'] += $enCoursType;
+                $statistiques['a_livrer'] += $enCoursType;
             }
 
-            // Pourcentage
-            $statistiques['taux_livraison'] = $statistiques['total'] > 0 
-                ? round(($statistiques['livrees'] / $statistiques['total']) * 100, 2)
-                : 0;
+            // MODIFICATION : Suppression des calculs 'total', 'par_type' et 'taux_livraison'
 
             return response()->json([
                 'success' => true,
                 'message' => 'Statistiques récupérées avec succès',
-                'data' => $statistiques
+                'data' => $statistiques // Retourne le tableau simplifié
             ]);
 
         } catch (\Exception $e) {
