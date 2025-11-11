@@ -471,12 +471,12 @@ $paymentData = [
                 }
     
                 // Mettre à jour le Deces (quelque soit l'état antérieur)
-                $deces->etat = 'en attente de livraison';
+                $deces->etat = 'en_attente_de_livraison';
                 $deces->statut_livraison = 'en attente';
                 $deces->save();
     
                 // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
-                Log::info("Demande {$cinetpayTransactionId} mise à jour : en attente de livraison"); // ✅ CORRIGÉ
+                Log::info("Demande {$cinetpayTransactionId} mise à jour : en_attente_de_livraison"); // ✅ CORRIGÉ
     
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
@@ -543,7 +543,7 @@ $paymentData = [
             // 3. Déterminer la date et l'heure
             $date_heure = $deces->created_at->format('Y-m-d H:i:s'); // Par défaut: date de création
             
-            if ($deces->etat === 'en attente de livraison') {
+            if ($deces->etat === 'en_attente_de_livraison') {
                 // Si payé, chercher la date de paiement
                 $paiement = Paiement::where('deces_id', $deces->id)
                                     ->where('status', 'ACCEPTED')

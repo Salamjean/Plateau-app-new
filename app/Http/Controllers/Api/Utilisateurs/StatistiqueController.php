@@ -48,7 +48,7 @@ class StatistiqueController extends Controller
             // --- 1. Formatage par catégorie ---
 
             // Statuts à exclure du comptage "en cours" (logique inchangée)
-            $statutsExclusEnCours = ['terminé', 'en attente de livraison', 'paiement échoué'];
+            $statutsExclusEnCours = ['terminé', 'en_attente_de_livraison', 'paiement échoué'];
 
             $statsNaissance = [
                 'en cours' => $statsNaissanceRaw->except($statutsExclusEnCours)->sum(),

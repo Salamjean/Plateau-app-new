@@ -379,11 +379,11 @@ class DemandeNaissanceController extends Controller
                     Log::error("Erreur enregistrement paiement (Naissance) {$cinetpayTransactionId}: " . $e->getMessage(), ['exception' => $e]);
                 }
     
-                $naissance->etat = 'en attente de livraison';
+                $naissance->etat = 'en_attente_de_livraison';
                 $naissance->statut_livraison = 'en attente';
                 $naissance->save();
     
-                Log::info("Demande Naissance {$reference} mise à jour : en attente de livraison");
+                Log::info("Demande Naissance {$reference} mise à jour : en_attente_de_livraison");
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
     
@@ -434,7 +434,7 @@ class DemandeNaissanceController extends Controller
             // 3. Déterminer la date et l'heure
             $date_heure = $naissance->created_at->format('Y-m-d H:i:s');
             
-            if ($naissance->etat === 'en attente de livraison') {
+            if ($naissance->etat === 'en_attente_de_livraison') {
                 $paiement = Paiement::where('naissance_id', $naissance->id) // ✅ Clé étrangère Naissance
                                     ->where('status', 'ACCEPTED')
                                     ->orderBy('paid_at', 'desc')

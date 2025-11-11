@@ -401,11 +401,11 @@ class DemandeMariageController extends Controller
                 }
     
                 // Mettre à jour le Mariage
-                $mariage->etat = 'en attente de livraison';
+                $mariage->etat = 'en_attente_de_livraison';
                 $mariage->statut_livraison = 'en attente';
                 $mariage->save();
     
-                Log::info("Demande (Mariage) {$cinetpayTransactionId} mise à jour : en attente de livraison");
+                Log::info("Demande (Mariage) {$cinetpayTransactionId} mise à jour : en_attente_de_livraison");
     
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
@@ -459,7 +459,7 @@ class DemandeMariageController extends Controller
             // 3. Déterminer la date et l'heure
             $date_heure = $mariage->created_at->format('Y-m-d H:i:s');
             
-            if ($mariage->etat === 'en attente de livraison') {
+            if ($mariage->etat === 'en_attente_de_livraison') {
                 // Si payé, chercher la date de paiement
                 $paiement = Paiement::where('mariage_id', $mariage->id) // ✅ Clé étrangère Mariage
                                     ->where('status', 'ACCEPTED')
