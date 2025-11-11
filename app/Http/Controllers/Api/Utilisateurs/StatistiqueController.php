@@ -8,7 +8,7 @@ use App\Models\Mariage;
 use App\Models\Deces;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Pagination\LengthAwarePaginator; // <-- Importez ceci
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 
 class StatistiqueController extends Controller
@@ -21,7 +21,6 @@ class StatistiqueController extends Controller
         try {
             $user = $request->user();
             
-            // Vérifier si l'utilisateur est authentifié
             if (!$user) {
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
@@ -48,32 +47,28 @@ class StatistiqueController extends Controller
 
             // --- 1. Formatage par catégorie ---
 
-            // <-- MODIFICATION : Définir les statuts à exclure du comptage "en cours"
+            // Statuts à exclure du comptage "en cours" (logique inchangée)
             $statutsExclusEnCours = ['terminé', 'en attente de livraison', 'paiement échoué'];
 
             $statsNaissance = [
-                // 'en cours' => $statsNaissanceRaw->get('en attente', 0), // <-- ANCIENNE LIGNE
-                'en cours' => $statsNaissanceRaw->except($statutsExclusEnCours)->sum(), // <-- NOUVELLE LIGNE
+                'en cours' => $statsNaissanceRaw->except($statutsExclusEnCours)->sum(),
                 'terminé'  => $statsNaissanceRaw->get('terminé', 0),
-                'total'    => $statsNaissanceRaw->sum() // Somme de tous les états (y compris paiement échoué etc.)
+                'total'    => $statsNaissanceRaw->sum() 
             ];
 
             $statsMariage = [
-                // 'en cours' => $statsMariageRaw->get('en attente', 0), // <-- ANCIENNE LIGNE
-                'en cours' => $statsMariageRaw->except($statutsExclusEnCours)->sum(), // <-- NOUVELLE LIGNE
+                'en cours' => $statsMariageRaw->except($statutsExclusEnCours)->sum(),
                 'terminé'  => $statsMariageRaw->get('terminé', 0),
                 'total'    => $statsMariageRaw->sum()
             ];
 
             $statsDeces = [
-                // 'en cours' => $statsDecesRaw->get('en attente', 0), // <-- ANCIENNE LIGNE
-                'en cours' => $statsDecesRaw->except($statutsExclusEnCours)->sum(), // <-- NOUVELLE LIGNE
+                'en cours' => $statsDecesRaw->except($statutsExclusEnCours)->sum(),
                 'terminé'  => $statsDecesRaw->get('terminé', 0),
                 'total'    => $statsDecesRaw->sum()
             ];
 
             // --- 2. Calcul des TOTAUX agrégés ---
-            // (Aucune modification nécessaire ici, car il utilise les valeurs déjà calculées)
 
             // Total "En cours" (somme de tous les 'en cours' de chaque catégorie)
             $totalEnCours = $statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours'];
@@ -84,6 +79,11 @@ class StatistiqueController extends Controller
             // Total "Général" (somme de toutes les demandes, peu importe l'état)
             $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total'];
             
+            // <-- NOUVELLE LIGNE : Calcul du total des paiements échoués
+            $totalPaiementEchoue = $statsNaissanceRaw->get('paiement échoué', 0) 
+                                 + $statsMariageRaw->get('paiement échoué', 0) 
+                                 + $statsDecesRaw->get('paiement échoué', 0);
+
             // --- Réponse JSON Combinée ---
 
             return response()->json([
@@ -96,13 +96,18 @@ class StatistiqueController extends Controller
                 'total_general' => $totalGeneral,
                 'en_cours'      => $totalEnCours,
                 'termine'       => $totalTermine,
+                'paiement_echoue' => $totalPaiementEchoue, // <-- NOUVELLE LIGNE AJOUTÉE
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Erreur statistiquesParStatut: ' + $e->getMessage());
+            Log::error('Erreur statistiquesParStatut: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
+    
+    // ... (Le reste de votre fichier reste inchangé) ...
+    // getDemandeSpecifique, calculerStatut, listeToutesDemandes, etc.
+    
     /**
      * Récupérer une demande spécifique par type et ID
      */
@@ -312,6 +317,7 @@ class StatistiqueController extends Controller
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
+
     public function suiviDemandeParReference(Request $request)
     {
         try {
