@@ -17,85 +17,92 @@ class StatistiqueController extends Controller
      * Statistiques des demandes par statut pour l'utilisateur connecté
      */
     public function statistiquesParStatut(Request $request)
-{
-    try {
-        $user = $request->user();
-        
-        // Vérifier si l'utilisateur est authentifié
-        if (!$user) {
-            return response()->json(['error' => 'Utilisateur non authentifié'], 401);
-        }
-
-        // --- Statistiques BRUTES (par état réel de la BDD) ---
-
-        $statsNaissanceRaw = Naissance::where('user_id', $user->id)
-            ->select('etat', DB::raw('COUNT(*) as count'))
-            ->groupBy('etat')
-            ->get()
-            ->pluck('count', 'etat'); // Ex: ['en attente' => 5, 'terminé' => 10]
-
-        $statsMariageRaw = Mariage::where('user_id', $user->id)
-            ->select('etat', DB::raw('COUNT(*) as count'))
-            ->groupBy('etat')
-            ->get()
-            ->pluck('count', 'etat');
-
-        $statsDecesRaw = Deces::where('user_id', $user->id)
-            ->select('etat', DB::raw('COUNT(*) as count'))
-            ->groupBy('etat')
-            ->get()
-            ->pluck('count', 'etat');
-
-        // --- 1. Formatage par catégorie ---
-
-        $statsNaissance = [
-            'en cours' => $statsNaissanceRaw->get('en attente', 0),
-            'terminé'  => $statsNaissanceRaw->get('terminé', 0),
-            'total'    => $statsNaissanceRaw->sum() // Somme de tous les états (en attente, terminé, rejeté, etc.)
-        ];
-
-        $statsMariage = [
-            'en cours' => $statsMariageRaw->get('en attente', 0),
-            'terminé'  => $statsMariageRaw->get('terminé', 0),
-            'total'    => $statsMariageRaw->sum()
-        ];
-
-        $statsDeces = [
-            'en cours' => $statsDecesRaw->get('en attente', 0),
-            'terminé'  => $statsDecesRaw->get('terminé', 0),
-            'total'    => $statsDecesRaw->sum()
-        ];
-
-        // --- 2. Calcul des TOTAUX agrégés ---
-
-        // Total "En cours" (somme de tous les 'en attente')
-        $totalEnCours = $statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours'];
-
-        // Total "Terminé" (somme de tous les 'terminé')
-        $totalTermine = $statsNaissance['terminé'] + $statsMariage['terminé'] + $statsDeces['terminé'];
-
-        // Total "Général" (somme de toutes les demandes, peu importe l'état)
-        $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total'];
-        
-        // --- Réponse JSON Combinée ---
-
-        return response()->json([
-            // Partie 1: Détails par catégorie
-            'naissance' => $statsNaissance,
-            'mariage'   => $statsMariage,
-            'deces'     => $statsDeces,
+    {
+        try {
+            $user = $request->user();
             
-            // Partie 2: Totaux agrégés
-            'total_general' => $totalGeneral,
-            'en_cours'      => $totalEnCours,
-            'termine'       => $totalTermine,
-        ]);
+            // Vérifier si l'utilisateur est authentifié
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
 
-    } catch (\Exception $e) {
-        Log::error('Erreur statistiquesParStatut: ' . $e->getMessage());
-        return response()->json(['error' => 'Erreur serveur'], 500);
+            // --- Statistiques BRUTES (par état réel de la BDD) ---
+
+            $statsNaissanceRaw = Naissance::where('user_id', $user->id)
+                ->select('etat', DB::raw('COUNT(*) as count'))
+                ->groupBy('etat')
+                ->get()
+                ->pluck('count', 'etat'); // Ex: ['en attente' => 5, 'terminé' => 10, 'paiement échoué' => 1]
+
+            $statsMariageRaw = Mariage::where('user_id', $user->id)
+                ->select('etat', DB::raw('COUNT(*) as count'))
+                ->groupBy('etat')
+                ->get()
+                ->pluck('count', 'etat');
+
+            $statsDecesRaw = Deces::where('user_id', $user->id)
+                ->select('etat', DB::raw('COUNT(*) as count'))
+                ->groupBy('etat')
+                ->get()
+                ->pluck('count', 'etat');
+
+            // --- 1. Formatage par catégorie ---
+
+            // <-- MODIFICATION : Définir les statuts à exclure du comptage "en cours"
+            $statutsExclusEnCours = ['terminé', 'en attente de livraison', 'paiement échoué'];
+
+            $statsNaissance = [
+                // 'en cours' => $statsNaissanceRaw->get('en attente', 0), // <-- ANCIENNE LIGNE
+                'en cours' => $statsNaissanceRaw->except($statutsExclusEnCours)->sum(), // <-- NOUVELLE LIGNE
+                'terminé'  => $statsNaissanceRaw->get('terminé', 0),
+                'total'    => $statsNaissanceRaw->sum() // Somme de tous les états (y compris paiement échoué etc.)
+            ];
+
+            $statsMariage = [
+                // 'en cours' => $statsMariageRaw->get('en attente', 0), // <-- ANCIENNE LIGNE
+                'en cours' => $statsMariageRaw->except($statutsExclusEnCours)->sum(), // <-- NOUVELLE LIGNE
+                'terminé'  => $statsMariageRaw->get('terminé', 0),
+                'total'    => $statsMariageRaw->sum()
+            ];
+
+            $statsDeces = [
+                // 'en cours' => $statsDecesRaw->get('en attente', 0), // <-- ANCIENNE LIGNE
+                'en cours' => $statsDecesRaw->except($statutsExclusEnCours)->sum(), // <-- NOUVELLE LIGNE
+                'terminé'  => $statsDecesRaw->get('terminé', 0),
+                'total'    => $statsDecesRaw->sum()
+            ];
+
+            // --- 2. Calcul des TOTAUX agrégés ---
+            // (Aucune modification nécessaire ici, car il utilise les valeurs déjà calculées)
+
+            // Total "En cours" (somme de tous les 'en cours' de chaque catégorie)
+            $totalEnCours = $statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours'];
+
+            // Total "Terminé" (somme de tous les 'terminé')
+            $totalTermine = $statsNaissance['terminé'] + $statsMariage['terminé'] + $statsDeces['terminé'];
+
+            // Total "Général" (somme de toutes les demandes, peu importe l'état)
+            $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total'];
+            
+            // --- Réponse JSON Combinée ---
+
+            return response()->json([
+                // Partie 1: Détails par catégorie
+                'naissance' => $statsNaissance,
+                'mariage'   => $statsMariage,
+                'deces'     => $statsDeces,
+                
+                // Partie 2: Totaux agrégés
+                'total_general' => $totalGeneral,
+                'en_cours'      => $totalEnCours,
+                'termine'       => $totalTermine,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur statistiquesParStatut: ' + $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
     }
-}
     /**
      * Récupérer une demande spécifique par type et ID
      */
@@ -408,6 +415,7 @@ class StatistiqueController extends Controller
             'traité' => 'Votre demande a été traitée',
             'refusé' => 'Votre demande a été refusée',
             'annulé' => 'Votre demande a été annulée'
+            // NOTE: Ajoutez ici 'en attente de paiement', 'paiement échoué' etc. si nécessaire
         ];
 
         return $descriptions[$statut] ?? 'Statut inconnu';
@@ -424,6 +432,7 @@ class StatistiqueController extends Controller
             'traité' => ['Document prêt pour retrait/livraison'],
             'refusé' => ['Contactez le service pour plus d\'informations'],
             'annulé' => ['Demande annulée']
+            // NOTE: Ajoutez ici 'en attente de paiement', 'paiement échoué' etc. si nécessaire
         ];
 
         return $etapes[$statutActuel] ?? [];
