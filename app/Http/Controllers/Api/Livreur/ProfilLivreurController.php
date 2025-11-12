@@ -29,7 +29,7 @@ class ProfilLivreurController extends Controller
                     'user_type' => $user ? get_class($user) : 'null'
                 ], 401);
             }
-
+    
             // Préparer les données de réponse
             $profileData = [
                 'id' => $user->id,
@@ -37,9 +37,9 @@ class ProfilLivreurController extends Controller
                 'prenom' => $user->prenom,
                 'email' => $user->email,
                 'contact' => $user->contact,
-                'profile_picture' => $user->profile_picture,
+                'profile_picture' => $user->profile_picture, // Chemin relatif
                 'profile_picture_url' => $user->profile_picture ? 
-                    Storage::url($user->profile_picture) : null,
+                    "/storage/" . $user->profile_picture : null, // Format "/storage/..."
                 'commune' => $user->commune,
                 'communeM' => $user->communeM,
                 'cas_urgence' => $user->cas_urgence,
@@ -47,20 +47,20 @@ class ProfilLivreurController extends Controller
                 'poste_id' => $user->poste_id,
                 'archived_at' => $user->archived_at,
             ];
-
+    
             // Charger la relation poste si elle existe
             if ($user->relationLoaded('poste')) {
                 $profileData['poste'] = $user->poste;
             } elseif (method_exists($user, 'poste')) {
                 $profileData['poste'] = $user->poste;
             }
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Profil récupéré avec succès',
                 'data' => $profileData
             ]);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -86,7 +86,7 @@ class ProfilLivreurController extends Controller
                 'profile_picture.mimes' => 'L\'image doit être au format jpeg, png, jpg ou gif',
                 'profile_picture.max' => 'L\'image ne doit pas dépasser 5MB',
             ]);
-
+    
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
@@ -94,29 +94,31 @@ class ProfilLivreurController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-
+    
             // Supprimer l'ancienne photo si elle existe
             if ($livreur->profile_picture) {
-                Storage::disk('public')->delete($livreur->profile_picture);
+                // Extraire le chemin relatif si le chemin complet est stocké
+                $oldPath = str_replace('/storage/', '', $livreur->profile_picture);
+                Storage::disk('public')->delete($oldPath);
             }
-
-            // Stocker la nouvelle image
+    
+            // Stocker la nouvelle image - le chemin commencera par 'profile_pictures/livreurs/'
             $imagePath = $request->file('profile_picture')->store('profile_pictures/livreurs', 'public');
             
-            // Mise à jour du livreur
+            // Mise à jour du livreur avec le chemin relatif
             $livreur->update([
-                'profile_picture' => $imagePath
+                'profile_picture' => $imagePath // Stocke 'profile_pictures/livreurs/fichier.jpg'
             ]);
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Photo de profil mise à jour avec succès',
                 'data' => [
-                    'profile_picture' => $imagePath,
-                    'profile_picture_url' => Storage::url($imagePath)
+                    'profile_picture' => $imagePath, // Chemin relatif
+                    'profile_picture_url' => Storage::url($imagePath) // URL complète avec '/storage/'
                 ]
             ]);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -128,38 +130,41 @@ class ProfilLivreurController extends Controller
     /**
      * Supprimer la photo de profil
      */
-    public function deleteProfilePicture(Request $request): JsonResponse // AJOUT DU PARAMÈTRE
+    public function deleteProfilePicture(Request $request): JsonResponse
     {
         try {
-            $livreur = $request->user(); // CORRECTION : Utilisation de $request
-
+            $livreur = $request->user();
+    
             if (!$livreur || !$livreur instanceof Livreur) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Livreur non authentifié'
                 ], 401);
             }
-
+    
             if (!$livreur->profile_picture) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Aucune photo de profil à supprimer'
                 ], 404);
             }
-
+    
+            // Extraire le chemin relatif si le chemin complet est stocké
+            $imagePath = str_replace('/storage/', '', $livreur->profile_picture);
+    
             // Vérifier si le fichier existe avant de le supprimer
-            if (Storage::disk('public')->exists($livreur->profile_picture)) {
-                Storage::disk('public')->delete($livreur->profile_picture);
+            if (Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
             }
-
+    
             // Mettre à jour la base de données
             $livreur->update([
                 'profile_picture' => null
             ]);
-
+    
             // Recharger les données
             $livreur->refresh();
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Photo de profil supprimée avec succès',
@@ -168,7 +173,7 @@ class ProfilLivreurController extends Controller
                     'profile_picture_url' => null
                 ]
             ]);
-
+    
         } catch (\Exception $e) {
             Log::error('Delete Profile Picture Error: ' . $e->getMessage());
             return response()->json([

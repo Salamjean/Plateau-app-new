@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers\Api\Utilisateurs;
-
 
 use App\Http\Controllers\Controller;
 
@@ -66,7 +64,6 @@ class DemandeDecesController extends Controller
              ], 500);
          }
      }
-
 
     /**
 
@@ -471,12 +468,12 @@ $paymentData = [
                 }
     
                 // Mettre à jour le Deces (quelque soit l'état antérieur)
-                $deces->etat = 'en_attente_de_livraison';
+                $deces->etat = 'en attente';
                 $deces->statut_livraison = 'en attente';
                 $deces->save();
     
                 // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
-                Log::info("Demande {$cinetpayTransactionId} mise à jour : en_attente_de_livraison"); // ✅ CORRIGÉ
+                Log::info("Demande {$cinetpayTransactionId} mise à jour : en attente"); // ✅ CORRIGÉ
     
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
@@ -494,8 +491,8 @@ $paymentData = [
             }
     
             // Pour REFUSED ou autres
-            $deces->etat = 'paiement échoué';
-            $deces->statut_livraison = 'paiement échoué';
+            $deces->etat = 'paiement_echoue';
+            $deces->statut_livraison = 'paiement_echoue';
             $deces->save();
     
             // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
@@ -524,6 +521,7 @@ $paymentData = [
      */
     public function getPaymentStatus(Request $request, $reference): JsonResponse
     {
+        Log::info("API getPaymentStatus appelée pour la référence : " . $reference);
         try {
             // 1. Trouver la demande de décès
             $deces = Deces::where('reference', $reference)->first();
@@ -543,7 +541,7 @@ $paymentData = [
             // 3. Déterminer la date et l'heure
             $date_heure = $deces->created_at->format('Y-m-d H:i:s'); // Par défaut: date de création
             
-            if ($deces->etat === 'en_attente_de_livraison') {
+            if ($deces->etat === 'en attente') {
                 // Si payé, chercher la date de paiement
                 $paiement = Paiement::where('deces_id', $deces->id)
                                     ->where('status', 'ACCEPTED')
@@ -555,7 +553,7 @@ $paymentData = [
                     // Fallback si on ne trouve pas le paiement mais que le statut est bon
                     $date_heure = $deces->updated_at->format('Y-m-d H:i:s');
                 }
-            } elseif ($deces->etat === 'paiement échoué') {
+            } elseif ($deces->etat === 'paiement_echoue') {
                 // Si échoué, utiliser la date de mise à jour
                 $date_heure = $deces->updated_at->format('Y-m-d H:i:s');
             }

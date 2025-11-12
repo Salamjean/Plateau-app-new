@@ -26,6 +26,7 @@ class AgentDashboard extends Controller
         $naissances = Naissance::where('commune', $admin->communeM)
             ->where('is_read', false) // Filtrer pour les demandes non traitées
             ->whereMonth('created_at', $selectedMonth)
+            ->where('etat', '!=','paiement_echoue')
             ->whereYear('created_at', $selectedYear)
             ->orderBy('created_at', 'asc')
             ->get();
@@ -34,6 +35,7 @@ class AgentDashboard extends Controller
             ->where('is_read', false) // Filtrer pour les demandes non traitées
             ->whereMonth('created_at', $selectedMonth)
             ->whereYear('created_at', $selectedYear)
+            ->where('etat', '!=','paiement_echoue')
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -41,6 +43,7 @@ class AgentDashboard extends Controller
             ->where('is_read', false) // Filtrer pour les demandes non traitées
             ->whereMonth('created_at', $selectedMonth)
             ->whereYear('created_at', $selectedYear)
+            ->where('etat', '!=','paiement_echoue')
             ->orderBy('created_at', 'asc')
             ->get();
 

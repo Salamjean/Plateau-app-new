@@ -74,7 +74,7 @@
       width: 100%;
     }
     .btn-primary { background-color: var(--primary-color); color: #fff; }
-  _ .btn-primary:hover { background-color: #0056b3; }_
+    .btn-primary:hover { background-color: #0056b3; }
     .btn-store { background-color: #e9ecef; color: #333; }
     .btn-store:hover { background-color: #d1d5da; }
     #fallback-options { display: none; }
@@ -105,185 +105,208 @@
       </div>
     </div>
   </div>
-
+  <div id="payment-data" 
+  data-transaction-id="{{ $transactionId ?? '' }}"
+  style="display: none;">
+</div>
 <script>
-(function() {
+  (function() {
+    
+    // SOLUTION CORRIGÉE : Récupération sécurisée du transactionId
+    const paymentDataEl = document.getElementById('payment-data');
+    const transactionId = paymentDataEl ? paymentDataEl.dataset.transactionId : null;
   
-  // 1. Récupérer le TransactionID passé par le contrôleur PHP
-  const transactionId = @json($transactionId ?? null);
-
-  // DOM Elements
-  const titleEl = document.getElementById('title');
-  const statusEl = document.getElementById('status');
-  const loadingIcon = document.getElementById('icon-loading');
-  const successIcon = document.getElementById('icon-success');
-  const dangerIcon = document.getElementById('icon-danger');
-  const fallbackOptions = document.getElementById('fallback-options');
-  const openBtn = document.getElementById('openAppBtn');
-  const storeButtons = document.getElementById('storeButtons');
-
-  // 2. Gérer le cas d'erreur initial
-  if (!transactionId) {
-    titleEl.textContent = 'Erreur';
-    statusEl.textContent = 'Transaction invalide ou identifiant manquant.';
-    loadingIcon.style.display = 'none';
-    dangerIcon.style.display = 'inline-flex';
+    console.log('Transaction ID récupéré:', transactionId); // Pour debug
+  
+    // DOM Elements
+    const titleEl = document.getElementById('title');
+    const statusEl = document.getElementById('status');
+    const loadingIcon = document.getElementById('icon-loading');
+    const successIcon = document.getElementById('icon-success');
+    const dangerIcon = document.getElementById('icon-danger');
+    const fallbackOptions = document.getElementById('fallback-options');
+    const openBtn = document.getElementById('openAppBtn');
+    const storeButtons = document.getElementById('storeButtons');
+  
+    // 2. Gérer le cas d'erreur initial - CORRIGÉ
+    if (!transactionId || transactionId === '') {
+      console.error('Transaction ID manquant ou vide');
+      titleEl.textContent = 'Erreur';
+      statusEl.textContent = 'Transaction invalide ou identifiant manquant.';
+      loadingIcon.style.display = 'none';
+      dangerIcon.style.display = 'inline-flex';
+      return;
+    }
+  
+    // Le reste de votre code JavaScript reste inchangé...
+    // 3. Configuration de l'application
+    const androidPackage = 'com.votre.package.android'; 
+    const iosAppId = 'id1234567890'; 
+    const playStoreUrl = `https://play.google.com/store/apps/details?id=${androidPackage}`;
+    const appStoreUrl = `https://apps.apple.com/app/${iosAppId}`;
+  
+    let finalDeepLink = '';
+  
+    // 4. Fonctions pour mettre à jour l'interface
+    function showSuccess() {
+      titleEl.textContent = 'Paiement terminé';
+      titleEl.style.color = 'var(--success)';
+      statusEl.textContent = "Nous allons vous rediriger vers l'application...";
+      loadingIcon.style.display = 'none';
+      successIcon.style.display = 'inline-flex';
+      
+      finalDeepLink = `plateauapps://payment?cinetpay=true&transactionId=${encodeURIComponent(transactionId)}`;
+      tryOpenApp();
+      setupFallback(true);
+    }
+  
+    function showFailure() {
+      titleEl.textContent = 'paiement échoué';
+      titleEl.style.color = 'var(--danger)';
+      statusEl.textContent = "Le paiement a été annulé ou a échoué. Vous allez être redirigé...";
+      loadingIcon.style.display = 'none';
+      dangerIcon.style.display = 'inline-flex';
+      
+      finalDeepLink = `plateauapps://payment?cinetpay=false&transactionId=${encodeURIComponent(transactionId)}`;
+      tryOpenApp();
+      setupFallback(false);
+    }
+    
+    function showError(message) {
+        titleEl.textContent = 'Erreur de vérification';
+        statusEl.textContent = message || "Impossible de vérifier le statut de votre paiement.";
+        loadingIcon.style.display = 'none';
+        dangerIcon.style.display = 'inline-flex';
+    }
+  
+    // 5. Logique de Polling
+    let pollCount = 0;
+    const maxPolls = 15;
+  
+    function pollStatus() {
+  pollCount++;
+  if (pollCount > maxPolls) {
+    showError("Le statut du paiement est toujours en attente. Veuillez contacter le support.");
     return;
   }
 
-  // 3. Configuration de l'application (À MODIFIER)
-  const androidPackage = 'com.votre.package.android'; 
-  const iosAppId = 'id1234567890'; 
-  const playStoreUrl = `https://play.google.com/store/apps/details?id=${androidPackage}`;
-  const appStoreUrl = `https://apps.apple.com/app/${iosAppId}`;
-
-  let finalDeepLink = ''; // Sera défini après confirmation du statut
-
-  // 4. Fonctions pour mettre à jour l'interface
-  function showSuccess() {
-    titleEl.textContent = 'Paiement terminé';
-    titleEl.style.color = 'var(--success)';
-    statusEl.textContent = "Nous allons vous rediriger vers l'application...";
-    loadingIcon.style.display = 'none';
-    successIcon.style.display = 'inline-flex';
-    
-    finalDeepLink = `plateauapps://payment?cinetpay=true&transactionId=${encodeURIComponent(transactionId)}`;
-    tryOpenApp(); // Tenter l'ouverture auto
-    setupFallback(true); // Préparer les boutons au cas où
-  }
-
-  function showFailure() {
-    titleEl.textContent = 'Paiement échoué';
-    titleEl.style.color = 'var(--danger)';
-    statusEl.textContent = "Le paiement a été annulé ou a échoué. Vous allez être redirigé...";
-    loadingIcon.style.display = 'none';
-    dangerIcon.style.display = 'inline-flex';
-    
-    finalDeepLink = `plateauapps://payment?cinetpay=false&transactionId=${encodeURIComponent(transactionId)}`;
-    tryOpenApp(); // Tenter l'ouverture auto
-    setupFallback(false); // Préparer les boutons au cas où
-  }
-  
-  function showError(message) {
-      titleEl.textContent = 'Erreur de vérification';
-      statusEl.textContent = message || "Impossible de vérifier le statut de votre paiement.";
-      loadingIcon.style.display = 'none';
-      dangerIcon.style.display = 'inline-flex';
-  }
-
-  // 5. Logique de Polling (interrogation de l'API)
-  let pollCount = 0;
-  const maxPolls = 15; // (15 * 2 = 30 secondes max)
-
-  function pollStatus() {
-    pollCount++;
-    if (pollCount > maxPolls) {
-      showError("Le statut du paiement est toujours en attente. Veuillez contacter le support.");
+  let apiPath = '';
+  if (transactionId.startsWith('AD')) {
+      apiPath = `/api/deces/payment-status/${transactionId}`;
+  } else if (transactionId.startsWith('AM')) {
+      apiPath = `/api/mariage/payment-status/${transactionId}`;
+  } else if (transactionId.startsWith('AN')) {
+      apiPath = `/api/naissance/payment-status/${transactionId}`; 
+  } else {
+      showError("Type de transaction inconnu. Impossible de vérifier le statut.");
       return;
-    }
-
-    // *** DÉBUT DE LA CORRECTION ***
-    // Déterminer quelle API appeler en fonction du préfixe de la transaction
-    
-    let apiPath = '';
-    if (transactionId.startsWith('AD')) {
-        apiPath = `/api/deces/payment-status/${transactionId}`;
-    } else if (transactionId.startsWith('AM')) {
-        apiPath = `/api/mariage/payment-status/${transactionId}`;
-    } else if (transactionId.startsWith('AN')) {
-        // ✅ LIGNE ACTIVÉE POUR NAISSANCE
-        apiPath = `/api/naissance/payment-status/${transactionId}`; 
-    } else {
-        showError("Type de transaction inconnu. Impossible de vérifier le statut.");
-        return;
-    }
-
-    // Appelle l'API dynamique
-    fetch(apiPath)
-    // *** FIN DE LA CORRECTION ***
-    
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Transaction non trouvée.');
-        }
-        return response.json();
-      })
-      .then(data => {
-        const status = data.status;
-        
-        // Les statuts sont les mêmes, la logique ici n'a pas besoin de changer
-        if (status === 'en attente de livraison') {
-          // SUCCÈS
-          showSuccess();
-        } else if (status === 'paiement échoué' || status === 'REFUSED') {
-          // ÉCHEC
-          showFailure();
-        } else if (status === 'en attente de paiement' || status === 'PENDING' || status === 'AWAITING') {
-          // TOUJOURS EN ATTENTE, on ré-essaie
-          setTimeout(pollStatus, 2000); // Réessayer dans 2 secondes
-        } else {
-          // Statut inconnu ou 'not_found'
-          showError('Statut de transaction inconnu.');
-        }
-      })
-      .catch(err => {
-        showError(err.message);
-      });
   }
 
-  // 6. Logique de redirection et fallback (INCHANGÉE)
-  const ua = navigator.userAgent || '';
-  const isAndroid = /android/i.test(ua);
-  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  console.log('Appel API:', apiPath);
 
-  function tryOpenApp() {
-    if (!finalDeepLink) return;
-
-    const androidIntent = `intent://payment?cinetpay=${finalDeepLink.includes('true') ? 'true' : 'false'}&transactionId=${encodeURIComponent(transactionId)}#Intent;scheme=plateauapps;package=${androidPackage};end`;
-
-    if (isAndroid) {
-      window.location = androidIntent;
-    } else {
-      window.location = finalDeepLink;
-    }
-  }
-
-  // 7. Configurer les boutons de fallback (INCHANGÉE)
-  function setupFallback(isSuccess) {
-    let pageHidden = false;
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) pageHidden = true;
-    });
-
-    openBtn.href = finalDeepLink;
-    openBtn.addEventListener('click', function(e) {
-      e.preventDefault(); 
-      statusEl.textContent = "Tentative d'ouverture de l'application...";
-      tryOpenApp();
-      setTimeout(() => { window.close(); }, 500);
-    });
-    
-    let btns = `<a class="btn btn-store" href="${playStoreUrl}" target="_blank">Google Play Store</a>`;
-    if (isIOS) {
-      btns = `<a class="btn btn-store" href="${appStoreUrl}" target="_blank">App Store</a>`;
-    } else if (!isAndroid) {
-      btns += ` <a class="btn btn-store" href="${appStoreUrl}" target="_blank">App Store</a>`;
-    }
-    storeButtons.innerHTML = btns;
-
-    setTimeout(() => {
-      if (!pageHidden) {
-        statusEl.textContent = "L'application ne s'est pas ouverte automatiquement.";
-        fallbackOptions.style.display = 'block';
+  fetch(apiPath)
+    .then(response => {
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
       }
-    }, 1500);
-  }
-
-  // 8. DÉMARRER LE PROCESSUS
-  pollStatus();
-
-})();
-</script>
+      
+      // Vérifier le content-type avant de parser
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Réponse non-JSON reçue du serveur');
+      }
+      
+      return response.text().then(text => {
+        console.log('Response text:', text);
+        try {
+          return JSON.parse(text);
+        } catch (parseError) {
+          console.error('Erreur parsing JSON:', parseError);
+          throw new Error('Données JSON invalides');
+        }
+      });
+    })
+    .then(data => {
+      console.log('Data reçu:', data);
+      const status = data.status;
+      
+      if (status === 'en attente') {
+        showSuccess();
+      } else if (status === 'paiement_echoue' || status === 'REFUSED') {
+        showFailure();
+      } else if (status === 'en attente de paiement' || status === 'PENDING' || status === 'AWAITING') {
+        setTimeout(pollStatus, 2000);
+      } else {
+        showError('Statut de transaction inconnu: ' + status);
+      }
+    })
+    .catch(err => {
+      console.error('Erreur fetch complète:', err);
+      if (pollCount <= maxPolls) {
+        // Réessayer après un délai en cas d'erreur réseau
+        setTimeout(pollStatus, 2000);
+      } else {
+        showError('Impossible de vérifier le statut: ' + err.message);
+      }
+    });
+}
+  
+    // 6. Logique de redirection et fallback
+    const ua = navigator.userAgent || '';
+    const isAndroid = /android/i.test(ua);
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  
+    function tryOpenApp() {
+      if (!finalDeepLink) return;
+  
+      const androidIntent = `intent://payment?cinetpay=${finalDeepLink.includes('true') ? 'true' : 'false'}&transactionId=${encodeURIComponent(transactionId)}#Intent;scheme=plateauapps;package=${androidPackage};end`;
+  
+      if (isAndroid) {
+        window.location = androidIntent;
+      } else {
+        window.location = finalDeepLink;
+      }
+    }
+  
+    // 7. Configurer les boutons de fallback
+    function setupFallback(isSuccess) {
+      let pageHidden = false;
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) pageHidden = true;
+      });
+  
+      openBtn.href = finalDeepLink;
+      openBtn.addEventListener('click', function(e) {
+        e.preventDefault(); 
+        statusEl.textContent = "Tentative d'ouverture de l'application...";
+        tryOpenApp();
+        setTimeout(() => { window.close(); }, 500);
+      });
+      
+      let btns = `<a class="btn btn-store" href="${playStoreUrl}" target="_blank">Google Play Store</a>`;
+      if (isIOS) {
+        btns = `<a class="btn btn-store" href="${appStoreUrl}" target="_blank">App Store</a>`;
+      } else if (!isAndroid) {
+        btns += ` <a class="btn btn-store" href="${appStoreUrl}" target="_blank">App Store</a>`;
+      }
+      storeButtons.innerHTML = btns;
+  
+      setTimeout(() => {
+        if (!pageHidden) {
+          statusEl.textContent = "L'application ne s'est pas ouverte automatiquement.";
+          fallbackOptions.style.display = 'block';
+        }
+      }, 1500);
+    }
+  
+    // 8. DÉMARRER LE PROCESSUS
+    pollStatus();
+  
+  })();
+  </script>
 
 </body>
 </html>

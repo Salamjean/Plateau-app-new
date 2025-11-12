@@ -401,11 +401,11 @@ class DemandeMariageController extends Controller
                 }
     
                 // Mettre à jour le Mariage
-                $mariage->etat = 'en_attente_de_livraison';
+                $mariage->etat = 'en attente';
                 $mariage->statut_livraison = 'en attente';
                 $mariage->save();
     
-                Log::info("Demande (Mariage) {$cinetpayTransactionId} mise à jour : en_attente_de_livraison");
+                Log::info("Demande (Mariage) {$cinetpayTransactionId} mise à jour : en attente");
     
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
@@ -421,8 +421,8 @@ class DemandeMariageController extends Controller
             }
     
             // Pour REFUSED ou autres
-            $mariage->etat = 'paiement échoué';
-            $mariage->statut_livraison = 'paiement échoué';
+            $mariage->etat = 'paiement_echoue';
+            $mariage->statut_livraison = 'paiement_echoue';
             $mariage->save();
             Log::warning("Demande (Mariage) {$cinetpayTransactionId} paiement non accepté (status: {$status}).");
             return response()->json(['success' => true, 'message' => 'Paiement non accepté traité'], 200);
@@ -459,7 +459,7 @@ class DemandeMariageController extends Controller
             // 3. Déterminer la date et l'heure
             $date_heure = $mariage->created_at->format('Y-m-d H:i:s');
             
-            if ($mariage->etat === 'en_attente_de_livraison') {
+            if ($mariage->etat === 'en attente') {
                 // Si payé, chercher la date de paiement
                 $paiement = Paiement::where('mariage_id', $mariage->id) // ✅ Clé étrangère Mariage
                                     ->where('status', 'ACCEPTED')
@@ -470,7 +470,7 @@ class DemandeMariageController extends Controller
                 } else {
                     $date_heure = $mariage->updated_at->format('Y-m-d H:i:s');
                 }
-            } elseif ($mariage->etat === 'paiement échoué') {
+            } elseif ($mariage->etat === 'paiement_echoue') {
                 $date_heure = $mariage->updated_at->format('Y-m-d H:i:s');
             }
 

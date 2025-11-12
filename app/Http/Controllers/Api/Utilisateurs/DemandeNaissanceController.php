@@ -379,11 +379,11 @@ class DemandeNaissanceController extends Controller
                     Log::error("Erreur enregistrement paiement (Naissance) {$cinetpayTransactionId}: " . $e->getMessage(), ['exception' => $e]);
                 }
     
-                $naissance->etat = 'en_attente_de_livraison';
+                $naissance->etat = 'en attente';
                 $naissance->statut_livraison = 'en attente';
                 $naissance->save();
     
-                Log::info("Demande Naissance {$reference} mise à jour : en_attente_de_livraison");
+                Log::info("Demande Naissance {$reference} mise à jour : en attente");
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
     
@@ -398,8 +398,8 @@ class DemandeNaissanceController extends Controller
             }
     
             // Pour REFUSED ou autres
-            $naissance->etat = 'paiement échoué';
-            $naissance->statut_livraison = 'paiement échoué';
+            $naissance->etat = 'paiement_echoue';
+            $naissance->statut_livraison = 'paiement_echoue';
             $naissance->save();
             Log::warning("Demande Naissance {$reference} paiement non accepté (status: {$status}).");
             return response()->json(['success' => true, 'message' => 'Paiement non accepté traité'], 200);
@@ -434,7 +434,7 @@ class DemandeNaissanceController extends Controller
             // 3. Déterminer la date et l'heure
             $date_heure = $naissance->created_at->format('Y-m-d H:i:s');
             
-            if ($naissance->etat === 'en_attente_de_livraison') {
+            if ($naissance->etat === 'en attente') {
                 $paiement = Paiement::where('naissance_id', $naissance->id) // ✅ Clé étrangère Naissance
                                     ->where('status', 'ACCEPTED')
                                     ->orderBy('paid_at', 'desc')
@@ -444,7 +444,7 @@ class DemandeNaissanceController extends Controller
                 } else {
                     $date_heure = $naissance->updated_at->format('Y-m-d H:i:s');
                 }
-            } elseif ($naissance->etat === 'paiement échoué') {
+            } elseif ($naissance->etat === 'paiement_echoue') {
                 $date_heure = $naissance->updated_at->format('Y-m-d H:i:s');
             }
 
