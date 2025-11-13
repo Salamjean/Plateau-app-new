@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Authenticate\ConnexionController;
 use App\Http\Controllers\Api\Authenticate\RegisterController;
 use App\Http\Controllers\Api\Authenticate\UserLoginController;
+use App\Http\Controllers\Api\Authenticate\PasswordforgotController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeNaissanceController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeMariageController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeDecesController;
@@ -21,6 +22,8 @@ Route::post('/admin/login', [ConnexionController::class, 'handleLogin']);
 Route::prefix('utilisateurs')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
     Route::post('/login', [UserLoginController::class, 'login']);
+    Route::post('/forgot-password', [PasswordforgotController::class, 'forgotPassword']);
+    Route::post('/reset-password', [PasswordforgotController::class, 'resetPassword']);
 });
 
 // LIVREURS - Routes publiques

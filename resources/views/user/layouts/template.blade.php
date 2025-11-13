@@ -74,5 +74,6 @@
       <!-- custom js -->
       <script src="{{asset('userAssets/js/chart_custom_style1.js')}}"></script>
       <script src="{{asset('userAssets/js/custom.js')}}"></script>
+      @stack('scripts')
    </body>
 </html>

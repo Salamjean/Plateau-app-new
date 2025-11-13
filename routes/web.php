@@ -1,5 +1,7 @@
 <?php
 use App\Http\Controllers\Api\Utilisateurs\DemandeMariageController;
+use App\Http\Controllers\User\ProfiluserController;
+use App\Http\Controllers\User\ProfileUpdateRequest;
 use App\Http\Controllers\Api\Utilisateurs\DemandeDecesController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeNaissanceController;
 use App\Http\Controllers\RedirectToAppController;
@@ -354,7 +356,6 @@ Route::middleware('comptable')->prefix('accounting')->group(function(){
             Route::post('/check-reference', [LivraisonDelivery::class, 'checkReference'])->name('livreur.check-reference');
             
         });
-
 //Les routes de gestion @users 
 Route::prefix('user')->group(function(){
     Route::get('/login',[UserAuthenticate::class,'login'])->name('login');
@@ -398,13 +399,17 @@ Route::middleware('auth')->prefix('user')->group(function(){
     //la route de gestion des historiques 
     Route::get('/history/ends',[UserAuthenticate::class,'history'])->name('user.history');
     Route::get('/demande-details/{type}/{id}', [UserAuthenticate::class, 'getDemandeDetails'])->name('demande.details.json');
-
-    //Modification de profil user 
-    Route::get('profil/edit',[UserAuthenticate::class,'profil'])->name('user.profil');
-    Route::put('/profile/update', [UserAuthenticate::class, 'updateProfile'])->name('user.profile.update');
-    Route::post('/verify-password', [UserAuthenticate::class, 'verifyPassword'])->name('user.verify.password');
+ // Remplacez les anciennes routes de profil par celles-ci
+    // Routes pour la gestion du profil utilisateur
+    Route::get('/profile', [ProfiluserController::class, 'show'])->name('user.profile.show');
+    Route::put('/profile', [ProfiluserController::class, 'update'])->name('user.profile.update');
+    // Route::put('/profile/password', [ProfiluserController::class, 'updatePassword'])->name('user.profile.password.update'); // <-- SUPPRIMEZ CETTE LIGNE
+    Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
+ // Les anciennes routes à commenter ou supprimer si elles ne sont plus utilisées par un autre contrôleur
+ // Route::get('profil/edit',[UserAuthenticate::class,'profil'])->name('user.profil');
+ // Route::put('/profile/update', [UserAuthenticate::class, 'updateProfile'])->name('user.profile.update');
+ // Route::post('/verify-password', [UserAuthenticate::class, 'verifyPassword'])->name('user.verify.password')
 });
-
 //Les routes definition du accès 
 Route::get('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'defineAccess']);
 Route::post('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'submitDefineAccess'])->name('mairie.validate');
