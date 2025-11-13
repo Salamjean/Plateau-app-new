@@ -51,8 +51,8 @@ class UserAuthenticate extends Controller
     public function handleRegister(UserRegisterRequest $request): RedirectResponse
     {
         // Création de l'utilisateur
+        $profilePicturePath = null;
         try {
-            $profilePicturePath = null;
             if ($request->hasFile('profile_picture')) {
                 $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
                 Log::info('Profile picture stored at: ' . $profilePicturePath);
@@ -62,7 +62,13 @@ class UserAuthenticate extends Controller
             $users->name = $request->name;
             $users->prenom = $request->prenom;
             $users->email = $request->email;
-            $users->commune = $request->commune;
+            
+            // --- MODIFICATION ---
+            // La commune est maintenant définie en dur pour correspondre à la logique de l'API.
+            $users->commune = 'Plateau';
+            // $users->commune = $request->commune; // Ancienne ligne
+            // --- FIN MODIFICATION ---
+            
             $users->indicatif = $request->indicatif;
             $users->contact = $request->contact;
             $users->CMU = $request->CMU;
@@ -92,10 +98,16 @@ class UserAuthenticate extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error during registration: ' . $e->getMessage());
+            
+            // Ajout (inspiré de votre API) : Supprimer l'image si la création échoue
+            if (isset($profilePicturePath) && Storage::disk('public')->exists($profilePicturePath)) {
+                Storage::disk('public')->delete($profilePicturePath);
+                Log::info('Rolled back profile picture upload: ' . $profilePicturePath);
+            }
+
             return back()->withErrors(['error' => 'Une erreur est survenue. Veuillez réessayer.'])->withInput();
         }
     }
-
 
     public function history() {
         $userId = Auth::user()->id;

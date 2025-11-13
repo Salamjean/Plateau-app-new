@@ -6,7 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
+    <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -552,45 +552,39 @@
                                 <option value="+31" {{ old('indicatif') == '+31' ? 'selected' : '' }}>Pays-Bas (+31)</option>
                                 <option value="+351" {{ old('indicatif') == '+351' ? 'selected' : '' }}>Portugal (+351)</option>
                             </select>
-                            <input class="input-field" type="tel" name="contact" placeholder=" " value="{{ old('contact') }}" />
+                            <input class="input-field" type="tel" name="contact" placeholder="Numéro de contact" value="{{ old('contact') }}" />
                         </div>
+                        <label class="input-label" for="contact" style="top: -10px; left: 35px; font-size: 0.8rem; color: var(--primary-color); background-color: white; z-index: 3;">Contact</label>
                         @error('contact')
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i> {{ $message }}
                             </div>
                         @enderror
-                    </div>
-
-                    <div class="input-group">
-                        <i class="fas fa-map-marker-alt input-icon"></i>
-                        <select class="input-field searchable-select" name="commune">
-                            <option value="">Sélectionnez votre commune</option>
-                            <option value="abobo" {{ old('commune') == 'abobo' ? 'selected' : '' }}>Abobo</option>
-                            <option value="adjame" {{ old('commune') == 'adjame' ? 'selected' : '' }}>Adjamé</option>
-                            <option value="anyama" {{ old('commune') == 'anyama' ? 'selected' : '' }}>Anyama</option>
-                            <option value="cocody" {{ old('commune') == 'cocody' ? 'selected' : '' }}>Cocody</option>
-                            <option value="plateau" {{ old('commune') == 'plateau' ? 'selected' : '' }}>Plateau</option>
-                            <option value="yopougon" {{ old('commune') == 'yopougon' ? 'selected' : '' }}>Yopougon</option>
-                            <option value="abengourou" {{ old('commune') == 'abengourou' ? 'selected' : '' }}>Abengourou</option>
-                            <option value="bouake" {{ old('commune') == 'bouake' ? 'selected' : '' }}>Bouaké</option>
-                            <option value="daloa" {{ old('commune') == 'daloa' ? 'selected' : '' }}>Daloa</option>
-                            <option value="san-pedro" {{ old('commune') == 'san-pedro' ? 'selected' : '' }}>San-Pédro</option>
-                            <option value="yamoussoukro" {{ old('commune') == 'yamoussoukro' ? 'selected' : '' }}>Yamoussoukro</option>
-                        </select>
-                        <label class="input-label" for="commune">Commune de naissance</label>
-                        @error('commune')
+                        @error('indicatif')
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i> {{ $message }}
                             </div>
                         @enderror
                     </div>
+                    
+                    <!-- --- MODIFICATION --- -->
+                    <!-- Le champ "Commune" a été supprimé de la vue -->
+                    <!-- 
+                    <div class="input-group">
+                        <i class="fas fa-map-marker-alt input-icon"></i>
+                        <select class... name="commune"> ... </select>
+                        <label ...>Commune de naissance</label>
+                        @error('commune') ... @enderror
+                    </div>
+                    -->
+                    <!-- --- FIN MODIFICATION --- -->
                 </div>
 
                 <div class="form-row">
                     <div class="input-group">
                         <i class="fas fa-id-card input-icon"></i>
                         <input class="input-field" type="text" name="CMU" placeholder=" " value="{{ old('CMU') }}" />
-                        <label class="input-label" for="CMU">N° NNI</label>
+                        <label class="input-label" for="CMU">N° NNI (Optionnel)</label>
                         @error('CMU')
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i> {{ $message }}
@@ -601,7 +595,7 @@
                     <div class="input-group">
                         <i class="fas fa-user input-icon"></i>
                         <input class="input-field" type="file" name="profile_picture" placeholder=" " value="{{ old('profile_picture') }}" accept="image/jpeg, image/png, image/jpg, image/gif" />
-                        <label class="input-label" for="profile_picture">Photo de profil</label>
+                        <label class="input-label" for="profile_picture">Photo de profil (Optionnel)</label>
                         @error('profile_picture')
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i> {{ $message }}
@@ -682,17 +676,21 @@
             const togglePasswordConfirmation = document.querySelector('#togglePasswordConfirmation');
             const passwordConfirmation = document.querySelector('#password_confirmation');
 
-            togglePassword.addEventListener('click', function() {
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-                this.classList.toggle('fa-eye-slash');
-            });
+            if (togglePassword) {
+                togglePassword.addEventListener('click', function() {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
 
-            togglePasswordConfirmation.addEventListener('click', function() {
-                const type = passwordConfirmation.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordConfirmation.setAttribute('type', type);
-                this.classList.toggle('fa-eye-slash');
-            });
+            if (togglePasswordConfirmation) {
+                togglePasswordConfirmation.addEventListener('click', function() {
+                    const type = passwordConfirmation.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordConfirmation.setAttribute('type', type);
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
 
             $(document).ready(function() {
                 $('.searchable-select').select2({
@@ -711,26 +709,32 @@
             const diasporaCheckbox = document.getElementById('diaspora');
             const diasporaFields = document.getElementById('diasporaFields');
             
-            // Afficher/masquer les champs diaspora selon l'état initial
-            if (diasporaCheckbox.checked) {
-                diasporaFields.classList.add('active');
-            }
-            
-            // Écouter les changements de la checkbox
-            diasporaCheckbox.addEventListener('change', function() {
-                if (this.checked) {
+            if(diasporaCheckbox) {
+                // Afficher/masquer les champs diaspora selon l'état initial
+                if (diasporaCheckbox.checked) {
                     diasporaFields.classList.add('active');
-                } else {
-                    diasporaFields.classList.remove('active');
                 }
-            });
+                
+                // Écouter les changements de la checkbox
+                diasporaCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        diasporaFields.classList.add('active');
+                    } else {
+                        diasporaFields.classList.remove('active');
+                    }
+                });
+            }
 
             // Masquer les erreurs quand on modifie le champ
             document.querySelectorAll('input, select, textarea').forEach(input => {
                 input.addEventListener('input', function() {
-                    const errorElement = this.parentElement.querySelector('.error-message');
-                    if(errorElement) {
-                        errorElement.style.display = 'none';
+                    // Chercher le parent .input-group pour être sûr de trouver le bon message d'erreur
+                    const inputGroup = this.closest('.input-group') || this.closest('.phone-group');
+                    if (inputGroup) {
+                        const errorElement = inputGroup.parentElement.querySelector('.error-message');
+                        if(errorElement) {
+                            errorElement.style.display = 'none';
+                        }
                     }
                 });
             });
