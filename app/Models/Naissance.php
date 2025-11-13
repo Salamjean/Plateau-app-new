@@ -17,6 +17,7 @@ class Naissance extends Model
         'reference',
         'commune',
         'etat',
+        'motif_de_rejet',
         'statut_livraison',
         'user_id',
         'agent_id',

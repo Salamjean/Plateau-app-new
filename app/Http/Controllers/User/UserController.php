@@ -15,77 +15,90 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function dashboard(){
+    public function dashboard()
+    {
         if (Auth::check()) {
             $user = Auth::user();
-
-            // Récupérer les demandes avec leurs types respectifs
-            $naissances = Naissance::where('user_id', $user->id)->get()->map(function ($naissance) {
-                $naissance->type = 'naissance';
-                return $naissance;
-            });
-
-            $deces = Deces::where('user_id', $user->id)->get()->map(function ($deces) {
-                $deces->type = 'deces';
-                return $deces;
-            });
-
-            $mariages = Mariage::where('user_id', $user->id)->get()->map(function ($mariage) {
-                $mariage->type = 'mariage';
-                return $mariage;
-            });
-
-            // Combiner toutes les demandes
+    
+            // Définir les états à inclure dans les comptes principaux
+            $etatsInclus = ['en attente', 'terminé', 'récu'];
+    
+            // Récupérer les demandes avec les états spécifiés
+            $naissances = Naissance::where('user_id', $user->id)
+                ->whereIn('etat', $etatsInclus) // <-- MODIFIÉ
+                ->get()->map(function ($naissance) {
+                    $naissance->type = 'naissance';
+                    return $naissance;
+                });
+    
+            $deces = Deces::where('user_id', $user->id)
+                ->whereIn('etat', $etatsInclus) // <-- MODIFIÉ
+                ->get()->map(function ($deces) {
+                    $deces->type = 'deces';
+                    return $deces;
+                });
+    
+            $mariages = Mariage::where('user_id', $user->id)
+                ->whereIn('etat', $etatsInclus) // <-- MODIFIÉ
+                ->get()->map(function ($mariage) {
+                    $mariage->type = 'mariage';
+                    return $mariage;
+                });
+    
+            // Combiner toutes les demandes filtrées
             $demandes = $naissances->concat($deces)->concat($mariages);
-
+    
             // Trier les demandes par date de création (les plus récentes en premier)
-            $demandesRecente = $demandes->sortByDesc('created_at')->take(5);;
-
-            // Calcul des totaux pour les groupes fusionnés
-            $naissancesCount = Naissance::where('user_id', $user->id)->count();
-            $decesCount = Deces::where('user_id', $user->id)->count();
-            $mariageCount = Mariage::where('user_id', $user->id)->count();
+            $demandesRecente = $demandes->sortByDesc('created_at')->take(5);
+    
+            // Calcul des totaux pour les demandes avec les états spécifiés
+            $naissancesCount = Naissance::where('user_id', $user->id)->whereIn('etat', $etatsInclus)->count(); // <-- MODIFIÉ
+            $decesCount = Deces::where('user_id', $user->id)->whereIn('etat', $etatsInclus)->count(); // <-- MODIFIÉ
+            $mariageCount = Mariage::where('user_id', $user->id)->whereIn('etat', $etatsInclus)->count(); // <-- MODIFIÉ
     
             // Calcul des totaux fusionnés
             $totalNaissances = $naissancesCount;
-            $totalDeces = $decesCount ;
-
-            // Compter le nombre total de demandes
+            $totalDeces = $decesCount;
+    
+            // Compter le nombre total de demandes (basé sur les états filtrés)
             $nombreDemandes = $demandes->count();
-
-             // Ajoutez ces nouvelles méthodes pour obtenir les données mensuelles
+    
+            // --- Le reste de votre code reste inchangé ---
+    
+            // Données mensuelles (celles-ci comptent TOUT, sauf si getMonthlyCount est modifié)
             $naissancesMonthly = $this->getMonthlyCount(Naissance::class, $user->id);
             $decesMonthly = $this->getMonthlyCount(Deces::class, $user->id);
             $mariageMonthly = $this->getMonthlyCount(Mariage::class, $user->id);
-
-            // Combinez les données similaires
+    
+            // ... (combinaison des données mensuelles) ...
             $totalNaissancesMonthly = array_map(function ($n) {
-                return $n ;
+                return $n;
             }, $naissancesMonthly);
-
+    
             $totalDecesMonthly = array_map(function ($d) {
-                return $d ;
+                return $d;
             }, $decesMonthly);
-
-            //Compter les colis avec un état réçu
-            $naissancesEtatCount = Naissance::where('user_id', $user->id)->where('etat','réçu')->count();
-            $decesEtatCount = Deces::where('user_id', $user->id)->where('etat','réçu')->count();
-            $mariageEtatCount = Mariage::where('user_id', $user->id)->where('etat','réçu')->count();
+    
+    
+            // Compter les colis avec un état 'réçu' (SÉPARÉMENT)
+            $naissancesEtatCount = Naissance::where('user_id', $user->id)->where('etat', 'réçu')->count();
+            $decesEtatCount = Deces::where('user_id', $user->id)->where('etat', 'réçu')->count();
+            $mariageEtatCount = Mariage::where('user_id', $user->id)->where('etat', 'réçu')->count();
             $TotalEtatCount = $naissancesEtatCount + $decesEtatCount + $mariageEtatCount;
-
-
-            //Compter les colis avec un état en cours de livraison
-            $naissancesLivreCount = Naissance::where('user_id', $user->id)->where('statut_livraison','en cours')->count();
-            $decesLivreCount = Deces::where('user_id', $user->id)->where('statut_livraison','en cours')->count();
-            $mariageLivreCount = Mariage::where('user_id', $user->id)->where('statut_livraison','en cours')->count();
+    
+    
+            // Compter les colis avec un état 'en cours de livraison' (SÉPARÉMENT)
+            $naissancesLivreCount = Naissance::where('user_id', $user->id)->where('statut_livraison', 'en cours')->count();
+            $decesLivreCount = Deces::where('user_id', $user->id)->where('statut_livraison', 'en cours')->count();
+            $mariageLivreCount = Mariage::where('user_id', $user->id)->where('statut_livraison', 'en cours')->count();
             $TotalLivreCount = $naissancesLivreCount + $decesLivreCount + $mariageLivreCount;
-
-
+    
+    
             // Passer les demandes récentes à la vue
             return view('user.dashboard', compact(
                 'user',
                 'demandesRecente',
-                'nombreDemandes', 
+                'nombreDemandes',
                 'naissancesCount',
                 'decesCount',
                 'mariageCount',

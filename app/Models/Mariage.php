@@ -16,6 +16,7 @@ class Mariage extends Model
         'reference',
         'commune',
         'etat',
+        'motif_de_rejet',
         'agent_id',
         'livraison_id',
         'livreur_id',
@@ -34,6 +35,7 @@ class Mariage extends Model
         'adresse_livraison',
         'code_postal',
         'ville',
+        'user_id',
         'commune_livraison',
         'quartier'
     ];

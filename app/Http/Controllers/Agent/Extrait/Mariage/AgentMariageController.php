@@ -23,10 +23,11 @@ class AgentMariageController extends Controller
         // Initialiser la requête pour Mariage et filtrer par commune de l'admin
         $query = Mariage::where('commune', $admin->communeM)
             ->where(function($query) {
-            $query->whereNull('statut_livraison')
-                    ->orWhere('statut_livraison', '!=', 'livré');
+                $query->whereNull('statut_livraison')
+                      ->orWhere('statut_livraison', '!=', 'livré');
             })
             ->where('agent_id', $admin->id)
+            ->where('etat', '!=', 'rejetée') // <-- MODIFICATION AJOUTÉE ICI
             ->with('user'); // Ajout de la récupération de la relation 'user'
 
         // Vérifier le type de recherche et appliquer le filtre
@@ -34,7 +35,7 @@ class AgentMariageController extends Controller
             if ($request->searchType === 'nomConjoint') {
                 $query->where(function($q) use ($request) {
                     $q->where('nomEpoux', 'like', '%' . $request->searchInput . '%')
-                        ->orWhere('nomEpouse', 'like', '%' . $request->searchInput . '%');
+                         ->orWhere('nomEpouse', 'like', '%' . $request->searchInput . '%');
                 });
             } elseif ($request->searchType === 'prenomConjoint') {
                 $query->where(function($q) use ($request) {
@@ -44,7 +45,7 @@ class AgentMariageController extends Controller
             } elseif ($request->searchType === 'lieuNaissance') {
                 $query->where(function($q) use ($request) {
                     $q->where('lieuNaissanceEpoux', 'like', '%' . $request->searchInput . '%')
-                        ->orWhere('lieuNaissanceEpouse', 'like', '%' . $request->searchInput . '%');
+                         ->orWhere('lieuNaissanceEpouse', 'like', '%' . $request->searchInput . '%');
                 });
             }
         }
@@ -64,7 +65,8 @@ class AgentMariageController extends Controller
         $isDiaspora = $mariage->user->diaspora ?? false;
 
         // Les états possibles à afficher dans le formulaire
-        $etats = ['en attente', 'réçu', 'terminé'];
+        // <-- MODIFIÉ -->
+        $etats = ['en attente', 'réçu', 'terminé', 'rejetée'];
 
         return view('agent.extraits.mariages.edit', compact('mariage', 'etats', 'isDiaspora'));
     }
@@ -74,35 +76,51 @@ class AgentMariageController extends Controller
         $mariage = Mariage::findOrFail($id);
         
         // Validation de l'état
+        // <-- MODIFIÉ -->
         $request->validate([
-            'etat' => 'required|string|in:en attente,réçu,terminé',
-            'livraison_id' => 'nullable|exists:postes,id'
+            'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
+            'livraison_id' => 'nullable|exists:postes,id',
+            'motif_de_rejet' => 'required_if:etat,rejetée|string|nullable', // Ajout de la validation
         ]);
 
         // Mise à jour de l'état
         $mariage->etat = $request->etat;
         
-        // Si l'état est "terminé" ET choix_option = "livraison" ET pas encore de code
-        if ($mariage->etat === 'terminé' && $mariage->choix_option === 'livraison' && is_null($mariage->livraison_code)) {
-            // Générer un code de livraison unique
+        // <-- NOUVELLE LOGIQUE AJOUTÉE -->
+        if ($mariage->etat === 'rejetée') {
+            $mariage->motif_de_rejet = $request->motif_de_rejet;
+            
+            // Annuler toute livraison si la demande est rejetée
+            $mariage->statut_livraison = null;
+            $mariage->livraison_code = null;
+            $mariage->qr_code_path = null;
+            $mariage->livraison_id = null;
+            $mariage->dhl_id = null;
+            $mariage->livreur_id = null;
+
+        } elseif ($mariage->etat === 'terminé' && $mariage->choix_option === 'livraison' && is_null($mariage->livraison_code)) {
+            // (Logique existante pour 'terminé'...)
+            
             $livraisonCode = 'LIVM' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
 
-            // Vérifier que le code est unique
             while (Mariage::where('livraison_code', $livraisonCode)->exists()) {
                 $livraisonCode = 'LIVM' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
             }
 
-            // Générer le code QR
             $qrCodePath = $this->generateQrCode($livraisonCode);
 
-            // Mettre à jour le statut de livraison, le code et le chemin du QR code
             $mariage->statut_livraison = 'en attente';
             $mariage->livraison_code = $livraisonCode;
-            $mariage->qr_code_path = $qrCodePath; // Assurez-vous d'avoir ce champ dans votre table
-            
-            // Toujours mettre livraison_id à 1
+            $mariage->qr_code_path = $qrCodePath; 
             $mariage->livraison_id = 1;
-            $mariage->dhl_id = null; // Désactiver DHL
+            $mariage->dhl_id = null; 
+
+            // Vider le motif si on termine
+            $mariage->motif_de_rejet = null;
+
+        } else {
+             // Pour 'en attente' ou 'réçu', vider aussi le motif
+             $mariage->motif_de_rejet = null;
         }
         
         $mariage->save();
@@ -175,8 +193,8 @@ class AgentMariageController extends Controller
         ];
         
         $pdf = PDF::loadView('agent.pdf.delivery-info-mariage', $data)
-                ->setPaper('a6', 'landscape')
-                ->setOption('isRemoteEnabled', true);
+            ->setPaper('a6', 'landscape')
+            ->setOption('isRemoteEnabled', true);
         
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }

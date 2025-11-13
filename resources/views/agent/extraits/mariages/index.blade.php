@@ -408,6 +408,51 @@
     flex-wrap: wrap;
   }
 
+  /* Styles pour la popup de détails */
+  .request-details-popup {
+    border-radius: 12px;
+  }
+
+  .request-details-popup .swal2-html-container {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* Style pour les badges dans la popup */
+  .badge-status-popup {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+
+  .badge-pending-popup {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .badge-progress-popup {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .badge-completed-popup {
+    background-color: rgba(0, 126, 0, 0.1);
+    color: #1977cc;
+  }
+
+  /* Styles pour la modal d'image */
+  .image-modal-popup {
+    border-radius: 12px;
+  }
+
+  .image-modal-popup .swal2-close {
+    color: #666;
+    font-size: 24px;
+  }
+
   @media (max-width: 768px) {
     .dashboard-container {
       padding: 15px;
@@ -579,36 +624,44 @@
                   </div>
                 </td>
                 <td>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        @if ($mariage->pieceIdentite)
-                                            @if (pathinfo($mariage->pieceIdentite, PATHINFO_EXTENSION) === 'pdf')
-                                                <a href="{{ asset('storage/' . $mariage->pieceIdentite) }}" target="_blank" title="Pièce d'identité (PDF)">
-                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
-                                                </a>
-                                            @else
-                                                <img src="{{ asset('storage/' . $mariage->pieceIdentite) }}" 
-                                                    alt="Pièce d'identité" 
-                                                    class="document-preview"
-                                                    onclick="showImage(this)"
-                                                    title="Pièce d'identité">
-                                            @endif
-                                        @endif
+                  <div class="d-flex justify-content-center gap-2">
+                    @if ($mariage->pieceIdentite)
+                      @php
+                        $piecePath = asset('storage/' . $mariage->pieceIdentite);
+                        $isPiecePdf = strtolower(pathinfo($piecePath, PATHINFO_EXTENSION)) === 'pdf';
+                      @endphp
+                      @if ($isPiecePdf)
+                        <a href="{{ $piecePath }}" target="_blank" title="Pièce d'identité (PDF)">
+                          <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                        </a>
+                      @else
+                        <img src="{{ $piecePath }}" 
+                          alt="Pièce d'identité" 
+                          class="document-preview"
+                          onclick="openImageModal('{{ $piecePath }}')"
+                          title="Pièce d'identité">
+                      @endif
+                    @endif
 
-                                        @if ($mariage->extraitMariage)
-                                            @if (pathinfo($mariage->extraitMariage, PATHINFO_EXTENSION) === 'pdf')
-                                                <a href="{{ asset('storage/' . $mariage->extraitMariage) }}" target="_blank" title="Extrait (PDF)">
-                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
-                                                </a>
-                                            @else
-                                                <img src="{{ asset('storage/' . $mariage->extraitMariage) }}" 
-                                                    alt="Extrait de mariage" 
-                                                    class="document-preview"
-                                                    onclick="showImage(this)"
-                                                    title="Extrait de mariage">
-                                            @endif
-                                        @endif
-                                    </div>
-                                </td>
+                    @if ($mariage->extraitMariage)
+                      @php
+                        $extraitPath = asset('storage/' . $mariage->extraitMariage);
+                        $isExtraitPdf = strtolower(pathinfo($extraitPath, PATHINFO_EXTENSION)) === 'pdf';
+                      @endphp
+                      @if ($isExtraitPdf)
+                        <a href="{{ $extraitPath }}" target="_blank" title="Extrait (PDF)">
+                          <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF" class="document-preview">
+                        </a>
+                      @else
+                        <img src="{{ $extraitPath }}" 
+                          alt="Extrait de mariage" 
+                          class="document-preview"
+                          onclick="openImageModal('{{ $extraitPath }}')"
+                          title="Extrait de mariage">
+                      @endif
+                    @endif
+                  </div>
+                </td>
                 <td style="text-align: center" data-label="Date demande">{{ $mariage->created_at->format('d/m/Y H:i') }}</td>
                 <td style="text-align: center" data-label="Statut">
                   @if($mariage->etat == 'en attente')
@@ -620,15 +673,22 @@
                   @endif
                 </td>
                 <td style="text-align: center" data-label="Actions">
-                    @if($mariage->etat === 'terminé')
-                        <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée" style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    @else
-                        <a href="{{ route('agent.demandes.wedding.edit', $mariage->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    @endif
+                  <!-- Bouton pour voir les détails -->
+                  <button class="btn-action btn-icon" style="background-color: #17a2b8;" 
+                          onclick="showRequestDetails({{ json_encode($mariage) }})" 
+                          title="Voir les détails de la demande">
+                      <i class="fas fa-eye"></i>
+                  </button>
+                  
+                  @if($mariage->etat === 'terminé')
+                    <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée" style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  @else
+                    <a href="{{ route('agent.demandes.wedding.edit', $mariage->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  @endif
                 </td>
                 <td style="text-align: center">
                     <div class="d-flex justify-content-center gap-2">
@@ -698,17 +758,189 @@
     adaptForMobile();
     $(window).resize(adaptForMobile);
   });
-
-  // Fonction pour afficher l'image dans la modal
-  function showImage(element) {
-    const modalImage = document.getElementById('modalImage');
-    modalImage.src = element.src;
-  }
 </script>
 
 <script>
     const markAsDeliveredUrl = "{{ route('livraison.mark.mariage', ':id') }}";
     const downloadDeliveryInfoUrl = "{{ route('agent.download.mariage.delivery.info', ':id') }}";
+
+    // Fonction pour afficher tous les détails de la demande
+    function showRequestDetails(mariage) {
+        // Récupérer les informations de l'utilisateur
+        const user = mariage.user || {};
+        
+        // Formater les documents avec prévisualisation
+        const formatDocuments = (mariage) => {
+            let documentsHTML = '';
+            
+            // Pièce d'identité
+            if (mariage.pieceIdentite) {
+                const piecePath = '{{ asset("storage/") }}/' + mariage.pieceIdentite;
+                const isPdf = piecePath.toLowerCase().endsWith('.pdf');
+                documentsHTML += `
+                    <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+                        <strong>Pièce d'identité:</strong><br>
+                        ${isPdf ? 
+                            `<a href="${piecePath}" target="_blank" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;">
+                                <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> Voir le PDF
+                            </a>` : 
+                            `<div style="margin-top: 5px;">
+                                <img src="${piecePath}" style="max-width: 150px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 5px;" 
+                                    onclick="openImageModal('${piecePath}')" alt="Pièce d'identité">
+                                <br>
+                                <a href="javascript:void(0)" onclick="openImageModal('${piecePath}')" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-eye"></i> Voir en grand
+                                </a>
+                                <span style="margin: 0 5px;">|</span>
+                                <a href="${piecePath}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-download"></i> Télécharger
+                                </a>
+                            </div>`
+                        }
+                    </div>
+                `;
+            }
+            
+            // Extrait de mariage
+            if (mariage.extraitMariage) {
+                const extraitPath = '{{ asset("storage/") }}/' + mariage.extraitMariage;
+                const isPdf = extraitPath.toLowerCase().endsWith('.pdf');
+                documentsHTML += `
+                    <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+                        <strong>Extrait de mariage:</strong><br>
+                        ${isPdf ? 
+                            `<a href="${extraitPath}" target="_blank" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;">
+                                <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> Voir le PDF
+                            </a>` : 
+                            `<div style="margin-top: 5px;">
+                                <img src="${extraitPath}" style="max-width: 150px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 5px;" 
+                                    onclick="openImageModal('${extraitPath}')" alt="Extrait de mariage">
+                                <br>
+                                <a href="javascript:void(0)" onclick="openImageModal('${extraitPath}')" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-eye"></i> Voir en grand
+                                </a>
+                                <span style="margin: 0 5px;">|</span>
+                                <a href="${extraitPath}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-download"></i> Télécharger
+                                </a>
+                            </div>`
+                        }
+                    </div>
+                `;
+            }
+            
+            return documentsHTML || '<div style="text-align: center; color: #666; font-style: italic;">Aucun document joint</div>';
+        };
+        
+        // Informations de livraison si applicable
+        const livraisonInfo = mariage.choix_option === 'livraison' ? `
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <h4 style="color: #1977cc; margin-bottom: 10px;">Informations de Livraison</h4>
+                <div><strong>Destinataire:</strong> ${mariage.nom_destinataire || ''} ${mariage.prenom_destinataire || ''}</div>
+                <div><strong>Contact:</strong> ${mariage.contact_destinataire || ''}</div>
+                <div><strong>Email:</strong> ${mariage.email_destinataire || ''}</div>
+                <div><strong>Adresse:</strong> ${mariage.adresse_livraison || ''}</div>
+                <div><strong>Ville:</strong> ${mariage.ville || ''}</div>
+                <div><strong>Commune:</strong> ${mariage.commune_livraison || ''}</div>
+                <div><strong>Quartier:</strong> ${mariage.quartier || ''}</div>
+                <div><strong>Code Postal:</strong> ${mariage.code_postal || ''}</div>
+            </div>
+        ` : '<div style="margin: 10px 0;"><strong>Mode de retrait:</strong> Retrait sur place</div>';
+        
+        // Vérifier si c'est une copie simple
+        const isCopieSimple = mariage.nomEpoux === null;
+        
+        // Créer le contenu HTML pour SweetAlert
+        const htmlContent = `
+            <div style="text-align: left; max-height: 70vh; overflow-y: auto;">
+                <h3 style="color: #1977cc; text-align: center; margin-bottom: 20px;">Détails de la Demande d'Extrait de Mariage</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4 style="color: #1977cc; margin-bottom: 10px;">${isCopieSimple ? 'Informations Générales' : 'Informations du Conjoint'}</h4>
+                        ${isCopieSimple ? 
+                            `<div><strong>Type:</strong> Copie Simple</div>` : 
+                            `
+                            <div><strong>Nom:</strong> ${mariage.nomEpoux}</div>
+                            <div><strong>Prénom:</strong> ${mariage.prenomEpoux}</div>
+                            <div><strong>Date de naissance:</strong> ${mariage.dateNaissanceEpoux}</div>
+                            <div><strong>Lieu de naissance:</strong> ${mariage.lieuNaissanceEpoux}</div>
+                            <div><strong>Commune:</strong> ${mariage.commune}</div>
+                            `
+                        }
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4 style="color: #1977cc; margin-bottom: 10px;">Informations du Demandeur</h4>
+                        <div><strong>Nom:</strong> ${user.name} ${user.prenom}</div>
+                        <div><strong>Email:</strong> ${user.email}</div>
+                        <div><strong>Contact:</strong> ${user.contact}</div>
+                        <div><strong>Date demande:</strong> ${new Date(mariage.created_at).toLocaleString('fr-FR')}</div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #1977cc; margin-bottom: 10px;">Détails de la Commande</h4>
+                    <div><strong>Quantité:</strong> ${mariage.quantite} copie(s)</div>
+                    <div><strong>Référence:</strong> ${mariage.reference || 'Non spécifiée'}</div>
+                    <div><strong>Statut:</strong> 
+                        <span class="badge-status-popup ${mariage.etat === 'en attente' ? 'badge-pending-popup' : mariage.etat === 'réçu' ? 'badge-progress-popup' : 'badge-completed-popup'}">
+                            ${mariage.etat}
+                        </span>
+                    </div>
+                    ${mariage.motif_de_rejet ? `<div><strong>Motif de rejet:</strong> ${mariage.motif_de_rejet}</div>` : ''}
+                </div>
+                
+                ${livraisonInfo}
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #1977cc; margin-bottom: 10px;">Documents joints</h4>
+                    ${formatDocuments(mariage)}
+                </div>
+            </div>
+        `;
+        
+        // Afficher la popup avec SweetAlert
+        Swal.fire({
+            title: 'Détails de la Demande',
+            html: htmlContent,
+            width: '900px',
+            confirmButtonText: 'Fermer',
+            confirmButtonColor: '#1977cc',
+            showCloseButton: true,
+            customClass: {
+                popup: 'request-details-popup'
+            }
+        });
+    }
+
+    // Fonction pour ouvrir une image en grand dans une modal
+    function openImageModal(imageSrc) {
+        const htmlContent = `
+            <div style="text-align: center;">
+                <img src="${imageSrc}" style="max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Document">
+                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+                    <a href="${imageSrc}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; border: 1px solid #1977cc; border-radius: 5px;">
+                        <i class="fas fa-download"></i> Télécharger l'image
+                    </a>
+                    <button onclick="Swal.close()" style="color: #6c757d; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; border: 1px solid #6c757d; border-radius: 5px; background: white; cursor: pointer;">
+                        <i class="fas fa-times"></i> Fermer
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        Swal.fire({
+            title: 'Visualisation du document',
+            html: htmlContent,
+            width: '800px',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'image-modal-popup'
+            }
+        });
+    }
 
     function markAsDelivered(id) {
         Swal.fire({

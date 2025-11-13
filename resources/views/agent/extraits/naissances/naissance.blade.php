@@ -386,6 +386,51 @@
     color: white;
   }
 
+  /* Styles pour la popup de détails */
+  .request-details-popup {
+    border-radius: 12px;
+  }
+
+  .request-details-popup .swal2-html-container {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* Style pour les badges dans la popup */
+  .badge-status-popup {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+
+  .badge-pending-popup {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .badge-progress-popup {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .badge-completed-popup {
+    background-color: rgba(0, 126, 0, 0.1);
+    color: #1977cc;
+  }
+
+  /* Styles pour la modal d'image */
+  .image-modal-popup {
+    border-radius: 12px;
+  }
+
+  .image-modal-popup .swal2-close {
+    color: #666;
+    font-size: 24px;
+  }
+
   @media (max-width: 768px) {
     .dashboard-container {
       padding: 15px;
@@ -583,10 +628,8 @@
                       <img src="{{ $CNIPath }}"
                         alt="CNI" 
                         class="document-preview"
-                        data-bs-toggle="modal" 
-                        style="width: 40px; height:40px"
-                        data-bs-target="#imageModal" 
-                        onclick="showImage(this)" 
+                        style="width: 40px; height:40px; cursor: pointer;"
+                        onclick="openImageModal('{{ $CNIPath }}')" 
                         onerror="this.onerror=null; this.src='{{ asset('assets/images/profiles/bébé.jpg') }}'">
                     @endif
                   @else
@@ -603,15 +646,22 @@
                   @endif
                 </td>
                 <td style="text-align: center" data-label="Actions">
-                    @if($naissance->etat === 'terminé')
-                        <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée" style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    @else
-                        <a href="{{ route('agent.demandes.naissance.edit', $naissance->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    @endif
+                  <!-- Bouton pour voir les détails -->
+                  <button class="btn-action btn-icon" style="background-color: #17a2b8;" 
+                          onclick="showRequestDetails({{ json_encode($naissance) }})" 
+                          title="Voir les détails de la demande">
+                      <i class="fas fa-eye"></i>
+                  </button>
+                  
+                  @if($naissance->etat === 'terminé')
+                    <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée" style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  @else
+                    <a href="{{ route('agent.demandes.naissance.edit', $naissance->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  @endif
                 </td>
                 <td style="text-align: center">
                     <div class="d-flex justify-content-center gap-2">
@@ -686,6 +736,153 @@
 <script>
     const markAsDeliveredUrl = "{{ route('livraison.mark', ':id') }}";
     const downloadDeliveryInfoUrl = "{{ route('agent.download.delivery.info', ':id') }}";
+
+    // Fonction pour afficher tous les détails de la demande
+    function showRequestDetails(naissance) {
+        // Récupérer les informations de l'utilisateur
+        const user = naissance.user || {};
+        
+        // Déterminer le type de document
+        const documentType = naissance.type === 'simple' ? 'Copie Simple' : 'Copie Intégrale';
+        
+        // Formater les documents avec prévisualisation
+        const formatDocuments = (naissance) => {
+            let documentsHTML = '';
+            
+            // CNI
+            if (naissance.CNI) {
+                const cniPath = '{{ asset("storage/") }}/' + naissance.CNI;
+                const isPdf = cniPath.toLowerCase().endsWith('.pdf');
+                documentsHTML += `
+                    <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+                        <strong>Pièce d'identité:</strong><br>
+                        ${isPdf ? 
+                            `<a href="${cniPath}" target="_blank" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;">
+                                <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> Voir le PDF
+                            </a>` : 
+                            `<div style="margin-top: 5px;">
+                                <img src="${cniPath}" style="max-width: 150px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 5px;" 
+                                    onclick="openImageModal('${cniPath}')" alt="Pièce d'identité">
+                                <br>
+                                <a href="javascript:void(0)" onclick="openImageModal('${cniPath}')" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-eye"></i> Voir en grand
+                                </a>
+                                <span style="margin: 0 5px;">|</span>
+                                <a href="${cniPath}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-download"></i> Télécharger
+                                </a>
+                            </div>`
+                        }
+                    </div>
+                `;
+            }
+            
+            return documentsHTML || '<div style="text-align: center; color: #666; font-style: italic;">Aucun document joint</div>';
+        };
+        
+        // Informations de livraison si applicable
+        const livraisonInfo = naissance.choix_option === 'livraison' ? `
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <h4 style="color: #1977cc; margin-bottom: 10px;">Informations de Livraison</h4>
+                <div><strong>Destinataire:</strong> ${naissance.nom_destinataire || ''} ${naissance.prenom_destinataire || ''}</div>
+                <div><strong>Contact:</strong> ${naissance.contact_destinataire || ''}</div>
+                <div><strong>Email:</strong> ${naissance.email_destinataire || ''}</div>
+                <div><strong>Adresse:</strong> ${naissance.adresse_livraison || ''}</div>
+                <div><strong>Ville:</strong> ${naissance.ville || ''}</div>
+                <div><strong>Commune:</strong> ${naissance.commune_livraison || ''}</div>
+                <div><strong>Quartier:</strong> ${naissance.quartier || ''}</div>
+                <div><strong>Code Postal:</strong> ${naissance.code_postal || ''}</div>
+            </div>
+        ` : '<div style="margin: 10px 0;"><strong>Mode de retrait:</strong> Retrait sur place</div>';
+        
+        // Créer le contenu HTML pour SweetAlert
+        const htmlContent = `
+            <div style="text-align: left; max-height: 70vh; overflow-y: auto;">
+                <h3 style="color: #1977cc; text-align: center; margin-bottom: 20px;">Détails de la Demande d'Extrait de Naissance</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4 style="color: #1977cc; margin-bottom: 10px;">Informations de l'Enfant</h4>
+                        <div><strong>Nom:</strong> ${naissance.name}</div>
+                        <div><strong>Prénom:</strong> ${naissance.prenom}</div>
+                        <div><strong>N° Registre:</strong> ${naissance.number}</div>
+                        <div><strong>Date Registre:</strong> ${naissance.DateR}</div>
+                        <div><strong>Commune:</strong> ${naissance.commune}</div>
+                        <div><strong>Pour:</strong> ${naissance.pour || 'Non spécifié'}</div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4 style="color: #1977cc; margin-bottom: 10px;">Informations du Demandeur</h4>
+                        <div><strong>Nom:</strong> ${user.name} ${user.prenom}</div>
+                        <div><strong>Email:</strong> ${user.email}</div>
+                        <div><strong>Contact:</strong> ${user.contact}</div>
+                        <div><strong>Date demande:</strong> ${new Date(naissance.created_at).toLocaleString('fr-FR')}</div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #1977cc; margin-bottom: 10px;">Détails de la Commande</h4>
+                    <div><strong>Type:</strong> ${documentType}</div>
+                    <div><strong>Quantité:</strong> ${naissance.quantite} copie(s)</div>
+                    <div><strong>Référence:</strong> ${naissance.reference || 'Non spécifiée'}</div>
+                    <div><strong>Statut:</strong> 
+                        <span class="badge-status-popup ${naissance.etat === 'en attente' ? 'badge-pending-popup' : naissance.etat === 'réçu' ? 'badge-progress-popup' : 'badge-completed-popup'}">
+                            ${naissance.etat}
+                        </span>
+                    </div>
+                    ${naissance.motif_de_rejet ? `<div><strong>Motif de rejet:</strong> ${naissance.motif_de_rejet}</div>` : ''}
+                </div>
+                
+                ${livraisonInfo}
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #1977cc; margin-bottom: 10px;">Documents joints</h4>
+                    ${formatDocuments(naissance)}
+                </div>
+            </div>
+        `;
+        
+        // Afficher la popup avec SweetAlert
+        Swal.fire({
+            title: 'Détails de la Demande',
+            html: htmlContent,
+            width: '900px',
+            confirmButtonText: 'Fermer',
+            confirmButtonColor: '#1977cc',
+            showCloseButton: true,
+            customClass: {
+                popup: 'request-details-popup'
+            }
+        });
+    }
+
+    // Fonction pour ouvrir une image en grand dans une modal
+    function openImageModal(imageSrc) {
+        const htmlContent = `
+            <div style="text-align: center;">
+                <img src="${imageSrc}" style="max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Document">
+                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+                    <a href="${imageSrc}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; border: 1px solid #1977cc; border-radius: 5px;">
+                        <i class="fas fa-download"></i> Télécharger l'image
+                    </a>
+                    <button onclick="Swal.close()" style="color: #6c757d; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; border: 1px solid #6c757d; border-radius: 5px; background: white; cursor: pointer;">
+                        <i class="fas fa-times"></i> Fermer
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        Swal.fire({
+            title: 'Visualisation du document',
+            html: htmlContent,
+            width: '800px',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'image-modal-popup'
+            }
+        });
+    }
 
     function markAsDelivered(id) {
         Swal.fire({

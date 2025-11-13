@@ -22,9 +22,10 @@ class AgentNaissanceController extends Controller
         $naissances = Naissance::where('commune', $admin->communeM)
             ->where('agent_id', $admin->id)
             ->where(function($query) {
-            $query->whereNull('statut_livraison')
-                    ->orWhere('statut_livraison', '!=', 'livré');
+                $query->whereNull('statut_livraison')
+                      ->orWhere('statut_livraison', '!=', 'livré');
             })
+            ->where('etat', '!=', 'rejetée') // <-- MODIFICATION AJOUTÉE ICI
             ->with('user')
             ->paginate(10);
 
@@ -32,7 +33,7 @@ class AgentNaissanceController extends Controller
     }
 
 
-  public function edit($id)
+    public function edit($id)
     {
         $naissance = Naissance::findOrFail($id);
         
@@ -40,7 +41,8 @@ class AgentNaissanceController extends Controller
         $isDiaspora = $naissance->user->diaspora ?? false;
 
         // Les états possibles à afficher dans le formulaire
-        $etats = ['en attente', 'réçu', 'terminé'];
+        // <-- MODIFIÉ -->
+        $etats = ['en attente', 'réçu', 'terminé', 'rejetée'];
 
         return view('agent.extraits.naissances.edit_etat', compact('naissance', 'etats', 'isDiaspora'));
     }
@@ -50,35 +52,51 @@ class AgentNaissanceController extends Controller
         $naissance = Naissance::findOrFail($id);
         
         // Validation de l'état
+        // <-- MODIFIÉ -->
         $request->validate([
-            'etat' => 'required|string|in:en attente,réçu,terminé',
-            'livraison_id' => 'nullable|exists:postes,id'
+            'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
+            'livraison_id' => 'nullable|exists:postes,id',
+            'motif_de_rejet' => 'required_if:etat,rejetée|string|nullable', // Ajout de la validation
         ]);
 
         // Mise à jour de l'état
         $naissance->etat = $request->etat;
         
-        // Si l'état est "terminé" ET choix_option = "livraison" ET pas encore de code
-        if ($naissance->etat === 'terminé' && $naissance->choix_option === 'livraison' && is_null($naissance->livraison_code)) {
-            // Générer un code de livraison unique
+        // <-- NOUVELLE LOGIQUE AJOUTÉE -->
+        if ($naissance->etat === 'rejetée') {
+            $naissance->motif_de_rejet = $request->motif_de_rejet;
+            
+            // Annuler toute livraison si la demande est rejetée
+            $naissance->statut_livraison = null;
+            $naissance->livraison_code = null;
+            $naissance->qr_code_path = null;
+            $naissance->livraison_id = null;
+            $naissance->dhl_id = null;
+            $naissance->livreur_id = null;
+
+        } elseif ($naissance->etat === 'terminé' && $naissance->choix_option === 'livraison' && is_null($naissance->livraison_code)) {
+            // (Logique existante pour 'terminé'...)
+            
             $livraisonCode = 'LIVN' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
 
-            // Vérifier que le code est unique
             while (Naissance::where('livraison_code', $livraisonCode)->exists()) {
                 $livraisonCode = 'LIVN' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
             }
 
-            // Générer le code QR
             $qrCodePath = $this->generateQrCode($livraisonCode);
 
-            // Mettre à jour le statut de livraison, le code et le chemin du QR code
             $naissance->statut_livraison = 'en attente';
             $naissance->livraison_code = $livraisonCode;
-            $naissance->qr_code_path = $qrCodePath; // Assurez-vous d'avoir ce champ dans votre table
-            
-            // Toujours mettre livraison_id à 1
+            $naissance->qr_code_path = $qrCodePath;
             $naissance->livraison_id = 1;
-            $naissance->dhl_id = null; // Désactiver DHL
+            $naissance->dhl_id = null; 
+
+            // Vider le motif si on termine
+            $naissance->motif_de_rejet = null;
+
+        } else {
+             // Pour 'en attente' ou 'réçu', vider aussi le motif
+             $naissance->motif_de_rejet = null;
         }
         
         $naissance->save();
@@ -151,8 +169,8 @@ class AgentNaissanceController extends Controller
         ];
         
         $pdf = PDF::loadView('agent.pdf.delivery-info', $data)
-                ->setPaper('a6', 'landscape')
-                ->setOption('isRemoteEnabled', true);
+            ->setPaper('a6', 'landscape')
+            ->setOption('isRemoteEnabled', true);
         
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }

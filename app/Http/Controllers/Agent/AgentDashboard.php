@@ -22,28 +22,29 @@ class AgentDashboard extends Controller
         $selectedYearHops = $request->input('year_hops', date('Y'));
 
         // Récupérer les données associées à la commune de cet admin pour le mois sélectionné
-        // Données pour naissances, décès, et mariages
+        
+        // --- MODIFIÉ ICI ---
+        // On ne récupère que les demandes "en attente"
         $naissances = Naissance::where('commune', $admin->communeM)
-            ->where('is_read', false) // Filtrer pour les demandes non traitées
+            ->where('etat', 'en attente') // <-- MODIFIÉ ICI
             ->whereMonth('created_at', $selectedMonth)
-            ->where('etat', '!=','paiement_echoue')
             ->whereYear('created_at', $selectedYear)
             ->orderBy('created_at', 'asc')
             ->get();
 
+        // --- MODIFIÉ ICI ---
         $deces = Deces::where('commune', $admin->communeM)
-            ->where('is_read', false) // Filtrer pour les demandes non traitées
+            ->where('etat', 'en attente') // <-- MODIFIÉ ICI
             ->whereMonth('created_at', $selectedMonth)
             ->whereYear('created_at', $selectedYear)
-            ->where('etat', '!=','paiement_echoue')
             ->orderBy('created_at', 'asc')
             ->get();
 
+        // --- MODIFIÉ ICI ---
         $mariages = Mariage::where('commune', $admin->communeM)
-            ->where('is_read', false) // Filtrer pour les demandes non traitées
+            ->where('etat', 'en attente') // <-- MODIFIÉ ICI
             ->whereMonth('created_at', $selectedMonth)
             ->whereYear('created_at', $selectedYear)
-            ->where('etat', '!=','paiement_echoue')
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -56,7 +57,7 @@ class AgentDashboard extends Controller
         $mariagePercentage = $totalData > 0 ? ($mariages->count() / $totalData) * 100 : 0;
 
         $Dece = $decesPercentage ;
-        $NaissP = $naissancePercentage ;    
+        $NaissP = $naissancePercentage ;
 
         // Données pour le tableau de bord
         $naissancedash = $naissances->count();
@@ -77,7 +78,6 @@ class AgentDashboard extends Controller
             'recentMariages', 'Naiss','Dece','selectedMonth', 'selectedYear', 
             'selectedMonthHops', 'selectedYearHops',
         ));
-
     }
 
     public function logout(){

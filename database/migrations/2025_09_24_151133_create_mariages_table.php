@@ -24,6 +24,10 @@ return new class extends Migration
             $table->string('commune')->nullable();
             $table->string('quantite');
             $table->string('etat')->default('en attente'); // État par défaut
+
+            // <-- LIGNE AJOUTÉE -->
+            $table->text('motif_de_rejet')->nullable();
+
             $table->boolean('is_read')->default(false); // Statut de lecture
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Ajout de user_id
             $table->foreignId('agent_id')->nullable()->constrained('agents')->onDelete('set null'); // Ajout de agent_id
@@ -32,7 +36,7 @@ return new class extends Migration
             $table->foreignId('livreur_id')->nullable()->constrained('livreurs')->onDelete('set null'); // Ajout de livreur
             // $table->foreignId('agence_id')->nullable()->constrained('d_h_l_agences')->onDelete('set null'); // Ajout de livreur
 
-                  //informations de livraison 
+                //informations de livraison 
             $table->string('montant_timbre')->nullable();
             $table->string('montant_livraison')->nullable();
             $table->string('nom_destinataire')->nullable();

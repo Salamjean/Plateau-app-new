@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('quantite');
             $table->string('commune')->nullable(); // Commune, nullable
             $table->string('etat')->default('en attente'); // État par défaut
+            // <-- LIGNE AJOUTÉE -->
+            $table->text('motif_de_rejet')->nullable();
             $table->string('statut_livraison')->nullable(); // État par défaut
             $table->boolean('is_read')->default(false); // Statut de lecture
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Ajout de user_id

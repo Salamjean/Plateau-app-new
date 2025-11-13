@@ -17,6 +17,7 @@ class Deces extends Model
         'reference',
         'commune',
         'etat',
+        'motif_de_rejet',
         'user_id',
         'agent_id',
         'livraison_id',

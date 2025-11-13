@@ -384,6 +384,40 @@
     color: white;
   }
 
+  /* Styles pour la popup de détails */
+  .request-details-popup {
+    border-radius: 12px;
+  }
+
+  .request-details-popup .swal2-html-container {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* Style pour les badges dans la popup */
+  .badge-status-popup {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+
+  .badge-pending-popup {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .badge-progress-popup {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .badge-completed-popup {
+    background-color: rgba(0, 126, 0, 0.1);
+    color: #1977cc;
+  }
 
   @media (max-width: 768px) {
     .dashboard-container {
@@ -560,13 +594,6 @@
                 <td  style="text-align: center">{{ $dece->numberR }}</td>
                 <td  style="text-align: center">{{ $dece->dateR }}</td>
                 <td style="text-align: center" data-label="Date demande">{{ $dece->created_at->format('d/m/Y H:i') }}</td>
-                {{-- <td style="text-align: center" data-label="Type">
-                  @if($dece->type == 'simple')
-                    <span class="badge-status badge-pending">Copie Simple</span>
-                  @else
-                    <span class="badge-status badge-completed">Copie Integrale</span>
-                  @endif
-                </td> --}}
                 <td style="text-align: center">
                   @if($dece->CNIdfnt)
                     @php
@@ -665,33 +692,40 @@
                   @endif
                 </td>
                 <td style="text-align: center" data-label="Actions">
-                    @if($dece->etat === 'terminé')
-                        <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée" style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    @else
-                        <a href="{{ route('agent.demandes.deces.edit', $dece->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    @endif
+                  <!-- Bouton pour voir les détails -->
+                  <button class="btn-action btn-icon" style="background-color: #17a2b8;" 
+                          onclick="showRequestDetails({{ json_encode($dece) }})" 
+                          title="Voir les détails de la demande">
+                      <i class="fas fa-eye"></i>
+                  </button>
+                  
+                  @if($dece->etat === 'terminé')
+                    <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée" style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  @else
+                    <a href="{{ route('agent.demandes.deces.edit', $dece->id) }}" class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  @endif
                 </td>
                 <td style="text-align: center">
-                    <div class="d-flex justify-content-center gap-2">
-                        @if($dece->choix_option == 'livraison')
-                            <a href="#" class="delivery-badge badge" data-bs-toggle="modal" data-bs-target="#livraisonModal" onclick="showLivraisonModal({{ json_encode($dece) }})">
-                                <i class="fas fa-truck"></i> Livraison
-                            </a>
-                        @else
-                            @if($dece->etat !== 'terminé')
-                              <span class="badge"><i class="fas fa-home"></i> Retrait sur place</span>
-                            @endif
-                            @if($dece->etat == 'terminé')
-                                <button class="btn-action" onclick="markAsDelivered({{ $dece->id }})" title="Livré l'extrait">
-                                    <i class="fas fa-file"></i>Retrait
-                                </button>
-                            @endif
-                        @endif
-                    </div>
+                  <div class="d-flex justify-content-center gap-2">
+                    @if($dece->choix_option == 'livraison')
+                      <a href="#" class="delivery-badge badge" data-bs-toggle="modal" data-bs-target="#livraisonModal" onclick="showLivraisonModal({{ json_encode($dece) }})">
+                        <i class="fas fa-truck"></i> Livraison
+                      </a>
+                    @else
+                      @if($dece->etat !== 'terminé')
+                        <span class="badge"><i class="fas fa-home"></i> Retrait sur place</span>
+                      @endif
+                      @if($dece->etat == 'terminé')
+                        <button class="btn-action" onclick="markAsDelivered({{ $dece->id }})" title="Livré l'extrait">
+                          <i class="fas fa-file"></i>Retrait
+                        </button>
+                      @endif
+                    @endif
+                  </div>
                 </td>
               </tr>
             @empty
@@ -744,114 +778,395 @@
     $(window).resize(adaptForMobile);
   });
 </script>
+
 <script>
-    const markAsDeliveredUrl = "{{ route('livraison.mark.deces', ':id') }}";
-    const downloadDeliveryInfoUrl = "{{ route('agent.download.deces.delivery.info', ':id') }}";
+  const markAsDeliveredUrl = "{{ route('livraison.mark.deces', ':id') }}";
+  const downloadDeliveryInfoUrl = "{{ route('agent.download.deces.delivery.info', ':id') }}";
 
-    function markAsDelivered(id) {
-        Swal.fire({
-            title: 'Entrer la référence',
-            input: 'text',
-            inputLabel: 'Veuillez entrer la référence du colis',
-            inputPlaceholder: 'Référence',
-            showCancelButton: true,
-            confirmButtonText: 'Valider',
-            cancelButtonText: 'Annuler',
-            preConfirm: (reference) => {
-                if (!reference) {
-                    Swal.showValidationMessage('Vous devez entrer une référence');
-                }
-                return reference;
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                const url = markAsDeliveredUrl.replace(':id', id);
-                
-                $.ajax({
-                    url: url,
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        statut_livraison: 'livré',
-                        reference: result.value // Ajoutez la référence ici
-                    },
-                    success: function(response) {
-                        Swal.fire('Succès!', 'La demande a été marquée comme livrée.', 'success');
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        const errorMessage = xhr.responseJSON.error || 'Une erreur est survenue lors de la mise à jour.';
-                        Swal.fire('Erreur!', errorMessage, 'error');
-                    }
-                });
-            }
-        });
-    }
+  // Fonction pour afficher tous les détails de la demande
+  function showRequestDetails(dece) {
+    // Récupérer les informations de l'utilisateur
+    const user = dece.user || {};
+    
+    // Déterminer le type de document
+    const documentType = dece.type === 'simple' ? 'Copie Simple' : 'Copie Intégrale';
+    
+    // Formater les documents avec prévisualisation
+    const formatDocuments = (dece) => {
+  let documentsHTML = '';
+  
+  // CNI Défunt
+  if (dece.CNIdfnt) {
+    const cniPath = '{{ asset("storage/") }}/' + dece.CNIdfnt;
+    const isPdf = cniPath.toLowerCase().endsWith('.pdf');
+    documentsHTML += `
+      <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+        <strong>CNI Défunt:</strong><br>
+        ${isPdf ? 
+          `<a href="${cniPath}" target="_blank" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;">
+            <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> Voir le PDF
+          </a>` : 
+          `<div style="margin-top: 5px;">
+            <img src="${cniPath}" style="max-width: 150px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 5px;" 
+                  onclick="openImageModal('${cniPath}')" alt="CNI Défunt">
+            <br>
+            <a href="javascript:void(0)" onclick="openImageModal('${cniPath}')" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-eye"></i> Voir en grand
+            </a>
+            <span style="margin: 0 5px;">|</span>
+            <a href="${cniPath}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-download"></i> Télécharger
+            </a>
+          </div>`
+        }
+      </div>
+    `;
+  }
+  
+  // CNI Déclarant
+  if (dece.CNIdcl) {
+    const cniDclPath = '{{ asset("storage/") }}/' + dece.CNIdcl;
+    const isPdf = cniDclPath.toLowerCase().endsWith('.pdf');
+    documentsHTML += `
+      <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+        <strong>CNI Déclarant:</strong><br>
+        ${isPdf ? 
+          `<a href="${cniDclPath}" target="_blank" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;">
+            <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> Voir le PDF
+          </a>` : 
+          `<div style="margin-top: 5px;">
+            <img src="${cniDclPath}" style="max-width: 150px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 5px;" 
+                  onclick="openImageModal('${cniDclPath}')" alt="CNI Déclarant">
+            <br>
+            <a href="javascript:void(0)" onclick="openImageModal('${cniDclPath}')" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-eye"></i> Voir en grand
+            </a>
+            <span style="margin: 0 5px;">|</span>
+            <a href="${cniDclPath}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-download"></i> Télécharger
+            </a>
+          </div>`
+        }
+      </div>
+    `;
+  }
+  
+  // Document Mariage
+  if (dece.documentMariage) {
+    const docMariagePath = '{{ asset("storage/") }}/' + dece.documentMariage;
+    const isPdf = docMariagePath.toLowerCase().endsWith('.pdf');
+    documentsHTML += `
+      <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+        <strong>Document Mariage:</strong><br>
+        ${isPdf ? 
+          `<a href="${docMariagePath}" target="_blank" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;">
+            <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> Voir le PDF
+          </a>` : 
+          `<div style="margin-top: 5px;">
+            <img src="${docMariagePath}" style="max-width: 150px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 5px;" 
+                  onclick="openImageModal('${docMariagePath}')" alt="Document Mariage">
+            <br>
+            <a href="javascript:void(0)" onclick="openImageModal('${docMariagePath}')" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-eye"></i> Voir en grand
+            </a>
+            <span style="margin: 0 5px;">|</span>
+            <a href="${docMariagePath}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-download"></i> Télécharger
+            </a>
+          </div>`
+        }
+      </div>
+    `;
+  }
+  
+  // Requis Police
+  if (dece.RequisPolice) {
+    const requisPolicePath = '{{ asset("storage/") }}/' + dece.RequisPolice;
+    const isPdf = requisPolicePath.toLowerCase().endsWith('.pdf');
+    documentsHTML += `
+      <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+        <strong>Réquis Police:</strong><br>
+        ${isPdf ? 
+          `<a href="${requisPolicePath}" target="_blank" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;">
+            <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> Voir le PDF
+          </a>` : 
+          `<div style="margin-top: 5px;">
+            <img src="${requisPolicePath}" style="max-width: 150px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 5px;" 
+                  onclick="openImageModal('${requisPolicePath}')" alt="Réquis Police">
+            <br>
+            <a href="javascript:void(0)" onclick="openImageModal('${requisPolicePath}')" style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-eye"></i> Voir en grand
+            </a>
+            <span style="margin: 0 5px;">|</span>
+            <a href="${requisPolicePath}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fas fa-download"></i> Télécharger
+            </a>
+          </div>`
+        }
+      </div>
+    `;
+  }
+  
+  return documentsHTML || '<div style="text-align: center; color: #666; font-style: italic;">Aucun document joint</div>';
+};
+    
+    // Informations de livraison si applicable
+    const livraisonInfo = dece.choix_option === 'livraison' ? `
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+        <h4 style="color: #1977cc; margin-bottom: 10px;">Informations de Livraison</h4>
+        <div><strong>Destinataire:</strong> ${dece.nom_destinataire || ''} ${dece.prenom_destinataire || ''}</div>
+        <div><strong>Contact:</strong> ${dece.contact_destinataire || ''}</div>
+        <div><strong>Email:</strong> ${dece.email_destinataire || ''}</div>
+        <div><strong>Adresse:</strong> ${dece.adresse_livraison || ''}</div>
+        <div><strong>Ville:</strong> ${dece.ville || ''}</div>
+        <div><strong>Commune:</strong> ${dece.commune_livraison || ''}</div>
+        <div><strong>Quartier:</strong> ${dece.quartier || ''}</div>
+        <div><strong>Code Postal:</strong> ${dece.code_postal || ''}</div>
+      </div>
+    ` : '<div style="margin: 10px 0;"><strong>Mode de retrait:</strong> Retrait sur place</div>';
+    
+    // Créer le contenu HTML pour SweetAlert
+    const htmlContent = `
+      <div style="text-align: left; max-height: 70vh; overflow-y: auto;">
+        <h3 style="color: #1977cc; text-align: center; margin-bottom: 20px;">Détails de la Demande</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <h4 style="color: #1977cc; margin-bottom: 10px;">Informations du Défunt</h4>
+            <div><strong>Nom complet:</strong> ${dece.name} ${dece.prenom}</div>
+            <div><strong>N° Registre:</strong> ${dece.numberR}</div>
+            <div><strong>Date Registre:</strong> ${dece.dateR}</div>
+            <div><strong>Commune:</strong> ${dece.commune}</div>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <h4 style="color: #1977cc; margin-bottom: 10px;">Informations du Demandeur</h4>
+            <div><strong>Nom:</strong> ${user.name} ${user.prenom}</div>
+            <div><strong>Email:</strong> ${user.email}</div>
+            <div><strong>Contact:</strong> ${user.contact}</div>
+            <div><strong>Date demande:</strong> ${new Date(dece.created_at).toLocaleString('fr-FR')}</div>
+          </div>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <h4 style="color: #1977cc; margin-bottom: 10px;">Détails de la Commande</h4>
+          <div><strong>Quantité:</strong> ${dece.quantite} copie(s)</div>
+          <div><strong>Type:</strong> ${documentType}</div>
+          <div><strong>Statut:</strong> 
+            <span class="badge-status-popup ${dece.etat === 'en attente' ? 'badge-pending-popup' : dece.etat === 'réçu' ? 'badge-progress-popup' : 'badge-completed-popup'}">
+              ${dece.etat}
+            </span>
+          </div>
+          ${dece.motif_de_rejet ? `<div><strong>Motif de rejet:</strong> ${dece.motif_de_rejet}</div>` : ''}
+        </div>
+        
+        ${livraisonInfo}
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+          <h4 style="color: #1977cc; margin-bottom: 10px;">Documents joints</h4>
+          ${formatDocuments(dece)}
+        </div>
+      </div>
+    `;
+    
+    // Afficher la popup avec SweetAlert
+    Swal.fire({
+      title: 'Détails de la Demande',
+      html: htmlContent,
+      width: '900px',
+      confirmButtonText: 'Fermer',
+      confirmButtonColor: '#1977cc',
+      showCloseButton: true,
+      customClass: {
+        popup: 'request-details-popup'
+      }
+    });
+  }
 
-     // Fonction pour afficher les informations de livraison
-    function showDeliveryInfo(dece) {
-        // Récupérer les informations de livraison
-        const deliveryInfo = dece || {};
-        
-        // Formater le contenu HTML pour SweetAlert
-        const htmlContent = `
-            <div style="text-align: center;">
-                <h3 style="color: #1977cc; margin-bottom: 20px;">Informations de Livraison</h3>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || dece.user.name + ' ' + dece.user.prenom}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>Téléphone:</strong> ${deliveryInfo.telephone || dece.user.contact}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>Ville:</strong> ${deliveryInfo.ville || 'Non spécifiée'}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>Commune:</strong> ${deliveryInfo.commune_livraison || 'Non spécifiée'}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>Quartier:</strong> ${deliveryInfo.quartier || 'Non spécifiée'}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>Code de livraison:</strong> ${deliveryInfo.livraison_code || 'Non spécifiée'}
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <strong>Adresse de livraison:</strong> ${deliveryInfo.adresse_livraison || 'Non spécifiée'}
-                </div>
-            </div>
-        `;
-        
-        // Afficher les informations dans une popup SweetAlert
-        Swal.fire({
-            title: 'Détails de Livraison',
-            html: htmlContent,
-            showCancelButton: true,
-            confirmButtonText: 'Télécharger en PDF',
-            cancelButtonText: 'Fermer',
-            confirmButtonColor: '#1977cc',
-            width: '600px',
-            customClass: {
-                popup: 'delivery-info-popup'
-            },
-            didOpen: () => {
-                // Ajouter un style pour la popup
-                const popup = Swal.getPopup();
-                popup.style.borderRadius = '12px';
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Rediriger vers la route de téléchargement
-                const url = downloadDeliveryInfoUrl.replace(':id', dece.id);
-                window.open(url, '_blank');
-            }
-        });
+  // Fonction pour ouvrir une image en grand dans une modal
+  function openImageModal(imageSrc) {
+  const htmlContent = `
+    <div style="text-align: center;">
+      <img src="${imageSrc}" style="max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Document">
+      <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+        <a href="${imageSrc}" download style="color: #1977cc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; border: 1px solid #1977cc; border-radius: 5px;">
+          <i class="fas fa-download"></i> Télécharger l'image
+        </a>
+        <button onclick="Swal.close()" style="color: #6c757d; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; border: 1px solid #6c757d; border-radius: 5px; background: white; cursor: pointer;">
+          <i class="fas fa-times"></i> Fermer
+        </button>
+      </div>
+    </div>
+  `;
+  
+  Swal.fire({
+    title: 'Visualisation du document',
+    html: htmlContent,
+    width: '800px',
+    showConfirmButton: false,
+    showCloseButton: true,
+    customClass: {
+      popup: 'image-modal-popup'
     }
+  });
+}
+
+  function markAsDelivered(id) {
+    Swal.fire({
+      title: 'Entrer la référence',
+      input: 'text',
+      inputLabel: 'Veuillez entrer la référence du colis',
+      inputPlaceholder: 'Référence',
+      showCancelButton: true,
+      confirmButtonText: 'Valider',
+      cancelButtonText: 'Annuler',
+      preConfirm: (reference) => {
+        if (!reference) {
+          Swal.showValidationMessage('Vous devez entrer une référence');
+        }
+        return reference;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const url = markAsDeliveredUrl.replace(':id', id);
+        
+        $.ajax({
+          url: url,
+          method: 'POST',
+          data: {
+            _token: '{{ csrf_token() }}',
+            statut_livraison: 'livré',
+            reference: result.value // Ajoutez la référence ici
+          },
+          success: function(response) {
+            Swal.fire('Succès!', 'La demande a été marquée comme livrée.', 'success');
+            location.reload();
+          },
+          error: function(xhr) {
+            const errorMessage = xhr.responseJSON.error || 'Une erreur est survenue lors de la mise à jour.';
+            Swal.fire('Erreur!', errorMessage, 'error');
+          }
+        });
+      }
+    });
+  }
+
+  // Fonction pour afficher les informations de livraison
+  function showDeliveryInfo(dece) {
+    // Récupérer les informations de livraison
+    const deliveryInfo = dece || {};
+    
+    // Formater le contenu HTML pour SweetAlert
+    const htmlContent = `
+      <div style="text-align: center;">
+        <h3 style="color: #1977cc; margin-bottom: 20px;">Informations de Livraison</h3>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || dece.user.name + ' ' + dece.user.prenom}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Téléphone:</strong> ${deliveryInfo.telephone || dece.user.contact}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Ville:</strong> ${deliveryInfo.ville || 'Non spécifiée'}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Commune:</strong> ${deliveryInfo.commune_livraison || 'Non spécifiée'}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Quartier:</strong> ${deliveryInfo.quartier || 'Non spécifiée'}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Code de livraison:</strong> ${deliveryInfo.livraison_code || 'Non spécifiée'}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Adresse de livraison:</strong> ${deliveryInfo.adresse_livraison || 'Non spécifiée'}
+        </div>
+      </div>
+    `;
+    
+    // Afficher les informations dans une popup SweetAlert
+    Swal.fire({
+      title: 'Détails de Livraison',
+      html: htmlContent,
+      showCancelButton: true,
+      confirmButtonText: 'Télécharger en PDF',
+      cancelButtonText: 'Fermer',
+      confirmButtonColor: '#1977cc',
+      width: '600px',
+      customClass: {
+        popup: 'delivery-info-popup'
+      },
+      didOpen: () => {
+        // Ajouter un style pour la popup
+        const popup = Swal.getPopup();
+        popup.style.borderRadius = '12px';
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Rediriger vers la route de téléchargement
+        const url = downloadDeliveryInfoUrl.replace(':id', dece.id);
+        window.open(url, '_blank');
+      }
+    });
+  }
 </script>
+<style>
+ /* Styles pour la modal d'image */
+.image-modal-popup {
+  border-radius: 12px;
+}
+
+.image-modal-popup .swal2-close {
+  color: #666;
+  font-size: 24px;
+}
+
+/* Styles pour les documents dans la popup */
+.document-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+}
+
+.document-preview {
+  max-width: 150px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  transition: transform 0.2s ease;
+}
+
+.document-preview:hover {
+  transform: scale(1.05);
+}
+
+.document-actions {
+  margin-top: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.document-action-link {
+  color: #1977cc;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+
+.document-action-link:hover {
+  text-decoration: underline;
+}
+ </style>
 @endsection
