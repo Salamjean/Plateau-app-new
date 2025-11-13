@@ -54,7 +54,7 @@ class RegisterController extends Controller
                 'name' => $request->name,
                 'prenom' => $request->prenom,
                 'email' => $request->email,
-                'commune' => 'Plateau', // <-- Valeur définie automatiquement
+                'commune' => 'plateau', // <-- Valeur définie automatiquement
                 'indicatif' => $request->indicatif,
                 'contact' => $request->contact,
                 'CMU' => $request->CMU,

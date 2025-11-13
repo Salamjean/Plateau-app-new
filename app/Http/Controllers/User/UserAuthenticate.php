@@ -62,13 +62,7 @@ class UserAuthenticate extends Controller
             $users->name = $request->name;
             $users->prenom = $request->prenom;
             $users->email = $request->email;
-            
-            // --- MODIFICATION ---
-            // La commune est maintenant définie en dur pour correspondre à la logique de l'API.
-            $users->commune = 'Plateau';
-            // $users->commune = $request->commune; // Ancienne ligne
-            // --- FIN MODIFICATION ---
-            
+            $users->commune = 'plateau';
             $users->indicatif = $request->indicatif;
             $users->contact = $request->contact;
             $users->CMU = $request->CMU;
