@@ -25,7 +25,6 @@ class UserRegisterRequest extends FormRequest
              'name' => 'required',
             'prenom' => 'required',
             'email' => 'required|email|unique:users,email',
-            'commune' => 'required',
             'indicatif' => 'required',
             'contact' => 'required',
             'password' => [

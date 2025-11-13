@@ -58,31 +58,31 @@ class UserAuthenticate extends Controller
                 Log::info('Profile picture stored at: ' . $profilePicturePath);
             }
             
-            $users = new User();
-            $users->name = $request->name;
-            $users->prenom = $request->prenom;
-            $users->email = $request->email;
-            $users->commune = 'plateau';
-            $users->indicatif = $request->indicatif;
-            $users->contact = $request->contact;
-            $users->CMU = $request->CMU;
-            $users->password = Hash::make($request->password);
-            $users->profile_picture = $profilePicturePath;
+            $user = new User();
+            $user->name = $request->name;
+            $user->prenom = $request->prenom;
+            $user->email = $request->email;
+            $user->commune = 'plateau';
+            $user->indicatif = $request->indicatif;
+            $user->contact = $request->contact;
+            $user->CMU = $request->CMU;
+            $user->password = Hash::make($request->password);
+            $user->profile_picture = $profilePicturePath;
             
             // Gestion de la diaspora
-            $users->diaspora = $request->has('diaspora') ? true : false;
-            if ($users->diaspora) {
-                $users->pays_residence = $request->pays_residence;
-                $users->ville_residence = $request->ville_residence;
-                $users->adresse_etrangere = $request->adresse_etrangere;
+            $user->diaspora = $request->has('diaspora') ? true : false;
+            if ($user->diaspora) {
+                $user->pays_residence = $request->pays_residence;
+                $user->ville_residence = $request->ville_residence;
+                $user->adresse_etrangere = $request->adresse_etrangere;
             }
             
-            $users->save();
+            $user->save();
 
             // Envoi de l'email de confirmation
             try {
-                $users->notify(new SendUserConfirmationNotification($users));
-                Log::info('Confirmation email sent to: ' . $users->email);
+                $user->notify(new SendUserConfirmationNotification($user));
+                Log::info('Confirmation email sent to: ' . $user->email);
             } catch (\Exception $emailException) {
                 Log::error('Failed to send confirmation email: ' . $emailException->getMessage());
                 // On continue même si l'email échoue
