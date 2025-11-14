@@ -49,7 +49,7 @@ class UserResetPasswordNotification extends Notification
             ->action(Lang::get('Réinitialiser le mot de passe'), $resetUrl)
             ->line(Lang::get('Ce lien de réinitialisation expirera dans :count minutes.', ['count' => config('auth.passwords.users.expire')]))
             ->line(Lang::get('Si vous n\'avez pas demandé de réinitialisation, ignorez simplement cet email.'))
-            ->salutation(Lang::get('Cordialement,<br>L\'équipe de la Plateforme'));
+            ->salutation(Lang::get('Cordialement,L\'équipe de la Plateforme'));
     }
 
     /**

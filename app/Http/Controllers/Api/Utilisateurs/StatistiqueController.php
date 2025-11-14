@@ -127,7 +127,7 @@ public function statistiquesParStatut(Request $request)
             ];
 
             // --- Calcul des TOTAUX agrégés ---
-            $totalEnCours = $statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours'];
+            $totalEnCours = $statsNaissance['en attente'] + $statsMariage['en attente'] + $statsDeces['en attente'];
             $totalTermine = $statsNaissance['terminé'] + $statsMariage['terminé'] + $statsDeces['terminé'];
             
             // Cette ligne est maintenant correcte car $stats...['total'] est déjà filtré

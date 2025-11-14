@@ -34,6 +34,6 @@ class ApiPasswordResetNotification extends Notification
             ->line(new \Illuminate\Support\HtmlString('<div style="font-size: 24px; letter-spacing: 5px; font-weight: bold; text-align: center; margin: 20px 0;">' . $this->token . '</div>')) // On ajoute un peu d'espacement pour la lisibilité
             ->line(Lang::get('Ce code expirera dans :count minutes.', ['count' => config('auth.passwords.users.expire')]))
             ->line(Lang::get('Si vous n\'avez pas demandé de réinitialisation, ignorez simplement cet email.'))
-            ->salutation(Lang::get('Cordialement,<br>L\'équipe de la Plateforme'));
+            ->salutation(Lang::get('Cordialement,L\'équipe de la Plateforme'));
     }
 }
