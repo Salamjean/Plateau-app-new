@@ -57,7 +57,7 @@ public function statistiquesParStatut(Request $request)
             // Log::info('Debug États:', $debugEtats);
 
             // --- Définir explicitement les états considérés comme "en cours" ---
-            $statutsEnCours = ['en traitement', 'en cours', 'validé', 'en cours de traitement']; // Ajoutez les vôtres
+            $statutsEnCours = ['en traitement', 'en cours', 'validé', 'en cours de traitement','réçu','terminé']; // Ajoutez les vôtres
             
             // --- Liste des états à exclure des totaux ---
             $etatsExclus = ['paiement_echoue', 'rejetée']; // <-- MODIFIÉ
@@ -126,16 +126,18 @@ public function statistiquesParStatut(Request $request)
                 'livré' => $statsDecesLivre->get('livré', 0),
             ];
 
-            // --- Calcul des TOTAUX agrégés ---
-            $totalEnCours = $statsNaissance['en attente'] + $statsMariage['en attente'] + $statsDeces['en attente'];
+           // --- Calcul des TOTAUX agrégés ---
+            $totalEnCours = $statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours'];
             $totalTermine = $statsNaissance['terminé'] + $statsMariage['terminé'] + $statsDeces['terminé'];
-            
-            // Cette ligne est maintenant correcte car $stats...['total'] est déjà filtré
-            $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total']; 
-            
+
+            // D'ABORD calculer totalLivre
             $totalLivre = $statsNaissanceL['livré'] + $statsMariageL['livré'] + $statsDecesL['livré'];
+
+            // ENSUITE l'utiliser dans totalGeneral
+            $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total'] + $totalLivre;
+
             $totalPaiementEchoue = $statsNaissance['paiement_echoue'] + $statsMariage['paiement_echoue'] + $statsDeces['paiement_echoue'];
-            $totalRejetee = $statsNaissance['rejetée'] + $statsMariage['rejetée'] + $statsDeces['rejetée']; // <-- AJOUTÉ
+            $totalRejetee = $statsNaissance['rejetée'] + $statsMariage['rejetée'] + $statsDeces['rejetée'];
 
             // --- Réponse JSON ---
             return response()->json([
@@ -152,7 +154,7 @@ public function statistiquesParStatut(Request $request)
                 // Totaux agrégés
                 'total_general'     => $totalGeneral,
                 'en_cours'          => $totalEnCours,
-                'termine'           => $totalTermine,
+                // 'termine'           => $totalTermine,
                 'total_livre'       => $totalLivre,
                 'paiement_echoue'   => $totalPaiementEchoue,
                 'rejetee'           => $totalRejetee, // <-- AJOUTÉ

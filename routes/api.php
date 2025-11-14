@@ -23,6 +23,7 @@ Route::prefix('utilisateurs')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
     Route::post('/login', [UserLoginController::class, 'login']);
     Route::post('/forgot-password', [PasswordforgotController::class, 'forgotPassword']);
+    Route::post('/verify-reset-code', [PasswordforgotController::class, 'verifyResetCode']);
     Route::post('/reset-password', [PasswordforgotController::class, 'resetPassword']);
 });
 
