@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Utilisateurs\DemandeNaissanceController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeMariageController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeDecesController;
 use App\Http\Controllers\Api\Utilisateurs\StatistiqueController;
+use App\Http\Controllers\Api\Utilisateurs\RdvApiController;
 use App\Http\Controllers\Api\Utilisateurs\Profil\UserProfilController;
 use App\Http\Controllers\Api\Livreur\LivreurAuthenticateController;
 use App\Http\Controllers\Api\Livreur\LivraisonController;
@@ -109,6 +110,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/photo', [UserProfilController::class, 'deleteProfilePicture']);
             Route::put('/informations', [UserProfilController::class, 'updateInformations']);
             Route::put('/password', [UserProfilController::class, 'updatePassword']);
+        });
+        // --- NOUVELLES ROUTES POUR LES RENDEZ-VOUS ---
+        Route::prefix('demandes/rendezvous')->group(function () {
+            Route::get('/', [RdvApiController::class, 'index']);
+            Route::post('/', [RdvApiController::class, 'store']);
         });
 
     }); // Fin groupe utilisateurs
