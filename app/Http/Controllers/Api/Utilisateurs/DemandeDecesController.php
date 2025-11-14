@@ -340,8 +340,8 @@ class DemandeDecesController extends Controller
 
             // 4. Mettre à jour l'état (avant de générer le lien)
             // L'état 'en attente' sera défini par le webhook si le paiement réussit.
-            $deces->etat = 'en attente de paiement';
-            $deces->statut_livraison = 'en attente de paiement'; 
+            $deces->etat = 'paiement_echoue';
+            $deces->statut_livraison = 'paiement_echoue'; 
             $deces->save();
 
             // 5. Générer le nouveau lien de paiement

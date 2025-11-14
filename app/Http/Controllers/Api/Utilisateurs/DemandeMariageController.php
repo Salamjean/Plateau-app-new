@@ -322,8 +322,8 @@ class DemandeMariageController extends Controller
             }
 
             // 4. Mettre à jour l'état
-            $mariage->etat = 'en attente de paiement';
-            $mariage->statut_livraison = 'en attente de paiement'; 
+            $mariage->etat = 'paiement_echoue';
+            $mariage->statut_livraison = 'paiement_echoue'; 
             $mariage->save();
 
             // 5. Générer le nouveau lien de paiement

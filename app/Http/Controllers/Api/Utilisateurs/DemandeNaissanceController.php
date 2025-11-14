@@ -315,8 +315,8 @@ class DemandeNaissanceController extends Controller
             }
 
             // 4. Mettre à jour l'état
-            $naissance->etat = 'en attente de paiement';
-            $naissance->statut_livraison = 'en attente de paiement'; 
+            $naissance->etat = 'paiement_echoue';
+            $naissance->statut_livraison = 'paiement_echoue'; 
             $naissance->save();
 
             // 5. Générer le nouveau lien de paiement
