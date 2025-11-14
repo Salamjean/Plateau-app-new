@@ -6,61 +6,50 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Lang;
 
 class UserResetPasswordNotification extends Notification
 {
     use Queueable;
 
     public $token;
+    public $logoUrl;
 
     /**
-     * Create a new notification instance.
+     * Crée une nouvelle instance de notification.
+     *
+     * @param string $token Le token de réinitialisation.
      */
     public function __construct($token)
     {
         $this->token = $token;
+        $this->logoUrl = asset('assets/assets/img/logoplateau.png');
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
         return ['mail'];
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Construit la représentation mail de la notification.
      */
     public function toMail(object $notifiable): MailMessage
     {
+        // On construit l'URL de réinitialisation ici
         $resetUrl = url(route('user.password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
-        ], false));
+        ]));
 
+        // On appelle la nouvelle vue Blade et on lui passe toutes les données nécessaires
         return (new MailMessage)
-            ->subject(Lang::get('Réinitialisation de votre mot de passe - Plateforme'))
-            ->greeting(Lang::get('Bonjour :name,', ['name' => $notifiable->name ?? '']))
-            ->line(Lang::get('Vous recevez cet email parce que nous avons reçu une demande de réinitialisation de mot de passe pour votre compte.'))
-            ->action(Lang::get('Réinitialiser le mot de passe'), $resetUrl)
-            ->line(Lang::get('Ce lien de réinitialisation expirera dans :count minutes.', ['count' => config('auth.passwords.users.expire')]))
-            ->line(Lang::get('Si vous n\'avez pas demandé de réinitialisation, ignorez simplement cet email.'))
-            ->salutation(Lang::get('Cordialement,L\'équipe de la Plateforme'));
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
-    {
-        return [
-            //
-        ];
+            ->subject('Plateau-Apps : Réinitialisation de votre mot de passe')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
+            ->view('emails.web_password_reset', [
+                'userName' => $notifiable->name,
+                'resetUrl' => $resetUrl,
+                'expirationMinutes' => config('auth.passwords.users.expire'),
+                'logoUrl' => $this->logoUrl,
+            ]);
     }
 }

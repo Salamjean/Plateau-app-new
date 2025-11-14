@@ -6,17 +6,24 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Lang;
 
 class ApiPasswordResetNotification extends Notification
 {
     use Queueable;
 
     public $token;
+    public $logoUrl;
 
+    /**
+     * Crée une nouvelle instance de notification.
+     *
+     * @param string $token Le code de réinitialisation à 6 chiffres.
+     */
     public function __construct($token)
     {
         $this->token = $token;
+        // Nous définissons l'URL du logo ici pour la passer à la vue
+        $this->logoUrl = asset('assets/assets/img/logoplateau.png');
     }
 
     public function via($notifiable): array
@@ -24,16 +31,19 @@ class ApiPasswordResetNotification extends Notification
         return ['mail'];
     }
 
+    /**
+     * Construit la représentation mail de la notification.
+     */
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(Lang::get('Votre code de réinitialisation de mot de passe'))
-            ->greeting(Lang::get('Bonjour !'))
-            ->line(Lang::get('Vous recevez cet email car une demande de réinitialisation de mot de passe a été effectuée pour votre compte.'))
-            ->line(Lang::get('Utilisez le code ci-dessous pour réinitialiser votre mot de passe :')) // Phrase modifiée
-            ->line(new \Illuminate\Support\HtmlString('<div style="font-size: 24px; letter-spacing: 5px; font-weight: bold; text-align: center; margin: 20px 0;">' . $this->token . '</div>')) // On ajoute un peu d'espacement pour la lisibilité
-            ->line(Lang::get('Ce code expirera dans :count minutes.', ['count' => config('auth.passwords.users.expire')]))
-            ->line(Lang::get('Si vous n\'avez pas demandé de réinitialisation, ignorez simplement cet email.'))
-            ->salutation(Lang::get('Cordialement,L\'équipe de la Plateforme'));
+            ->subject('Plateau-Apps : Votre code de réinitialisation')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
+            ->view('emails.api_password_reset', [
+                'userName' => $notifiable->name,
+                'code' => $this->token,
+                'expirationMinutes' => config('auth.passwords.users.expire'),
+                'logoUrl' => $this->logoUrl,
+            ]);
     }
 }
