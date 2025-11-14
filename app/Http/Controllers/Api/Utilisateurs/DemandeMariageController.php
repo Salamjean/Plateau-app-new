@@ -156,28 +156,81 @@ class DemandeMariageController extends Controller
 
             // --- DEBUT DE LA LOGIQUE DE PAIEMENT (Adaptée) ---
             
-            // 6. Préparer l'appel à CinetPay
-            $baseUrl = config('app.url'); // ✅ Utilisation de l'URL de config
+            // 6. Générer le lien de paiement
+            $paymentLinkResult = $this->generateCinetPayLink($mariage);
+
+            // 7. Gérer l'échec de la génération de lien
+            if (!$paymentLinkResult['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Demande créée, mais échec de la génération du lien de paiement. Veuillez réessayer.',
+                    'error_details' => $paymentLinkResult['error_details']
+                ], 500);
+            }
+
+            // 8. Succès ! Construire la réponse
+            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
             
-            // URLs de retour Deep link
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande créée. Utilisez le payment_url pour payer.',
+                'requires_payment' => true,
+
+                'payment_details' => [
+                    'payment_url' => $cinetpayResponseData['payment_url'],
+                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                    'mode' => 'PRODUCTION',
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                ],
+
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($mariage) 
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeMariageController@store: ' . $e->getMessage() . ' Ligne: ' . $e->getLine());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création de la demande: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // --------------------------------------------------------------------
+    // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
+    // --------------------------------------------------------------------
+    /**
+     * Génère un nouveau lien de paiement CinetPay pour une demande de mariage existante.
+     */
+    private function generateCinetPayLink(Mariage $mariage): array
+    {
+        try {
+            // 1. Préparer les URLs
+            $baseUrl = config('app.url');
             $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$mariage->reference}";
             $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$mariage->reference}";
-            
             // ✅ URLs dynamiques pour Mariage
             $fallbackReturnUrl = $baseUrl . "/mariage/paiement/redirect-to-app?transactionId=" . urlencode($mariage->reference);
             $fallbackCancelUrl = $baseUrl . "/mariage/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($mariage->reference);
             $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/mariage";
-            
-            // Calcul du montant total
+
+            // 2. Calculer le montant
             $cout_total_timbres = (float)$mariage->montant_timbre * (int)$mariage->quantite;
             $totalAmount = $cout_total_timbres + (float)$mariage->montant_livraison;
 
+            // 3. Infos CinetPay
             $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
             $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
 
-            // ID de transaction CinetPay unique
-            $cinetpayTransactionId = $mariage->reference . '_' . time();
+            // 4. NOUVEAU TRANSACTION_ID UNIQUE
+            $cinetpayTransactionId = $mariage->reference . '_' . time(); 
 
+            // 5. Data du paiement
             $paymentData = [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
@@ -186,13 +239,12 @@ class DemandeMariageController extends Controller
                 'currency' => 'XOF',
                  // ✅ Description Mariage
                 'description' => "Paiement ({$mariage->quantite}x timbre + livr) Acte Mariage {$mariage->reference}",
-                'notify_url' => $notifyUrl, // ✅ URL dynamique
-                'return_url' => $fallbackReturnUrl, // ✅ URL dynamique
-                'cancel_url' => $fallbackCancelUrl, // ✅ URL dynamique
-
+                'notify_url' => $notifyUrl,
+                'return_url' => $fallbackReturnUrl,
+                'cancel_url' => $fallbackCancelUrl,
                 'mode' => 'PRODUCTION',
                 'channels' => 'ALL',
-
+                
                 // Customer info
                 'customer_name' => $mariage->nom_destinataire,
                 'customer_surname' => $mariage->prenom_destinataire,
@@ -203,50 +255,118 @@ class DemandeMariageController extends Controller
                 'customer_country' => 'CI',
                 'customer_zip_code' => $mariage->code_postal ?? '00225'
             ];
-            
-            // 7. Appel API à CinetPay
+
+            // 6. Appel API
             $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
- 
-            // 8. Gérer l'échec de l'appel
+
+            // 7. Gérer l'échec
             if ($response->failed() || $response->json('code') !== '201') {
                 Log::error('Erreur CinetPay (Génération lien Mariage): ' . $response->body(), ['transaction_id' => $mariage->reference]);
+                return [
+                    'success' => false,
+                    'message' => 'Échec de la génération du lien de paiement.',
+                    'error_details' => $response->json() ?? $response->body()
+                ];
+            }
+            
+            // 8. Succès
+            return [
+                'success' => true,
+                'cinetpay_data' => $response->json('data'),
+                'generated_transaction_id' => $cinetpayTransactionId,
+                'return_url_deep_link' => $returnUrl,
+                'cancel_url_deep_link' => $cancelUrl,
+                'return_url_web_fallback' => $fallbackReturnUrl,
+                'cancel_url_web_fallback' => $fallbackCancelUrl,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Exception in generateCinetPayLink (Mariage): ' . $e->getMessage(), ['reference' => $mariage->reference]);
+            return [
+                'success' => false,
+                'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
+                'error_details' => null
+            ];
+        }
+    }
+
+
+    // --------------------------------------------------------------------
+    // NOUVELLE MÉTHODE PUBLIQUE (Pour la relance)
+    // --------------------------------------------------------------------
+    /**
+     * Retente le paiement pour une demande de mariage échouée.
+     * POST /api/utilisateurs/demandes/mariage/{mariage}/retry-payment
+     */
+    public function retryPayment(Request $request, Mariage $mariage): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($mariage->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier si l'option est 'livraison'
+            if ($mariage->choix_option !== 'livraison') {
+                 return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+            }
+
+            // 3. Vérifier l'état
+            if (!in_array($mariage->etat, ['paiement_echoue', 'en attente de paiement'])) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cette demande ne peut pas être payée à nouveau (état actuel: ' . $mariage->etat . ')'
+                ], 400);
+            }
+
+            // 4. Mettre à jour l'état
+            $mariage->etat = 'en attente de paiement';
+            $mariage->statut_livraison = 'en attente de paiement'; 
+            $mariage->save();
+
+            // 5. Générer le nouveau lien de paiement
+            $paymentLinkResult = $this->generateCinetPayLink($mariage);
+
+            // 6. Gérer l'échec de la génération
+            if (!$paymentLinkResult['success']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Demande créée, mais échec de la génération du lien de paiement. Veuillez réessayer.',
-                    'error_details' => $response->json() ?? $response->body()
+                    'message' => 'Échec de la génération du nouveau lien de paiement.',
+                    'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
- 
-            // 9. Succès ! Extraire le lien de paiement
-            $cinetpayResponseData = $response->json('data');
- 
-            // 10. Renvoyer la réponse JSON
+
+            // 7. Succès !
+            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Demande créée. Utilisez le payment_url pour payer.',
+                'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
- 
+                
                 'payment_details' => [
                     'payment_url' => $cinetpayResponseData['payment_url'],
                     'payment_token' => $cinetpayResponseData['payment_token'],
-                    'transaction_id' => $cinetpayTransactionId,
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
-                    'return_url_deep_link' => $returnUrl,
-                    'cancel_url_deep_link' => $cancelUrl,
-                    'return_url_web_fallback' => $fallbackReturnUrl,
-                    'cancel_url_web_fallback' => $fallbackCancelUrl,
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
                 ],
- 
+
                 'data' => [
-                    'demande' => $this->formatDemandeResponse($mariage) 
+                    'demande' => $this->formatDemandeResponse($mariage)
                 ]
-            ], 201);
- 
+            ], 200);
+
         } catch (\Exception $e) {
-            Log::error('Erreur DemandeMariageController@store: ' . $e->getMessage() . ' Ligne: ' . $e->getLine());
+            Log::error('Erreur DemandeMariageController@retryPayment: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la création de la demande: ' . $e->getMessage()
+                'message' => 'Erreur interne lors de la tentative de paiement: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -414,7 +534,7 @@ class DemandeMariageController extends Controller
             $upper = strtoupper((string)$status);
             if ($upper === 'PENDING' || $upper === 'AWAITING') {
                 $mariage->etat = 'en attente de paiement';
-                $mariage->statut_livraison = 'en attente';
+                $mariage->statut_livraison = 'en attente de paiement'; // Corrigé (ou 'en attente' selon votre logique)
                 $mariage->save();
                 Log::info("Demande (Mariage) {$cinetpayTransactionId} marquée en attente (CinetPay status: {$status})");
                 return response()->json(['success' => true, 'message' => 'Paiement en attente'], 200);
@@ -530,20 +650,20 @@ class DemandeMariageController extends Controller
                     'message' => 'Non autorisé à supprimer cette demande'
                 ], 403);
             }
- 
+
             // Optionnel: Supprimer les fichiers
             // Storage::disk('public')->delete([
             //     $mariage->pieceIdentite,
             //     $mariage->extraitMariage,
             // ]);
- 
+
             $mariage->delete();
- 
+
             return response()->json([
                 'success' => true,
                 'message' => 'Demande de mariage supprimée avec succès' // ✅ Message Mariage
             ]);
- 
+
         } catch (\Exception $e) {
             Log::error('Erreur DemandeMariageController@destroy: ' . $e->getMessage());
             return response()->json([

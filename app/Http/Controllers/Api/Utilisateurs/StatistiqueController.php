@@ -126,12 +126,16 @@ public function statistiquesParStatut(Request $request)
                 'livré' => $statsDecesLivre->get('livré', 0),
             ];
 
-           // --- Calcul des TOTAUX agrégés ---
-            $totalEnCours = $statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours'];
+                    // --- Calcul des TOTAUX agrégés ---
             $totalTermine = $statsNaissance['terminé'] + $statsMariage['terminé'] + $statsDeces['terminé'];
 
             // D'ABORD calculer totalLivre
             $totalLivre = $statsNaissanceL['livré'] + $statsMariageL['livré'] + $statsDecesL['livré'];
+
+            // MODIFICATION : Calculer en_cours en excluant les demandes livrées
+            $totalEnCours = ($statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours']) - $totalLivre;
+            // Assurer que le total ne soit pas négatif
+            $totalEnCours = max(0, $totalEnCours);
 
             // ENSUITE l'utiliser dans totalGeneral
             $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total'] + $totalLivre;

@@ -39,14 +39,14 @@ Route::prefix('livreur')->group(function () {
 
 Route::prefix('webhooks')->group(function () {
     Route::post('/cinetpay/notify/deces', [DemandeDecesController::class, 'handlePaymentNotification'])
-          ->name('api.cinetpay.notify.deces');
+        ->name('api.cinetpay.notify.deces');
     
     Route::post('/cinetpay/notify/mariage', [DemandeMariageController::class, 'handlePaymentNotification'])
-          ->name('api.cinetpay.notify.mariage');
+        ->name('api.cinetpay.notify.mariage');
 
     // ✅ AJOUTÉ
     Route::post('/cinetpay/notify/naissance', [DemandeNaissanceController::class, 'handlePaymentNotification'])
-          ->name('api.cinetpay.notify.naissance');
+        ->name('api.cinetpay.notify.naissance');
 });
 
 // Routes de polling de statut (publiques)
@@ -72,7 +72,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/naissance')->group(function () {
             Route::get('/', [DemandeNaissanceController::class, 'index']);
             Route::post('/', [DemandeNaissanceController::class, 'store']);
-            // ✅ AJOUTÉ
+            // ✅ NOUVELLE ROUTE AJOUTÉE
+            Route::post('/{naissance}/retry-payment', [DemandeNaissanceController::class, 'retryPayment']);
             Route::delete('/{naissance}', [DemandeNaissanceController::class, 'destroy']);
         });
 
@@ -80,6 +81,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/mariage')->group(function () {
             Route::get('/', [DemandeMariageController::class, 'index']);
             Route::post('/', [DemandeMariageController::class, 'store']);
+            // ✅ NOUVELLE ROUTE AJOUTÉE
+            Route::post('/{mariage}/retry-payment', [DemandeMariageController::class, 'retryPayment']);
             Route::delete('/{mariage}', [DemandeMariageController::class, 'destroy']);
         });
 
@@ -87,6 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/deces')->group(function () {
             Route::get('/', [DemandeDecesController::class, 'index']);
             Route::post('/', [DemandeDecesController::class, 'store']);
+            Route::post('/{deces}/retry-payment', [DemandeDecesController::class, 'retryPayment']);
             Route::delete('/{deces}', [DemandeDecesController::class, 'destroy']);
         });
 
@@ -118,7 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/{type}/{id}', [LivraisonController::class, 'getLivraison']);
             Route::post('/valider', [LivraisonController::class, 'validerLivraison']);
             Route::post('/verifier-reference', [LivraisonController::class, 'checkReference']);
-           
+            
         });
         Route::prefix('profil')->group(function () {
             Route::get('/', [ProfilLivreurController::class, 'getProfil']);

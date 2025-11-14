@@ -3,360 +3,454 @@
 namespace App\Http\Controllers\Api\Utilisateurs;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Deces;
-
 use Illuminate\Http\JsonResponse;
-
 use App\Models\Paiement;
-
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Auth;
-
 use Illuminate\Support\Facades\Log;
-
 use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Facades\Validator;
-
 use Illuminate\Support\Str;
-
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\Http; // Pour faire l'appel de vérification
 
 class DemandeDecesController extends Controller
-
 {
 
     /**
-
      * Liste des demandes de décès de l'utilisateur
-
      * GET /api/utilisateurs/demandes/deces
-
      */
+    public function index(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            $deces = Deces::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-     public function index(): JsonResponse
-     {
-         try {
-             $user = Auth::user();
-             $deces = Deces::where('user_id', $user->id)
-                 ->orderBy('created_at', 'desc')
-                 ->get();
- 
-             return response()->json([
-                 'success' => true,
-                 'message' => 'Liste des demandes de décès récupérée avec succès',
-                 'data' => [
-                     'demandes' => $deces->map(function ($demande) {
-                         // Utilise l'helper pour la consistance
-                         return $this->formatDemandeResponse($demande, true); 
-                     })
-                 ]
-             ]);
-         } catch (\Exception $e) {
-             Log::error('Erreur DemandeDecesController@index: ' . $e->getMessage());
-             return response()->json([
-                 'success' => false,
-                 'message' => 'Erreur lors de la récupération des demandes'
-             ], 500);
-         }
-     }
+            return response()->json([
+                'success' => true,
+                'message' => 'Liste des demandes de décès récupérée avec succès',
+                'data' => [
+                    'demandes' => $deces->map(function ($demande) {
+                        // Utilise l'helper pour la consistance
+                        return $this->formatDemandeResponse($demande, true); 
+                    })
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeDecesController@index: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des demandes'
+            ], 500);
+        }
+    }
 
     /**
-
      * Créer une nouvelle demande de décès
-
      * POST /api/utilisateurs/demandes/deces
-
      *
-
      * @param Request $request
-
      * @return JsonResponse
-
      */
+    public function store(Request $request): JsonResponse
+    {
+        // 1. Validation
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'numberR' => 'required|string|max:255',
+            'dateR' => 'required|date',
+            
+            // --- AJOUT --- (Basé sur DecesController.php)
+            'quantite' => 'required|integer|min:1|max:10', 
+            
+            'CNIdfnt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
+            'CNIdcl' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
+            'documentMariage' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:1000',
+            'RequisPolice' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:1000',
+            'choix_option' => 'required|in:retrait,livraison',
+            'communeD' => 'nullable|string|max:255',
+            
+            // Note : montant_timbre est maintenant le PRIX UNITAIRE
+            'montant_timbre' => 'required_if:choix_option,livraison|numeric',
+            'montant_livraison' => 'required_if:choix_option,livraison|numeric',
 
-     public function store(Request $request): JsonResponse
-     {
-         // 1. Validation (Mise à jour)
-         $validator = Validator::make($request->all(), [
-             'name' => 'required|string|max:255',
-             'numberR' => 'required|string|max:255',
-             'dateR' => 'required|date',
-             
-             // --- AJOUT --- (Basé sur DecesController.php)
-             'quantite' => 'required|integer|min:1|max:10', 
-             
-             'CNIdfnt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
-             'CNIdcl' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
-             'documentMariage' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:1000',
-             'RequisPolice' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:1000',
-             'choix_option' => 'required|in:retrait,livraison',
-             'communeD' => 'nullable|string|max:255',
-             
-             // Note : montant_timbre est maintenant le PRIX UNITAIRE
-             'montant_timbre' => 'required_if:choix_option,livraison|numeric',
-             'montant_livraison' => 'required_if:choix_option,livraison|numeric',
- 
-             'nom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
-             'prenom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
-             'email_destinataire' => 'required_if:choix_option,livraison|email',
-             'contact_destinataire' => 'required_if:choix_option,livraison|string|max:20',
-             'adresse_livraison' => 'required_if:choix_option,livraison|string|max:500',
-             'code_postal' => 'nullable|string|max:10',
-             'ville' => 'required_if:choix_option,livraison|string|max:255',
-             'commune_livraison' => 'required_if:choix_option,livraison|string|max:255',
-             'quartier' => 'nullable|string|max:255',
-         ]);
- 
-         if ($validator->fails()) {
-             return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
-         }
- 
-         try {
-             $user = Auth::user();
- 
-             // 2. Upload des fichiers (inchangé)
-             $filesToUpload = [
-                 'CNIdfnt' => 'cnid', 'CNIdcl' => 'cnid',
-                 'documentMariage' => 'mariage', 'RequisPolice' => 'police',
-             ];
-             $uploadedPaths = [];
-             foreach ($filesToUpload as $fileKey => $subDir) {
-                 if ($request->hasFile($fileKey)) {
-                     $file = $request->file($fileKey);
-                     $extension = $file->getClientOriginalExtension();
-                     $newFileName = (string) Str::uuid() . '.' . $extension;
-                     $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
-                     $uploadedPaths[$fileKey] = $path;
-                 }
-             }
- 
-             // 3. Génération de référence (inchangée)
-             $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1));
-             $anneeCourante = Carbon::now()->year;
-             $nextId = Deces::max('id') + 1;
-             $reference = 'AD' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
- 
-             // 4. Création de la demande (Mise à jour)
-             $deces = new Deces();
-             $deces->name = $request->name;
-             $deces->numberR = $request->numberR;
-             $deces->dateR = $request->dateR;
- 
-             // --- AJOUT ---
-             $deces->quantite = $request->quantite; 
-             
-             $deces->CNIdfnt = $uploadedPaths['CNIdfnt'] ?? null;
-             $deces->CNIdcl = $uploadedPaths['CNIdcl'] ?? null;
-             $deces->documentMariage = $uploadedPaths['documentMariage'] ?? null;
-             $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
-             $deces->choix_option = $request->choix_option;
-             $deces->commune = $request->communeD ?: $user->commune;
-             $deces->user_id = $user->id;
-             $deces->reference = $reference;
- 
-             if ($request->choix_option === 'livraison') {
-                 $deces->montant_timbre = $request->montant_timbre; // Prix unitaire
-                 $deces->montant_livraison = $request->montant_livraison;
-                 $deces->nom_destinataire = $request->nom_destinataire;
-                 $deces->prenom_destinataire = $request->prenom_destinataire;
-                 $deces->email_destinataire = $request->email_destinataire;
-                 $deces->contact_destinataire = $request->contact_destinataire;
-                 $deces->adresse_livraison = $request->adresse_livraison;
-                 $deces->code_postal = $request->code_postal;
-                 $deces->ville = $request->ville;
-                 $deces->commune_livraison = $request->commune_livraison;
-                 $deces->quartier = $request->quartier;
-                 $deces->etat = 'en attente de paiement';
-                 $deces->statut_livraison = 'en attente de paiement';
-             } else {
-                 $deces->etat = 'en attente';
-                 $deces->statut_livraison = null;
-             }
- 
-             $deces->save();
- 
-             // 5. Réponse conditionnelle (Cas "Retrait" - inchangé)
-             if ($deces->choix_option === 'retrait') {
-                 return response()->json([
-                     'success' => true,
-                     'message' => 'Demande de décès (retrait) créée avec succès',
-                     'requires_payment' => false,
-                     'data' => ['demande' => $this->formatDemandeResponse($deces)]
-                 ], 201);
-             }
- 
-             // --- DEBUT DE LA LOGIQUE MISE A JOUR (Cas "Livraison") ---
-             
-             // 6. Préparer l'appel à CinetPay pour générer le lien
-             $baseUrl = config('app.url');
-             // --- préparation des URLs de retour (inchangé) ---
-             $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$deces->reference}";
-             $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$deces->reference}";
+            'nom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
+            'prenom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
+            'email_destinataire' => 'required_if:choix_option,livraison|email',
+            'contact_destinataire' => 'required_if:choix_option,livraison|string|max:20',
+            'adresse_livraison' => 'required_if:choix_option,livraison|string|max:500',
+            'code_postal' => 'nullable|string|max:10',
+            'ville' => 'required_if:choix_option,livraison|string|max:255',
+            'commune_livraison' => 'required_if:choix_option,livraison|string|max:255',
+            'quartier' => 'nullable|string|max:255',
+        ]);
 
-            //  $fallbackReturnUrl = $baseUrl . "/deces/paiement/redirect-to-app?transactionId=" . urlencode($deces->reference);
-            //  $fallbackCancelUrl = $baseUrl . "/deces/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($deces->reference);
-            //  $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/deces";
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
+        }
 
-            //OFFLINE TEST POUR LOCAL
-    $fallbackReturnUrl = $baseUrl . "/deces/paiement/redirect-to-app?transactionId=" . urlencode($deces->reference);
-    $fallbackCancelUrl = $baseUrl . "/deces/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($deces->reference);
-    $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/deces";
-   
-             // --- MODIFICATION --- : Calcul du montant total
-           // --- Calcul du montant total ---
-$cout_total_timbres = (float)$deces->montant_timbre * (int)$deces->quantite;
-$totalAmount = $cout_total_timbres + (float)$deces->montant_livraison;
+        try {
+            $user = Auth::user();
 
-$cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
-$cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+            // 2. Upload des fichiers
+            $filesToUpload = [
+                'CNIdfnt' => 'cnid', 'CNIdcl' => 'cnid',
+                'documentMariage' => 'mariage', 'RequisPolice' => 'police',
+            ];
+            $uploadedPaths = [];
+            foreach ($filesToUpload as $fileKey => $subDir) {
+                if ($request->hasFile($fileKey)) {
+                    $file = $request->file($fileKey);
+                    $extension = $file->getClientOriginalExtension();
+                    $newFileName = (string) Str::uuid() . '.' . $extension;
+                    $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
+                    $uploadedPaths[$fileKey] = $path;
+                }
+            }
 
-// GÉNÉRER UN TRANSACTION_ID UNIQUE
-$cinetpayTransactionId = $deces->reference . '_' . time(); // ou Str::random(8)
+            // 3. Génération de référence
+            $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1));
+            $anneeCourante = Carbon::now()->year;
+            $nextId = Deces::max('id') + 1;
+            $reference = 'AD' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
 
-$paymentData = [
-    'apikey' => $cinetpayApiKey,
-    'site_id' => $cinetpaySiteId,
-    'transaction_id' => $cinetpayTransactionId, // ← Utilisez l'ID unique
-    'amount' => $totalAmount,
-    'currency' => 'XOF',
-    'description' => "Paiement ({$deces->quantite}x timbre + livr) Acte Décès {$deces->reference}",
-   'notify_url' => $notifyUrl,
-        'return_url' => $fallbackReturnUrl,
-        'cancel_url' => $fallbackCancelUrl, 
+            // 4. Création de la demande
+            $deces = new Deces();
+            $deces->name = $request->name;
+            $deces->numberR = $request->numberR;
+            $deces->dateR = $request->dateR;
 
-    'mode' => 'PRODUCTION',
-    'channels' => 'ALL',
+            // --- AJOUT ---
+            $deces->quantite = $request->quantite; 
+            
+            $deces->CNIdfnt = $uploadedPaths['CNIdfnt'] ?? null;
+            $deces->CNIdcl = $uploadedPaths['CNIdcl'] ?? null;
+            $deces->documentMariage = $uploadedPaths['documentMariage'] ?? null;
+            $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
+            $deces->choix_option = $request->choix_option;
+            $deces->commune = $request->communeD ?: $user->commune;
+            $deces->user_id = $user->id;
+            $deces->reference = $reference;
 
-    // Customer info
-    'customer_name' => $deces->nom_destinataire,
-    'customer_surname' => $deces->prenom_destinataire,
-    'customer_email' => $deces->email_destinataire,
-    'customer_phone_number' => $deces->contact_destinataire,
-    'customer_address' => $deces->adresse_livraison,
-    'customer_city' => $deces->ville,
-    'customer_country' => 'CI',
-    'customer_zip_code' => $deces->code_postal ?? '00225'
-];
-             // 7. Faire l'appel API à CinetPay (inchangé)
-             $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
-             // $response = Http::post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
- 
-             // 8. Gérer l'échec de l'appel à CinetPay (inchangé)
-             if ($response->failed() || $response->json('code') !== '201') {
-                 Log::error('Erreur CinetPay (Génération lien): ' . $response->body(), ['transaction_id' => $deces->reference]);
-                 return response()->json([
-                     'success' => false,
-                     'message' => 'Demande créée, mais échec de la génération du lien de paiement. Veuillez réessayer.',
-                     'error_details' => $response->json() ?? $response->body()
-                 ], 500);
-             }
- 
-             // 9. Succès ! Extraire le lien de paiement (inchangé)
-             $cinetpayResponseData = $response->json('data');
- 
-             // 10. Renvoyer la réponse JSON avec le payment_url (inchangé)
-             return response()->json([
-                 'success' => true,
-                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
-                 'requires_payment' => true,
- 
-                 'payment_details' => [
-                     'payment_url' => $cinetpayResponseData['payment_url'],
-                     'payment_token' => $cinetpayResponseData['payment_token'],
-                    'transaction_id' => $deces->reference . '_' . time(), // ou utilisez un UUID
-                     'mode' => 'PRODUCTION',
-                     'return_url_deep_link' => $returnUrl,
-                     'cancel_url_deep_link' => $cancelUrl,
-                     'return_url_web_fallback' => $fallbackReturnUrl,
-                     'cancel_url_web_fallback' => $fallbackCancelUrl,
-                 ],
- 
-                 'data' => [
-                     // La réponse formatée inclura maintenant la quantité et le montant total correct
-                     'demande' => $this->formatDemandeResponse($deces) 
-                 ]
-             ], 201);
-             
-             // --- FIN DE LA NOUVELLE LOGIQUE ---
- 
-         } catch (\Exception $e) {
-             Log::error('Erreur DemandeDecesController@store: ' . $e->getMessage() . ' Ligne: ' . $e->getLine());
-             return response()->json([
-                 'success' => false,
-                 'message' => 'Erreur lors de la création de la demande: ' . $e->getMessage()
-             ], 500);
-         }
-     }
+            if ($request->choix_option === 'livraison') {
+                $deces->montant_timbre = $request->montant_timbre; // Prix unitaire
+                $deces->montant_livraison = $request->montant_livraison;
+                $deces->nom_destinataire = $request->nom_destinataire;
+                $deces->prenom_destinataire = $request->prenom_destinataire;
+                $deces->email_destinataire = $request->email_destinataire;
+                $deces->contact_destinataire = $request->contact_destinataire;
+                $deces->adresse_livraison = $request->adresse_livraison;
+                $deces->code_postal = $request->code_postal;
+                $deces->ville = $request->ville;
+                $deces->commune_livraison = $request->commune_livraison;
+                $deces->quartier = $request->quartier;
+                $deces->etat = 'en attente de paiement';
+                $deces->statut_livraison = 'en attente de paiement';
+            } else {
+                $deces->etat = 'en attente';
+                $deces->statut_livraison = null;
+            }
+
+            $deces->save();
+
+            // 5. Réponse conditionnelle (Cas "Retrait")
+            if ($deces->choix_option === 'retrait') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Demande de décès (retrait) créée avec succès',
+                    'requires_payment' => false,
+                    'data' => ['demande' => $this->formatDemandeResponse($deces)]
+                ], 201);
+            }
+
+            // --- DEBUT DE LA LOGIQUE MISE A JOUR (Cas "Livraison") ---
+            
+            // 6. Générer le lien de paiement en utilisant la méthode refactorisée
+            $paymentLinkResult = $this->generateCinetPayLink($deces);
+
+            // 7. Gérer l'échec de la génération de lien
+            if (!$paymentLinkResult['success']) {
+                // La demande est créée, mais le lien a échoué. L'utilisateur pourra réessayer.
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Demande créée, mais échec de la génération du lien de paiement. Veuillez réessayer.',
+                    'error_details' => $paymentLinkResult['error_details']
+                ], 500);
+            }
+
+            // 8. Succès ! Construire la réponse
+            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande créée. Utilisez le payment_url pour payer.',
+                'requires_payment' => true,
+                
+                'payment_details' => [
+                    'payment_url' => $cinetpayResponseData['payment_url'],
+                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'], // Utiliser l'ID généré
+                    'mode' => 'PRODUCTION',
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                ],
+
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($deces) 
+                ]
+            ], 201);
+            
+            // --- FIN DE LA LOGIQUE MISE A JOUR ---
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeDecesController@store: ' . $e->getMessage() . ' Ligne: ' . $e->getLine());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création de la demande: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // --------------------------------------------------------------------
+    // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
+    // --------------------------------------------------------------------
+    /**
+     * Génère un nouveau lien de paiement CinetPay pour une demande de décès existante.
+     */
+    private function generateCinetPayLink(Deces $deces): array
+    {
+        try {
+            // 1. Préparer les URLs
+            $baseUrl = config('app.url');
+            $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$deces->reference}";
+            $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$deces->reference}";
+            $fallbackReturnUrl = $baseUrl . "/deces/paiement/redirect-to-app?transactionId=" . urlencode($deces->reference);
+            $fallbackCancelUrl = $baseUrl . "/deces/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($deces->reference);
+            $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/deces";
+
+            // 2. Calculer le montant
+            $cout_total_timbres = (float)$deces->montant_timbre * (int)$deces->quantite;
+            $totalAmount = $cout_total_timbres + (float)$deces->montant_livraison;
+
+            // 3. Infos CinetPay
+            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
+            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+
+            // 4. GÉNÉRER UN NOUVEAU TRANSACTION_ID UNIQUE
+            // C'est crucial pour CinetPay de voir chaque tentative comme nouvelle
+            $cinetpayTransactionId = $deces->reference . '_' . time(); 
+
+            // 5. Data du paiement
+            $paymentData = [
+                'apikey' => $cinetpayApiKey,
+                'site_id' => $cinetpaySiteId,
+                'transaction_id' => $cinetpayTransactionId, // Le nouvel ID unique
+                'amount' => $totalAmount,
+                'currency' => 'XOF',
+                'description' => "Paiement ({$deces->quantite}x timbre + livr) Acte Décès {$deces->reference}",
+                'notify_url' => $notifyUrl,
+                'return_url' => $fallbackReturnUrl,
+                'cancel_url' => $fallbackCancelUrl, 
+                'mode' => 'PRODUCTION',
+                'channels' => 'ALL',
+
+                // Customer info (déjà dans $deces)
+                'customer_name' => $deces->nom_destinataire,
+                'customer_surname' => $deces->prenom_destinataire,
+                'customer_email' => $deces->email_destinataire,
+                'customer_phone_number' => $deces->contact_destinataire,
+                'customer_address' => $deces->adresse_livraison,
+                'customer_city' => $deces->ville,
+                'customer_country' => 'CI',
+                'customer_zip_code' => $deces->code_postal ?? '00225'
+            ];
+
+            // 6. Appel API
+            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
+            // $response = Http::post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
+
+            // 7. Gérer l'échec
+            if ($response->failed() || $response->json('code') !== '201') {
+                Log::error('Erreur CinetPay (Génération lien): ' . $response->body(), ['transaction_id' => $deces->reference]);
+                return [
+                    'success' => false,
+                    'message' => 'Échec de la génération du lien de paiement.',
+                    'error_details' => $response->json() ?? $response->body()
+                ];
+            }
+            
+            // 8. Succès
+            return [
+                'success' => true,
+                'cinetpay_data' => $response->json('data'),
+                'generated_transaction_id' => $cinetpayTransactionId, // Renvoyer l'ID unique
+                'return_url_deep_link' => $returnUrl,
+                'cancel_url_deep_link' => $cancelUrl,
+                'return_url_web_fallback' => $fallbackReturnUrl,
+                'cancel_url_web_fallback' => $fallbackCancelUrl,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Exception in generateCinetPayLink: ' . $e->getMessage(), ['reference' => $deces->reference]);
+            return [
+                'success' => false,
+                'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
+                'error_details' => null
+            ];
+        }
+    }
+
+
+    // --------------------------------------------------------------------
+    // NOUVELLE MÉTHODE PUBLIQUE (Votre Endpoint)
+    // --------------------------------------------------------------------
+    /**
+     * Retente le paiement pour une demande de décès échouée.
+     * POST /api/utilisateurs/demandes/deces/{deces}/retry-payment
+     */
+    public function retryPayment(Request $request, Deces $deces): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($deces->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier si l'option est 'livraison' (seules celles-là ont un paiement)
+            if ($deces->choix_option !== 'livraison') {
+                 return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+            }
+
+            // 3. Vérifier l'état
+            // On autorise la régénération si le paiement a échoué OU s'il est encore en attente (l'utilisateur a peut-être perdu le lien)
+            if (!in_array($deces->etat, ['paiement_echoue', 'en attente de paiement'])) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cette demande ne peut pas être payée à nouveau (état actuel: ' . $deces->etat . ')'
+                ], 400);
+            }
+
+            // 4. Mettre à jour l'état (avant de générer le lien)
+            // L'état 'en attente' sera défini par le webhook si le paiement réussit.
+            $deces->etat = 'en attente de paiement';
+            $deces->statut_livraison = 'en attente de paiement'; 
+            $deces->save();
+
+            // 5. Générer le nouveau lien de paiement
+            $paymentLinkResult = $this->generateCinetPayLink($deces);
+
+            // 6. Gérer l'échec de la génération
+            if (!$paymentLinkResult['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Échec de la génération du nouveau lien de paiement.',
+                    'error_details' => $paymentLinkResult['error_details']
+                ], 500);
+            }
+
+            // 7. Succès ! Construire la réponse (similaire à 'store')
+            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
+                'requires_payment' => true,
+                
+                'payment_details' => [
+                    'payment_url' => $cinetpayResponseData['payment_url'],
+                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                    'mode' => 'PRODUCTION',
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                ],
+
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($deces) // Renvoyer la demande mise à jour
+                ]
+            ], 200); // 200 OK
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeDecesController@retryPayment: ' . $e->getMessage(), ['deces_id' => $deces->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur interne lors de la tentative de paiement: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     /**
-
      * Helper pour formater la réponse de la demande
-
      */
+    private function formatDemandeResponse(Deces $deces, bool $includeFiles = false)
+    {
+        // --- MODIFICATION ---
+        // Calcul correct du montant total en incluant la quantité
+        // Utilise (?? 1) pour la quantité au cas où elle serait nulle (ancien enregistrement)
+        // Utilise (?? 0) pour les montants au cas où ils seraient nuls
+        $montant_total_timbres = (float)($deces->montant_timbre ?? 0) * (int)($deces->quantite ?? 1);
+        $montant_total = $deces->choix_option === 'livraison' 
+            ? $montant_total_timbres + (float)($deces->montant_livraison ?? 0) 
+            : 0;
+        // --- FIN MODIFICATION ---
 
-     private function formatDemandeResponse(Deces $deces, bool $includeFiles = false)
-     {
-         // --- MODIFICATION ---
-         // Calcul correct du montant total en incluant la quantité
-         // Utilise (?? 1) pour la quantité au cas où elle serait nulle (ancien enregistrement)
-         // Utilise (?? 0) pour les montants au cas où ils seraient nuls
-         $montant_total_timbres = (float)($deces->montant_timbre ?? 0) * (int)($deces->quantite ?? 1);
-         $montant_total = $deces->choix_option === 'livraison' 
-             ? $montant_total_timbres + (float)($deces->montant_livraison ?? 0) 
-             : 0;
-         // --- FIN MODIFICATION ---
- 
-         $data = [
-             'id' => $deces->id,
-             'reference' => $deces->reference,
-             'name' => $deces->name,
-             'numberR' => $deces->numberR,
-             'dateR' => $deces->dateR,
-             'commune' => $deces->commune,
-             'etat' => $deces->etat,
-             'choix_option' => $deces->choix_option,
-             
-             // --- AJOUT ---
-             'quantite' => (int)$deces->quantite, 
-             
-             'montant_timbre_unitaire' => (float)$deces->montant_timbre, // Renommé pour plus de clarté
-             'montant_livraison' => (float)$deces->montant_livraison,
-             'montant_total' => $montant_total, // Montant total calculé
-             
-             'created_at' => $deces->created_at->format('Y-m-d H:i:s'),
- 
-             // Infos de livraison (si elles existent)
-             'nom_destinataire' => $deces->nom_destinataire,
-             'prenom_destinataire' => $deces->prenom_destinataire,
-             'email_destinataire' => $deces->email_destinataire,
-             'contact_destinataire' => $deces->contact_destinataire,
-             'adresse_livraison' => $deces->adresse_livraison,
-             'ville' => $deces->ville,
-             'commune_livraison' => $deces->commune_livraison,
-             'quartier' => $deces->quartier,
-             'statut_livraison' => $deces->statut_livraison,
-         ];
- 
-         // Ajout conditionnel des documents (pour la méthode index)
-         if ($includeFiles) {
-              $data['documents'] = [
-                 'CNIdfnt' => $deces->CNIdfnt ? Storage::url($deces->CNIdfnt) : null,
-                 'CNIdcl' => $deces->CNIdcl ? Storage::url($deces->CNIdcl) : null,
-                 'documentMariage' => $deces->documentMariage ? Storage::url($deces->documentMariage) : null,
-                 'RequisPolice' => $deces->RequisPolice ? Storage::url($deces->RequisPolice) : null,
-             ];
-             $data['updated_at'] = $deces->updated_at->format('Y-m-d H:i:s');
-         }
- 
-         return $data;
-     }
+        $data = [
+            'id' => $deces->id,
+            'reference' => $deces->reference,
+            'name' => $deces->name,
+            'numberR' => $deces->numberR,
+            'dateR' => $deces->dateR,
+            'commune' => $deces->commune,
+            'etat' => $deces->etat,
+            'choix_option' => $deces->choix_option,
+            
+            // --- AJOUT ---
+            'quantite' => (int)$deces->quantite, 
+            
+            'montant_timbre_unitaire' => (float)$deces->montant_timbre, // Renommé pour plus de clarté
+            'montant_livraison' => (float)$deces->montant_livraison,
+            'montant_total' => $montant_total, // Montant total calculé
+            
+            'created_at' => $deces->created_at->format('Y-m-d H:i:s'),
 
-  public function handlePaymentNotification(Request $request): JsonResponse
+            // Infos de livraison (si elles existent)
+            'nom_destinataire' => $deces->nom_destinataire,
+            'prenom_destinataire' => $deces->prenom_destinataire,
+            'email_destinataire' => $deces->email_destinataire,
+            'contact_destinataire' => $deces->contact_destinataire,
+            'adresse_livraison' => $deces->adresse_livraison,
+            'ville' => $deces->ville,
+            'commune_livraison' => $deces->commune_livraison,
+            'quartier' => $deces->quartier,
+            'statut_livraison' => $deces->statut_livraison,
+        ];
+
+        // Ajout conditionnel des documents (pour la méthode index)
+        if ($includeFiles) {
+             $data['documents'] = [
+                'CNIdfnt' => $deces->CNIdfnt ? Storage::url($deces->CNIdfnt) : null,
+                'CNIdcl' => $deces->CNIdcl ? Storage::url($deces->CNIdcl) : null,
+                'documentMariage' => $deces->documentMariage ? Storage::url($deces->documentMariage) : null,
+                'RequisPolice' => $deces->RequisPolice ? Storage::url($deces->RequisPolice) : null,
+            ];
+            $data['updated_at'] = $deces->updated_at->format('Y-m-d H:i:s');
+        }
+
+        return $data;
+    }
+
+    public function handlePaymentNotification(Request $request): JsonResponse
     {
         Log::info('Webhook CinetPay Reçu (Deces) - request:', $request->all());
     
@@ -468,6 +562,7 @@ $paymentData = [
                 }
     
                 // Mettre à jour le Deces (quelque soit l'état antérieur)
+                // C'est ici que l'état passe à 'en attente' (de traitement/livraison)
                 $deces->etat = 'en attente';
                 $deces->statut_livraison = 'en attente';
                 $deces->save();
@@ -482,7 +577,7 @@ $paymentData = [
             $upper = strtoupper((string)$status);
             if ($upper === 'PENDING' || $upper === 'AWAITING') {
                 $deces->etat = 'en attente de paiement';
-                $deces->statut_livraison = 'en attente';
+                $deces->statut_livraison = 'en attente'; // Doit être 'en attente de paiement' ?
                 $deces->save();
     
                 // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
@@ -508,16 +603,11 @@ $paymentData = [
             return response()->json(['success' => false, 'message' => 'Erreur interne'], 500);
         }
     }
-    
 
-    
 
     /**
-
-     * Supprimer une demande de décès
-
-     * DELETE /api/utilisateurs/demandes/deces/{deces}
-
+     * Obtenir le statut de paiement pour le polling
+     * GET /api/deces/payment-status/{reference}
      */
     public function getPaymentStatus(Request $request, $reference): JsonResponse
     {
@@ -581,6 +671,10 @@ $paymentData = [
             ], 500);
         }
     }
+
+    /**
+     * Afficher la page de redirection web (Fallback)
+     */
     public function showRedirectPage(Request $request)
     {
         $transactionId = $request->input('transactionId') ?? $request->input('transaction_id');
@@ -597,42 +691,46 @@ $paymentData = [
             'transactionId' => $transactionId
         ]);
     }
-     public function destroy(Deces $deces): JsonResponse
-     {
-         // ... (Ton code destroy reste inchangé)
-         try {
-             $user = Auth::user();
-             
-             // Vérifier que l'utilisateur est propriétaire de la demande
-             if ($deces->user_id !== $user->id) {
-                 return response()->json([
-                     'success' => false,
-                     'message' => 'Non autorisé à supprimer cette demande'
-                 ], 403);
-             }
- 
-             // Optionnel: Supprimer les fichiers associés
-             // Storage::disk('public')->delete([
-             //     $deces->CNIdfnt,
-             //     $deces->CNIdcl,
-             //     $deces->documentMariage,
-             //     $deces->RequisPolice
-             // ]);
- 
-             $deces->delete();
- 
-             return response()->json([
-                 'success' => true,
-                 'message' => 'Demande de décès supprimée avec succès'
-             ]);
- 
-         } catch (\Exception $e) {
-             Log::error('Erreur DemandeDecesController@destroy: ' . $e->getMessage());
-             return response()->json([
-                 'success' => false,
-                 'message' => 'Erreur lors de la suppression de la demande'
-             ], 500);
-         }
-     }
 
-} 
+    /**
+     * Supprimer une demande de décès
+     * DELETE /api/utilisateurs/demandes/deces/{deces}
+     */
+    public function destroy(Deces $deces): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            
+            // Vérifier que l'utilisateur est propriétaire de la demande
+            if ($deces->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non autorisé à supprimer cette demande'
+                ], 403);
+            }
+
+            // Optionnel: Supprimer les fichiers associés
+            // Storage::disk('public')->delete([
+            //     $deces->CNIdfnt,
+            //     $deces->CNIdcl,
+            //     $deces->documentMariage,
+            //     $deces->RequisPolice
+            // ]);
+
+            $deces->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande de décès supprimée avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeDecesController@destroy: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression de la demande'
+            ], 500);
+        }
+    }
+
+}

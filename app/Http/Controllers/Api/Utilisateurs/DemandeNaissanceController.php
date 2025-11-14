@@ -152,63 +152,21 @@ class DemandeNaissanceController extends Controller
 
             // --- DEBUT LOGIQUE PAIEMENT (Cas "Livraison") ---
 
-            // 7. Préparer l'appel à CinetPay
-            $cinetpayTransactionId = $naissance->reference . '_' . time();
-            $baseUrl = config('app.url'); // ✅ URL dynamique
+            // 7. Générer le lien de paiement
+            $paymentLinkResult = $this->generateCinetPayLink($naissance);
 
-            // URLs de retour Deep link
-            $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$naissance->reference}";
-            $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$naissance->reference}";
-            
-            // ✅ URLs de retour Web (Corrigées pour NAISSANCE)
-            $fallbackReturnUrl = $baseUrl . "/naissance/paiement/redirect-to-app?transactionId=" . urlencode($naissance->reference);
-            $fallbackCancelUrl = $baseUrl . "/naissance/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($naissance->reference);
-            $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/naissance";
-            
-            // Calcul du montant total
-            $cout_total_timbres = (float)$naissance->montant_timbre * (int)$naissance->quantite;
-            $totalAmount = $cout_total_timbres + (float)$naissance->montant_livraison;
-
-            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
-            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
-            
-            $paymentData = [
-                'apikey' => $cinetpayApiKey,
-                'site_id' => $cinetpaySiteId,
-                'transaction_id' => $cinetpayTransactionId,
-                'amount' => $totalAmount,
-                'currency' => 'XOF',
-                'description' => "Paiement ({$naissance->quantite}x timbre + livr) Acte Naissance {$naissance->reference}", // ✅ Description Naissance
-                'notify_url' => $notifyUrl, // ✅ URL dynamique
-                'return_url' => $fallbackReturnUrl, // ✅ URL dynamique
-                'cancel_url' => $fallbackCancelUrl, // ✅ URL dynamique
-                'mode' => 'PRODUCTION',
-                'channels' => 'ALL',
-                'customer_name' => $naissance->nom_destinataire,
-                'customer_surname' => $naissance->prenom_destinataire,
-                'customer_email' => $naissance->email_destinataire,
-                'customer_phone_number' => $naissance->contact_destinataire,
-                'customer_address' => $naissance->adresse_livraison,
-                'customer_city' => $naissance->ville,
-                'customer_country' => 'CI',
-                'customer_zip_code' => $naissance->code_postal ?? '00225'
-            ];
-
-            // 8. Appel API à CinetPay
-            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
-
-            if ($response->failed() || $response->json('code') !== '201') {
-                Log::error('Erreur CinetPay (Génération lien Naissance): ' . $response->body(), ['transaction_id' => $cinetpayTransactionId]);
+            // 8. Gérer l'échec de la génération
+            if (!$paymentLinkResult['success']) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Demande créée, mais échec de la génération du lien de paiement. Veuillez réessayer.',
-                    'error_details' => $response->json() ?? $response->body()
+                    'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
-
-            $cinetpayResponseData = $response->json('data');
-
+            
             // 9. Renvoyer la réponse JSON
+            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
@@ -216,12 +174,12 @@ class DemandeNaissanceController extends Controller
                 'payment_details' => [
                     'payment_url' => $cinetpayResponseData['payment_url'],
                     'payment_token' => $cinetpayResponseData['payment_token'],
-                    'transaction_id' => $cinetpayTransactionId,
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
-                    'return_url_deep_link' => $returnUrl,
-                    'cancel_url_deep_link' => $cancelUrl,
-                    'return_url_web_fallback' => $fallbackReturnUrl,
-                    'cancel_url_web_fallback' => $fallbackCancelUrl,
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
                 ],
                 'data' => [
                     'demande' => $this->formatDemandeResponse($naissance)
@@ -233,6 +191,175 @@ class DemandeNaissanceController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la création de la demande: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // --------------------------------------------------------------------
+    // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
+    // --------------------------------------------------------------------
+    /**
+     * Génère un nouveau lien de paiement CinetPay pour une demande de naissance existante.
+     */
+    private function generateCinetPayLink(Naissance $naissance): array
+    {
+        try {
+            // 1. Préparer les URLs
+            $baseUrl = config('app.url');
+            $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$naissance->reference}";
+            $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$naissance->reference}";
+            // ✅ URLs de retour Web (Corrigées pour NAISSANCE)
+            $fallbackReturnUrl = $baseUrl . "/naissance/paiement/redirect-to-app?transactionId=" . urlencode($naissance->reference);
+            $fallbackCancelUrl = $baseUrl . "/naissance/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($naissance->reference);
+            $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/naissance";
+
+            // 2. Calculer le montant
+            $cout_total_timbres = (float)$naissance->montant_timbre * (int)$naissance->quantite;
+            $totalAmount = $cout_total_timbres + (float)$naissance->montant_livraison;
+
+            // 3. Infos CinetPay
+            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
+            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+
+            // 4. NOUVEAU TRANSACTION_ID UNIQUE
+            $cinetpayTransactionId = $naissance->reference . '_' . time();
+
+            // 5. Data du paiement
+            $paymentData = [
+                'apikey' => $cinetpayApiKey,
+                'site_id' => $cinetpaySiteId,
+                'transaction_id' => $cinetpayTransactionId,
+                'amount' => $totalAmount,
+                'currency' => 'XOF',
+                'description' => "Paiement ({$naissance->quantite}x timbre + livr) Acte Naissance {$naissance->reference}", // ✅ Description Naissance
+                'notify_url' => $notifyUrl,
+                'return_url' => $fallbackReturnUrl,
+                'cancel_url' => $fallbackCancelUrl,
+                'mode' => 'PRODUCTION',
+                'channels' => 'ALL',
+                
+                // Customer info
+                'customer_name' => $naissance->nom_destinataire,
+                'customer_surname' => $naissance->prenom_destinataire,
+                'customer_email' => $naissance->email_destinataire,
+                'customer_phone_number' => $naissance->contact_destinataire,
+                'customer_address' => $naissance->adresse_livraison,
+                'customer_city' => $naissance->ville,
+                'customer_country' => 'CI',
+                'customer_zip_code' => $naissance->code_postal ?? '00225'
+            ];
+
+            // 6. Appel API
+            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
+
+            // 7. Gérer l'échec
+            if ($response->failed() || $response->json('code') !== '201') {
+                Log::error('Erreur CinetPay (Génération lien Naissance): ' . $response->body(), ['transaction_id' => $cinetpayTransactionId]);
+                return [
+                    'success' => false,
+                    'message' => 'Échec de la génération du lien de paiement.',
+                    'error_details' => $response->json() ?? $response->body()
+                ];
+            }
+            
+            // 8. Succès
+            return [
+                'success' => true,
+                'cinetpay_data' => $response->json('data'),
+                'generated_transaction_id' => $cinetpayTransactionId,
+                'return_url_deep_link' => $returnUrl,
+                'cancel_url_deep_link' => $cancelUrl,
+                'return_url_web_fallback' => $fallbackReturnUrl,
+                'cancel_url_web_fallback' => $fallbackCancelUrl,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Exception in generateCinetPayLink (Naissance): ' . $e->getMessage(), ['reference' => $naissance->reference]);
+            return [
+                'success' => false,
+                'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
+                'error_details' => null
+            ];
+        }
+    }
+
+
+    // --------------------------------------------------------------------
+    // NOUVELLE MÉTHODE PUBLIQUE (Pour la relance)
+    // --------------------------------------------------------------------
+    /**
+     * Retente le paiement pour une demande de naissance échouée.
+     * POST /api/utilisateurs/demandes/naissance/{naissance}/retry-payment
+     */
+    public function retryPayment(Request $request, Naissance $naissance): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($naissance->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier si l'option est 'livraison'
+            if ($naissance->choix_option !== 'livraison') {
+                 return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+            }
+
+            // 3. Vérifier l'état
+            if (!in_array($naissance->etat, ['paiement_echoue', 'en attente de paiement'])) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cette demande ne peut pas être payée à nouveau (état actuel: ' . $naissance->etat . ')'
+                ], 400);
+            }
+
+            // 4. Mettre à jour l'état
+            $naissance->etat = 'en attente de paiement';
+            $naissance->statut_livraison = 'en attente de paiement'; 
+            $naissance->save();
+
+            // 5. Générer le nouveau lien de paiement
+            $paymentLinkResult = $this->generateCinetPayLink($naissance);
+
+            // 6. Gérer l'échec de la génération
+            if (!$paymentLinkResult['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Échec de la génération du nouveau lien de paiement.',
+                    'error_details' => $paymentLinkResult['error_details']
+                ], 500);
+            }
+
+            // 7. Succès !
+            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
+                'requires_payment' => true,
+                
+                'payment_details' => [
+                    'payment_url' => $cinetpayResponseData['payment_url'],
+                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                    'mode' => 'PRODUCTION',
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                ],
+
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($naissance)
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeNaissanceController@retryPayment: ' . $e->getMessage(), ['naissance_id' => $naissance->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur interne lors de la tentative de paiement: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -391,7 +518,7 @@ class DemandeNaissanceController extends Controller
             $upper = strtoupper((string)$status);
             if ($upper === 'PENDING' || $upper === 'AWAITING') {
                 $naissance->etat = 'en attente de paiement';
-                $naissance->statut_livraison = 'en attente';
+                $naissance->statut_livraison = 'en attente de paiement'; // Corrigé
                 $naissance->save();
                 Log::info("Demande Naissance {$reference} marquée en attente (Status: {$status})");
                 return response()->json(['success' => true, 'message' => 'Paiement en attente'], 200);
@@ -504,19 +631,19 @@ class DemandeNaissanceController extends Controller
                     'message' => 'Non autorisé à supprimer cette demande'
                 ], 403);
             }
- 
+
             // Optionnel: Supprimer le fichier CNI
             // if ($naissance->CNI) {
-            //    Storage::disk('public')->delete($naissance->CNI);
+            //     Storage::disk('public')->delete($naissance->CNI);
             // }
- 
+
             $naissance->delete();
- 
+
             return response()->json([
                 'success' => true,
                 'message' => 'Demande de naissance supprimée avec succès' // ✅ Message Naissance
             ]);
- 
+
         } catch (\Exception $e) {
             Log::error('Erreur DemandeNaissanceController@destroy: ' . $e->getMessage());
             return response()->json([
