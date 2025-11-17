@@ -12,6 +12,8 @@ use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Illuminate\Support\Facades\Storage;
 use PDF;
+use Illuminate\Support\Facades\Http; // <-- AJOUT
+use Illuminate\Support\Facades\Log;  // <-- AJOUT
 
 class AgentNaissanceController extends Controller
 {
@@ -23,9 +25,9 @@ class AgentNaissanceController extends Controller
             ->where('agent_id', $admin->id)
             ->where(function($query) {
                 $query->whereNull('statut_livraison')
-                      ->orWhere('statut_livraison', '!=', 'livré');
+                        ->orWhere('statut_livraison', '!=', 'livré');
             })
-            ->where('etat', '!=', 'rejetée') // <-- MODIFICATION AJOUTÉE ICI
+            ->where('etat', '!=', 'rejetée')
             ->with('user')
             ->paginate(10);
 
@@ -40,8 +42,6 @@ class AgentNaissanceController extends Controller
         // Récupérer le statut diaspora de l'utilisateur
         $isDiaspora = $naissance->user->diaspora ?? false;
 
-        // Les états possibles à afficher dans le formulaire
-        // <-- MODIFIÉ -->
         $etats = ['en attente', 'réçu', 'terminé', 'rejetée'];
 
         return view('agent.extraits.naissances.edit_etat', compact('naissance', 'etats', 'isDiaspora'));
@@ -49,10 +49,10 @@ class AgentNaissanceController extends Controller
 
    public function updateEtat(Request $request, $id)
     {
-        $naissance = Naissance::findOrFail($id);
+        // <-- MODIFIÉ : Chargement de l'utilisateur avec la demande
+        $naissance = Naissance::with('user')->findOrFail($id);
         
         // Validation de l'état
-        // <-- MODIFIÉ -->
         $request->validate([
             'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
             'livraison_id' => 'nullable|exists:postes,id',
@@ -62,7 +62,6 @@ class AgentNaissanceController extends Controller
         // Mise à jour de l'état
         $naissance->etat = $request->etat;
         
-        // <-- NOUVELLE LOGIQUE AJOUTÉE -->
         if ($naissance->etat === 'rejetée') {
             $naissance->motif_de_rejet = $request->motif_de_rejet;
             
@@ -100,6 +99,47 @@ class AgentNaissanceController extends Controller
         }
         
         $naissance->save();
+        
+        // =================================================================
+        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+        // =================================================================
+        $user = $naissance->user;
+        
+        if ($user && !empty($user->push_notification)) {
+            $title = '';
+            $body = '';
+            $data = []; 
+
+            switch ($naissance->etat) {
+                case 'réçu':
+                    $title = 'Demande reçue';
+                    $body = 'Votre demande d\'extrait de naissance est bien reçue et en cours de traitement.';
+                    $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
+                    break;
+                
+                case 'terminé':
+                    $title = 'Demande terminée';
+                    $body = 'Votre demande d\'extrait de naissance a été traitée et est maintenant terminée.';
+                    if ($naissance->livraison_code) {
+                         $body .= ' Votre code de livraison est : ' . $naissance->livraison_code;
+                    }
+                    $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
+                    break;
+                
+                case 'rejetée':
+                    $title = 'Demande rejetée';
+                    $body = 'Votre demande d\'extrait de naissance a été rejetée. Motif : ' . ($naissance->motif_de_rejet ?? 'Non spécifié');
+                    $data = ['url' => 'plateauapps://echec?reference=' . $naissance->reference];
+                    break;
+            }
+
+            if (!empty($title) && !empty($body)) {
+                $this->sendPushNotification($user->push_notification, $title, $body, $data);
+            }
+        }
+        // =================================================================
+        // FIN DU BLOC DE NOTIFICATION
+        // =================================================================
         
         // Redirection en fonction de l'état
         if ($naissance->etat === 'terminé') {
@@ -173,5 +213,42 @@ class AgentNaissanceController extends Controller
             ->setOption('isRemoteEnabled', true);
         
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
+    }
+
+    // =================================================================
+    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
+    // =================================================================
+    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
+    {
+        if (empty($userToken)) {
+            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
+            return;
+        }
+
+        $payload = [
+            'to' => $userToken,
+            'sound' => 'default',
+            'title' => $title,
+            'body' => $body,
+            'data' => (object) $data,
+        ];
+
+        try {
+            $response = Http::withoutVerifying() 
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate',
+            ])->post('https://exp.host/--/api/v2/push/send', $payload);
+
+            if ($response->failed()) {
+                Log::error('Échec envoi notification Expo: ' . $response->body());
+            } else {
+                Log::info('Notification Expo envoyée: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
+        }
     }
 }

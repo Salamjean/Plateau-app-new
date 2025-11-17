@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api\Authenticate;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\JsonResponse; // <-- AJOUTEZ CET IMPORT
+use Illuminate\Http\JsonResponse; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log; // <-- AJOUTEZ CET IMPORT
-use Illuminate\Support\Facades\Storage; // <-- AJOUTEZ CET IMPORT
+use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Storage; 
 use Illuminate\Support\Facades\Validator;
 
 class UserLoginController extends Controller
@@ -16,13 +16,15 @@ class UserLoginController extends Controller
     /**
      * Gère la connexion d'un utilisateur via l'API.
      */
-    public function login(Request $request): JsonResponse // <-- JsonResponse vient de Illuminate\Http\JsonResponse
+    public function login(Request $request): JsonResponse
     {
         try {
             // Validation des données
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email',
                 'password' => 'required|string',
+                // <-- NOUVEAU : On accepte le token de l'app mobile
+                'push_notification' => 'nullable|string|max:255', 
             ]);
 
             if ($validator->fails()) {
@@ -44,6 +46,22 @@ class UserLoginController extends Controller
                 ], 401);
             }
 
+            // =================================================================
+            // <-- NOUVEAU : ENREGISTREMENT DU TOKEN PUSH
+            // =================================================================
+            // Si l'application mobile envoie un token de notification,
+            // on le met à jour pour cet utilisateur.
+            // L'ancien token (si d'un autre appareil) sera écrasé.
+            if ($request->filled('push_notification')) {
+                if ($user->push_notification !== $request->push_notification) {
+                    $user->push_notification = $request->push_notification;
+                    $user->save();
+                }
+            }
+            // =================================================================
+            // FIN DU BLOC AJOUTÉ
+            // =================================================================
+
             // Création du token Sanctum
             $token = $user->createToken('user-api-token')->plainTextToken;
 
@@ -60,6 +78,8 @@ class UserLoginController extends Controller
                         'contact' => $user->contact,
                         'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
                         'diaspora' => $user->diaspora,
+                        // On retourne le token push pour confirmation (optionnel)
+                        'push_notification' => $user->push_notification, 
                     ],
                     'token' => $token,
                     'token_type' => 'Bearer'
@@ -80,12 +100,23 @@ class UserLoginController extends Controller
     /**
      * Déconnexion de l'utilisateur
      */
-    public function logout(): JsonResponse
+    public function logout(Request $request): JsonResponse // <-- MODIFIÉ : Ajout de Request
     {
         try {
-            // Suppression de tous les tokens de l'utilisateur
-            auth()->user()->tokens()->delete();
+            // Récupérer l'utilisateur authentifié
+            $user = $request->user();
 
+            // Suppression de tous les tokens d'API
+            $user->tokens()->delete();
+
+            // <-- AJOUT : Supprimer aussi le token de notification push
+            // Puisque votre fonction déconnecte tous les appareils,
+            // il est logique de désactiver aussi les notifications push.
+            if ($user->push_notification) {
+                $user->push_notification = null;
+                $user->save();
+            }
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Déconnexion réussie.'

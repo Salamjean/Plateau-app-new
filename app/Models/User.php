@@ -31,6 +31,7 @@ class User extends Authenticatable
         'pays_residence', // AJOUTEZ CE CHAMP
         'ville_residence', // AJOUTEZ CE CHAMP
         'adresse_etrangere', // AJOUTEZ CE CHAMP
+        'push_notification',
     ];
 
     /**

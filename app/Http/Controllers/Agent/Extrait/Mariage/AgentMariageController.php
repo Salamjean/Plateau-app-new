@@ -12,6 +12,8 @@ use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Illuminate\Support\Facades\Storage;
 use PDF;
+use Illuminate\Support\Facades\Http; // <-- AJOUT
+use Illuminate\Support\Facades\Log;  // <-- AJOUT
 
 class AgentMariageController extends Controller
 {
@@ -24,10 +26,10 @@ class AgentMariageController extends Controller
         $query = Mariage::where('commune', $admin->communeM)
             ->where(function($query) {
                 $query->whereNull('statut_livraison')
-                      ->orWhere('statut_livraison', '!=', 'livré');
+                        ->orWhere('statut_livraison', '!=', 'livré');
             })
             ->where('agent_id', $admin->id)
-            ->where('etat', '!=', 'rejetée') // <-- MODIFICATION AJOUTÉE ICI
+            ->where('etat', '!=', 'rejetée') 
             ->with('user'); // Ajout de la récupération de la relation 'user'
 
         // Vérifier le type de recherche et appliquer le filtre
@@ -64,8 +66,6 @@ class AgentMariageController extends Controller
         // Récupérer le statut diaspora de l'utilisateur
         $isDiaspora = $mariage->user->diaspora ?? false;
 
-        // Les états possibles à afficher dans le formulaire
-        // <-- MODIFIÉ -->
         $etats = ['en attente', 'réçu', 'terminé', 'rejetée'];
 
         return view('agent.extraits.mariages.edit', compact('mariage', 'etats', 'isDiaspora'));
@@ -73,10 +73,10 @@ class AgentMariageController extends Controller
 
     public function updateEtat(Request $request, $id)
     {
-        $mariage = Mariage::findOrFail($id);
+        // <-- MODIFIÉ : Chargement de l'utilisateur avec la demande
+        $mariage = Mariage::with('user')->findOrFail($id);
         
         // Validation de l'état
-        // <-- MODIFIÉ -->
         $request->validate([
             'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
             'livraison_id' => 'nullable|exists:postes,id',
@@ -86,7 +86,6 @@ class AgentMariageController extends Controller
         // Mise à jour de l'état
         $mariage->etat = $request->etat;
         
-        // <-- NOUVELLE LOGIQUE AJOUTÉE -->
         if ($mariage->etat === 'rejetée') {
             $mariage->motif_de_rejet = $request->motif_de_rejet;
             
@@ -124,6 +123,47 @@ class AgentMariageController extends Controller
         }
         
         $mariage->save();
+        
+        // =================================================================
+        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+        // =================================================================
+        $user = $mariage->user;
+        
+        if ($user && !empty($user->push_notification)) {
+            $title = '';
+            $body = '';
+            $data = []; 
+
+            switch ($mariage->etat) {
+                case 'réçu':
+                    $title = 'Demande reçue';
+                    $body = 'Votre demande d\'extrait de mariage est bien reçue et en cours de traitement.';
+                    $data = ['url' => 'plateauapps://demande?reference=' . $mariage->reference];
+                    break;
+                
+                case 'terminé':
+                    $title = 'Demande terminée';
+                    $body = 'Votre demande d\'extrait de mariage a été traitée et est maintenant terminée.';
+                    if ($mariage->livraison_code) {
+                         $body .= ' Votre code de livraison est : ' . $mariage->livraison_code;
+                    }
+                    $data = ['url' => 'plateauapps://demande?reference=' . $mariage->reference];
+                    break;
+                
+                case 'rejetée':
+                    $title = 'Demande rejetée';
+                    $body = 'Votre demande d\'extrait de mariage a été rejetée. Motif : ' . ($mariage->motif_de_rejet ?? 'Non spécifié');
+                    $data = ['url' => 'plateauapps://echec?reference=' . $mariage->reference];
+                    break;
+            }
+
+            if (!empty($title) && !empty($body)) {
+                $this->sendPushNotification($user->push_notification, $title, $body, $data);
+            }
+        }
+        // =================================================================
+        // FIN DU BLOC DE NOTIFICATION
+        // =================================================================
         
         // Redirection en fonction de l'état
         if ($mariage->etat === 'terminé') {
@@ -197,5 +237,42 @@ class AgentMariageController extends Controller
             ->setOption('isRemoteEnabled', true);
         
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
+    }
+    
+    // =================================================================
+    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
+    // =================================================================
+    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
+    {
+        if (empty($userToken)) {
+            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
+            return;
+        }
+
+        $payload = [
+            'to' => $userToken,
+            'sound' => 'default',
+            'title' => $title,
+            'body' => $body,
+            'data' => (object) $data,
+        ];
+
+        try {
+            $response = Http::withoutVerifying() 
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate',
+            ])->post('https://exp.host/--/api/v2/push/send', $payload);
+
+            if ($response->failed()) {
+                Log::error('Échec envoi notification Expo: ' . $response->body());
+            } else {
+                Log::info('Notification Expo envoyée: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
+        }
     }
 }

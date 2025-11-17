@@ -12,20 +12,23 @@ use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use PDF;
+use Illuminate\Support\Facades\Http; 
+use Illuminate\Support\Facades\Log;  
 
 class AgentDecesController extends Controller
 {
     public function index(Request $request)
     {
+        // ... (votre code index inchangé)
         $admin = Auth::guard('agent')->user();
 
         $decesQuery = Deces::where('commune', $admin->communeM)
             ->where('agent_id', $admin->id)
             ->where(function($query) {
                 $query->whereNull('statut_livraison')
-                      ->orWhere('statut_livraison', '!=', 'livré');
+                        ->orWhere('statut_livraison', '!=', 'livré');
             })
-            ->where('etat', '!=', 'rejetée') // <-- MODIFICATION AJOUTÉE ICI
+            ->where('etat', '!=', 'rejetée')
             ->with('user');
 
         if ($request->filled('searchType') && $request->filled('searchInput')) {
@@ -40,156 +43,206 @@ class AgentDecesController extends Controller
         return view('agent.extraits.deces.deces', compact('deces'));
     }
 
-   // ... (Le reste de votre contrôleur : edit, updateEtat, etc. reste inchangé) ...
-   // Deces edit 
+    // ...
+    // Deces edit 
     public function edit($id)
-     {
-          
+    {
+        // ... (votre code edit inchangé)
         $deces = Deces::findOrFail($id);
-        
-        // Récupérer le statut diaspora de l'utilisateur
         $isDiaspora = $deces->user->diaspora ?? false;
-
-        // Les états possibles à afficher dans le formulaire
-        // AJOUT de 'rejetée'
         $etats = ['en attente', 'réçu', 'terminé', 'rejetée']; 
-
         return view('agent.extraits.deces.edit_etat', compact('deces', 'etats', 'isDiaspora'));
-     }
+    }
 
-     public function updateEtat(Request $request, $id)
-     {
-         $deces = Deces::findOrFail($id);
-         
-         // Validation de l'état
-         $request->validate([
-             // AJOUT de 'rejetée' à la règle 'in'
-             'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
-             'livraison_id' => 'nullable|exists:postes,id',
-             // AJOUT de la validation pour le motif (requis si l'état est 'rejetée')
-             'motif_de_rejet' => 'required_if:etat,rejetée|string|nullable',
-         ]);
+    public function updateEtat(Request $request, $id)
+    {
+        // On charge la demande AVEC l'utilisateur associé
+        $deces = Deces::with('user')->findOrFail($id); 
+        
+        // Validation de l'état
+        $request->validate([
+            'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
+            'livraison_id' => 'nullable|exists:postes,id',
+            'motif_de_rejet' => 'required_if:etat,rejetée|string|nullable',
+        ]);
 
-         // Mise à jour de l'état
-         $deces->etat = $request->etat;
-         
-         // NOUVELLE LOGIQUE POUR 'rejetée'
-         if ($deces->etat === 'rejetée') {
-             $deces->motif_de_rejet = $request->motif_de_rejet;
-             
-             // On s'assure d'annuler toute livraison si la demande est rejetée
-             $deces->statut_livraison = null;
-             $deces->livraison_code = null;
-             $deces->qr_code_path = null;
-             $deces->livraison_id = null;
-             $deces->dhl_id = null;
-             $deces->livreur_id = null;
+        // Mise à jour de l'état
+        $deces->etat = $request->etat;
+        
+        // ... (toute votre logique if/elseif/else pour 'rejetée', 'terminé', etc. reste inchangée)
+        if ($deces->etat === 'rejetée') {
+            $deces->motif_de_rejet = $request->motif_de_rejet;
+            $deces->statut_livraison = null;
+            $deces->livraison_code = null;
+            $deces->qr_code_path = null;
+            $deces->livraison_id = null;
+            $deces->dhl_id = null;
+            $deces->livreur_id = null;
+        } elseif ($deces->etat === 'terminé' && $deces->choix_option === 'livraison' && is_null($deces->livraison_code)) {
+            $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
+            while (Deces::where('livraison_code', $livraisonCode)->exists()) {
+                $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
+            }
+            $qrCodePath = $this->generateQrCode($livraisonCode);
+            $deces->statut_livraison = 'en attente';
+            $deces->livraison_code = $livraisonCode;
+            $deces->qr_code_path = $qrCodePath; 
+            $deces->livraison_id = 1;
+            $deces->dhl_id = null; 
+            $deces->motif_de_rejet = null;
+        } else {
+            $deces->motif_de_rejet = null;
+        }
+        
+        $deces->save();
+        
+        // =================================================================
+        // BLOC D'ENVOI DE NOTIFICATION PUSH
+        // =================================================================
+        $user = $deces->user;
+        
+        // Vérifier si l'utilisateur existe et s'il a un token de notification
+        if ($user && !empty($user->push_notification)) {
+            $title = '';
+            $body = '';
+            $data = []; // <-- NOUVEAU : Initialisation de $data
 
-         } elseif ($deces->etat === 'terminé' && $deces->choix_option === 'livraison' && is_null($deces->livraison_code)) {
-             // (Logique existante pour 'terminé'...)
-             
-             // Générer un code de livraison unique
-             $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
+            // La ligne '$data = [...]' qui était ici a été SUPPRIMÉE.
 
-             // Vérifier que le code est unique
-             while (Deces::where('livraison_code', $livraisonCode)->exists()) {
-                 $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
-             }
+            switch ($deces->etat) {
+                case 'réçu':
+                    $title = 'Demande reçue';
+                    $body = 'Votre demande est bien reçue par la mairie et est en cours de traitement.';
+                    // <-- NOUVEAU : Lien pour 'réçu'
+                    $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
+                    break;
+                
+                case 'terminé':
+                    $title = 'Demande terminée';
+                    $body = 'Votre demande d\'extrait de décès a été traitée et est maintenant terminée.';
+                    if ($deces->livraison_code) {
+                         $body .= ' Votre code de livraison est : ' . $deces->livraison_code;
+                    }
+                    // <-- NOUVEAU : Lien pour 'terminé'
+                    $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
+                    break;
+                
+                case 'rejetée':
+                    $title = 'Demande rejetée';
+                    $body = 'Votre demande a été rejetée. Motif : ' . ($deces->motif_de_rejet ?? 'Non spécifié');
+                    // <-- NOUVEAU : Lien pour 'rejetée'
+                    $data = ['url' => 'plateauapps://echec?reference=' . $deces->reference];
+                    break;
+            }
 
-             // Générer le code QR
-             $qrCodePath = $this->generateQrCode($livraisonCode);
-
-             // Mettre à jour le statut de livraison, le code et le chemin du QR code
-             $deces->statut_livraison = 'en attente';
-             $deces->livraison_code = $livraisonCode;
-             $deces->qr_code_path = $qrCodePath; 
-             $deces->livraison_id = 1;
-             $deces->dhl_id = null; 
-
-             // On s'assure que le motif de rejet est vidé si on termine
-             $deces->motif_de_rejet = null;
-
-         } else {
-              // Pour 'en attente' ou 'réçu', on vide aussi le motif
-              $deces->motif_de_rejet = null;
-         }
-         
-         $deces->save();
-         
-         // Redirection en fonction de l'état
-         if ($deces->etat === 'terminé') {
-             return redirect()->route('agent.demandes.deces.index')
-                 ->with('success', 'État mis à jour avec succès' .
-                     ($deces->choix_option === 'livraison' ? ' et livraison initiée (Code: ' . $deces->livraison_code . ')' : ''));
-         
-         // AJOUT d'une redirection simple pour les autres cas
-         } else {
-             return redirect()->route('agent.demandes.deces.index')
-                 ->with('success', 'État mis à jour avec succès');
-         }
-     }
-     
-     private function generateQrCode($livraisonCode)
-     {
-         $qrCode = new QrCode($livraisonCode);
-         $qrCode->setSize(300);
-         $qrCode->setMargin(10);
-         $qrCode->setErrorCorrectionLevel(ErrorCorrectionLevel::High);
-         
-         $writer = new PngWriter();
-         $result = $writer->write($qrCode);
-         
-         $fileName = 'qrcodes/' . $livraisonCode . '.png';
-         Storage::disk('public')->put($fileName, $result->getString());
-         
-         return $fileName;
-     }
+            // Si un titre et un corps ont été définis (donc pour 'réçu', 'terminé', 'rejetée')
+            if (!empty($title) && !empty($body)) {
+                $this->sendPushNotification($user->push_notification, $title, $body, $data);
+            }
+        }
+        // =================================================================
+        // FIN DU BLOC DE NOTIFICATION
+        // =================================================================
+        
+        // ... (votre code de redirection inchangé)
+        if ($deces->etat === 'terminé') {
+            return redirect()->route('agent.demandes.deces.index')
+                ->with('success', 'État mis à jour avec succès' .
+                    ($deces->choix_option === 'livraison' ? ' et livraison initiée (Code: ' . $deces->livraison_code . ')' : ''));
+        
+        } else {
+            return redirect()->route('agent.demandes.deces.index')
+                ->with('success', 'État mis à jour avec succès');
+        }
+    }
+    
+    private function generateQrCode($livraisonCode)
+    {
+        // ... (votre code inchangé)
+        $qrCode = new QrCode($livraisonCode);
+        $qrCode->setSize(300);
+        $qrCode->setMargin(10);
+        $qrCode->setErrorCorrectionLevel(ErrorCorrectionLevel::High);
+        $writer = new PngWriter();
+        $result = $writer->write($qrCode);
+        $fileName = 'qrcodes/' . $livraisonCode . '.png';
+        Storage::disk('public')->put($fileName, $result->getString());
+        return $fileName;
+    }
 
 
-     public function markAsDeliveredDeces(Request $request, $id)
-     {
-         // Valider la requête
-         $validator = Validator::make($request->all(), [
-             'statut_livraison' => 'required|string|in:livré',
-             'reference' => 'required|string|max:255',
-         ]);
+    public function markAsDeliveredDeces(Request $request, $id)
+    {
+        // ... (votre code inchangé)
+        $validator = Validator::make($request->all(), [
+            'statut_livraison' => 'required|string|in:livré',
+            'reference' => 'required|string|max:255',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+        $deces = Deces::find($id);
+        if (!$deces) {
+            return response()->json(['error' => 'Demande non trouvée'], 404);
+        }
+        if ($deces->reference !== $request->reference) {
+            return response()->json(['error' => 'Référence incorrecte'], 400);
+        }
+        $deces->statut_livraison = $request->statut_livraison;
+        $deces->save();
+        return response()->json(['success' => 'La demande a été marquée comme livrée.']);
+    }
 
-         if ($validator->fails()) {
-             return response()->json(['error' => $validator->errors()], 422);
-         }
+    public function downloadDeliveryInfo($id)
+    {
+        // ... (votre code inchangé)
+        $naissance = Deces::with(['user'])->findOrFail($id);
+        $data = [
+            'naissance' => $naissance,
+            'livraison' => $naissance->livraison,
+            'date' => now()->format('d/m/Y'),
+        ];
+        $pdf = PDF::loadView('agent.pdf.delivery-info-deces', $data)
+            ->setPaper('a6', 'landscape')
+            ->setOption('isRemoteEnabled', true);
+        return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
+    }
 
-         // Trouver la demande par ID
-         $deces = Deces::find($id);
-         if (!$deces) {
-             return response()->json(['error' => 'Demande non trouvée'], 404);
-         }
 
-         // Vérifier si la référence est correcte
-         if ($deces->reference !== $request->reference) {
-             return response()->json(['error' => 'Référence incorrecte'], 400);
-         }
+    // =================================================================
+    // FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION (INCHANGÉE)
+    // =================================================================
+    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
+    {
+        if (empty($userToken)) {
+            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
+            return;
+        }
 
-         // Mettre à jour le statut de livraison
-         $deces->statut_livraison = $request->statut_livraison;
-         $deces->save();
+        $payload = [
+            'to' => $userToken,
+            'sound' => 'default',
+            'title' => $title,
+            'body' => $body,
+            'data' => (object) $data, // Ceci enverra la bonne URL en fonction de l'état
+        ];
 
-         return response()->json(['success' => 'La demande a été marquée comme livrée.']);
-     }
+        try {
+            $response = Http::withoutVerifying() 
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate',
+            ])->post('https://exp.host/--/api/v2/push/send', $payload);
 
-     public function downloadDeliveryInfo($id)
-     {
-         $naissance = Deces::with(['user'])->findOrFail($id);
-         
-         $data = [
-             'naissance' => $naissance,
-             'livraison' => $naissance->livraison,
-             'date' => now()->format('d/m/Y'),
-         ];
-         
-         $pdf = PDF::loadView('agent.pdf.delivery-info-deces', $data)
-             ->setPaper('a6', 'landscape')
-             ->setOption('isRemoteEnabled', true);
-         
-         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
-     }
+            if ($response->failed()) {
+                Log::error('Échec envoi notification Expo: ' . $response->body());
+            } else {
+                Log::info('Notification Expo envoyée: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception lors de l\'envoi de notification Expo: ' . $e->getMessage());
+        }
+    }
 }
