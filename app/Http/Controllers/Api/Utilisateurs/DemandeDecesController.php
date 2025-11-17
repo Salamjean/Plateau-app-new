@@ -389,7 +389,58 @@ class DemandeDecesController extends Controller
         }
     }
 
+    public function relancerDemande(Request $request, Deces $deces): JsonResponse
+    {
+        try {
+            $user = Auth::user();
 
+            // 1. Vérifier l'autorisation
+            if ($deces->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier l'état
+            if ($deces->etat !== 'rejetée') {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cette demande ne peut pas être relancée (état actuel: ' . $deces->etat . ')'
+                ], 400);
+            }
+
+            // 3. Mettre à jour l'état
+            $deces->etat = 'en attente';
+            
+            if ($deces->choix_option === 'livraison') {
+                $deces->statut_livraison = 'en attente'; 
+            } else {
+                $deces->statut_livraison = null;
+            }
+
+            // --- MISE À JOUR DEMANDÉE ---
+            // Force la date de création à être la date actuelle.
+            // Le updated_at sera aussi mis à jour automatiquement.
+            $deces->created_at = now(); 
+            // --- FIN DE L'AJOUT ---
+            
+            $deces->save();
+
+            // 4. Succès ! Construire la réponse
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande relancée avec succès. Elle est maintenant "en attente".',
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($deces)
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeDecesController@relancerDemande: ' . $e->getMessage(), ['deces_id' => $deces->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur interne lors de la relance de la demande: ' . $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * Helper pour formater la réponse de la demande
      */

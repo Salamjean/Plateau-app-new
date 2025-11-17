@@ -370,6 +370,56 @@ class DemandeMariageController extends Controller
             ], 500);
         }
     }
+    public function relancerDemande(Request $request, Mariage $mariage): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($mariage->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier l'état
+            if ($mariage->etat !== 'rejetée') {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cette demande ne peut pas être relancée (état actuel: ' . $mariage->etat . ')'
+                ], 400);
+            }
+
+            // 3. Mettre à jour l'état
+            $mariage->etat = 'en attente';
+            
+            if ($mariage->choix_option === 'livraison') {
+                $mariage->statut_livraison = 'en attente'; 
+            } else {
+                $mariage->statut_livraison = null;
+            }
+
+            // --- MISE À JOUR DEMANDÉE ---
+            // Force la date de création à être la date actuelle.
+            $mariage->created_at = now(); 
+            
+            $mariage->save();
+
+            // 4. Succès !
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande relancée avec succès. Elle est maintenant "en attente".',
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($mariage)
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeMariageController@relancerDemande: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur interne lors de la relance de la demande: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Helper pour formater la réponse de la demande (Spécifique au Mariage)

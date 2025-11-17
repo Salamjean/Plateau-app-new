@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http; // <-- AJOUT
 
 class LivraisonExtraitController extends Controller
 {
@@ -86,10 +87,10 @@ class LivraisonExtraitController extends Controller
             
             // Recherche dans les deux champs (reference ET livraison_code)
             $demande = $classeModele::where(function($query) use ($code) {
-                            $query->where('reference', $code)
-                                ->orWhere('livraison_code', $code);
-                        })
-                        ->first();
+                                $query->where('reference', $code)
+                                      ->orWhere('livraison_code', $code);
+                            })
+                            ->first();
             
             if ($demande) {
                 return $demande;
@@ -175,10 +176,11 @@ class LivraisonExtraitController extends Controller
     {
         $types = [
             'Naissance' => 'Naissance',
-            'Deces' => 'Deces',
+            'Deces' => 'Décès',
             'Mariage' => 'Mariage'
         ];
         
+        // Correction : "Décès" pour être propre
         return $types[$modele] ?? 'Demande';
     }
 
@@ -194,11 +196,34 @@ class LivraisonExtraitController extends Controller
                 $modelClass = "App\\Models\\" . Str::studly($demande['type']);
                 
                 if (class_exists($modelClass)) {
-                    $modelClass::where('id', $demande['id'])
-                        ->update([
-                            'livreur_id' => $request->livreur_id,
-                            'statut_livraison' => 'en cours'
-                        ]);
+                    // <-- MODIFICATION : On ne fait pas un 'update' groupé, on 'find'
+                    $item = $modelClass::find($demande['id']);
+                    
+                    // On vérifie que la demande existe ET qu'elle est bien 'terminé'
+                    if ($item && $item->etat === 'terminé') {
+                        // On met à jour les champs et on sauvegarde
+                        $item->livreur_id = $request->livreur_id;
+                        $item->statut_livraison = 'en cours'; // Le statut est mis à jour ici
+                        $item->save();
+
+                        // =================================================================
+                        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+                        // =================================================================
+                        $item->load('user');
+                        $user = $item->user;
+
+                        if ($user && !empty($user->push_notification)) {
+                            $title = 'Demande en cours de livraison';
+                            $modelName = strtolower($this->getTypeDemande($demande['type'])); // "naissance", "décès"...
+                            $body = "Votre demande de {$modelName} ({$item->reference}) a été confiée à un livreur et est en route.";
+                            $data = ['url' => 'plateauapps://demande?reference=' . $item->reference];
+                            
+                            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+                        }
+                        // =================================================================
+                        // FIN DU BLOC DE NOTIFICATION
+                        // =================================================================
+                    }
                 }
             }
 
@@ -214,5 +239,41 @@ class LivraisonExtraitController extends Controller
             ], 500);
         }
     }
-}
 
+    // =================================================================
+    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
+    // =================================================================
+    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
+    {
+        if (empty($userToken)) {
+            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
+            return;
+        }
+
+        $payload = [
+            'to' => $userToken,
+            'sound' => 'default',
+            'title' => $title,
+            'body' => $body,
+            'data' => (object) $data,
+        ];
+
+        try {
+            $response = Http::withoutVerifying() // Utilise la solution pour localhost
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate',
+            ])->post('https://exp.host/--/api/v2/push/send', $payload);
+
+            if ($response->failed()) {
+                Log::error('Échec envoi notification Expo: ' . $response->body());
+            } else {
+                Log::info('Notification Expo envoyée: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
+        }
+    }
+}

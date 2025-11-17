@@ -7,6 +7,8 @@ use App\Models\Livreur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http; // <-- AJOUT
+use Illuminate\Support\Facades\Log;  // <-- AJOUT
 
 class LivraisonDelivery extends Controller
 {
@@ -80,11 +82,11 @@ class LivraisonDelivery extends Controller
         return view('livreur.livraison.demandes_livre', compact('demandes','livreurs'));
     }
 
-     private function getTypeDemande($modele)
+    private function getTypeDemande($modele)
     {
         $types = [
             'Naissance' => 'Naissance',
-            'Deces' => 'Deces',
+            'Deces' => 'Décès', // Correction
             'Mariage' => 'Mariage'
         ];
         
@@ -101,6 +103,7 @@ class LivraisonDelivery extends Controller
         $request->validate([
             'reference' => 'required|string|max:255',
             'demande_id' => 'required|integer',
+            'demande_type' => 'required|string', // Assurez-vous que le type est envoyé
         ]);
 
         try {
@@ -111,26 +114,48 @@ class LivraisonDelivery extends Controller
             }
 
             $demande = $modelClass::where('id', $request->demande_id)
-                        ->where('reference', $request->reference)
-                        ->where('statut_livraison', 'en cours')
-                        ->firstOrFail();
+                                ->where('reference', $request->reference)
+                                ->where('statut_livraison', 'en cours')
+                                ->firstOrFail();
+
+            // L'état 'terminé' est requis pour que 'statut_livraison' soit 'en cours',
+            // donc la condition est remplie.
 
             // Mise à jour avec la date et heure actuelle
-            $demande->update([
-                'statut_livraison' => 'livré',
-                'livreur_id' => Auth::guard('livreur')->user()->id, // Si besoin d'enregistrer le livreur qui a fait la livraison
-            ]);
+            $demande->statut_livraison = 'livré';
+            $demande->livreur_id = Auth::guard('livreur')->user()->id;
+            $demande->save(); // On utilise save() au lieu de update() pour garder l'objet
 
-           return response()->json([
+            // =================================================================
+            // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+            // =================================================================
+            $demande->load('user');
+            $user = $demande->user;
+
+            if ($user && !empty($user->push_notification)) {
+                $title = 'Demande Livrée';
+                $modelName = strtolower($this->getTypeDemande(Str::studly($request->demande_type)));
+                $body = "Votre acte demande de {$modelName} ({$demande->reference}) a été livrée avec succès.";
+                $data = ['url' => 'plateauapps://demande?reference=' . $demande->reference];
+                
+                $this->sendPushNotification($user->push_notification, $title, $body, $data);
+            }
+            // =================================================================
+            // FIN DU BLOC DE NOTIFICATION
+            // =================================================================
+
+            return response()->json([
                 'success' => true,
                 'message' => 'Livraison confirmée avec succès',
                 'redirect' => route('livreur.livree') // URL de la page de confirmation
             ]);
 
         } catch (\Exception $e) {
-            return back()
-                ->withInput()
-                ->with('error', 'Erreur: '.$e->getMessage());
+            // <-- MODIFIÉ : Retourner une réponse JSON en cas d'erreur
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 422); // 422 Unprocessable Entity ou 404 Not Found
         }
     }
 
@@ -147,15 +172,15 @@ class LivraisonDelivery extends Controller
         foreach ($models as $model) {
             $class = "App\\Models\\$model";
             $demande = $class::where('reference', $request->reference)
-                        ->where('statut_livraison', 'en cours')
-                        ->first();
+                            ->where('statut_livraison', 'en cours')
+                            ->first();
 
             if ($demande) {
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'id' => $demande->id,
-                        'type' => Str::slug($model),
+                        'type' => Str::slug($model), // 'naissance', 'deces', 'mariage'
                         'destinataire' => $demande->nom_destinataire . ' ' . $demande->prenom_destinataire,
                         'contact' => $demande->contact_destinataire,
                         'adresse' => $demande->adresse_livraison,
@@ -174,5 +199,42 @@ class LivraisonDelivery extends Controller
             'success' => false,
             'message' => 'Aucune demande trouvée avec cette référence ou déjà livrée'
         ], 404);
+    }
+
+    // =================================================================
+    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
+    // =================================================================
+    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
+    {
+        if (empty($userToken)) {
+            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
+            return;
+        }
+
+        $payload = [
+            'to' => $userToken,
+            'sound' => 'default',
+            'title' => $title,
+            'body' => $body,
+            'data' => (object) $data,
+        ];
+
+        try {
+            $response = Http::withoutVerifying() // Utilise la solution pour localhost
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate',
+            ])->post('https://exp.host/--/api/v2/push/send', $payload);
+
+            if ($response->failed()) {
+                Log::error('Échec envoi notification Expo: ' . $response->body());
+            } else {
+                Log::info('Notification Expo envoyée: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
+        }
     }
 }

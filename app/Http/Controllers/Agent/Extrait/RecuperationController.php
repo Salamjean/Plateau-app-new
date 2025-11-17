@@ -8,6 +8,8 @@ use App\Models\Mariage;
 use App\Models\Naissance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http; // <-- AJOUT
+use Illuminate\Support\Facades\Log;  // <-- AJOUT
 
 class RecuperationController extends Controller
 {
@@ -16,7 +18,6 @@ class RecuperationController extends Controller
      */
     private function compterDemandesEnAttente($agentId)
     {
-        // --- MODIFICATION ---
         // Définir les états qui sont considérés comme "finaux"
         $etatsFinaux = ['terminé', 'rejetée'];
 
@@ -53,24 +54,76 @@ class RecuperationController extends Controller
         $demande->etat = 'réçu';
         $demande->save();
 
+        // =================================================================
+        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+        // =================================================================
+        // On recharge la demande pour s'assurer d'avoir la relation 'user'
+        $demande->load('user');
+        $user = $demande->user;
+
+        if ($user && !empty($user->push_notification)) {
+            $title = 'Demande reçue';
+            $body = "Votre demande de {$modelName} est bien reçue par la mairie et est en cours de traitement.";
+            $data = ['url' => 'plateauapps://demande?reference=' . $demande->reference];
+            
+            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+        }
+        // =================================================================
+        // FIN DU BLOC DE NOTIFICATION
+        // =================================================================
+
         return redirect()->route($successRoute)->with('success', "Demande de {$modelName} récupérée avec succès.");
     }
 
     public function RecupererNaissance($id)
     {
-        // --- SIMPLIFICATION ---
-        // La vérification de l'existence se fait dans traiterDemandeGenerique
         return $this->traiterDemandeGenerique(Naissance::class, $id, 'agent.demandes.naissance.index', 'naissance');
     }
 
     public function RecupererDeces($id)
     {
-        // --- SIMPLIFICATION ---
         return $this->traiterDemandeGenerique(Deces::class, $id,'agent.demandes.deces.index' , 'décès');
     }
 
     public function RecupererMariage($id)
     {
         return $this->traiterDemandeGenerique(Mariage::class, $id,'agent.demandes.wedding.index' , 'mariage');
+    }
+
+    // =================================================================
+    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
+    // =================================================================
+    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
+    {
+        if (empty($userToken)) {
+            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
+            return;
+        }
+
+        $payload = [
+            'to' => $userToken,
+            'sound' => 'default',
+            'title' => $title,
+            'body' => $body,
+            'data' => (object) $data,
+        ];
+
+        try {
+            $response = Http::withoutVerifying() // Utilise la solution pour localhost
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate',
+            ])->post('https://exp.host/--/api/v2/push/send', $payload);
+
+            if ($response->failed()) {
+                Log::error('Échec envoi notification Expo: ' . $response->body());
+            } else {
+                Log::info('Notification Expo envoyée: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
+        }
     }
 }

@@ -262,18 +262,34 @@ public function statistiquesParStatut(Request $request)
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
 
+            // --- MODIFICATION (1) : Récupérer le filtre de statut depuis l'URL ---
+            $statutFiltre = $request->input('statut');
+
+            // --- MODIFICATION (2) : Préparer les requêtes de base ---
+            $queryNaissances = Naissance::where('user_id', $user->id);
+            $queryMariages = Mariage::where('user_id', $user->id);
+            $queryDeces = Deces::where('user_id', $user->id);
+
+            // --- MODIFICATION (3) : Appliquer le filtre si il est fourni ---
+            if ($statutFiltre) {
+                // On filtre sur la colonne 'etat' de la base de données
+                $queryNaissances->where('etat', $statutFiltre);
+                $queryMariages->where('etat', $statutFiltre);
+                $queryDeces->where('etat', $statutFiltre);
+            }
+            
+            // --- MODIFICATION (4) : Exécuter les requêtes (maintenant filtrées) ---
+            
             // Naissances
-            $naissances = Naissance::where('user_id', $user->id)
-                ->get()
+            $naissances = $queryNaissances->get() // Utilise la requête préparée
                 ->map(function ($item) {
                     $item->type_demande = 'naissance';
-                    $item->statut = $this->calculerStatut($item);
+                    $item->statut = $this->calculerStatut($item); // Calcule le statut personnalisé
                     return $item;
                 });
 
             // Mariages
-            $mariages = Mariage::where('user_id', $user->id)
-                ->get()
+            $mariages = $queryMariages->get() // Utilise la requête préparée
                 ->map(function ($item) {
                     $item->type_demande = 'mariage';
                     $item->statut = $this->calculerStatut($item);
@@ -281,20 +297,15 @@ public function statistiquesParStatut(Request $request)
                 });
 
             // Décès
-            $deces = Deces::where('user_id', $user->id)
-                ->get()
+            $deces = $queryDeces->get() // Utilise la requête préparée
                 ->map(function ($item) {
                     $item->type_demande = 'deces';
                     $item->statut = $this->calculerStatut($item);
                     return $item;
                 });
 
-                
-    
-            // Fusionner correctement les collections
+            // Le reste de la fonction ne change pas
             $toutesDemandes = $naissances->concat($mariages)->concat($deces);
-            
-            // Trier par created_at descendant
             $demandesTriees = $toutesDemandes->sortByDesc('created_at')->values();
 
             return response()->json([
@@ -307,7 +318,6 @@ public function statistiquesParStatut(Request $request)
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
-
     /**
      * État de suivi d'une demande spécifique
      */

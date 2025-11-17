@@ -65,6 +65,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ROUTES UTILISATEURS AUTHENTIFIÉS
     Route::prefix('utilisateurs')->group(function () {
         
+        // <-- NOUVEAU : ROUTE DE DÉCONNEXION
+        Route::post('/logout', [UserLoginController::class, 'logout']);
+
         Route::get('/user', function (Request $request) {
             return $request->user();
         });
@@ -75,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/', [DemandeNaissanceController::class, 'store']);
             // ✅ NOUVELLE ROUTE AJOUTÉE
             Route::post('/{naissance}/retry-payment', [DemandeNaissanceController::class, 'retryPayment']);
+            Route::post('/{naissance}/relancer', [DemandeNaissanceController::class, 'relancerDemande']);
             Route::delete('/{naissance}', [DemandeNaissanceController::class, 'destroy']);
         });
 
@@ -84,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/', [DemandeMariageController::class, 'store']);
             // ✅ NOUVELLE ROUTE AJOUTÉE
             Route::post('/{mariage}/retry-payment', [DemandeMariageController::class, 'retryPayment']);
+            Route::post('/{mariage}/relancer', [DemandeMariageController::class, 'relancerDemande']);
             Route::delete('/{mariage}', [DemandeMariageController::class, 'destroy']);
         });
 
@@ -92,6 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/', [DemandeDecesController::class, 'index']);
             Route::post('/', [DemandeDecesController::class, 'store']);
             Route::post('/{deces}/retry-payment', [DemandeDecesController::class, 'retryPayment']);
+            Route::post('/{deces}/relancer', [DemandeDecesController::class, 'relancerDemande']);
             Route::delete('/{deces}', [DemandeDecesController::class, 'destroy']);
         });
 

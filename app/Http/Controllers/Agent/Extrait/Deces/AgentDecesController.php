@@ -77,6 +77,7 @@ class AgentDecesController extends Controller
             $deces->qr_code_path = null;
             $deces->livraison_id = null;
             $deces->dhl_id = null;
+            $deces->agent_id = null;
             $deces->livreur_id = null;
         } elseif ($deces->etat === 'terminé' && $deces->choix_option === 'livraison' && is_null($deces->livraison_code)) {
             $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);

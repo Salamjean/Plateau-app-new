@@ -96,7 +96,7 @@ class AgentMariageController extends Controller
             $mariage->livraison_id = null;
             $mariage->dhl_id = null;
             $mariage->livreur_id = null;
-
+            $mariage->agent_id = null;
         } elseif ($mariage->etat === 'terminé' && $mariage->choix_option === 'livraison' && is_null($mariage->livraison_code)) {
             // (Logique existante pour 'terminé'...)
             

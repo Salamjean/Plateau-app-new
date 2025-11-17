@@ -72,7 +72,7 @@ class AgentNaissanceController extends Controller
             $naissance->livraison_id = null;
             $naissance->dhl_id = null;
             $naissance->livreur_id = null;
-
+            $naissance->agent_id = null;
         } elseif ($naissance->etat === 'terminé' && $naissance->choix_option === 'livraison' && is_null($naissance->livraison_code)) {
             // (Logique existante pour 'terminé'...)
             
