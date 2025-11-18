@@ -21,158 +21,164 @@ class StatistiqueController extends Controller
  * Statistiques des demandes par statut pour l'utilisateur connecté
  */
 public function statistiquesParStatut(Request $request)
-    {
-        try {
-            $user = $request->user();
-            
-            if (!$user) {
-                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
-            }
-
-            // --- Statistiques par ÉTAT (etat) ---
-            $statsNaissanceRaw = Naissance::where('user_id', $user->id)
-                ->select('etat', DB::raw('COUNT(*) as count'))
-                ->groupBy('etat')
-                ->get()
-                ->pluck('count', 'etat');
-
-            $statsMariageRaw = Mariage::where('user_id', $user->id)
-                ->select('etat', DB::raw('COUNT(*) as count'))
-                ->groupBy('etat')
-                ->get()
-                ->pluck('count', 'etat');
-
-            $statsDecesRaw = Deces::where('user_id', $user->id)
-                ->select('etat', DB::raw('COUNT(*) as count'))
-                ->groupBy('etat')
-                ->get()
-                ->pluck('count', 'etat');
-
-            // --- DEBUG: Voir les états réels dans la base ---
-            $debugEtats = [
-                'naissance_etats' => Naissance::where('user_id', $user->id)->pluck('etat')->all(),
-                'mariage_etats' => Mariage::where('user_id', $user->id)->pluck('etat')->all(),
-                'deces_etats' => Deces::where('user_id', $user->id)->pluck('etat')->all()
-            ];
-            // Log::info('Debug États:', $debugEtats);
-
-            // --- Définir explicitement les états considérés comme "en cours" ---
-            $statutsEnCours = ['en traitement', 'en cours', 'validé', 'en cours de traitement','réçu','terminé']; // Ajoutez les vôtres
-            
-            // --- Liste des états à exclure des totaux ---
-            $etatsExclus = ['paiement_echoue', 'rejetée']; // <-- MODIFIÉ
-
-            // --- Formatage des statistiques par ÉTAT ---
-            $statsNaissance = [
-                'en cours' => $statsNaissanceRaw->only($statutsEnCours)->sum(),
-                'terminé'  => $statsNaissanceRaw->get('terminé', 0),
-                'en attente' => $statsNaissanceRaw->get('en attente', 0),
-                'paiement_echoue' => $statsNaissanceRaw->get('paiement_echoue', 0),
-                'rejetée' => $statsNaissanceRaw->get('rejetée', 0), // <-- AJOUTÉ
-                // On somme tout SAUF les états exclus
-                'total'    => $statsNaissanceRaw->except($etatsExclus)->sum() // <-- MODIFIÉ
-            ];
-
-            $statsMariage = [
-                'en cours' => $statsMariageRaw->only($statutsEnCours)->sum(),
-                'terminé'  => $statsMariageRaw->get('terminé', 0),
-                'en attente' => $statsMariageRaw->get('en attente', 0),
-                'paiement_echoue' => $statsMariageRaw->get('paiement_echoue', 0),
-                'rejetée' => $statsMariageRaw->get('rejetée', 0), // <-- AJOUTÉ
-                 // On somme tout SAUF les états exclus
-                'total'    => $statsMariageRaw->except($etatsExclus)->sum() // <-- MODIFIÉ
-            ];
-
-            $statsDeces = [
-                'en cours' => $statsDecesRaw->only($statutsEnCours)->sum(),
-                'terminé'  => $statsDecesRaw->get('terminé', 0),
-                'en attente' => $statsDecesRaw->get('en attente', 0),
-                'paiement_echoue' => $statsDecesRaw->get('paiement_echoue', 0),
-                'rejetée' => $statsDecesRaw->get('rejetée', 0), // <-- AJOUTÉ
-                 // On somme tout SAUF les états exclus
-                'total'    => $statsDecesRaw->except($etatsExclus)->sum() // <-- MODIFIÉ
-            ];
-
-            // --- Statistiques par LIVRAISON ---
-            $statsNaissanceLivre = Naissance::where('user_id', $user->id)
-                ->select('statut_livraison', DB::raw('COUNT(*) as count'))
-                ->groupBy('statut_livraison')
-                ->get()
-                ->pluck('count', 'statut_livraison');
-
-            $statsMariageLivre = Mariage::where('user_id', $user->id)
-                ->select('statut_livraison', DB::raw('COUNT(*) as count'))
-                ->groupBy('statut_livraison')
-                ->get()
-                ->pluck('count', 'statut_livraison');
-
-            $statsDecesLivre = Deces::where('user_id', $user->id)
-                ->select('statut_livraison', DB::raw('COUNT(*) as count'))
-                ->groupBy('statut_livraison')
-                ->get()
-                ->pluck('count', 'statut_livraison');
-
-
-            // --- Formatage des statistiques par LIVRAISON ---
-            $statsNaissanceL = [
-                'livré' => $statsNaissanceLivre->get('livré', 0),
-            ];
-
-            $statsMariageL = [
-                'livré' => $statsMariageLivre->get('livré', 0),
-            ];
-
-            $statsDecesL = [
-                'livré' => $statsDecesLivre->get('livré', 0),
-            ];
-
-                    // --- Calcul des TOTAUX agrégés ---
-            $totalTermine = $statsNaissance['terminé'] + $statsMariage['terminé'] + $statsDeces['terminé'];
-
-            // D'ABORD calculer totalLivre
-            $totalLivre = $statsNaissanceL['livré'] + $statsMariageL['livré'] + $statsDecesL['livré'];
-
-            // MODIFICATION : Calculer en_cours en excluant les demandes livrées
-            $totalEnCours = ($statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours']) - $totalLivre;
-            // Assurer que le total ne soit pas négatif
-            $totalEnCours = max(0, $totalEnCours);
-
-            // ENSUITE l'utiliser dans totalGeneral
-            $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total'] + $totalLivre;
-
-            $totalPaiementEchoue = $statsNaissance['paiement_echoue'] + $statsMariage['paiement_echoue'] + $statsDeces['paiement_echoue'];
-            $totalRejetee = $statsNaissance['rejetée'] + $statsMariage['rejetée'] + $statsDeces['rejetée'];
-
-            // --- Réponse JSON ---
-            return response()->json([
-                // Détails par catégorie - ÉTAT
-                'naissance' => $statsNaissance,
-                'mariage'   => $statsMariage,
-                'deces'     => $statsDeces,
-                
-                // Détails par catégorie - LIVRAISON
-                'livraison_naissance' => $statsNaissanceL,
-                'livraison_mariage'   => $statsMariageL,
-                'livraison_deces'     => $statsDecesL,
-                
-                // Totaux agrégés
-                'total_general'     => $totalGeneral,
-                'en_cours'          => $totalEnCours,
-                // 'termine'           => $totalTermine,
-                'total_livre'       => $totalLivre,
-                'paiement_echoue'   => $totalPaiementEchoue,
-                'rejetee'           => $totalRejetee, // <-- AJOUTÉ
-                
-                // Debug (à enlever en production)
-                'debug_etats' => $debugEtats
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Erreur statistiquesParStatut: ' . $e->getMessage());
-            return response()->json(['error' => 'Erreur serveur'], 500);
+{
+    try {
+        $user = $request->user();
+        
+        if (!$user) {
+            return response()->json(['error' => 'Utilisateur non authentifié'], 401);
         }
+
+        // --- Statistiques par ÉTAT (etat) ---
+        $statsNaissanceRaw = Naissance::where('user_id', $user->id)
+            ->select('etat', DB::raw('COUNT(*) as count'))
+            ->groupBy('etat')
+            ->get()
+            ->pluck('count', 'etat');
+
+        $statsMariageRaw = Mariage::where('user_id', $user->id)
+            ->select('etat', DB::raw('COUNT(*) as count'))
+            ->groupBy('etat')
+            ->get()
+            ->pluck('count', 'etat');
+
+        $statsDecesRaw = Deces::where('user_id', $user->id)
+            ->select('etat', DB::raw('COUNT(*) as count'))
+            ->groupBy('etat')
+            ->get()
+            ->pluck('count', 'etat');
+
+        // --- Définir explicitement les états considérés comme "en cours" ---
+        $statutsEnCours = ['en traitement', 'en cours', 'validé', 'en cours de traitement', 'réçu'];
+        
+        // --- MODIFICATION : Ajouter 'en attente de paiement' dans les états exclus ---
+        $etatsExclus = ['paiement_echoue', 'rejetée', 'en attente de paiement'];
+
+        // --- Formatage des statistiques par ÉTAT ---
+        $statsNaissance = [
+            'en cours' => $statsNaissanceRaw->only($statutsEnCours)->sum(),
+            'terminé'  => $statsNaissanceRaw->get('terminé', 0),
+            'en attente' => $statsNaissanceRaw->get('en attente', 0),
+            'paiement_echoue' => $statsNaissanceRaw->get('paiement_echoue', 0),
+            'rejetée' => $statsNaissanceRaw->get('rejetée', 0),
+            'en attente de paiement' => $statsNaissanceRaw->get('en attente de paiement', 0), // Pour information seulement
+            'total'    => $statsNaissanceRaw->except($etatsExclus)->sum()
+        ];
+
+        $statsMariage = [
+            'en cours' => $statsMariageRaw->only($statutsEnCours)->sum(),
+            'terminé'  => $statsMariageRaw->get('terminé', 0),
+            'en attente' => $statsMariageRaw->get('en attente', 0),
+            'paiement_echoue' => $statsMariageRaw->get('paiement_echoue', 0),
+            'rejetée' => $statsMariageRaw->get('rejetée', 0),
+            'en attente de paiement' => $statsMariageRaw->get('en attente de paiement', 0), // Pour information seulement
+            'total'    => $statsMariageRaw->except($etatsExclus)->sum()
+        ];
+
+        $statsDeces = [
+            'en cours' => $statsDecesRaw->only($statutsEnCours)->sum(),
+            'terminé'  => $statsDecesRaw->get('terminé', 0),
+            'en attente' => $statsDecesRaw->get('en attente', 0),
+            'paiement_echoue' => $statsDecesRaw->get('paiement_echoue', 0),
+            'rejetée' => $statsDecesRaw->get('rejetée', 0),
+            'en attente de paiement' => $statsDecesRaw->get('en attente de paiement', 0), // Pour information seulement
+            'total'    => $statsDecesRaw->except($etatsExclus)->sum()
+        ];
+
+        // --- Statistiques par LIVRAISON pour les demandes terminées ---
+        $statsNaissanceLivraison = Naissance::where('user_id', $user->id)
+            ->where('etat', 'terminé')
+            ->select('statut_livraison', DB::raw('COUNT(*) as count'))
+            ->groupBy('statut_livraison')
+            ->get()
+            ->pluck('count', 'statut_livraison');
+
+        $statsMariageLivraison = Mariage::where('user_id', $user->id)
+            ->where('etat', 'terminé')
+            ->select('statut_livraison', DB::raw('COUNT(*) as count'))
+            ->groupBy('statut_livraison')
+            ->get()
+            ->pluck('count', 'statut_livraison');
+
+        $statsDecesLivraison = Deces::where('user_id', $user->id)
+            ->where('etat', 'terminé')
+            ->select('statut_livraison', DB::raw('COUNT(*) as count'))
+            ->groupBy('statut_livraison')
+            ->get()
+            ->pluck('count', 'statut_livraison');
+
+        // --- Formatage des statistiques par LIVRAISON ---
+        $statsNaissanceL = [
+            'en attente' => $statsNaissanceLivraison->get('en attente', 0),
+            'en cours' => $statsNaissanceLivraison->get('en cours', 0),
+            'livré' => $statsNaissanceLivraison->get('livré', 0),
+        ];
+
+        $statsMariageL = [
+            'en attente' => $statsMariageLivraison->get('en attente', 0),
+            'en cours' => $statsMariageLivraison->get('en cours', 0),
+            'livré' => $statsMariageLivraison->get('livré', 0),
+        ];
+
+        $statsDecesL = [
+            'en attente' => $statsDecesLivraison->get('en attente', 0),
+            'en cours' => $statsDecesLivraison->get('en cours', 0),
+            'livré' => $statsDecesLivraison->get('livré', 0),
+        ];
+
+        // --- Calcul des TOTAUX agrégés ---
+        $totalTermine = $statsNaissance['terminé'] + $statsMariage['terminé'] + $statsDeces['terminé'];
+        $totalLivre = $statsNaissanceL['livré'] + $statsMariageL['livré'] + $statsDecesL['livré'];
+
+        // MODIFICATION : Calcul du total des en_cours (sans 'en attente de paiement')
+        $totalEnCours = 
+            // Demandes avec état dans statutsEnCours (en traitement, en cours, validé, réçu, etc.)
+            ($statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours']) +
+            // Demandes terminées avec livraison en attente
+            ($statsNaissanceL['en attente'] + $statsMariageL['en attente'] + $statsDecesL['en attente']) +
+            // Demandes terminées avec livraison en cours
+            ($statsNaissanceL['en cours'] + $statsMariageL['en cours'] + $statsDecesL['en cours']);
+
+        // MODIFICATION : Le total général exclut maintenant 'en attente de paiement'
+        $totalGeneral = $statsNaissance['total'] + $statsMariage['total'] + $statsDeces['total'];
+
+        $totalPaiementEchoue = $statsNaissance['paiement_echoue'] + $statsMariage['paiement_echoue'] + $statsDeces['paiement_echoue'];
+        $totalRejetee = $statsNaissance['rejetée'] + $statsMariage['rejetée'] + $statsDeces['rejetée'];
+        $totalAttentePaiement = $statsNaissance['en attente de paiement'] + $statsMariage['en attente de paiement'] + $statsDeces['en attente de paiement'];
+
+        // --- Réponse JSON ---
+        return response()->json([
+            // Détails par catégorie - ÉTAT
+            'naissance' => $statsNaissance,
+            'mariage'   => $statsMariage,
+            'deces'     => $statsDeces,
+            
+            // Détails par catégorie - LIVRAISON (pour les demandes terminées)
+            'livraison_naissance' => $statsNaissanceL,
+            'livraison_mariage'   => $statsMariageL,
+            'livraison_deces'     => $statsDecesL,
+            
+            // Totaux agrégés
+            'total_general'     => $totalGeneral,
+            'en_cours'          => $totalEnCours,
+            'total_livre'       => $totalLivre,
+            'paiement_echoue'   => $totalPaiementEchoue,
+            'rejetee'           => $totalRejetee,
+            'en_attente_paiement' => $totalAttentePaiement, // Pour information
+            
+            // Détails supplémentaires pour vérification
+            'details_calcul_en_cours' => [
+                'etats_en_cours' => $statsNaissance['en cours'] + $statsMariage['en cours'] + $statsDeces['en cours'],
+                'termine_livraison_attente' => $statsNaissanceL['en attente'] + $statsMariageL['en attente'] + $statsDecesL['en attente'],
+                'termine_livraison_cours' => $statsNaissanceL['en cours'] + $statsMariageL['en cours'] + $statsDecesL['en cours']
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Erreur statistiquesParStatut: ' . $e->getMessage());
+        return response()->json(['error' => 'Erreur serveur'], 500);
     }
-   
+}
     // getDemandeSpecifique, calculerStatut, listeToutesDemandes, etc.
     
     /**
@@ -257,19 +263,24 @@ public function statistiquesParStatut(Request $request)
     {
         try {
             $user = $request->user();
-
+    
             if (!$user) {
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
-
+    
             // --- MODIFICATION (1) : Récupérer le filtre de statut depuis l'URL ---
             $statutFiltre = $request->input('statut');
-
-            // --- MODIFICATION (2) : Préparer les requêtes de base ---
-            $queryNaissances = Naissance::where('user_id', $user->id);
-            $queryMariages = Mariage::where('user_id', $user->id);
-            $queryDeces = Deces::where('user_id', $user->id);
-
+    
+            // --- MODIFICATION (2) : Préparer les requêtes de base avec exclusion de 'en attente de paiement' ---
+            $queryNaissances = Naissance::where('user_id', $user->id)
+                ->where('etat', '!=', 'en attente de paiement');
+            
+            $queryMariages = Mariage::where('user_id', $user->id)
+                ->where('etat', '!=', 'en attente de paiement');
+            
+            $queryDeces = Deces::where('user_id', $user->id)
+                ->where('etat', '!=', 'en attente de paiement');
+    
             // --- MODIFICATION (3) : Appliquer le filtre si il est fourni ---
             if ($statutFiltre) {
                 // On filtre sur la colonne 'etat' de la base de données
@@ -281,38 +292,38 @@ public function statistiquesParStatut(Request $request)
             // --- MODIFICATION (4) : Exécuter les requêtes (maintenant filtrées) ---
             
             // Naissances
-            $naissances = $queryNaissances->get() // Utilise la requête préparée
+            $naissances = $queryNaissances->get()
                 ->map(function ($item) {
                     $item->type_demande = 'naissance';
-                    $item->statut = $this->calculerStatut($item); // Calcule le statut personnalisé
+                    $item->statut = $this->calculerStatut($item);
                     return $item;
                 });
-
+    
             // Mariages
-            $mariages = $queryMariages->get() // Utilise la requête préparée
+            $mariages = $queryMariages->get()
                 ->map(function ($item) {
                     $item->type_demande = 'mariage';
                     $item->statut = $this->calculerStatut($item);
                     return $item;
                 });
-
+    
             // Décès
-            $deces = $queryDeces->get() // Utilise la requête préparée
+            $deces = $queryDeces->get()
                 ->map(function ($item) {
                     $item->type_demande = 'deces';
                     $item->statut = $this->calculerStatut($item);
                     return $item;
                 });
-
+    
             // Le reste de la fonction ne change pas
             $toutesDemandes = $naissances->concat($mariages)->concat($deces);
             $demandesTriees = $toutesDemandes->sortByDesc('created_at')->values();
-
+    
             return response()->json([
                 'demandes' => $demandesTriees->toArray(),
                 'total' => $demandesTriees->count(),
             ]);
-
+    
         } catch (\Exception $e) {
             Log::error('Erreur listeToutesDemandes: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
