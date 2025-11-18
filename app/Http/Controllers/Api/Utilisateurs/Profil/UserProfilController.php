@@ -135,93 +135,101 @@ class UserProfilController extends Controller
             ], 500);
         }
     }
+/**
+ * Mise à jour des informations personnelles
+ * PUT /api/utilisateurs/profil/informations
+ */
+public function updateInformations(Request $request): JsonResponse
+{
+    $user = $request->user();
 
-    /**
-     * Mise à jour des informations personnelles
-     * PUT /api/utilisateurs/profil/informations
-     */
-    public function updateInformations(Request $request): JsonResponse
-    {
-        $user = $request->user();
+    $validator = Validator::make($request->all(), [
+        'current_password' => 'required|string', // Ajout de la vérification du mot de passe
+        'name' => 'sometimes|required|string|max:255',
+        'prenom' => 'sometimes|required|string|max:255',
+        'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+        'indicatif' => 'sometimes|required|string|max:10',
+        'contact' => 'sometimes|required|string|max:20',
+        'commune' => 'sometimes|required|string|max:255',
+        'CMU' => 'sometimes|nullable|string|max:255',
+        'diaspora' => 'sometimes|boolean',
+        'pays_residence' => 'nullable|required_if:diaspora,true|string|max:255',
+        'ville_residence' => 'nullable|required_if:diaspora,true|string|max:255',
+        'adresse_etrangere' => 'nullable|required_if:diaspora,true|string|max:500',
+    ]);
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'prenom' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-            'indicatif' => 'sometimes|required|string|max:10',
-            'contact' => 'sometimes|required|string|max:20',
-            'commune' => 'sometimes|required|string|max:255',
-            'CMU' => 'sometimes|nullable|string|max:255',
-            'diaspora' => 'sometimes|boolean',
-            'pays_residence' => 'nullable|required_if:diaspora,true|string|max:255',
-            'ville_residence' => 'nullable|required_if:diaspora,true|string|max:255',
-            'adresse_etrangere' => 'nullable|required_if:diaspora,true|string|max:500',
-        ]);
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur de validation',
+            'errors' => $validator->errors()
+        ], 422);
+    }
 
-        if ($validator->fails()) {
+    try {
+        // Vérifier le mot de passe actuel
+        if (!Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
+                'message' => 'Mot de passe incorrect. Veuillez vérifier votre mot de passe actuel.'
             ], 422);
         }
 
-        try {
-            // Préparer les données de mise à jour
-            $updateData = [];
-            $champs = [
-                'name', 'prenom', 'email', 'indicatif', 'contact', 
-                'commune', 'CMU', 'diaspora', 'pays_residence', 
-                'ville_residence', 'adresse_etrangere'
-            ];
+        // Préparer les données de mise à jour
+        $updateData = [];
+        $champs = [
+            'name', 'prenom', 'email', 'indicatif', 'contact', 
+            'commune', 'CMU', 'diaspora', 'pays_residence', 
+            'ville_residence', 'adresse_etrangere'
+        ];
 
-            foreach ($champs as $champ) {
-                if ($request->has($champ)) {
-                    $updateData[$champ] = $request->$champ;
-                }
+        foreach ($champs as $champ) {
+            if ($request->has($champ)) {
+                $updateData[$champ] = $request->$champ;
             }
-
-            // Gestion spéciale pour la diaspora
-            if (isset($updateData['diaspora']) && !$updateData['diaspora']) {
-                $updateData['pays_residence'] = null;
-                $updateData['ville_residence'] = null;
-                $updateData['adresse_etrangere'] = null;
-            }
-
-            // Mise à jour de l'utilisateur
-            $user->update($updateData);
-            $user->refresh();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Informations mises à jour avec succès',
-                'data' => [
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'prenom' => $user->prenom,
-                        'email' => $user->email,
-                        'indicatif' => $user->indicatif,
-                        'contact' => $user->contact,
-                        'commune' => $user->commune,
-                        'CMU' => $user->CMU,
-                        'diaspora' => (bool) $user->diaspora,
-                        'pays_residence' => $user->pays_residence,
-                        'ville_residence' => $user->ville_residence,
-                        'adresse_etrangere' => $user->adresse_etrangere,
-                        'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
-                    ]
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Erreur updateInformations: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la mise à jour des informations'
-            ], 500);
         }
+
+        // Gestion spéciale pour la diaspora
+        if (isset($updateData['diaspora']) && !$updateData['diaspora']) {
+            $updateData['pays_residence'] = null;
+            $updateData['ville_residence'] = null;
+            $updateData['adresse_etrangere'] = null;
+        }
+
+        // Mise à jour de l'utilisateur
+        $user->update($updateData);
+        $user->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Informations mises à jour avec succès',
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'prenom' => $user->prenom,
+                    'email' => $user->email,
+                    'indicatif' => $user->indicatif,
+                    'contact' => $user->contact,
+                    'commune' => $user->commune,
+                    'CMU' => $user->CMU,
+                    'diaspora' => (bool) $user->diaspora,
+                    'pays_residence' => $user->pays_residence,
+                    'ville_residence' => $user->ville_residence,
+                    'adresse_etrangere' => $user->adresse_etrangere,
+                    'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
+                ]
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('Erreur updateInformations: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la mise à jour des informations'
+        ], 500);
     }
+}
 
     /**
      * Mise à jour du mot de passe
