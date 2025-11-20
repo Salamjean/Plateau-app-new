@@ -135,7 +135,8 @@ class DemandeDecesController extends Controller
             $deces->commune = $request->communeD ?: $user->commune;
             $deces->user_id = $user->id;
             $deces->reference = $reference;
-
+            // $deces->montant_timbre = $request->montant_timbre; // Prix unitaire
+            // $deces->montant_livraison = $request->montant_livraison;
             if ($request->choix_option === 'livraison') {
                 $deces->montant_timbre = $request->montant_timbre; // Prix unitaire
                 $deces->montant_livraison = $request->montant_livraison;

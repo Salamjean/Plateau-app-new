@@ -117,6 +117,8 @@ class DemandeNaissanceController extends Controller
             $naissance->choix_option = $request->choix_option;
             $naissance->user_id = $user->id;
             $naissance->reference = $reference;
+            // $naissance->montant_timbre = $request->montant_timbre;
+            // $naissance->montant_livraison = $request->montant_livraison;
 
             // 5. Informations de livraison
             if ($request->choix_option === 'livraison') {

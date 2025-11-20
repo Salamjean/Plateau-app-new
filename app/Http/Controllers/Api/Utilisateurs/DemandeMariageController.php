@@ -106,6 +106,8 @@ class DemandeMariageController extends Controller
             $mariage->choix_option = $request->choix_option;
             $mariage->user_id = $user->id;
             $mariage->reference = $reference;
+            // $mariage->montant_timbre = $request->montant_timbre; // Prix unitaire
+            // $mariage->montant_livraison = $request->montant_livraison;
 
             if ($request->choix_option === 'livraison') {
                 $mariage->montant_timbre = $request->montant_timbre; // Prix unitaire
