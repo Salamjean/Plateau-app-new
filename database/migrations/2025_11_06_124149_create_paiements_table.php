@@ -24,12 +24,6 @@ class CreatePaiementsTable extends Migration
             $table->timestamp('paid_at')->nullable(); // date paiement fournie par CinetPay
             $table->json('raw_response')->nullable(); // stocker la réponse brute pour debug
             $table->timestamps();
-
-            // clefs étrangères (optionnelles — à ajuster selon tes tables)
-            $table->foreign('deces_id')->references('id')->on('deces')->onDelete('set null');
-            $table->foreign('mariage_id')->references('id')->on('mariage')->onDelete('set null');
-            $table->foreign('naissance_id')->references('id')->on('naissance')->onDelete('set null');
-            // user_id foreign si tu as users table :
             // $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
     }

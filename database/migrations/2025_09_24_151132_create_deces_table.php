@@ -21,13 +21,13 @@ return new class extends Migration
             $table->string('documentMariage')->nullable();
             $table->string('RequisPolice')->nullable();
             $table->string('reference');
-            $table->string('statut_livraison')->nullable(); // État par défaut
+            $table->string('statut_livraison')->nullable(); 
             $table->string('commune')->nullable();
             $table->string('quantite');
-            $table->string('etat')->default('en attente'); // État par défaut
+            $table->string('etat')->default('en attente');
             $table->text('motif_de_rejet')->nullable();
-            $table->boolean('is_read')->default(false); // Statut de lecture
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Ajout de user_id
+            $table->boolean('is_read')->default(false); 
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('agent_id')->nullable()->constrained('agents')->onDelete('set null'); // Ajout de agent_id
             $table->foreignId('livraison_id')->nullable()->constrained('postes')->onDelete('set null'); // Ajout de livraison
             $table->foreignId('dhl_id')->nullable()->constrained('dhls')->onDelete('set null');
