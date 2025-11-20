@@ -56,26 +56,10 @@ class DemandeMariageController extends Controller
     {
         // 1. Validation (Spécifique au Mariage)
         $validator = Validator::make($request->all(), [
-            'nomEpoux' => 'required|string|max:255',
-            'prenomEpoux' => 'required|string|max:255',
-            'dateNaissanceEpoux' => 'required|date',
-            'lieuNaissanceEpoux' => 'required|string|max:255',
+            
             'quantite' => 'required|integer|min:1|max:10',
             'pieceIdentite' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
             'extraitMariage' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
-            'choix_option' => 'required|in:retrait,livraison',
-            'commune' => 'nullable|string|max:255',
-            'montant_timbre' => 'required_if:choix_option,livraison|numeric',
-            'montant_livraison' => 'required_if:choix_option,livraison|numeric',
-            'nom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
-            'prenom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
-            'email_destinataire' => 'required_if:choix_option,livraison|email',
-            'contact_destinataire' => 'required_if:choix_option,livraison|string|max:20',
-            'adresse_livraison' => 'required_if:choix_option,livraison|string|max:500',
-            'code_postal' => 'nullable|string|max:10',
-            'ville' => 'required_if:choix_option,livraison|string|max:255',
-            'commune_livraison' => 'required_if:choix_option,livraison|string|max:255',
-            'quartier' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
