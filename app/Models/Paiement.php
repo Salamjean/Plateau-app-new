@@ -33,26 +33,23 @@ class Paiement extends Model
         'paid_at' => 'datetime',
     ];
 
-    // Relation existante
     public function deces()
     {
-        return $this->belongsTo(\App\Models\Deces::class, 'deces_id');
+        return $this->belongsTo(Deces::class, 'deces_id');
     }
 
-    // --- AJOUTER CES DEUX FONCTIONS ---
     public function mariage()
     {
-        return $this->belongsTo(\App\Models\Mariage::class, 'mariage_id');
+        return $this->belongsTo(Mariage::class, 'mariage_id');
     }
 
     public function naissance()
     {
-        return $this->belongsTo(\App\Models\Naissance::class, 'naissance_id');
+        return $this->belongsTo(Naissance::class, 'naissance_id');
     }
-    // ----------------------------------
 
     public function user()
     {
-        return $this->belongsTo(\App\Models\User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

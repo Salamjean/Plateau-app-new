@@ -24,7 +24,6 @@ class Mariage extends Model
         'livraison_code',
         'statut_livraison',
         'quantite',
-        // AJOUTER CES CHAMPS
         'choix_option',
         'montant_timbre',
         'montant_livraison',

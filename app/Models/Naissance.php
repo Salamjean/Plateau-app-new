@@ -24,7 +24,6 @@ class Naissance extends Model
         'livreur_id',
         'agence_id',
         'quantite',
-        // AJOUTER CES CHAMPS
         'choix_option',
         'montant_timbre',
         'montant_livraison',
@@ -57,14 +56,13 @@ class Naissance extends Model
     }
 
 
-    public static function getNextId() // Rendez la méthode publique et statique
+    public static function getNextId()
     {
-        // Récupérer le dernier ID et incrémenter
         $lastNaissance = self::orderBy('id', 'desc')->first();
         if ($lastNaissance) {
             return $lastNaissance->id + 1;
         } else {
-            return 1; // Si c'est le premier enregistrement
+            return 1;
         }
     }
 }

@@ -10,10 +10,10 @@ class CreatePaiementsTable extends Migration
     {
         Schema::create('paiements', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('deces_id')->nullable()->index(); // lien optionnel avec la demande
-            $table->unsignedBigInteger('mariage_id')->nullable()->index(); 
-            $table->unsignedBigInteger('naissance_id')->nullable()->index(); 
-            $table->unsignedBigInteger('user_id')->nullable()->index(); // qui a payé (si dispo)
+            $table->foreignId('mariage_id')->nullable()->constrained('mariages')->onDelete('set null');
+            $table->foreignId('deces_id')->nullable()->constrained('deces')->onDelete('set null');
+            $table->foreignId('naissance_id')->nullable()->constrained('naissances')->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('transaction_id')->nullable()->index(); // référence AD00...
             $table->string('operator_id')->nullable(); // ID opérateur / pay id retourné par CinetPay
             $table->string('payment_token')->nullable();
