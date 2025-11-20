@@ -105,6 +105,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes')->group(function () {
             Route::get('/statistiques', [StatistiqueController::class, 'statistiquesParStatut']);
             Route::get('/toutes', [StatistiqueController::class, 'listeToutesDemandes']);
+            Route::get('/paiements', [StatistiqueController::class, 'historiquePaiements']);
+            Route::get('/paiements/detail/{transactionId}', [StatistiqueController::class, 'getPaiementByTransaction']);
             Route::post('/suivi-reference', [StatistiqueController::class, 'suiviDemandeParReference']);
             Route::get('/{type}/{id}', [StatistiqueController::class, 'getDemandeSpecifique']);
             Route::get('/{type}/{id}/suivi', [StatistiqueController::class, 'suiviDemande']);

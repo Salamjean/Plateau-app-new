@@ -13,6 +13,8 @@ class Paiement extends Model
 
     protected $fillable = [
         'deces_id',
+        'mariage_id',
+        'naissance_id',
         'user_id',
         'transaction_id',
         'operator_id',
@@ -31,13 +33,26 @@ class Paiement extends Model
         'paid_at' => 'datetime',
     ];
 
+    // Relation existante
     public function deces()
     {
-        return $this->belongsTo( \App\Models\Deces::class, 'deces_id' );
+        return $this->belongsTo(\App\Models\Deces::class, 'deces_id');
     }
+
+    // --- AJOUTER CES DEUX FONCTIONS ---
+    public function mariage()
+    {
+        return $this->belongsTo(\App\Models\Mariage::class, 'mariage_id');
+    }
+
+    public function naissance()
+    {
+        return $this->belongsTo(\App\Models\Naissance::class, 'naissance_id');
+    }
+    // ----------------------------------
 
     public function user()
     {
-        return $this->belongsTo( \App\Models\User::class, 'user_id' );
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Naissance;
 use App\Models\Mariage;
 use App\Models\Livreur;
 use App\Models\Deces;
+use App\Models\Paiement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -332,6 +333,7 @@ public function statistiquesParStatut(Request $request)
     /**
      * État de suivi d'une demande spécifique
      */
+   
     public function suiviDemande(Request $request, $type, $id)
     {
         try {
@@ -549,5 +551,124 @@ public function statistiquesParStatut(Request $request)
         ];
 
         return $etapes[$statutActuel] ?? [];
+    }
+    /**
+     * Liste l'historique des paiements avec les détails de la demande associée
+     */
+    public function historiquePaiements(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
+
+            // Récupérer les paiements de l'utilisateur avec les relations chargées
+            $paiements = Paiement::where('user_id', $user->id)
+                ->with(['naissance', 'mariage', 'deces']) // On charge les données liées
+                ->orderBy('created_at', 'desc') // Les plus récents en premier
+                ->get();
+
+            // Formatage des données pour que ce soit propre en JSON
+            $historique = $paiements->map(function ($paiement) {
+                
+                // On détermine quel type de demande est lié à ce paiement
+                $detailsDemande = null;
+                $typeDemande = null;
+
+                if ($paiement->naissance) {
+                    $detailsDemande = $paiement->naissance;
+                    $typeDemande = 'naissance';
+                } elseif ($paiement->mariage) {
+                    $detailsDemande = $paiement->mariage;
+                    $typeDemande = 'mariage';
+                } elseif ($paiement->deces) {
+                    $detailsDemande = $paiement->deces;
+                    $typeDemande = 'deces';
+                }
+
+                return [
+                    'id_paiement' => $paiement->id,
+                    'transaction_id' => $paiement->transaction_id ?? 'N/A',
+                    'montant' => $paiement->montant,
+                    'date_paiement' => $paiement->created_at->format('d/m/Y H:i'),
+                    'status' => $paiement->status,
+                    'operateur' => $paiement->operator_id,
+                    
+                    // Information cruciale : quel type de document a été payé
+                    'type_demande' => $typeDemande,
+                    
+                    // Ici on injecte tout l'objet de la demande (Naissance, Mariage ou Décès)
+                    'details_demande' => $detailsDemande 
+                ];
+            });
+
+            return response()->json([
+                'total' => $historique->count(),
+                'paiements' => $historique
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur historiquePaiements: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
+    }
+    public function getPaiementByTransaction(Request $request, $transactionId)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
+
+            // Recherche par transaction_id ET user_id (sécurité)
+            $paiement = Paiement::where('transaction_id', $transactionId)
+                ->where('user_id', $user->id)
+                ->with(['naissance', 'mariage', 'deces'])
+                ->first();
+
+            if (!$paiement) {
+                return response()->json(['error' => 'Transaction introuvable ou non autorisée'], 404);
+            }
+
+            // Déterminer le type de demande liée
+            $detailsDemande = null;
+            $typeDemande = null;
+
+            if ($paiement->naissance) {
+                $detailsDemande = $paiement->naissance;
+                $typeDemande = 'naissance';
+            } elseif ($paiement->mariage) {
+                $detailsDemande = $paiement->mariage;
+                $typeDemande = 'mariage';
+            } elseif ($paiement->deces) {
+                $detailsDemande = $paiement->deces;
+                $typeDemande = 'deces';
+            }
+
+            // Construction de la réponse
+            $response = [
+                'id_paiement' => $paiement->id,
+                'transaction_id' => $paiement->transaction_id,
+                // 'operateur_reference' => $paiement->payment_token, // Souvent utile pour le support
+                'montant' => $paiement->montant,
+                'currency' => $paiement->currency,
+                'date_paiement' => $paiement->created_at->format('d/m/Y H:i'),
+                'status' => $paiement->status,
+                // 'moyen_paiement' => $paiement->operator_id, // Orange Money, MTN, etc.
+                
+                // Détails de la demande liée
+                'type_demande' => $typeDemande,
+                'details_demande' => $detailsDemande
+            ];
+
+            return response()->json(['paiement' => $response]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur getPaiementByTransaction: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
     }
 }
