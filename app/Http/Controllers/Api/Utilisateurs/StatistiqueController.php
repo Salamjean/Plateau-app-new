@@ -440,25 +440,31 @@ public function statistiquesParStatut(Request $request)
     
             // 3. Vérifier si la demande existe ET si elle appartient à l'utilisateur connecté
             if (!$demande || $demande->user_id !== $user->id) {
-                // On renvoie 404 pour ne pas indifier si la référence existe ou non (sécurité)
                 return response()->json(['error' => 'Demande non trouvée pour cette référence'], 404);
             }
             
-            // --- MODIFICATION AJOUTÉE ---
-            // 1. Calculer le statut personnalisé en utilisant la logique métier
+            // Calculer le statut personnalisé
             $statutCalcule = $this->calculerStatut($demande);
     
-            // 2. Convertir le modèle en tableau pour pouvoir y ajouter nos champs
+            // Convertir le modèle en tableau
             $demandeData = $demande->toArray();
-            
-            // 3. Ajout du type pour que le client sache de quel modèle il s'agit
             $demandeData['type_demande'] = $type; 
-            
-            // 4. Ajout du statut calculé à l'objet demande
             $demandeData['statut'] = $statutCalcule;
-            // --- FIN MODIFICATION ---
     
-            // --- CORRECTION : RÉCUPÉRATION DES INFORMATIONS DU LIVREUR ---
+            // --- NOUVELLE SECTION : RÉCUPÉRATION DU PAIEMENT ---
+            $paiementInfo = null;
+            
+            // On cherche le paiement associé selon le type de demande
+            if ($type === 'naissance') {
+                $paiementInfo = Paiement::where('naissance_id', $demande->id)->first();
+            } elseif ($type === 'mariage') {
+                $paiementInfo = Paiement::where('mariage_id', $demande->id)->first();
+            } elseif ($type === 'deces') {
+                $paiementInfo = Paiement::where('deces_id', $demande->id)->first();
+            }
+            // ---------------------------------------------------
+    
+            // RÉCUPÉRATION DES INFORMATIONS DU LIVREUR
             $livreurInfo = null;
             if ($demande->livreur_id) {
                 $livreur = Livreur::select('name', 'prenom', 'contact', 'profile_picture')
@@ -471,13 +477,13 @@ public function statistiquesParStatut(Request $request)
                         'prenom' => $livreur->prenom,
                         'contact' => $livreur->contact,
                         'profile_picture' => $livreur->profile_picture 
-                            ? "/storage/" . $livreur->profile_picture // CORRECTION ICI : /storage/ au lieu de asset()
+                            ? "/storage/" . $livreur->profile_picture
                             : null
                     ];
                 }
             }
     
-            // 4. Logique de construction de l'historique
+            // Construction de l'historique
             $historique = [
                 [
                     'statut' => $demande->etat,
@@ -502,17 +508,15 @@ public function statistiquesParStatut(Request $request)
     
             $historique = array_reverse($historique);
     
-            // --- MODIFICATION DE LA RÉPONSE ---
+            // --- RÉPONSE JSON MISE À JOUR ---
             return response()->json([
-                // $demandeData contient maintenant 'type_demande' et 'statut_calcule'
                 'demande' => $demandeData, 
-                'livreur' => $livreurInfo, // <-- NOUVEAU : Informations du livreur
+                'paiement' => $paiementInfo, // <--- AJOUT ICI : L'objet paiement complet
+                'livreur' => $livreurInfo,
                 'historique' => $historique,
                 'prochaines_etapes' => $this->getProchainesEtapes($demande->etat),
-                // Ajout du statut en tant que clé de premier niveau pour un accès facile
                 'statut' => $statutCalcule 
             ]);
-            // --- FIN MODIFICATION DE LA RÉPONSE ---
     
         } catch (\Exception $e) {
             Log::error('Erreur suiviDemandeParReference: ' . $e->getMessage());
