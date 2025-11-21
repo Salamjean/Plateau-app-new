@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Utilisateurs;
 
 use App\Http\Controllers\Controller;
-use App\Models\Rendezvous; // Assurez-vous que le modèle est bien 'Rendezvous'
+use App\Models\Rendezvous;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -21,11 +21,12 @@ class RdvApiController extends Controller
             // Récupérer l'utilisateur authentifié via Sanctum
             $user = $request->user();
             
-            // Récupérer les rendez-vous paginés
+            // Récupérer les rendez-vous triés par date de création
             $rendezvous = Rendezvous::where('user_id', $user->id)
-                                    ->orderBy('created_at')->get();
+                                    ->orderBy('created_at', 'desc') // J'ai mis 'desc' pour voir les plus récents en premier
+                                    ->get();
 
-            // Retourner les données en JSON (la pagination est gérée automatiquement)
+            // Retourner les données en JSON
             return response()->json($rendezvous);
 
         } catch (Exception $e) {
@@ -43,7 +44,7 @@ class RdvApiController extends Controller
     public function store(Request $request)
     {
         try {
-            // La validation est identique, Laravel la formatera en JSON (422) en cas d'échec
+            // Validation des données entrantes
             $validated = $request->validate([
                 'nom_epoux' => 'required|string|max:255',
                 'prenom_epoux' => 'required|string|max:255',
@@ -58,8 +59,9 @@ class RdvApiController extends Controller
                 'email' => 'required|email|max:255',
                 'date_mariage_souhaitee' => 'required|date|after:today',
                 'heure_souhaitee' => 'required',
+                'motif' => 'required|string|max:255', // <--- AJOUT DU CHAMP MOTIF
             ], [
-                // Vos messages d'erreur personnalisés (parfaits pour l'API)
+                // Messages d'erreur personnalisés
                 'required' => 'Le champ :attribute est obligatoire.',
                 'string' => 'Le champ :attribute doit être une chaîne de caractères.',
                 'max' => 'Le champ :attribute ne doit pas dépasser :max caractères.',
@@ -73,6 +75,7 @@ class RdvApiController extends Controller
                 'telephone.required' => 'Un numéro de téléphone est nécessaire pour vous contacter.',
                 'email.required' => 'Une adresse email est nécessaire pour la confirmation.',
                 'date_mariage_souhaitee.after' => 'La date du mariage doit être dans le futur.',
+                'motif.required' => 'Le motif du rendez-vous est obligatoire.', // <--- MESSAGE PERSO
             ]);
 
             // Création de l'instance
@@ -92,11 +95,12 @@ class RdvApiController extends Controller
             $rendezvous->email = $validated['email'];
             $rendezvous->date_mariage_souhaitee = $validated['date_mariage_souhaitee'];
             $rendezvous->heure_souhaitee = $validated['heure_souhaitee'];
+            $rendezvous->motif = $validated['motif']; // <--- ENREGISTREMENT DU MOTIF
             
             // Attribution des champs supplémentaires
-            $rendezvous->mairie = 'plateau'; // Valeur codée en dur
-            $rendezvous->user_id = Auth::user()->id; // Récupère l'ID de l'utilisateur authentifié
-            $rendezvous->statut = 'en attente'; // Valeur par défaut
+            $rendezvous->mairie = 'plateau';
+            $rendezvous->user_id = Auth::user()->id; 
+            $rendezvous->statut = 'en attente';
             
             // Sauvegarde
             $rendezvous->save();
@@ -104,10 +108,10 @@ class RdvApiController extends Controller
             // Retourner une réponse JSON de succès (Code 201 Created)
             return response()->json(
                 $rendezvous,
-                201);
+                201
+            );
 
         } catch (ValidationException $e) {
-            // Laravel gère cela automatiquement, mais c'est pour être explicite
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation.',
@@ -115,7 +119,6 @@ class RdvApiController extends Controller
             ], 422);
         } catch (Exception $e) {
             Log::error("Erreur API [RdvApiController@store]: " . $e->getMessage());
-            // Retourner une erreur serveur (Code 500)
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur interne est survenue lors de la création de la demande.'

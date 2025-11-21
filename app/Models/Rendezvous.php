@@ -24,6 +24,7 @@ class Rendezvous extends Model
         'date_mariage_souhaitee',
         'heure_souhaitee',
         'mairie',
+        'motif',
         'statut',
         'user_id'
     ];

@@ -43,6 +43,7 @@ class RendezVousController extends Controller
             'email' => 'required|email|max:255',
             'date_mariage_souhaitee' => 'required|date|after:today',
             'heure_souhaitee' => 'required',
+            'motif' => 'required|string|max:255',
         ], [
             'required' => 'Le champ :attribute est obligatoire.',
             'string' => 'Le champ :attribute doit être une chaîne de caractères.',
@@ -59,6 +60,7 @@ class RendezVousController extends Controller
             'telephone.required' => 'Un numéro de téléphone est nécessaire pour vous contacter.',
             'email.required' => 'Une adresse email est nécessaire pour la confirmation.',
             'date_mariage_souhaitee.after' => 'La date du mariage doit être dans le futur.',
+            'motif.required' => 'Le motif du rendez-vous est obligatoire.',
         ]);
 
         // Création d'une nouvelle instance de Rendezvous
@@ -78,6 +80,7 @@ class RendezVousController extends Controller
         $rendezvous->email = $validated['email'];
         $rendezvous->date_mariage_souhaitee = $validated['date_mariage_souhaitee'];
         $rendezvous->heure_souhaitee = $validated['heure_souhaitee'];
+        $rendezvous->motif = $validated['motif'];
         $rendezvous->mairie = 'plateau';
         
         // Champs supplémentaires

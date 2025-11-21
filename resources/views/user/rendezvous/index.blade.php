@@ -312,6 +312,7 @@
                                         <div class="text-center" style="text-align: center">
                                             <h6 class="mb-1 text-muted">Date: <span class="text-black">{{ $item->date_mariage_souhaitee }}</span></h6>
                                             <h6 class="mb-1 text-muted">Heure: <span class="text-black">{{ $item->heure_souhaitee }}</span></h6>
+                                            <h6 class="mb-1 text-muted">Motif: <span class="text-black">{{ Str::limit($item->motif, 20) }}</span></h6>
                                            @php
                                                 $badgeClasses = [
                                                     'en attente' => 'bg-warning text-dark',

@@ -271,14 +271,16 @@
                             <div class="col-md-6">
                                 <label class="form-label required-field">Date souhaitée</label>
                                 <input type="date" name="date_mariage_souhaitee" class="form-control" required>
-                                @error('date_mariage_souhaitee')
-                                    <span class="error-message">{{ $message }}</span>
-                                @enderror
-                            </div>
+                                 </div>
                             <div class="col-md-6">
                                 <label class="form-label required-field">Heure souhaitée</label>
                                 <input type="time" name="heure_souhaitee" class="form-control" required>
-                                @error('heure_souhaitee')
+                                </div>
+                    
+                            <div class="col-12">
+                                <label class="form-label required-field">Motif du rendez-vous</label>
+                                <textarea name="motif" class="form-control" rows="2" placeholder="Ex: Dépôt de dossier, Renseignements..." required>{{ old('motif') }}</textarea>
+                                @error('motif')
                                     <span class="error-message">{{ $message }}</span>
                                 @enderror
                             </div>
