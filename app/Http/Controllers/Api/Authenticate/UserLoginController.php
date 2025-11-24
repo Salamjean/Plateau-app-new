@@ -131,4 +131,23 @@ class UserLoginController extends Controller
             ], 500);
         }
     }
+   public function togglePushnotification(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $user->push_notification = $request->push_notification;
+            $user->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Notification push activée/désactivée avec succès.'
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error during API toggle push notification: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de l\'activation/d\'activation de la notification push.'
+            ], 500);
+        }
+    }
+    
 }

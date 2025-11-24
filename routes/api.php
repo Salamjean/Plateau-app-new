@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // <-- NOUVEAU : ROUTE DE DÉCONNEXION
         Route::post('/logout', [UserLoginController::class, 'logout']);
+        Route::post('/toggle-push-notification', [UserLoginController::class, 'togglePushnotification']);
 
         Route::get('/user', function (Request $request) {
             return $request->user();

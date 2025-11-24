@@ -7,7 +7,7 @@ use App\Models\Rendezvous;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http; // <-- AJOUT IMPORTANT
 use Illuminate\Support\Facades\Log;  // <-- AJOUT IMPORTANT
-
+use Carbon\Carbon;
 class MairieRendezVousController extends Controller
 {
     public function index(){
@@ -27,18 +27,25 @@ class MairieRendezVousController extends Controller
         $rendezvous->heure_souhaitee = $request->heure_souhaitee;
         $rendezvous->statut = 'confirmé';
         $rendezvous->save();
+ // =================================================================
+        // <-- NOTIFICATION PUSH : MODIFICATION AVEC DATE FORMATÉE
+        // =================================================================
+        
+        // 1. Configurer Carbon en français
+        Carbon::setLocale('fr');
+        
+        // 2. Formater la date (ex: lundi 24 novembre 2025)
+        $dateLitterale = Carbon::parse($rendezvous->date_mariage_souhaitee)->translatedFormat('l d F Y');
 
-        // =================================================================
-        // <-- NOTIFICATION PUSH : MODIFICATION
-        // =================================================================
         $this->triggerNotification(
             $rendezvous, 
             'Rendez-vous modifié', 
-            "La date de votre rendez-vous a été modifiée au " . $rendezvous->date_mariage_souhaitee . " à " . $rendezvous->heure_souhaitee
+            "La date de votre rendez-vous a été modifiée au " . $dateLitterale . " à " . $rendezvous->heure_souhaitee
         );
 
         return redirect()->route('mairie.rendezvous.index')->with('success', 'Rendez-vous modifié avec succès');
     }
+
 
     public function confirmation($id)
     {
