@@ -262,7 +262,7 @@
     function tryOpenApp() {
       if (!finalDeepLink) return;
   
-      const androidIntent = `intent://payment?cinetpay=${finalDeepLink.includes('true') ? 'true' : 'false'}&transactionId=${encodeURIComponent(transactionId)}#Intent;scheme=plateauapps;package=${androidPackage};end`;
+      const androidIntent = `plateauapps://payment?cinetpay=${finalDeepLink.includes('true') ? 'true' : 'false'}&transactionId=${encodeURIComponent(transactionId)}`;
   
       if (isAndroid) {
         window.location = androidIntent;
