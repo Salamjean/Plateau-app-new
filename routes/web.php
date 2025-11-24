@@ -166,6 +166,7 @@ Route::middleware('mairie')->prefix('mairie')->group(function(){
      Route::put('/rendezvous/{id}', [MairieRendezVousController::class, 'update'])->name('rendezvous.update');
      Route::post('/mairie/rendezvous/{id}/confirm', [MairieRendezVousController::class, 'confirm'])->name('rendezvous.confirm');
      Route::get('/rendezvous/{id}/confirmation', [MairieRendezVousController::class, 'confirmation'])->name('rendezvous.confirmation');
+     Route::post('/rendezvous/cancel/{id}', [MairieRendezVousController::class, 'cancel'])->name('rendezvous.cancel');
 });
 
 //Les routes de gestion de la @etat_civil

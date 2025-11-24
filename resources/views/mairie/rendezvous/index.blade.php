@@ -27,7 +27,26 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
   }
+/* Style pour le bouton Annuler */
+.btn-cancel {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    color: white;
+}
 
+.btn-cancel:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    color: white;
+}
+
+/* Style pour les boutons désactivés (grisés) */
+.actions-disabled {
+    opacity: 0.5; /* Rend semi-transparent */
+    pointer-events: none; /* Empêche le clic */
+    cursor: not-allowed;
+    filter: grayscale(100%); /* Rend gris */
+}
   .card {
     border: none;
     border-radius: var(--border-radius);
@@ -491,19 +510,35 @@
                       </span>
                     </div>
                   </td>
-                  <td class="text-center">
-                    <div class="action-buttons">
-                      <!-- Bouton pour confirmer directement -->
-                      <button class="btn btn-confirm btn-action" onclick="confirmRendezVous({{ $item->id }})">
-                        <i class="fas fa-check-circle"></i> Confirmer
-                      </button>
-                      
-                      <!-- Bouton pour aller sur la page de modification -->
-                      <a href="{{ route('rendezvous.confirmation', $item->id) }}" class="btn btn-modify btn-action">
-                        <i class="fas fa-edit"></i> Modifier
-                      </a>
-                    </div>
-                  </td>
+                 <td class="text-center">
+    @php
+        // Les boutons sont actifs SEULEMENT si le statut est "en attente"
+        $isActionable = ($item->statut === 'en attente');
+        // Classe CSS à ajouter si ce n'est pas actionable
+        $disabledClass = $isActionable ? '' : 'actions-disabled';
+    @endphp
+
+    <div class="action-buttons {{ $disabledClass }}">
+        
+        <button class="btn btn-confirm btn-action" 
+                onclick="confirmRendezVous({{ $item->id }})" 
+                {{ !$isActionable ? 'disabled' : '' }}>
+            <i class="fas fa-check-circle"></i> Confirmer
+        </button>
+        
+        <a href="{{ route('rendezvous.confirmation', $item->id) }}" 
+           class="btn btn-modify btn-action {{ !$isActionable ? 'disabled' : '' }}">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+
+        <button class="btn btn-cancel btn-action" 
+                onclick="cancelRendezVous({{ $item->id }})"
+                {{ !$isActionable ? 'disabled' : '' }}>
+            <i class="fas fa-times-circle"></i> Annuler
+        </button>
+
+    </div>
+</td>
                 </tr>
               @empty
                 <tr>
@@ -596,6 +631,61 @@
       }
     });
   });
+  // Nouvelle fonction pour ANNULER
+function cancelRendezVous(id) {
+    Swal.fire({
+      title: 'Annuler le rendez-vous',
+      text: "Voulez-vous vraiment changer le statut à annulé ?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545', // Rouge
+      cancelButtonColor: '#6c757d', // Gris
+      confirmButtonText: 'Oui, annuler',
+      cancelButtonText: 'Retour',
+      customClass: {
+        popup: 'custom-swal-popup',
+        confirmButton: 'btn-swal-confirm',
+        cancelButton: 'btn-swal-cancel'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Appel AJAX vers la route d'annulation
+        fetch("{{ route('rendezvous.cancel', ['id' => ':id']) }}".replace(':id', id), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire(
+              'Annulé!',
+              'Le rendez-vous a été annulé.',
+              'success'
+            ).then(() => {
+              window.location.reload();
+            });
+          } else {
+            Swal.fire(
+              'Erreur!',
+              'Une erreur s\'est produite.',
+              'error'
+            );
+          }
+        })
+        .catch(error => {
+          Swal.fire(
+            'Erreur!',
+            'Une erreur s\'est produite lors de la requête.',
+            'error'
+          );
+        });
+      }
+    });
+  }
 </script>
 
 @endsection

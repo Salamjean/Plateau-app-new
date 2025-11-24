@@ -9,6 +9,7 @@ use App\Models\Livreur;
 use App\Models\Deces;
 use App\Models\Paiement;
 use Illuminate\Http\Request;
+use App\Models\Rendezvous;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
@@ -18,9 +19,7 @@ class StatistiqueController extends Controller
    /**
  * Statistiques des demandes par statut pour l'utilisateur connecté
  */
-/**
- * Statistiques des demandes par statut pour l'utilisateur connecté
- */
+
 public function statistiquesParStatut(Request $request)
 {
     try {
@@ -674,5 +673,233 @@ public function statistiquesParStatut(Request $request)
             Log::error('Erreur getPaiementByTransaction: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
+    }
+      /**
+     * Récupérer les statistiques d'une demande de rendez-vous spécifique par ID
+     */
+    public function statistiquesRendezvousParId(Request $request, $id)
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
+
+            // Récupérer la demande de rendez-vous spécifique
+            $rendezvous = Rendezvous::where('user_id', $user->id)
+                ->where('id', $id)
+                ->first();
+
+            if (!$rendezvous) {
+                return response()->json(['error' => 'Rendez-vous non trouvé'], 404);
+            }
+
+            // Statistiques générales des rendez-vous de l'utilisateur
+            $statsRendezvous = Rendezvous::where('user_id', $user->id)
+                ->select('statut', \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
+                ->groupBy('statut')
+                ->get()
+                ->pluck('count', 'statut');
+
+            // Calcul des totaux
+            $totalRendezvous = $statsRendezvous->sum();
+            $totalConfirmes = $statsRendezvous->get('confirmé', 0);
+            $totalEnAttente = $statsRendezvous->get('en attente', 0);
+            $totalAnnules = $statsRendezvous->get('annulé', 0);
+
+            return response()->json(
+                 [
+                    $rendezvous
+                ],
+               
+            );
+
+        } catch (\Exception $e) {
+            Log::error('Erreur statistiquesRendezvousParId: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
+    }
+
+    /**
+     * Statistiques complètes des rendez-vous avec pagination
+     */
+    public function statistiquesRendezvousComplet(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
+
+            // Récupération avec pagination
+            $perPage = $request->input('per_page', 10);
+            $page = $request->input('page', 1);
+
+            $rendezvousQuery = Rendezvous::where('user_id', $user->id);
+
+            // Filtre par statut si fourni
+            if ($request->has('statut')) {
+                $rendezvousQuery->where('statut', $request->input('statut'));
+            }
+
+            // Tri
+            $sortBy = $request->input('sort_by', 'created_at');
+            $sortOrder = $request->input('sort_order', 'desc');
+            $rendezvousQuery->orderBy($sortBy, $sortOrder);
+
+            $rendezvousPaginated = $rendezvousQuery->paginate($perPage, ['*'], 'page', $page);
+
+            // Statistiques générales
+            $statsRendezvous = Rendezvous::where('user_id', $user->id)
+                ->select('statut', \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
+                ->groupBy('statut')
+                ->get()
+                ->pluck('count', 'statut');
+
+            $totalRendezvous = $statsRendezvous->sum();
+            $totalConfirmes = $statsRendezvous->get('confirmé', 0);
+            $totalEnAttente = $statsRendezvous->get('en attente', 0);
+            $totalAnnules = $statsRendezvous->get('annulé', 0);
+
+            // Statistiques par mois (pour graphiques)
+            $statsParMois = Rendezvous::where('user_id', $user->id)
+                ->select(
+                    \Illuminate\Support\Facades\DB::raw('YEAR(created_at) as year'),
+                    \Illuminate\Support\Facades\DB::raw('MONTH(created_at) as month'),
+                    \Illuminate\Support\Facades\DB::raw('COUNT(*) as count')
+                )
+                ->groupBy('year', 'month')
+                ->orderBy('year', 'desc')
+                ->orderBy('month', 'desc')
+                ->limit(12)
+                ->get();
+
+            return response()->json([
+                'statistiques_generales' => [
+                    'total' => $totalRendezvous,
+                    'confirmes' => $totalConfirmes,
+                    'en_attente' => $totalEnAttente,
+                    'annules' => $totalAnnules,
+                    'taux_confirmation' => $totalRendezvous > 0 ? round(($totalConfirmes / $totalRendezvous) * 100, 2) : 0,
+                    'details_par_statut' => $statsRendezvous->toArray()
+                ],
+                'evolution_mensuelle' => $statsParMois,
+                'liste_rendezvous' => $rendezvousPaginated->items(),
+                'pagination' => [
+                    'current_page' => $rendezvousPaginated->currentPage(),
+                    'last_page' => $rendezvousPaginated->lastPage(),
+                    'per_page' => $rendezvousPaginated->perPage(),
+                    'total' => $rendezvousPaginated->total(),
+                    'from' => $rendezvousPaginated->firstItem(),
+                    'to' => $rendezvousPaginated->lastItem(),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur statistiquesRendezvousComplet: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
+    }
+
+    /**
+     * Récupérer les détails d'un rendez-vous spécifique avec informations étendues
+     */
+    public function getRendezvousDetails(Request $request, $id)
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
+
+            $rendezvous = Rendezvous::where('user_id', $user->id)
+                ->where('id', $id)
+                ->first();
+
+            if (!$rendezvous) {
+                return response()->json(['error' => 'Rendez-vous non trouvé'], 404);
+            }
+
+            // Récupérer les rendez-vous similaires (même statut)
+            $rendezvousSimilaires = Rendezvous::where('user_id', $user->id)
+                ->where('statut', $rendezvous->statut)
+                ->where('id', '!=', $id)
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+
+            return response()->json([
+                'rendezvous' => $rendezvous,
+                'informations_complementaires' => [
+                    'duree_attente' => $this->calculerDureeAttente($rendezvous),
+                    'prochaines_etapes' => $this->getProchainesEtapesRendezvous($rendezvous->statut),
+                    'contact_urgence' => [
+                        'email' => $rendezvous->email,
+                        'telephone' => $rendezvous->telephone
+                    ]
+                ],
+                'rendezvous_similaires' => $rendezvousSimilaires,
+                'statistiques_rapides' => [
+                    'total_rendezvous' => Rendezvous::where('user_id', $user->id)->count(),
+                    'rendezvous_meme_mairie' => Rendezvous::where('user_id', $user->id)
+                        ->where('mairie', $rendezvous->mairie)
+                        ->count(),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur getRendezvousDetails: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
+    }
+
+    /**
+     * Calculer la durée d'attente d'un rendez-vous
+     */
+    private function calculerDureeAttente($rendezvous)
+    {
+        if ($rendezvous->statut === 'confirmé') {
+            return 'Rendez-vous confirmé';
+        }
+
+        $dateCreation = $rendezvous->created_at;
+        $maintenant = now();
+        $difference = $dateCreation->diff($maintenant);
+
+        if ($difference->days > 0) {
+            return $difference->days . ' jour(s) d\'attente';
+        } elseif ($difference->h > 0) {
+            return $difference->h . ' heure(s) d\'attente';
+        } else {
+            return 'Moins d\'une heure d\'attente';
+        }
+    }
+
+    /**
+     * Obtenir les prochaines étapes pour un rendez-vous
+     */
+    private function getProchainesEtapesRendezvous($statut)
+    {
+        $etapes = [
+            'en attente' => [
+                'Vérification des disponibilités',
+                'Confirmation par la mairie',
+                'Réception de la confirmation par email'
+            ],
+            'confirmé' => [
+                'Préparation des documents nécessaires',
+                'Présentation à la mairie à la date convenue',
+                'Paiement des frais éventuels'
+            ],
+            'annulé' => [
+                'Contactez la mairie pour plus d\'informations',
+                'Possibilité de reprogrammer'
+            ]
+        ];
+
+        return $etapes[$statut] ?? ['Statut non reconnu'];
     }
 }
