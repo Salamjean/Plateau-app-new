@@ -709,9 +709,9 @@ public function statistiquesParStatut(Request $request)
             $totalAnnules = $statsRendezvous->get('annulé', 0);
 
             return response()->json(
-                 [
+                 
                     $rendezvous
-                ],
+                
                
             );
 
