@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\Utilisateurs\StatistiqueController;
 use App\Http\Controllers\Api\Utilisateurs\RdvApiController;
 use App\Http\Controllers\Api\Utilisateurs\Profil\UserProfilController;
 use App\Http\Controllers\Api\Livreur\LivreurAuthenticateController;
-use App\Http\Controllers\Arepi\Livreur\LivraisonController;
+use App\Http\Controllers\Api\Livreur\LivraisonController;
 use App\Http\Controllers\Api\Livreur\ProfilLivreurController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
