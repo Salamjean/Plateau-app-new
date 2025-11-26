@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Utilisateurs\Profil\UserProfilController;
 use App\Http\Controllers\Api\Livreur\LivreurAuthenticateController;
 use App\Http\Controllers\Api\Livreur\LivraisonController;
 use App\Http\Controllers\Api\Livreur\ProfilLivreurController;
+use App\Http\Controllers\Api\Livreur\LivreurPasswordForgotController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,9 @@ Route::prefix('livreur')->group(function () {
     Route::post('/login', [LivreurAuthenticateController::class, 'handleLogin']);
     Route::post('/define-access', [LivreurAuthenticateController::class, 'defineAccess']);
     Route::post('/submit-define-access', [LivreurAuthenticateController::class, 'submitDefineAccess']);
+    Route::post('/forgot-password', [LivreurPasswordForgotController::class, 'forgotPassword']);
+    Route::post('/verify-reset-code', [LivreurPasswordForgotController::class, 'verifyResetCode']);
+    Route::post('/reset-password', [LivreurPasswordForgotController::class, 'resetPassword']);
 });
 // --- AJOUT DE LA SECTION WEBHOOK ---
 // Routes publiques pour les notifications de services externes (Webhooks)
@@ -133,6 +137,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ... (Routes Livreur)
     Route::prefix('livreur')->middleware('auth:livreurApi')->group(function () {
+        // Route de déconnexion
+        Route::post('/logout', [LivreurAuthenticateController::class, 'logout']);
+        
         Route::prefix('livraisons')->group(function () {
             Route::get('/', [LivraisonController::class, 'listeLivraisons']);
             Route::get('/historique', [LivraisonController::class, 'historiqueLivraisons']);

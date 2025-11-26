@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+
 class LivreurAuthenticateController extends Controller
 {
     public function defineAccess(Request $request): JsonResponse
@@ -196,6 +197,33 @@ class LivreurAuthenticateController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur s\'est produite lors de la connexion.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Déconnexion du livreur
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        try {
+            // Récupérer le livreur authentifié
+            $livreur = $request->user();
+
+            // Suppression de tous les tokens d'API
+            $livreur->tokens()->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Déconnexion réussie.'
+            ], 200);
+
+        } catch (Exception $e) {
+            Log::error('Error during Livreur logout: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la déconnexion.'
             ], 500);
         }
     }
