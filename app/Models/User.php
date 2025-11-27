@@ -32,6 +32,7 @@ class User extends Authenticatable
         'ville_residence', // AJOUTEZ CE CHAMP
         'adresse_etrangere', // AJOUTEZ CE CHAMP
         'push_notification',
+        'deactivated_at',
     ];
 
     /**
@@ -55,6 +56,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'diaspora' => 'boolean', // AJOUTEZ CE CAST
+            'deactivated_at' => 'datetime',
         ];
     }
 
