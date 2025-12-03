@@ -748,12 +748,12 @@ class DemandeDecesController extends Controller
      * Supprimer une demande de décès
      * DELETE /api/utilisateurs/demandes/deces/{deces}
      */
-    public function destroy(Deces $deces): JsonResponse
+   public function destroy(Deces $deces): JsonResponse
     {
         try {
             $user = Auth::user();
             
-            // Vérifier que l'utilisateur est propriétaire de la demande
+            // 1. Vérifier que l'utilisateur est bien le propriétaire de la demande
             if ($deces->user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
@@ -761,20 +761,38 @@ class DemandeDecesController extends Controller
                 ], 403);
             }
 
-            // Optionnel: Supprimer les fichiers associés
-            // Storage::disk('public')->delete([
-            //     $deces->CNIdfnt,
-            //     $deces->CNIdcl,
-            //     $deces->documentMariage,
-            //     $deces->RequisPolice
-            // ]);
+            // 2. Vérifier l'état de la demande (CORRECTION ICI)
+            // On convertit l'état en minuscule et on gère les caractères spéciaux (UTF-8)
+            // Cela permet de bloquer "Terminé", "TERMINÉ", "terminé", etc.
+            $etatActuel = mb_strtolower(trim($deces->etat), 'UTF-8');
+            
+            // Liste des états qui BLOQUENT la suppression (en minuscule)
+            $etatsInterdits = ['reçu', 'terminé', 'recu', 'termine','réçu']; // J'ajoute les versions sans accent par sécurité
 
+            if (in_array($etatActuel, $etatsInterdits)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Impossible de supprimer cette demande car elle est déjà en traitement ou finalisée. (État actuel : {$deces->etat})"
+                ], 400); // 400 Bad Request car l'action logique est impossible
+            }
+
+            // 3. Suppression des fichiers associés (Optionnel : décommenter si tu veux nettoyer le stockage)
+            /*
+            $files = [$deces->CNIdfnt, $deces->CNIdcl, $deces->documentMariage, $deces->RequisPolice];
+            foreach ($files as $path) {
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+            */
+
+            // 4. Suppression de la demande en base de données
             $deces->delete();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Demande de décès supprimée avec succès'
-            ]);
+            ], 200);
 
         } catch (\Exception $e) {
             Log::error('Erreur DemandeDecesController@destroy: ' . $e->getMessage());

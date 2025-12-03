@@ -670,16 +670,16 @@ class DemandeMariageController extends Controller
         ]);
     }
 
-    /**
-     * NOUVEAU (Adapté)
+/**
      * Supprimer une demande de mariage
      * DELETE /api/utilisateurs/demandes/mariage/{mariage}
      */
-    public function destroy(Mariage $mariage): JsonResponse // ✅ Modèle Mariage
+    public function destroy(Mariage $mariage): JsonResponse
     {
         try {
             $user = Auth::user();
             
+            // 1. Vérifier que l'utilisateur est propriétaire de la demande
             if ($mariage->user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
@@ -687,17 +687,32 @@ class DemandeMariageController extends Controller
                 ], 403);
             }
 
-            // Optionnel: Supprimer les fichiers
+            // 2. Vérifier l'état de la demande (SÉCURITÉ AJOUTÉE)
+            // Normalisation : minuscule et suppression des espaces pour la comparaison
+            $etatActuel = mb_strtolower(trim($mariage->etat), 'UTF-8');
+            
+            // Liste des états interdits (avec et sans accents pour être sûr)
+            $etatsInterdits = ['reçu', 'terminé', 'recu', 'termine','réçu'];
+
+            if (in_array($etatActuel, $etatsInterdits)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Impossible de supprimer cette demande car elle est déjà en traitement ou finalisée. (État actuel : {$mariage->etat})"
+                ], 400);
+            }
+
+            // Optionnel: Supprimer les fichiers physiques si nécessaire
             // Storage::disk('public')->delete([
             //     $mariage->pieceIdentite,
             //     $mariage->extraitMariage,
             // ]);
 
+            // 3. Suppression
             $mariage->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Demande de mariage supprimée avec succès' // ✅ Message Mariage
+                'message' => 'Demande de mariage supprimée avec succès'
             ]);
 
         } catch (\Exception $e) {

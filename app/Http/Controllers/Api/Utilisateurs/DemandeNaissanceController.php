@@ -667,16 +667,16 @@ class DemandeNaissanceController extends Controller
         ]);
     }
 
-    /**
-     * NOUVEAU (Adapté)
+   /**
      * Supprimer une demande de naissance
      * DELETE /api/utilisateurs/demandes/naissance/{naissance}
      */
-    public function destroy(Naissance $naissance): JsonResponse // ✅ Modèle Naissance
+    public function destroy(Naissance $naissance): JsonResponse
     {
         try {
             $user = Auth::user();
             
+            // 1. Vérifier que l'utilisateur est propriétaire de la demande
             if ($naissance->user_id !== $user->id) {
                 return response()->json([
                     'success' => false,
@@ -684,16 +684,31 @@ class DemandeNaissanceController extends Controller
                 ], 403);
             }
 
+            // 2. Vérifier l'état de la demande (SÉCURITÉ AJOUTÉE)
+            // On nettoie la chaîne (minuscule + trim) pour éviter les erreurs de casse/espaces
+            $etatActuel = mb_strtolower(trim($naissance->etat), 'UTF-8');
+            
+            // Liste des états interdits (versions avec et sans accents)
+            $etatsInterdits = ['reçu', 'terminé', 'recu', 'termine','réçu'];
+
+            if (in_array($etatActuel, $etatsInterdits)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Impossible de supprimer cette demande car elle est déjà en traitement ou finalisée. (État actuel : {$naissance->etat})"
+                ], 400);
+            }
+
             // Optionnel: Supprimer le fichier CNI
-            // if ($naissance->CNI) {
+            // if ($naissance->CNI && Storage::disk('public')->exists($naissance->CNI)) {
             //     Storage::disk('public')->delete($naissance->CNI);
             // }
 
+            // 3. Suppression
             $naissance->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Demande de naissance supprimée avec succès' // ✅ Message Naissance
+                'message' => 'Demande de naissance supprimée avec succès'
             ]);
 
         } catch (\Exception $e) {
