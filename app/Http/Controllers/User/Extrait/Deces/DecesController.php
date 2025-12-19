@@ -37,9 +37,9 @@ class DecesController extends Controller
             'name' => 'required',
             'numberR' => 'required',
             'dateR' => 'required',
-            'CNIdfnt' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
+            'CNIdfnt' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
-            'CNIdcl' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
+            'CNIdcl' => 'required',
         ],[
             'name.required' => 'Le nom du défunt est obligatoire.',
             'numberR.required' => 'Le numéro de l\'extrait de décès est obligatoire.',

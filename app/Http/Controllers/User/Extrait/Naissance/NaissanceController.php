@@ -48,7 +48,7 @@ class NaissanceController extends Controller
             'DateR' => 'required',
             'commune' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
-            'CNI' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
+            'CNI' => 'required',
         ],[
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
             'name.required' => 'Le nom est obligatoire',
@@ -150,7 +150,7 @@ Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $n
 //         'DateR' => 'required',
 //         'commune' => 'required',
 //         'quantite' => 'required|integer|min:1|max:10',
-//         'CNI' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
+//         'CNI' => 'required',
 //     ],[
 //         'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
 //         'name.required' => 'Le nom est obligatoire',
