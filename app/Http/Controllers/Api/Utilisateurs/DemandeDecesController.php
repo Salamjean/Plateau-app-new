@@ -67,10 +67,10 @@ class DemandeDecesController extends Controller
             // --- AJOUT --- (Basé sur DecesController.php)
             'quantite' => 'required|integer|min:1|max:10', 
             
-            'CNIdfnt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
-            'CNIdcl' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
-            'documentMariage' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:1000',
-            'RequisPolice' => 'nullable|file|mimes:png,jpg,jpeg,pdf|max:1000',
+            'CNIdfnt' => 'required',
+            'CNIdcl' => 'required',
+            'documentMariage' => 'nullable',
+            'RequisPolice' => 'nullable',
             'choix_option' => 'required|in:retrait,livraison',
             'communeD' => 'nullable|string|max:255',
             

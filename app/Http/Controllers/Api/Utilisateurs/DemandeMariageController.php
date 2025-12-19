@@ -58,8 +58,8 @@ class DemandeMariageController extends Controller
         $validator = Validator::make($request->all(), [
             
             'quantite' => 'required|integer|min:1|max:10',
-            'pieceIdentite' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
-            'extraitMariage' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
+            'pieceIdentite' => 'required',
+            'extraitMariage' => 'required',
         ]);
 
         if ($validator->fails()) {

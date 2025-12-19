@@ -61,7 +61,7 @@ class DemandeNaissanceController extends Controller
             'DateR' => 'required|date',
             'commune' => 'required|string|max:255',
             'quantite' => 'required|integer|min:1|max:10',
-            'CNI' => 'required|file|mimes:png,jpg,jpeg,pdf|max:1000',
+            'CNI' => 'required',
             'choix_option' => 'required|in:retrait,livraison',
             'montant_timbre' => 'required_if:choix_option,livraison|numeric',
             'montant_livraison' => 'required_if:choix_option,livraison|numeric',
