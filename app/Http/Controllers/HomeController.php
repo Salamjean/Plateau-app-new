@@ -9,11 +9,13 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function home(){
+    public function home()
+    {
         return view('home.home');
     }
 
-    public function recherche(Request $request){
+    public function recherche(Request $request)
+    {
         $etatDemande = null; // Initialisation de l'état de la demande
         $statutDemande = null; // Initialisation de l'état de la demande
         $reference = null; // Initialisation de la référence recherchée
@@ -27,14 +29,14 @@ class HomeController extends Controller
                 if ($naissance) {
                     $etatDemande = $naissance->etat;
                     $statutDemande = $naissance->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('etatDemande', 'reference','statutDemande')); // Passer $etatDemande et $reference à la vue
+                    return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande')); // Passer $etatDemande et $reference à la vue
                 }
                 // Rechercher dans la table 'deces'
                 $deces = Deces::where('reference', $reference)->first();
                 if ($deces) {
                     $etatDemande = $deces->etat;
                     $statutDemande = $deces->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('etatDemande', 'reference','statutDemande'));
+                    return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande'));
                 }
 
                 // Rechercher dans la table 'mariages'
@@ -42,40 +44,53 @@ class HomeController extends Controller
                 if ($mariage) {
                     $etatDemande = $mariage->etat;
                     $statutDemande = $mariage->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('etatDemande', 'reference','statutDemande'));
+                    return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande'));
                 }
 
                 $etatDemande = false; // Aucune demande trouvée pour cette référence dans aucune table
             }
         }
 
-        return view('home.recherche', compact('etatDemande', 'reference','statutDemande')); // Passer $etatDemande et $reference à la vue
+        return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande')); // Passer $etatDemande et $reference à la vue
     }
 
-    public function about(){
+    public function about()
+    {
         return view('home.about');
     }
 
-    public function service(){
+    public function service()
+    {
         return view('home.service');
     }
-    public function department(){
+    public function department()
+    {
         return view('home.department');
     }
-    public function birth(){
+    public function birth()
+    {
         return view('home.naissance');
     }
-    public function death(){
+    public function death()
+    {
         return view('home.deces');
     }
-    public function wedding(){
+    public function wedding()
+    {
         return view('home.mariage');
     }
 
-    public function rendezvous(){
+    public function rendezvous()
+    {
         return view('home.rendezvous');
     }
-    public function contact(){
+    public function contact()
+    {
         return view('home.contact');
+    }
+
+    public function privacy()
+    {
+        return view('home.privacy');
     }
 }

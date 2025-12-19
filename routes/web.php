@@ -449,3 +449,5 @@ Route::match(['GET', 'POST'], '/mariage/paiement/redirect-to-app', [DemandeMaria
 
 Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app', [DemandeNaissanceController::class, 'showRedirectPage'])
     ->name('naissance.redirect_to_app');
+
+Route::get('/privacy-policy',[HomeController::class,'privacy'])->name('plateau.privacy');
