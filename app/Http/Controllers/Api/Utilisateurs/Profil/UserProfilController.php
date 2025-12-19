@@ -62,7 +62,7 @@ class UserProfilController extends Controller
     public function updateProfilePicture(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png',
         ]);
 
         if ($validator->fails()) {
