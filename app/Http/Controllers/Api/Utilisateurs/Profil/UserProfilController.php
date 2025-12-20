@@ -61,68 +61,49 @@ class UserProfilController extends Controller
      */
     public function updateProfilePicture(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'profile_picture' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         try {
             $user = $request->user();
             $profilePicture = $request->input('profile_picture');
+            $file = $request->file('profile_picture');
 
-            // Supprimer l'ancienne photo si elle existe
+            // Supprimer l'ancienne photo
             if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
 
-            // Vérifier si c'est une chaîne base64 (photo de caméra)
-            if (str_contains($profilePicture, 'data:image')) {
-                // Gérer l'image base64
-                $imageData = $profilePicture;
+            $path = null;
 
-                // Extraire l'extension depuis le mime type
-                $extension = explode('/', mime_content_type($imageData))[1];
-                $extension = explode(';', $extension)[0];
+            // CAS 1: Base64 (mobile, caméra)
+            if (is_string($profilePicture)) {
+                // Nettoyer et décoder
+                $base64Data = preg_replace('/^data:image\/\w+;base64,/', '', $profilePicture);
+                $imageData = base64_decode($base64Data);
 
-                // Déterminer l'extension correcte
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                $extension = in_array($extension, $allowedExtensions) ? $extension : 'jpg';
-
-                // Générer un nom de fichier unique
-                $fileName = 'profile_' . time() . '_' . Str::random(10) . '.' . $extension;
-                $path = 'profile_pictures/' . $fileName;
-
-                // Décoder et stocker l'image
-                $imageData = str_replace('data:image/' . $extension . ';base64,', '', $imageData);
-                $imageData = str_replace(' ', '+', $imageData);
-                Storage::disk('public')->put($path, base64_decode($imageData));
-            } else {
-                // Gérer le fichier uploadé normalement
-                $file = $request->file('profile_picture');
-                if (!$file) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Format d\'image non supporté'
-                    ], 400);
+                if ($imageData !== false) {
+                    $fileName = 'profile_' . time() . '_' . Str::random(10) . '.jpg';
+                    $path = 'profile_pictures/' . $fileName;
+                    Storage::disk('public')->put($path, $imageData);
                 }
-
-                $fileName = 'profile_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+            }
+            // CAS 2: Fichier uploadé (tous formats acceptés)
+            elseif ($file && $file->isValid()) {
+                $extension = $file->getClientOriginalExtension();
+                $fileName = 'profile_' . time() . '_' . Str::random(10) . '.' . $extension;
                 $path = $file->storeAs('profile_pictures', $fileName, 'public');
             }
 
-            // Mettre à jour l'utilisateur
+            if (!$path) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible de traiter l\'image'
+                ], 400);
+            }
+
             $user->update(['profile_picture' => $path]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Photo de profil mise à jour avec succès',
+                'message' => 'Photo mise à jour avec succès',
                 'data' => [
                     'profile_picture' => Storage::url($path),
                     'profile_picture_path' => $path
@@ -132,7 +113,7 @@ class UserProfilController extends Controller
             Log::error('Erreur updateProfilePicture: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour de la photo de profil'
+                'message' => 'Erreur: ' . $e->getMessage()
             ], 500);
         }
     }
