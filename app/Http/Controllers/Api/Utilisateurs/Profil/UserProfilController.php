@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -21,7 +22,7 @@ class UserProfilController extends Controller
     {
         try {
             $user = $request->user();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Profil récupéré avec succès',
@@ -45,7 +46,6 @@ class UserProfilController extends Controller
                     ]
                 ]
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Erreur getProfil: ' . $e->getMessage());
             return response()->json([
@@ -75,16 +75,47 @@ class UserProfilController extends Controller
 
         try {
             $user = $request->user();
+            $profilePicture = $request->input('profile_picture');
 
             // Supprimer l'ancienne photo si elle existe
             if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
 
-            // Stocker la nouvelle photo
-            $file = $request->file('profile_picture');
-            $fileName = 'profile_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('profile_pictures', $fileName, 'public');
+            // Vérifier si c'est une chaîne base64 (photo de caméra)
+            if (str_contains($profilePicture, 'data:image')) {
+                // Gérer l'image base64
+                $imageData = $profilePicture;
+
+                // Extraire l'extension depuis le mime type
+                $extension = explode('/', mime_content_type($imageData))[1];
+                $extension = explode(';', $extension)[0];
+
+                // Déterminer l'extension correcte
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                $extension = in_array($extension, $allowedExtensions) ? $extension : 'jpg';
+
+                // Générer un nom de fichier unique
+                $fileName = 'profile_' . time() . '_' . Str::random(10) . '.' . $extension;
+                $path = 'profile_pictures/' . $fileName;
+
+                // Décoder et stocker l'image
+                $imageData = str_replace('data:image/' . $extension . ';base64,', '', $imageData);
+                $imageData = str_replace(' ', '+', $imageData);
+                Storage::disk('public')->put($path, base64_decode($imageData));
+            } else {
+                // Gérer le fichier uploadé normalement
+                $file = $request->file('profile_picture');
+                if (!$file) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Format d\'image non supporté'
+                    ], 400);
+                }
+
+                $fileName = 'profile_' . time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('profile_pictures', $fileName, 'public');
+            }
 
             // Mettre à jour l'utilisateur
             $user->update(['profile_picture' => $path]);
@@ -97,9 +128,8 @@ class UserProfilController extends Controller
                     'profile_picture_path' => $path
                 ]
             ]);
-
         } catch (\Exception $e) {
-            \Log::error('Erreur updateProfilePicture: ' . $e->getMessage());
+            Log::error('Erreur updateProfilePicture: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la mise à jour de la photo de profil'
@@ -126,7 +156,6 @@ class UserProfilController extends Controller
                 'success' => true,
                 'message' => 'Photo de profil supprimée avec succès'
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Erreur deleteProfilePicture: ' . $e->getMessage());
             return response()->json([
@@ -135,101 +164,108 @@ class UserProfilController extends Controller
             ], 500);
         }
     }
-/**
- * Mise à jour des informations personnelles
- * PUT /api/utilisateurs/profil/informations
- */
-public function updateInformations(Request $request): JsonResponse
-{
-    $user = $request->user();
+    /**
+     * Mise à jour des informations personnelles
+     * PUT /api/utilisateurs/profil/informations
+     */
+    public function updateInformations(Request $request): JsonResponse
+    {
+        $user = $request->user();
 
-    $validator = Validator::make($request->all(), [
-        'current_password' => 'required|string', // Ajout de la vérification du mot de passe
-        'name' => 'sometimes|required|string|max:255',
-        'prenom' => 'sometimes|required|string|max:255',
-        'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-        'indicatif' => 'sometimes|required|string|max:10',
-        'contact' => 'sometimes|required|string|max:20',
-        'commune' => 'sometimes|required|string|max:255',
-        'CMU' => 'sometimes|nullable|string|max:255',
-        'diaspora' => 'sometimes|boolean',
-        'pays_residence' => 'nullable|required_if:diaspora,true|string|max:255',
-        'ville_residence' => 'nullable|required_if:diaspora,true|string|max:255',
-        'adresse_etrangere' => 'nullable|required_if:diaspora,true|string|max:500',
-    ]);
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string', // Ajout de la vérification du mot de passe
+            'name' => 'sometimes|required|string|max:255',
+            'prenom' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'indicatif' => 'sometimes|required|string|max:10',
+            'contact' => 'sometimes|required|string|max:20',
+            'commune' => 'sometimes|required|string|max:255',
+            'CMU' => 'sometimes|nullable|string|max:255',
+            'diaspora' => 'sometimes|boolean',
+            'pays_residence' => 'nullable|required_if:diaspora,true|string|max:255',
+            'ville_residence' => 'nullable|required_if:diaspora,true|string|max:255',
+            'adresse_etrangere' => 'nullable|required_if:diaspora,true|string|max:500',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur de validation',
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    try {
-        // Vérifier le mot de passe actuel
-        if (!Hash::check($request->current_password, $user->password)) {
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Mot de passe incorrect. Veuillez vérifier votre mot de passe actuel.'
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
             ], 422);
         }
 
-        // Préparer les données de mise à jour
-        $updateData = [];
-        $champs = [
-            'name', 'prenom', 'email', 'indicatif', 'contact', 
-            'commune', 'CMU', 'diaspora', 'pays_residence', 
-            'ville_residence', 'adresse_etrangere'
-        ];
-
-        foreach ($champs as $champ) {
-            if ($request->has($champ)) {
-                $updateData[$champ] = $request->$champ;
+        try {
+            // Vérifier le mot de passe actuel
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mot de passe incorrect. Veuillez vérifier votre mot de passe actuel.'
+                ], 422);
             }
-        }
 
-        // Gestion spéciale pour la diaspora
-        if (isset($updateData['diaspora']) && !$updateData['diaspora']) {
-            $updateData['pays_residence'] = null;
-            $updateData['ville_residence'] = null;
-            $updateData['adresse_etrangere'] = null;
-        }
+            // Préparer les données de mise à jour
+            $updateData = [];
+            $champs = [
+                'name',
+                'prenom',
+                'email',
+                'indicatif',
+                'contact',
+                'commune',
+                'CMU',
+                'diaspora',
+                'pays_residence',
+                'ville_residence',
+                'adresse_etrangere'
+            ];
 
-        // Mise à jour de l'utilisateur
-        $user->update($updateData);
-        $user->refresh();
+            foreach ($champs as $champ) {
+                if ($request->has($champ)) {
+                    $updateData[$champ] = $request->$champ;
+                }
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Informations mises à jour avec succès',
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'prenom' => $user->prenom,
-                    'email' => $user->email,
-                    'indicatif' => $user->indicatif,
-                    'contact' => $user->contact,
-                    'commune' => $user->commune,
-                    'CMU' => $user->CMU,
-                    'diaspora' => (bool) $user->diaspora,
-                    'pays_residence' => $user->pays_residence,
-                    'ville_residence' => $user->ville_residence,
-                    'adresse_etrangere' => $user->adresse_etrangere,
-                    'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
+            // Gestion spéciale pour la diaspora
+            if (isset($updateData['diaspora']) && !$updateData['diaspora']) {
+                $updateData['pays_residence'] = null;
+                $updateData['ville_residence'] = null;
+                $updateData['adresse_etrangere'] = null;
+            }
+
+            // Mise à jour de l'utilisateur
+            $user->update($updateData);
+            $user->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Informations mises à jour avec succès',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'prenom' => $user->prenom,
+                        'email' => $user->email,
+                        'indicatif' => $user->indicatif,
+                        'contact' => $user->contact,
+                        'commune' => $user->commune,
+                        'CMU' => $user->CMU,
+                        'diaspora' => (bool) $user->diaspora,
+                        'pays_residence' => $user->pays_residence,
+                        'ville_residence' => $user->ville_residence,
+                        'adresse_etrangere' => $user->adresse_etrangere,
+                        'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
+                    ]
                 ]
-            ]
-        ]);
-
-    } catch (\Exception $e) {
-        \Log::error('Erreur updateInformations: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur lors de la mise à jour des informations'
-        ], 500);
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur updateInformations: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour des informations'
+            ], 500);
+        }
     }
-}
 
     /**
      * Mise à jour du mot de passe
@@ -270,7 +306,6 @@ public function updateInformations(Request $request): JsonResponse
                 'success' => true,
                 'message' => 'Mot de passe mis à jour avec succès'
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Erreur updatePassword: ' . $e->getMessage());
             return response()->json([

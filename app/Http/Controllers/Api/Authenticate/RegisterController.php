@@ -78,7 +78,7 @@ class RegisterController extends Controller
                         'name' => $user->name,
                         'prenom' => $user->prenom,
                         'email' => $user->email,
-                        'commune' => $user->commune, // Retournera 'Plateau'
+                        'commune' => $user->commune,
                         'contact' => $user->contact,
                         'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
                         'diaspora' => $user->diaspora,
