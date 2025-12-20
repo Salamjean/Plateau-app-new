@@ -25,7 +25,7 @@ class RegisterController extends Controller
             'indicatif' => 'required|string|max:10',
             'contact' => 'required|string|max:20',
             'CMU' => 'nullable|string|max:50',
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile_picture' => 'nullable',
             'diaspora' => 'nullable|boolean',
             'pays_residence' => 'required_if:diaspora,true|string|max:255',
             'ville_residence' => 'required_if:diaspora,true|string|max:255',
