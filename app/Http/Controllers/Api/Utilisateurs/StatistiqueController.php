@@ -533,7 +533,7 @@ public function statistiquesParStatut(Request $request)
                 'demande' => $demandeData, 
                 'paiement' => $paiementInfo, // <--- AJOUT ICI : L'objet paiement complet
                 'livreur' => $livreurInfo,
-                'Document' => $documents,
+                'documents' => $documents,
                 'historique' => $historique,
                 'prochaines_etapes' => $this->getProchainesEtapes($demande->etat),
                 'statut' => $statutCalcule 
