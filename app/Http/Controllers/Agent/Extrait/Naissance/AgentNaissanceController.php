@@ -113,13 +113,13 @@ class AgentNaissanceController extends Controller
             switch ($naissance->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande d\'extrait de naissance est bien reçue et en cours de traitement.';
+                    $body = 'Votre demande d\'extrait de naissance a été bien reçue et en cours de traitement.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
                     break;
                 
                 case 'terminé':
-                    $title = 'Demande terminée';
-                    $body = 'Votre demande d\'extrait de naissance a été traitée et est maintenant terminée.';
+                    $title = 'Demande Traitée';
+                    $body = 'Votre demande d\'extrait de naissance a été traitée.';
                     if ($naissance->livraison_code) {
                          $body .= ' Votre code de livraison est : ' . $naissance->livraison_code;
                     }
@@ -127,7 +127,7 @@ class AgentNaissanceController extends Controller
                     break;
                 
                 case 'rejetée':
-                    $title = 'Demande rejetée';
+                    $title = 'Demande Rejetée';
                     $body = 'Votre demande d\'extrait de naissance a été rejetée. Motif : ' . ($naissance->motif_de_rejet ?? 'Non spécifié');
                     $data = ['url' => 'plateauapps://echec?reference=' . $naissance->reference];
                     break;
