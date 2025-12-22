@@ -204,8 +204,8 @@ class AgentMariageController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // Trouver la demande par ID
-        $mariage = Mariage::find($id);
+        // Trouver la demande par ID avec l'utilisateur associé
+        $mariage = Mariage::with('user')->find($id);
         if (!$mariage) {
             return response()->json(['error' => 'Demande non trouvée'], 404);
         }
@@ -218,6 +218,22 @@ class AgentMariageController extends Controller
         // Mettre à jour le statut de livraison
         $mariage->statut_livraison = $request->statut_livraison;
         $mariage->save();
+
+        // =================================================================
+        // <-- NOTIFICATION PUSH POUR MOBILE
+        // =================================================================
+        $user = $mariage->user;
+        
+        if ($user && !empty($user->push_notification)) {
+            $title = 'Extrait de Mariage Remis';
+            $body = 'Votre demande d\'extrait de mariage vous a été remis avec succès.';
+            $data = ['url' => 'plateauapps://demande?reference=' . $mariage->reference];
+            
+            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+        }
+        // =================================================================
+        // FIN DU BLOC DE NOTIFICATION
+        // =================================================================
 
         return response()->json(['success' => 'La demande a été marquée comme livrée.']);
     }

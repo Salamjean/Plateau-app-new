@@ -174,7 +174,7 @@ class AgentDecesController extends Controller
 
     public function markAsDeliveredDeces(Request $request, $id)
     {
-        // ... (votre code inchangé)
+        
         $validator = Validator::make($request->all(), [
             'statut_livraison' => 'required|string|in:livré',
             'reference' => 'required|string|max:255',
@@ -182,7 +182,7 @@ class AgentDecesController extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
-        $deces = Deces::find($id);
+        $deces = Deces::with('user')->find($id);
         if (!$deces) {
             return response()->json(['error' => 'Demande non trouvée'], 404);
         }
@@ -191,6 +191,23 @@ class AgentDecesController extends Controller
         }
         $deces->statut_livraison = $request->statut_livraison;
         $deces->save();
+
+        // =================================================================
+        // <-- NOTIFICATION PUSH POUR MOBILE
+        // =================================================================
+        $user = $deces->user;
+        
+        if ($user && !empty($user->push_notification)) {
+            $title = 'Extrait de Décès Remis';
+            $body = 'Votre demande d\'extrait de décès vous a été remis avec succès.';
+            $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
+            
+            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+        }
+        // =================================================================
+        // FIN DU BLOC DE NOTIFICATION
+        // =================================================================
+
         return response()->json(['success' => 'La demande a été marquée comme livrée.']);
     }
 

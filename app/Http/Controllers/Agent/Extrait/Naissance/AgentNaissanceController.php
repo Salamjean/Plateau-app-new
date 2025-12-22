@@ -180,8 +180,8 @@ class AgentNaissanceController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        // Trouver la demande par ID
-        $naissance = Naissance::find($id);
+        // Trouver la demande par ID avec l'utilisateur associé
+        $naissance = Naissance::with('user')->find($id);
         if (!$naissance) {
             return response()->json(['error' => 'Demande non trouvée'], 404);
         }
@@ -194,6 +194,22 @@ class AgentNaissanceController extends Controller
         // Mettre à jour le statut de livraison
         $naissance->statut_livraison = $request->statut_livraison;
         $naissance->save();
+
+        // =================================================================
+        // <-- NOTIFICATION PUSH POUR MOBILE
+        // =================================================================
+        $user = $naissance->user;
+        
+        if ($user && !empty($user->push_notification)) {
+            $title = 'Extrait de Naissance Remis';
+            $body = 'Votre demande d\'extrait de naissance vous a été remis avec succès.';
+            $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
+            
+            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+        }
+        // =================================================================
+        // FIN DU BLOC DE NOTIFICATION
+        // =================================================================
 
         return response()->json(['success' => 'La demande a été marquée comme livrée.']);
     }
