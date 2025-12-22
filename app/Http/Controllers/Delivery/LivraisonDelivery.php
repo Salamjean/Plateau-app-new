@@ -135,7 +135,7 @@ class LivraisonDelivery extends Controller
             if ($user && !empty($user->push_notification)) {
                 $title = 'Demande Livrée';
                 $modelName = strtolower($this->getTypeDemande(Str::studly($request->demande_type)));
-                $body = "Votre acte demande de {$modelName} ({$demande->reference}) a été livrée avec succès.";
+                $body = "Votre acte de {$modelName} ({$demande->reference}) a été livré avec succès.";
                 $data = ['url' => 'plateauapps://demande?reference=' . $demande->reference];
                 
                 $this->sendPushNotification($user->push_notification, $title, $body, $data);
