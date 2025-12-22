@@ -137,13 +137,13 @@ class AgentMariageController extends Controller
             switch ($mariage->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande d\'extrait de mariage est bien reçue et en cours de traitement.';
+                    $body = 'Votre demande d\'extrait de mariage a été bien reçue et en cours de traitement.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $mariage->reference];
                     break;
                 
                 case 'terminé':
-                    $title = 'Demande terminée';
-                    $body = 'Votre demande d\'extrait de mariage a été traitée et est maintenant terminée.';
+                    $title = 'Demande Traitée';
+                    $body = 'Votre demande d\'extrait de mariage a été traitée.';
                     if ($mariage->livraison_code) {
                          $body .= ' Votre code de livraison est : ' . $mariage->livraison_code;
                     }
@@ -151,7 +151,7 @@ class AgentMariageController extends Controller
                     break;
                 
                 case 'rejetée':
-                    $title = 'Demande rejetée';
+                    $title = 'Demande Rejetée';
                     $body = 'Votre demande d\'extrait de mariage a été rejetée. Motif : ' . ($mariage->motif_de_rejet ?? 'Non spécifié');
                     $data = ['url' => 'plateauapps://echec?reference=' . $mariage->reference];
                     break;

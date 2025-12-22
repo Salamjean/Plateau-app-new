@@ -215,7 +215,7 @@ class LivraisonExtraitController extends Controller
                         if ($user && !empty($user->push_notification)) {
                             $title = 'Demande en cours de livraison';
                             $modelName = strtolower($this->getTypeDemande($demande['type'])); // "naissance", "décès"...
-                            $body = "Votre demande de {$modelName} ({$item->reference}) a été confiée à un livreur et est en route.";
+                            $body = "Votre demande ({$item->reference}) a été confiée à un livreur et est en cours de livraison.";
                             $data = ['url' => 'plateauapps://demande?reference=' . $item->reference];
                             
                             $this->sendPushNotification($user->push_notification, $title, $body, $data);

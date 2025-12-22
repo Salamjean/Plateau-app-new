@@ -113,14 +113,14 @@ class AgentDecesController extends Controller
             switch ($deces->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande est bien reçue par la mairie et est en cours de traitement.';
+                    $body = 'Votre demande d\'extrait de décès a été bien reçue par la mairie et est en cours de traitement.';
                     // <-- NOUVEAU : Lien pour 'réçu'
                     $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
                     break;
                 
                 case 'terminé':
-                    $title = 'Demande terminée';
-                    $body = 'Votre demande d\'extrait de décès a été traitée et est maintenant terminée.';
+                    $title = 'Demande Traitée';
+                    $body = 'Votre demande d\'extrait de décès a été traitée.';
                     if ($deces->livraison_code) {
                          $body .= ' Votre code de livraison est : ' . $deces->livraison_code;
                     }
@@ -130,7 +130,7 @@ class AgentDecesController extends Controller
                 
                 case 'rejetée':
                     $title = 'Demande rejetée';
-                    $body = 'Votre demande a été rejetée. Motif : ' . ($deces->motif_de_rejet ?? 'Non spécifié');
+                    $body = 'Votre demande d\'extrait de décès a été rejetée. Motif : ' . ($deces->motif_de_rejet ?? 'Non spécifié');
                     // <-- NOUVEAU : Lien pour 'rejetée'
                     $data = ['url' => 'plateauapps://echec?reference=' . $deces->reference];
                     break;

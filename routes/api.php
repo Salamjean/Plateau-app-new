@@ -129,6 +129,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/rendezvous')->group(function () {
             Route::get('/', [RdvApiController::class, 'index']);
             Route::post('/', [RdvApiController::class, 'store']);
+            Route::put('/{id}/cancel', [RdvApiController::class, 'cancel']);
             Route::get('/statistiques/{id}', [StatistiqueController::class, 'statistiquesRendezvousParId']);
         Route::get('/statistiques', [StatistiqueController::class, 'statistiquesRendezvousComplet']);
         Route::get('/{id}/details', [StatistiqueController::class, 'getRendezvousDetails']);

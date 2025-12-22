@@ -125,4 +125,61 @@ class RdvApiController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Annule un rendez-vous existant.
+     */
+    public function cancel(Request $request, $id)
+    {
+        try {
+            // Récupérer l'utilisateur authentifié
+            $user = $request->user();
+            
+            // Trouver le rendez-vous
+            $rendezvous = Rendezvous::find($id);
+            
+            // Vérifier si le rendez-vous existe
+            if (!$rendezvous) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Rendez-vous introuvable.'
+                ], 404);
+            }
+            
+            // Vérifier que le rendez-vous appartient bien à l'utilisateur
+            if ($rendezvous->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous n\'êtes pas autorisé à annuler ce rendez-vous.'
+                ], 403);
+            }
+            
+            // Vérifier si le rendez-vous n'est pas déjà annulé
+            if ($rendezvous->statut === 'annulé') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce rendez-vous est déjà annulé.'
+                ], 400);
+            }
+            
+            // Mettre à jour le statut
+            $rendezvous->statut = 'annulé';
+            $rendezvous->save();
+            
+            // Retourner une réponse JSON de succès
+            return response()->json([
+                'success' => true,
+                'message' => 'Rendez-vous annulé avec succès.',
+                'rendezvous' => $rendezvous
+            ], 200);
+            
+        } catch (Exception $e) {
+            Log::error("Erreur API [RdvApiController@cancel]: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur interne est survenue lors de l\'annulation du rendez-vous.'
+            ], 500);
+        }
+    }
+  
 }
