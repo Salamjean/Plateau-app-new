@@ -13,6 +13,7 @@ use App\Models\Rendezvous;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class StatistiqueController extends Controller
 {
@@ -506,12 +507,33 @@ public function statistiquesParStatut(Request $request)
             ];
     
             $historique = array_reverse($historique);
+
+            // --- NOUVELLE SECTION : DOCUMENTS ---
+            $documents = [];
+            if ($type === 'naissance') {
+                $documents = [
+                    'CNI' => $demande->CNI ? "/storage/" . $demande->CNI : null,
+                ];
+            } elseif ($type === 'mariage') {
+                $documents = [
+                    'pieceIdentite' => $demande->pieceIdentite ? "/storage/" . $demande->pieceIdentite : null,
+                    'extraitMariage' => $demande->extraitMariage ? "/storage/" . $demande->extraitMariage : null,
+                ];
+            } elseif ($type === 'deces') {
+                $documents = [
+                    'CNIdfnt' => $demande->CNIdfnt ? "/storage/" . $demande->CNIdfnt : null,
+                    'CNIdcl' => $demande->CNIdcl ? "/storage/" . $demande->CNIdcl : null,
+                    'documentMariage' => $demande->documentMariage ? "/storage/" . $demande->documentMariage : null,
+                    'RequisPolice' => $demande->RequisPolice ? "/storage/" . $demande->RequisPolice : null,
+                ];
+            }
     
             // --- RÉPONSE JSON MISE À JOUR ---
             return response()->json([
                 'demande' => $demandeData, 
                 'paiement' => $paiementInfo, // <--- AJOUT ICI : L'objet paiement complet
                 'livreur' => $livreurInfo,
+                'documents' => $documents,
                 'historique' => $historique,
                 'prochaines_etapes' => $this->getProchainesEtapes($demande->etat),
                 'statut' => $statutCalcule 

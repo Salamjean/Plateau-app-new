@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Poste;
-
+use App\Models\Deces;
+use App\Models\Mariage;
+use App\Models\Naissance;
 use App\Http\Controllers\Controller;
 use App\Models\Livreur;
 use Illuminate\Http\Request;
@@ -213,9 +215,9 @@ class LivraisonExtraitController extends Controller
                         $user = $item->user;
 
                         if ($user && !empty($user->push_notification)) {
-                            $title = 'Demande en cours de livraison';
+                            $title = 'Documents en cours de livraison';
                             $modelName = strtolower($this->getTypeDemande($demande['type'])); // "naissance", "décès"...
-                            $body = "Votre demande ({$item->reference}) a été confiée à un livreur et est en cours de livraison.";
+                            $body = "Votre acte de {$modelName} ({$item->reference}) a été confiée à un livreur et est en cours de livraison.";
                             $data = ['url' => 'plateauapps://demande?reference=' . $item->reference];
                             
                             $this->sendPushNotification($user->push_notification, $title, $body, $data);
