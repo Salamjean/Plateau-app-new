@@ -47,7 +47,7 @@ class UserProfilController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur getProfil: ' . $e->getMessage());
+            Log::error('Erreur getProfil: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération du profil'
@@ -138,7 +138,7 @@ class UserProfilController extends Controller
                 'message' => 'Photo de profil supprimée avec succès'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur deleteProfilePicture: ' . $e->getMessage());
+            Log::error('Erreur deleteProfilePicture: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la suppression de la photo de profil'
@@ -240,7 +240,7 @@ class UserProfilController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur updateInformations: ' . $e->getMessage());
+            Log::error('Erreur updateInformations: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la mise à jour des informations'
@@ -288,7 +288,7 @@ class UserProfilController extends Controller
                 'message' => 'Mot de passe mis à jour avec succès'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur updatePassword: ' . $e->getMessage());
+            Log::error('Erreur updatePassword: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la mise à jour du mot de passe'

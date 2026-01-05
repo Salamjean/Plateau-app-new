@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\saveMariageRequest;
 use App\Models\Mariage;
 use App\Notifications\DemandeMariageConfirmationNotification;
-use App\Services\InfobipService;
+use App\Services\YellikaSmsService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -29,18 +29,18 @@ class MariageController extends Controller
         if ($request->filled('searchType') && $request->filled('searchInput')) {
             if ($request->searchType === 'nomConjoint') {
                 $query->where('nomEpoux', 'like', '%' . $request->searchInput . '%')
-                    ->orWhere('nomEpouse', 'like', '%' . $request->searchInput . '%'); 
+                    ->orWhere('nomEpouse', 'like', '%' . $request->searchInput . '%');
             } elseif ($request->searchType === 'prenomConjoint') {
                 $query->where('prenomEpoux', 'like', '%' . $request->searchInput . '%')
-                    ->orWhere('prenomEpouse', 'like', '%' . $request->searchInput . '%'); 
+                    ->orWhere('prenomEpouse', 'like', '%' . $request->searchInput . '%');
             } elseif ($request->searchType === 'lieuNaissance') {
                 $query->where('lieuNaissanceEpoux', 'like', '%' . $request->searchInput . '%')
-                    ->orWhere('lieuNaissanceEpouse', 'like', '%' . $request->searchInput . '%'); 
+                    ->orWhere('lieuNaissanceEpouse', 'like', '%' . $request->searchInput . '%');
             }
         }
 
         // Récupérer tous les mariages correspondant aux critères de filtrage
-        $mariages = $query->where('etat','!=','terminé')->get();
+        $mariages = $query->where('etat', '!=', 'terminé')->get();
 
         // Fusionner les deux collections en une seule
         $allMariages = $mariages;
@@ -49,13 +49,14 @@ class MariageController extends Controller
         return view('user.mariage.index', compact('allMariages'));
     }
 
-    public function create(){
+    public function create()
+    {
         return view('user.mariage.create');
     }
 
-    public function store(saveMariageRequest $request, InfobipService $infobipService)
+    public function store(saveMariageRequest $request, YellikaSmsService $yellikaSmsService)
     {
-         $filesToUpload = [
+        $filesToUpload = [
             'pieceIdentite' => 'identite',
             'extraitMariage' => 'extrait',
             'quantite' => 'required|integer|min:1|max:10',
@@ -68,10 +69,10 @@ class MariageController extends Controller
                 $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
-                
+
                 // Stockage avec le disque 'public' explicitement
                 $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
-                
+
                 // Chemin pour la base de données
                 $uploadedPaths[$fileKey] = "images/mariages/$subDir/$newFileName";
             }
@@ -125,7 +126,7 @@ class MariageController extends Controller
         $phoneNumber = $user->indicatif . $user->contact;
         $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie du plateau. Référence: {$mariage->reference}.
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-        $infobipService->sendSms($phoneNumber, $message);
+        $yellikaSmsService->sendSms($phoneNumber, $message);
 
         // Envoi de l'email de confirmation
         Notification::send($user, new DemandeMariageConfirmationNotification($user, $mariage));

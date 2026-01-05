@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User\Extrait\Deces;
 use App\Http\Controllers\Controller;
 use App\Models\Deces;
 use App\Notifications\DemandeDecesConfirmationNotification;
-use App\Services\InfobipService;
+use App\Services\YellikaSmsService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,12 +16,12 @@ use Illuminate\Support\Str;
 
 class DecesController extends Controller
 {
-     public function index()
+    public function index()
     {
         // Récupérer les utilisateurs connecté
         $user = Auth::user();
 
-        $deces = Deces::where('user_id', $user->id)->where('etat','!=','terminé')->paginate(10); 
+        $deces = Deces::where('user_id', $user->id)->where('etat', '!=', 'terminé')->paginate(10);
 
         return view('user.deces.index', compact('deces'));
     }
@@ -31,7 +31,7 @@ class DecesController extends Controller
         return view('user.deces.simple.create');
     }
 
-    public function store(Request $request, InfobipService $infobipService)
+    public function store(Request $request, YellikaSmsService $yellikaSmsService)
     {
         $request->validate([
             'name' => 'required',
@@ -40,7 +40,7 @@ class DecesController extends Controller
             'CNIdfnt' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
             'CNIdcl' => 'required',
-        ],[
+        ], [
             'name.required' => 'Le nom du défunt est obligatoire.',
             'numberR.required' => 'Le numéro de l\'extrait de décès est obligatoire.',
             'dateR.required' => 'La date de l\'extrait de décès est obligatoire.',
@@ -58,7 +58,7 @@ class DecesController extends Controller
 
         $filesToUpload = [
             'pActe' => '', // Pas de sous-dossier
-            'CNIdfnt' => 'cnid', 
+            'CNIdfnt' => 'cnid',
             'CNIdcl' => 'cnid',
             'documentMariage' => 'mariage',
             'RequisPolice' => 'police',
@@ -71,10 +71,10 @@ class DecesController extends Controller
                 $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
-                
+
                 // Stockage avec le disque 'public'
                 $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
-                
+
                 // Même format que naissance/mariage
                 $uploadedPaths[$fileKey] = "images/deces/$subDir/$newFileName";
             }
@@ -112,7 +112,7 @@ class DecesController extends Controller
         $deces->user_id = $user->id; // Lier la demande à l'utilisateur connecté
         $deces->reference = $reference; // Assignez la référence générée
 
-           // Ajout des informations de livraison si option livraison est choisie
+        // Ajout des informations de livraison si option livraison est choisie
         if ($request->input('choix_option') === 'livraison') {
             $deces->montant_timbre = $request->input('montant_timbre');
             $deces->montant_livraison = $request->input('montant_livraison');
@@ -131,7 +131,7 @@ class DecesController extends Controller
         $phoneNumber = $user->indicatif . $user->contact;
         $message = "Bonjour {$user->name}, votre demande d'extrait de décès a bien été transmise à la mairie du plateau. Référence: {$deces->reference}
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-        $infobipService->sendSms($phoneNumber, $message);
+        $yellikaSmsService->sendSms($phoneNumber, $message);
 
         // Envoi de l'email de confirmation
         Notification::send($user, new DemandeDecesConfirmationNotification($user, $deces));

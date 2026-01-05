@@ -5,8 +5,7 @@ namespace App\Http\Controllers\User\Extrait\Naissance;
 use App\Http\Controllers\Controller;
 use App\Models\Naissance;
 use App\Notifications\DemandeNaissanceConfirmationNotification;
-use App\Services\InfobipService;
-use App\Services\OrangeSmsService;
+use App\Services\YellikaSmsService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -17,28 +16,29 @@ use Illuminate\Support\Str;
 
 class NaissanceController extends Controller
 {
-    public function index(){
+    public function index()
+    {
 
         // Récupérer l'utilisateur connecté
         $user = Auth::user();
-        $naissances = Naissance::where('user_id', $user->id)->where('etat','!=','terminé')->paginate(20);
+        $naissances = Naissance::where('user_id', $user->id)->where('etat', '!=', 'terminé')->paginate(20);
 
-        return view('user.naissance.index', compact( 'naissances'));
-        
+        return view('user.naissance.index', compact('naissances'));
+
     }
 
     public function create()
     {
         $userConnecté = Auth::user();
         return view('user.naissance.simple.create', [
-            'userName' => $userConnecté ? $userConnecté->name : '', 
-            'userPrenom' => $userConnecté ? $userConnecté->prenom : '', 
-            'userCommune' => $userConnecté ? $userConnecté->commune : '', 
-            'userCMU' => $userConnecté ? $userConnecté->CMU : '', 
+            'userName' => $userConnecté ? $userConnecté->name : '',
+            'userPrenom' => $userConnecté ? $userConnecté->prenom : '',
+            'userCommune' => $userConnecté ? $userConnecté->commune : '',
+            'userCMU' => $userConnecté ? $userConnecté->CMU : '',
         ]);
     }
 
-    public function store(Request $request, InfobipService $infobipService)
+    public function store(Request $request, YellikaSmsService $yellikaSmsService)
     {
         $validated = $request->validate([
             'type' => 'required',
@@ -49,7 +49,7 @@ class NaissanceController extends Controller
             'commune' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
             'CNI' => 'required',
-        ],[
+        ], [
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
             'name.required' => 'Le nom est obligatoire',
             'prenom.required' => 'Le prénom est obligatoire',
@@ -78,10 +78,10 @@ class NaissanceController extends Controller
                 $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
-                
+
                 // Stockage avec le disque 'public' explicitement
                 $file->storeAs("images/naissances/$subDir", $newFileName, 'public');
-                
+
                 // Même format que mariage (sans 'storage/' au début)
                 $uploadedPaths[$fileKey] = "images/naissances/$subDir$newFileName";
             }
@@ -91,7 +91,7 @@ class NaissanceController extends Controller
         $user = Auth::user();
 
         // Génération de la référence
-        $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1)); 
+        $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1));
         $anneeCourante = Carbon::now()->year;
         $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
         $increment = Naissance::getNextId();
@@ -112,7 +112,8 @@ class NaissanceController extends Controller
         $naissance->user_id = $user->id;
         $naissance->etat = 'en attente';
         $naissance->reference = $reference;
-       
+
+
 
         // Ajout des informations de livraison si l'option "livraison" est choisie
         if ($request->input('choix_option') === 'livraison') {
@@ -129,20 +130,20 @@ class NaissanceController extends Controller
             $naissance->quartier = $request->input('quartier');
         }
 
-         $naissance->save();
-         $phoneNumber = $user->indicatif . $user->contact;
-    Log::info('Numéro de téléphone construit : ' . $phoneNumber);
-    $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
+        $naissance->save();
+        $phoneNumber = $user->indicatif . $user->contact;
+        Log::info('Numéro de téléphone construit : ' . $phoneNumber);
+        $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-    $smsResult = $infobipService->sendSms($phoneNumber, $message);
+        $smsResult = $yellikaSmsService->sendSms($phoneNumber, $message);
 
-    // Envoi de l'email de confirmation
-Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $naissance));
+        // Envoi de l'email de confirmation
+        Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $naissance));
 
         return redirect()->route('user.extrait.index')->with('success', 'Votre demande a été traitée avec succès.');
     }
 
-//     public function store(Request $request, OrangeSmsService $orangeSmsService)
+    //     public function store(Request $request, OrangeSmsService $orangeSmsService)
 // {
 //     $validated = $request->validate([
 //         'type' => 'required',
@@ -169,17 +170,17 @@ Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $n
 //         'CNI.max' => 'Le fichier ne doit pas dépasser 1Mo',
 //     ]);
 
-//     // Log des données de la requête
+    //     // Log des données de la requête
 //     Log::info('Store method called', $request->all());
 
-//     // Configuration des chemins pour le stockage des fichiers
+    //     // Configuration des chemins pour le stockage des fichiers
 //     $imageBaseLink = '/images/naissances/';
 //     $filesToUpload = [
 //         'CNI' => 'cni/',
 //     ];
 //     $uploadedPaths = [];
 
-//     // Traitement des fichiers uploadés
+    //     // Traitement des fichiers uploadés
 //     foreach ($filesToUpload as $fileKey => $subDir) {
 //         if ($request->hasFile($fileKey)) {
 //             $file = $request->file($fileKey);
@@ -190,15 +191,15 @@ Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $n
 //         }
 //     }
 
-//     // Récupération de l'utilisateur connecté
+    //     // Récupération de l'utilisateur connecté
 //     $user = Auth::user();
 
-//     // Génération de la référence
+    //     // Génération de la référence
 //     $communeInitiale = strtoupper(substr($user->commune ?? 'X', 0, 1));
 //     $anneeCourante = Carbon::now()->year;
 //     $reference = 'AN' . str_pad(Naissance::getNextId(), 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
 
-//     // Création de la demande d'extrait de naissance
+    //     // Création de la demande d'extrait de naissance
 //     $naissance = new Naissance();
 //     $naissance->pour = $request->pour;
 //     $naissance->type = $request->type;
@@ -214,7 +215,7 @@ Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $n
 //     $naissance->etat = 'en attente';
 //     $naissance->reference = $reference;
 
-//     // Ajout des informations de livraison si l'option "livraison" est choisie
+    //     // Ajout des informations de livraison si l'option "livraison" est choisie
 //     if ($request->input('choix_option') === 'livraison') {
 //         $naissance->montant_timbre = $request->input('montant_timbre');
 //         $naissance->montant_livraison = $request->input('montant_livraison');
@@ -229,18 +230,18 @@ Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $n
 //         $naissance->quartier = $request->input('quartier');
 //     }
 
-//     $naissance->save();
-    
-//     // Envoi du SMS avec Orange
+    //     $naissance->save();
+
+    //     // Envoi du SMS avec Orange
 //     $phoneNumber = $user->indicatif . $user->contact;
 //     Log::info('Numéro de téléphone construit : ' . $phoneNumber);
-    
-//     $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie de {$user->commune}. Référence : {$naissance->reference}.
-// Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-    
-//     $smsResult = $orangeSmsService->sendSms($phoneNumber, $message);
 
-//     return redirect()->route('user.extrait.index')->with('success', 'Votre demande a été traitée avec succès.');
+    //     $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie de {$user->commune}. Référence : {$naissance->reference}.
+// Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+
+    //     $smsResult = $orangeSmsService->sendSms($phoneNumber, $message);
+
+    //     return redirect()->route('user.extrait.index')->with('success', 'Votre demande a été traitée avec succès.');
 // }
 
     public function delete(Naissance $naissance)
