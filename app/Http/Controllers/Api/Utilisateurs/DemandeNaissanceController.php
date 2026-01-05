@@ -100,8 +100,9 @@ class DemandeNaissanceController extends Controller
             // 3. Génération de la référence (AN)
             $communeInitiale = strtoupper(substr($request->commune ?: 'X', 0, 1));
             $anneeCourante = Carbon::now()->year;
-            $nextId = Naissance::max('id') + 1;
-            $reference = 'AN' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
+            $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $increment = Naissance::max('id') + 1;
+            $reference = 'AN' . $randomDigits . $increment . $communeInitiale . $anneeCourante;
 
             // 4. Création de la demande
             $naissance = new Naissance();

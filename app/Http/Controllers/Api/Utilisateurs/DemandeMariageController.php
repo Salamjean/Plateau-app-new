@@ -90,8 +90,9 @@ class DemandeMariageController extends Controller
             $commune = $request->commune ?: $user->commune;
             $communeInitiale = strtoupper(substr($commune ?: 'X', 0, 1));
             $anneeCourante = Carbon::now()->year;
-            $nextId = Mariage::max('id') + 1; 
-            $reference = 'AM' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante; // ✅ Préfixe AM
+            $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $increment = Mariage::max('id') + 1; 
+            $reference = 'AM' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // ✅ Préfixe AM
 
             // 4. Création de la demande (Spécifique au Mariage)
             $mariage = new Mariage();
