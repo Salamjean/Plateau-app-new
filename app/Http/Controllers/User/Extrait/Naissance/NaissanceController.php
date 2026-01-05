@@ -93,7 +93,9 @@ class NaissanceController extends Controller
         // Génération de la référence
         $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1)); 
         $anneeCourante = Carbon::now()->year;
-        $reference = 'AN' . str_pad(Naissance::getNextId(), 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante;
+        $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        $increment = Naissance::getNextId();
+        $reference = 'AN' . $randomDigits . $increment . $communeInitiale . $anneeCourante;
 
         // Création de la demande d'extrait de naissance
         $naissance = new Naissance();

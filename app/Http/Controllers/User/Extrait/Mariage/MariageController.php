@@ -86,7 +86,9 @@ class MariageController extends Controller
         // Générer la référence ici dans le contrôleur
         $communeInitiale = strtoupper(substr($commune ?: 'X', 0, 1)); // 'X' si commune est null ou vide
         $anneeCourante = Carbon::now()->year;
-        $reference = 'AM' . str_pad(Mariage::getNextId(), 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante; // AM pour Acte de Mariage
+        $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        $increment = Mariage::getNextId();
+        $reference = 'AM' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AM pour Acte de Mariage
 
 
         // Enregistrement de l'objet Mariage

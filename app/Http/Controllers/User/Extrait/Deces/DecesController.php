@@ -91,7 +91,9 @@ class DecesController extends Controller
         // Générer la référence ici dans le contrôleur
         $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1)); // 'X' si commune est null ou vide (prend communeD du request si existe sinon commune user sinon X)
         $anneeCourante = Carbon::now()->year;
-        $reference = 'AD' . str_pad(Deces::getNextId(), 4, '0', STR_PAD_LEFT) . $communeInitiale . $anneeCourante; // ADJ pour Acte de Decès Déjà Jugé
+        $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        $increment = Deces::getNextId();
+        $reference = 'AD' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AD pour Acte de Decès
 
 
         // Enregistrement de l'objet deces
