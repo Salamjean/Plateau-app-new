@@ -509,23 +509,61 @@ public function statistiquesParStatut(Request $request)
             $historique = array_reverse($historique);
 
             // --- NOUVELLE SECTION : DOCUMENTS ---
+            // --- NOUVELLE SECTION : DOCUMENTS ---
             $documents = [];
+            
             if ($type === 'naissance') {
-                $documents = [
-                    'CNI' => $demande->CNI ? "/storage/" . $demande->CNI : null,
-                ];
+                if ($demande->CNI) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->CNI,
+                        'type' => 'image',
+                        'nom' => "Carte d'identité"
+                    ];
+                }
             } elseif ($type === 'mariage') {
-                $documents = [
-                    'pieceIdentite' => $demande->pieceIdentite ? "/storage/" . $demande->pieceIdentite : null,
-                    'extraitMariage' => $demande->extraitMariage ? "/storage/" . $demande->extraitMariage : null,
-                ];
+                if ($demande->pieceIdentite) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->pieceIdentite,
+                        'type' => 'image',
+                        'nom' => "Pièce d'identité"
+                    ];
+                }
+                if ($demande->extraitMariage) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->extraitMariage,
+                        'type' => 'image',
+                        'nom' => "Extrait de mariage"
+                    ];
+                }
             } elseif ($type === 'deces') {
-                $documents = [
-                    'CNIdfnt' => $demande->CNIdfnt ? "/storage/" . $demande->CNIdfnt : null,
-                    'CNIdcl' => $demande->CNIdcl ? "/storage/" . $demande->CNIdcl : null,
-                    'documentMariage' => $demande->documentMariage ? "/storage/" . $demande->documentMariage : null,
-                    'RequisPolice' => $demande->RequisPolice ? "/storage/" . $demande->RequisPolice : null,
-                ];
+                if ($demande->CNIdfnt) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->CNIdfnt,
+                        'type' => 'image',
+                        'nom' => "CNI du défunt"
+                    ];
+                }
+                if ($demande->CNIdcl) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->CNIdcl,
+                        'type' => 'image',
+                        'nom' => "CNI du déclarant"
+                    ];
+                }
+                if ($demande->documentMariage) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->documentMariage,
+                        'type' => 'image',
+                        'nom' => "Document de mariage"
+                    ];
+                }
+                if ($demande->RequisPolice) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->RequisPolice,
+                        'type' => 'image',
+                        'nom' => "Réquisition de police"
+                    ];
+                }
             }
     
             // --- RÉPONSE JSON MISE À JOUR ---
@@ -533,7 +571,7 @@ public function statistiquesParStatut(Request $request)
                 'demande' => $demandeData, 
                 'paiement' => $paiementInfo, // <--- AJOUT ICI : L'objet paiement complet
                 'livreur' => $livreurInfo,
-                'documents' => $documents,
+                'document' => $documents,
                 'historique' => $historique,
                 'prochaines_etapes' => $this->getProchainesEtapes($demande->etat),
                 'statut' => $statutCalcule 
