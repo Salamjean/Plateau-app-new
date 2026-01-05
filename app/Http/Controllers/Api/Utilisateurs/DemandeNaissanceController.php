@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use App\Services\YellikaSmsService;
+use App\Notifications\DemandeNaissanceConfirmationNotification;
+use Illuminate\Support\Facades\Notification;
 
 class DemandeNaissanceController extends Controller
 {
@@ -49,7 +52,7 @@ class DemandeNaissanceController extends Controller
     /**
      * Créer une nouvelle demande de naissance
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, YellikaSmsService $yellikaSmsService): JsonResponse
     {
         // 1. Validation (Spécifique à Naissance)
         $validator = Validator::make($request->all(), [
@@ -142,7 +145,19 @@ class DemandeNaissanceController extends Controller
             }
 
             $naissance->save();
-            
+
+            // Envoi des notifications (SMS & Email)
+            try {
+                $phoneNumber = $user->indicatif . $user->contact;
+                $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
+Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+
+                Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $naissance));
+            } catch (\Exception $e) {
+                Log::error("Erreur notifications DemandeNaissance (API): " . $e->getMessage());
+            }
+
             // 6. Cas "Retrait"
             if ($naissance->choix_option === 'retrait') {
                 return response()->json([
@@ -166,10 +181,10 @@ class DemandeNaissanceController extends Controller
                     'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
-            
+
             // 9. Renvoyer la réponse JSON
             $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
@@ -217,11 +232,11 @@ class DemandeNaissanceController extends Controller
             $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/naissance";
 
             // 2. Calculer le montant
-            $cout_total_timbres = (float)$naissance->montant_timbre * (int)$naissance->quantite;
-            $totalAmount = $cout_total_timbres + (float)$naissance->montant_livraison;
+            $cout_total_timbres = (float) $naissance->montant_timbre * (int) $naissance->quantite;
+            $totalAmount = $cout_total_timbres + (float) $naissance->montant_livraison;
 
             // 3. Infos CinetPay
-            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
+            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
             $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
 
             // 4. NOUVEAU TRANSACTION_ID UNIQUE
@@ -240,7 +255,7 @@ class DemandeNaissanceController extends Controller
                 'cancel_url' => $fallbackCancelUrl,
                 'mode' => 'PRODUCTION',
                 'channels' => 'ALL',
-                
+
                 // Customer info
                 'customer_name' => $naissance->nom_destinataire,
                 'customer_surname' => $naissance->prenom_destinataire,
@@ -264,7 +279,7 @@ class DemandeNaissanceController extends Controller
                     'error_details' => $response->json() ?? $response->body()
                 ];
             }
-            
+
             // 8. Succès
             return [
                 'success' => true,
@@ -306,20 +321,20 @@ class DemandeNaissanceController extends Controller
 
             // 2. Vérifier si l'option est 'livraison'
             if ($naissance->choix_option !== 'livraison') {
-                 return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+                return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
             }
 
             // 3. Vérifier l'état
             if (!in_array($naissance->etat, ['paiement_echoue', 'en attente de paiement'])) {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Cette demande ne peut pas être payée à nouveau (état actuel: ' . $naissance->etat . ')'
                 ], 400);
             }
 
             // 4. Mettre à jour l'état
             $naissance->etat = 'paiement_echoue';
-            $naissance->statut_livraison = 'paiement_echoue'; 
+            $naissance->statut_livraison = 'paiement_echoue';
             $naissance->save();
 
             // 5. Générer le nouveau lien de paiement
@@ -336,12 +351,12 @@ class DemandeNaissanceController extends Controller
 
             // 7. Succès !
             $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
-                
+
                 'payment_details' => [
                     'payment_url' => $cinetpayResponseData['payment_url'],
                     'payment_token' => $cinetpayResponseData['payment_token'],
@@ -379,24 +394,24 @@ class DemandeNaissanceController extends Controller
             // 2. Vérifier l'état
             if ($naissance->etat !== 'rejetée') {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Cette demande ne peut pas être relancée (état actuel: ' . $naissance->etat . ')'
                 ], 400);
             }
 
             // 3. Mettre à jour l'état
             $naissance->etat = 'en attente';
-            
+
             if ($naissance->choix_option === 'livraison') {
-                $naissance->statut_livraison = 'en attente'; 
+                $naissance->statut_livraison = 'en attente';
             } else {
                 $naissance->statut_livraison = null;
             }
 
             // --- MISE À JOUR DEMANDÉE ---
             // Force la date de création à être la date actuelle.
-            $naissance->created_at = now(); 
-            
+            $naissance->created_at = now();
+
             $naissance->save();
 
             // 4. Succès !
@@ -416,15 +431,15 @@ class DemandeNaissanceController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Helper pour formater la réponse de la demande (Spécifique à Naissance)
      */
     private function formatDemandeResponse(Naissance $naissance, bool $includeFiles = false)
     {
-        $montant_total_timbres = (float)($naissance->montant_timbre ?? 0) * (int)($naissance->quantite ?? 1);
-        $montant_total = $naissance->choix_option === 'livraison' 
-            ? $montant_total_timbres + (float)($naissance->montant_livraison ?? 0) 
+        $montant_total_timbres = (float) ($naissance->montant_timbre ?? 0) * (int) ($naissance->quantite ?? 1);
+        $montant_total = $naissance->choix_option === 'livraison'
+            ? $montant_total_timbres + (float) ($naissance->montant_livraison ?? 0)
             : 0;
 
         $data = [
@@ -439,9 +454,9 @@ class DemandeNaissanceController extends Controller
             'commune' => $naissance->commune,
             'etat' => $naissance->etat,
             'choix_option' => $naissance->choix_option,
-            'quantite' => (int)($naissance->quantite ?? 1),
-            'montant_timbre_unitaire' => (float)$naissance->montant_timbre,
-            'montant_livraison' => (float)$naissance->montant_livraison,
+            'quantite' => (int) ($naissance->quantite ?? 1),
+            'montant_timbre_unitaire' => (float) $naissance->montant_timbre,
+            'montant_livraison' => (float) $naissance->montant_livraison,
             'montant_total' => $montant_total,
             'created_at' => $naissance->created_at->format('Y-m-d H:i:s'),
             'nom_destinataire' => $naissance->nom_destinataire,
@@ -471,12 +486,12 @@ class DemandeNaissanceController extends Controller
     public function handlePaymentNotification(Request $request): JsonResponse
     {
         Log::info('Webhook CinetPay Reçu (Naissance) - request:', $request->all());
-    
-        $cinetpayTransactionId = $request->input('cpm_trans_id') 
-                                ?? $request->input('transaction_id') 
-                                ?? $request->input('data.cpm_trans_id') 
-                                ?? null;
-    
+
+        $cinetpayTransactionId = $request->input('cpm_trans_id')
+            ?? $request->input('transaction_id')
+            ?? $request->input('data.cpm_trans_id')
+            ?? null;
+
         if (empty($cinetpayTransactionId)) {
             Log::warning('Webhook CinetPay (Naissance): transaction_id manquant.', $request->all());
             return response()->json(['success' => false, 'message' => 'Transaction ID manquant'], 200);
@@ -487,37 +502,37 @@ class DemandeNaissanceController extends Controller
             $parts = explode('_', $cinetpayTransactionId);
             $reference = $parts[0];
         }
-    
+
         try {
             // ✅ Trouver la demande Naissance
             $naissance = Naissance::where('reference', $reference)->first();
-    
+
             if (!$naissance) {
                 Log::warning("Webhook CinetPay (Naissance): Aucune demande trouvée pour reference {$reference}.");
                 return response()->json(['success' => true, 'message' => 'Demande non trouvée'], 200);
             }
-    
+
             // Vérifier le statut auprès de CinetPay
             $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
             $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
             $cinetpayUrl = 'https://api-checkout.cinetpay.com/v2/payment/check';
-    
+
             $response = Http::withoutVerifying()->post($cinetpayUrl, [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
                 'transaction_id' => $cinetpayTransactionId,
             ]);
-    
+
             Log::info("CinetPay (Naissance) check response status: {$response->status()} for {$cinetpayTransactionId}");
-    
+
             if ($response->failed()) {
                 Log::error("Webhook CinetPay (Naissance) {$cinetpayTransactionId}: échec check API.", ['body' => $response->body()]);
                 return response()->json(['success' => false, 'message' => 'Vérification CinetPay échouée'], 500);
             }
-    
+
             $verificationData = $response->json();
             Log::info("CinetPay (Naissance) check body for {$cinetpayTransactionId}:", $verificationData);
-    
+
             // Extraire info
             $data = $verificationData['data'] ?? $verificationData ?? [];
             $status = $data['status'] ?? $data['payment_status'] ?? null;
@@ -528,16 +543,16 @@ class DemandeNaissanceController extends Controller
             $operatorTransId = $data['cpm_trans_id'] ?? $data['transaction_id'] ?? $cinetpayTransactionId;
             $payerName = $data['customer_name'] ?? $data['payer'] ?? ($data['client_name'] ?? null);
             $currency = $data['currency'] ?? 'XOF';
-    
+
             $montantFloat = null;
             if (!is_null($amount)) {
-                $normalized = preg_replace('/[^\d\.,-]/', '', (string)$amount);
+                $normalized = preg_replace('/[^\d\.,-]/', '', (string) $amount);
                 $normalized = str_replace(',', '.', $normalized);
                 if (is_numeric($normalized)) {
-                    $montantFloat = (float)$normalized;
+                    $montantFloat = (float) $normalized;
                 }
             }
-    
+
             // Si status ACCEPTED
             if (strtoupper($status) === 'ACCEPTED') {
                 try {
@@ -558,17 +573,34 @@ class DemandeNaissanceController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Erreur enregistrement paiement (Naissance) {$cinetpayTransactionId}: " . $e->getMessage(), ['exception' => $e]);
                 }
-    
+
                 $naissance->etat = 'en attente';
                 $naissance->statut_livraison = 'en attente';
                 $naissance->save();
-    
+
                 Log::info("Demande Naissance {$reference} mise à jour : en attente");
+
+                // Envoi des notifications suite au paiement réussi
+                try {
+                    $user = $naissance->user;
+                    if ($user) {
+                        $yellikaSmsService = app(YellikaSmsService::class);
+                        $phoneNumber = $user->indicatif . $user->contact;
+                        $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de naissance a été confirmé. Référence : {$naissance->reference}.
+Votre demande est maintenant en attente de traitement.";
+                        $yellikaSmsService->sendSms($phoneNumber, $message);
+
+                        Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $naissance));
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Erreur notifications Webhook Naissance: " . $e->getMessage());
+                }
+
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
-    
+
             // Si status différent
-            $upper = strtoupper((string)$status);
+            $upper = strtoupper((string) $status);
             if ($upper === 'PENDING' || $upper === 'AWAITING') {
                 $naissance->etat = 'en attente de paiement';
                 $naissance->statut_livraison = 'en attente de paiement'; // Corrigé
@@ -576,14 +608,14 @@ class DemandeNaissanceController extends Controller
                 Log::info("Demande Naissance {$reference} marquée en attente (Status: {$status})");
                 return response()->json(['success' => true, 'message' => 'Paiement en attente'], 200);
             }
-    
+
             // Pour REFUSED ou autres
             $naissance->etat = 'paiement_echoue';
             $naissance->statut_livraison = 'paiement_echoue';
             $naissance->save();
             Log::warning("Demande Naissance {$reference} paiement non accepté (status: {$status}).");
             return response()->json(['success' => true, 'message' => 'Paiement non accepté traité'], 200);
-    
+
         } catch (\Exception $e) {
             Log::error("Webhook CinetPay (Naissance) {$cinetpayTransactionId}: Exception critique : " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'Erreur interne'], 500);
@@ -606,19 +638,19 @@ class DemandeNaissanceController extends Controller
             }
 
             // 2. Calculer le montant total
-            $montant_total_timbres = (float)($naissance->montant_timbre ?? 0) * (int)($naissance->quantite ?? 1);
-            $montant_total = $naissance->choix_option === 'livraison' 
-                ? $montant_total_timbres + (float)($naissance->montant_livraison ?? 0) 
+            $montant_total_timbres = (float) ($naissance->montant_timbre ?? 0) * (int) ($naissance->quantite ?? 1);
+            $montant_total = $naissance->choix_option === 'livraison'
+                ? $montant_total_timbres + (float) ($naissance->montant_livraison ?? 0)
                 : 0;
 
             // 3. Déterminer la date et l'heure
             $date_heure = $naissance->created_at->format('Y-m-d H:i:s');
-            
+
             if ($naissance->etat === 'en attente') {
                 $paiement = Paiement::where('naissance_id', $naissance->id) // ✅ Clé étrangère Naissance
-                                    ->where('status', 'ACCEPTED')
-                                    ->orderBy('paid_at', 'desc')
-                                    ->first();
+                    ->where('status', 'ACCEPTED')
+                    ->orderBy('paid_at', 'desc')
+                    ->first();
                 if ($paiement && $paiement->paid_at) {
                     $date_heure = Carbon::parse($paiement->paid_at)->format('Y-m-d H:i:s');
                 } else {
@@ -633,7 +665,7 @@ class DemandeNaissanceController extends Controller
                 'status' => $naissance->etat,
                 'data' => [
                     'type_document' => 'Acte de naissance', // ✅ Type Naissance
-                    'quantite' => (int)$naissance->quantite,
+                    'quantite' => (int) $naissance->quantite,
                     'montant' => $montant_total,
                     'date_heure' => $date_heure,
                     'id_transaction' => $naissance->reference
@@ -662,13 +694,13 @@ class DemandeNaissanceController extends Controller
         if (!$transactionId) {
             return view('payments.redirect_to_app', ['transactionId' => null]);
         }
-        
+
         return view('payments.redirect_to_app', [
             'transactionId' => $transactionId
         ]);
     }
 
-   /**
+    /**
      * Supprimer une demande de naissance
      * DELETE /api/utilisateurs/demandes/naissance/{naissance}
      */
@@ -676,7 +708,7 @@ class DemandeNaissanceController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // 1. Vérifier que l'utilisateur est propriétaire de la demande
             if ($naissance->user_id !== $user->id) {
                 return response()->json([
@@ -688,9 +720,9 @@ class DemandeNaissanceController extends Controller
             // 2. Vérifier l'état de la demande (SÉCURITÉ AJOUTÉE)
             // On nettoie la chaîne (minuscule + trim) pour éviter les erreurs de casse/espaces
             $etatActuel = mb_strtolower(trim($naissance->etat), 'UTF-8');
-            
+
             // Liste des états interdits (versions avec et sans accents)
-            $etatsInterdits = ['reçu', 'terminé', 'recu', 'termine','réçu'];
+            $etatsInterdits = ['reçu', 'terminé', 'recu', 'termine', 'réçu'];
 
             if (in_array($etatActuel, $etatsInterdits)) {
                 return response()->json([

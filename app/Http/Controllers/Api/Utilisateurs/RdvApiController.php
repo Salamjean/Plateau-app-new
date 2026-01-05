@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Exception;
+use App\Services\YellikaSmsService;
 
 class RdvApiController extends Controller
 {
@@ -20,11 +21,11 @@ class RdvApiController extends Controller
         try {
             // Récupérer l'utilisateur authentifié via Sanctum
             $user = $request->user();
-            
+
             // Récupérer les rendez-vous triés par date de création
             $rendezvous = Rendezvous::where('user_id', $user->id)
-                                    ->orderBy('created_at', 'desc') // J'ai mis 'desc' pour voir les plus récents en premier
-                                    ->get();
+                ->orderBy('created_at', 'desc') // J'ai mis 'desc' pour voir les plus récents en premier
+                ->get();
 
             // Retourner les données en JSON
             return response()->json($rendezvous);
@@ -41,7 +42,7 @@ class RdvApiController extends Controller
     /**
      * Stocke une nouvelle demande de rendez-vous.
      */
-    public function store(Request $request)
+    public function store(Request $request, YellikaSmsService $yellikaSmsService)
     {
         try {
             // Validation des données entrantes
@@ -80,7 +81,7 @@ class RdvApiController extends Controller
 
             // Création de l'instance
             $rendezvous = new Rendezvous();
-            
+
             // Attribution des valeurs validées
             $rendezvous->nom_epoux = $validated['nom_epoux'];
             $rendezvous->prenom_epoux = $validated['prenom_epoux'];
@@ -96,14 +97,24 @@ class RdvApiController extends Controller
             $rendezvous->date_mariage_souhaitee = $validated['date_mariage_souhaitee'];
             $rendezvous->heure_souhaitee = $validated['heure_souhaitee'];
             $rendezvous->motif = $validated['motif']; // <--- ENREGISTREMENT DU MOTIF
-            
+
             // Attribution des champs supplémentaires
             $rendezvous->mairie = 'plateau';
-            $rendezvous->user_id = Auth::user()->id; 
+            $rendezvous->user_id = Auth::user()->id;
             $rendezvous->statut = 'en attente';
-            
+
             // Sauvegarde
             $rendezvous->save();
+
+            // Envoi du SMS de confirmation
+            try {
+                $user = Auth::user();
+                $phoneNumber = $user->indicatif . $user->contact;
+                $message = "Bonjour {$user->name}, votre demande de rendez-vous pour le {$rendezvous->date_mariage_souhaitee} à {$rendezvous->heure_souhaitee} a bien été enregistrée. Statut : En attente.";
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur SMS Rendez-vous (API): " . $e->getMessage());
+            }
 
             // Retourner une réponse JSON de succès (Code 201 Created)
             return response()->json(
@@ -134,10 +145,10 @@ class RdvApiController extends Controller
         try {
             // Récupérer l'utilisateur authentifié
             $user = $request->user();
-            
+
             // Trouver le rendez-vous
             $rendezvous = Rendezvous::find($id);
-            
+
             // Vérifier si le rendez-vous existe
             if (!$rendezvous) {
                 return response()->json([
@@ -145,7 +156,7 @@ class RdvApiController extends Controller
                     'message' => 'Rendez-vous introuvable.'
                 ], 404);
             }
-            
+
             // Vérifier que le rendez-vous appartient bien à l'utilisateur
             if ($rendezvous->user_id !== $user->id) {
                 return response()->json([
@@ -153,7 +164,7 @@ class RdvApiController extends Controller
                     'message' => 'Vous n\'êtes pas autorisé à annuler ce rendez-vous.'
                 ], 403);
             }
-            
+
             // Vérifier si le rendez-vous n'est pas déjà annulé
             if ($rendezvous->statut === 'annulé') {
                 return response()->json([
@@ -161,18 +172,18 @@ class RdvApiController extends Controller
                     'message' => 'Ce rendez-vous est déjà annulé.'
                 ], 400);
             }
-            
+
             // Mettre à jour le statut
             $rendezvous->statut = 'annulé';
             $rendezvous->save();
-            
+
             // Retourner une réponse JSON de succès
             return response()->json([
                 'success' => true,
                 'message' => 'Rendez-vous annulé avec succès.',
                 'rendezvous' => $rendezvous
             ], 200);
-            
+
         } catch (Exception $e) {
             Log::error("Erreur API [RdvApiController@cancel]: " . $e->getMessage());
             return response()->json([
@@ -181,5 +192,5 @@ class RdvApiController extends Controller
             ], 500);
         }
     }
-  
+
 }

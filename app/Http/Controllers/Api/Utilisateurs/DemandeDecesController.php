@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Http; // Pour faire l'appel de vérification
+use Illuminate\Support\Facades\Http;
+use App\Services\YellikaSmsService;
+use App\Notifications\DemandeDecesConfirmationNotification;
+use Illuminate\Support\Facades\Notification;
 
 class DemandeDecesController extends Controller
 {
@@ -36,7 +39,7 @@ class DemandeDecesController extends Controller
                 'data' => [
                     'demandes' => $deces->map(function ($demande) {
                         // Utilise l'helper pour la consistance
-                        return $this->formatDemandeResponse($demande, true); 
+                        return $this->formatDemandeResponse($demande, true);
                     })
                 ]
             ]);
@@ -54,26 +57,27 @@ class DemandeDecesController extends Controller
      * POST /api/utilisateurs/demandes/deces
      *
      * @param Request $request
+     * @param YellikaSmsService $yellikaSmsService
      * @return JsonResponse
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, YellikaSmsService $yellikaSmsService): JsonResponse
     {
         // 1. Validation
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'numberR' => 'required|string|max:255',
             'dateR' => 'required|date',
-            
+
             // --- AJOUT --- (Basé sur DecesController.php)
-            'quantite' => 'required|integer|min:1|max:10', 
-            
+            'quantite' => 'required|integer|min:1|max:10',
+
             'CNIdfnt' => 'required',
             'CNIdcl' => 'required',
             'documentMariage' => 'nullable',
             'RequisPolice' => 'nullable',
             'choix_option' => 'required|in:retrait,livraison',
             'communeD' => 'nullable|string|max:255',
-            
+
             // Note : montant_timbre est maintenant le PRIX UNITAIRE
             'montant_timbre' => 'required_if:choix_option,livraison|numeric',
             'montant_livraison' => 'required_if:choix_option,livraison|numeric',
@@ -98,8 +102,10 @@ class DemandeDecesController extends Controller
 
             // 2. Upload des fichiers
             $filesToUpload = [
-                'CNIdfnt' => 'cnid', 'CNIdcl' => 'cnid',
-                'documentMariage' => 'mariage', 'RequisPolice' => 'police',
+                'CNIdfnt' => 'cnid',
+                'CNIdcl' => 'cnid',
+                'documentMariage' => 'mariage',
+                'RequisPolice' => 'police',
             ];
             $uploadedPaths = [];
             foreach ($filesToUpload as $fileKey => $subDir) {
@@ -126,8 +132,8 @@ class DemandeDecesController extends Controller
             $deces->dateR = $request->dateR;
 
             // --- AJOUT ---
-            $deces->quantite = $request->quantite; 
-            
+            $deces->quantite = $request->quantite;
+
             $deces->CNIdfnt = $uploadedPaths['CNIdfnt'] ?? null;
             $deces->CNIdcl = $uploadedPaths['CNIdcl'] ?? null;
             $deces->documentMariage = $uploadedPaths['documentMariage'] ?? null;
@@ -159,6 +165,18 @@ class DemandeDecesController extends Controller
 
             $deces->save();
 
+            // Envoi des notifications (SMS & Email)
+            try {
+                $phoneNumber = $user->indicatif . $user->contact;
+                $message = "Bonjour {$user->name}, votre demande d'extrait de décès a bien été transmise à la mairie du plateau. Référence : {$deces->reference}.
+Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+
+                Notification::send($user, new DemandeDecesConfirmationNotification($user, $deces));
+            } catch (\Exception $e) {
+                Log::error("Erreur notifications DemandeDeces (API): " . $e->getMessage());
+            }
+
             // 5. Réponse conditionnelle (Cas "Retrait")
             if ($deces->choix_option === 'retrait') {
                 return response()->json([
@@ -170,7 +188,7 @@ class DemandeDecesController extends Controller
             }
 
             // --- DEBUT DE LA LOGIQUE MISE A JOUR (Cas "Livraison") ---
-            
+
             // 6. Générer le lien de paiement en utilisant la méthode refactorisée
             $paymentLinkResult = $this->generateCinetPayLink($deces);
 
@@ -186,12 +204,12 @@ class DemandeDecesController extends Controller
 
             // 8. Succès ! Construire la réponse
             $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
-                
+
                 'payment_details' => [
                     'payment_url' => $cinetpayResponseData['payment_url'],
                     'payment_token' => $cinetpayResponseData['payment_token'],
@@ -204,10 +222,10 @@ class DemandeDecesController extends Controller
                 ],
 
                 'data' => [
-                    'demande' => $this->formatDemandeResponse($deces) 
+                    'demande' => $this->formatDemandeResponse($deces)
                 ]
             ], 201);
-            
+
             // --- FIN DE LA LOGIQUE MISE A JOUR ---
 
         } catch (\Exception $e) {
@@ -237,16 +255,16 @@ class DemandeDecesController extends Controller
             $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/deces";
 
             // 2. Calculer le montant
-            $cout_total_timbres = (float)$deces->montant_timbre * (int)$deces->quantite;
-            $totalAmount = $cout_total_timbres + (float)$deces->montant_livraison;
+            $cout_total_timbres = (float) $deces->montant_timbre * (int) $deces->quantite;
+            $totalAmount = $cout_total_timbres + (float) $deces->montant_livraison;
 
             // 3. Infos CinetPay
-            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548'); 
+            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
             $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
 
             // 4. GÉNÉRER UN NOUVEAU TRANSACTION_ID UNIQUE
             // C'est crucial pour CinetPay de voir chaque tentative comme nouvelle
-            $cinetpayTransactionId = $deces->reference . '_' . time(); 
+            $cinetpayTransactionId = $deces->reference . '_' . time();
 
             // 5. Data du paiement
             $paymentData = [
@@ -258,7 +276,7 @@ class DemandeDecesController extends Controller
                 'description' => "Paiement ({$deces->quantite}x timbre + livr) Acte Décès {$deces->reference}",
                 'notify_url' => $notifyUrl,
                 'return_url' => $fallbackReturnUrl,
-                'cancel_url' => $fallbackCancelUrl, 
+                'cancel_url' => $fallbackCancelUrl,
                 'mode' => 'PRODUCTION',
                 'channels' => 'ALL',
 
@@ -286,7 +304,7 @@ class DemandeDecesController extends Controller
                     'error_details' => $response->json() ?? $response->body()
                 ];
             }
-            
+
             // 8. Succès
             return [
                 'success' => true,
@@ -328,14 +346,14 @@ class DemandeDecesController extends Controller
 
             // 2. Vérifier si l'option est 'livraison' (seules celles-là ont un paiement)
             if ($deces->choix_option !== 'livraison') {
-                 return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+                return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
             }
 
             // 3. Vérifier l'état
             // On autorise la régénération si le paiement a échoué OU s'il est encore en attente (l'utilisateur a peut-être perdu le lien)
             if (!in_array($deces->etat, ['paiement_echoue', 'en attente de paiement'])) {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Cette demande ne peut pas être payée à nouveau (état actuel: ' . $deces->etat . ')'
                 ], 400);
             }
@@ -343,7 +361,7 @@ class DemandeDecesController extends Controller
             // 4. Mettre à jour l'état (avant de générer le lien)
             // L'état 'en attente' sera défini par le webhook si le paiement réussit.
             $deces->etat = 'paiement_echoue';
-            $deces->statut_livraison = 'paiement_echoue'; 
+            $deces->statut_livraison = 'paiement_echoue';
             $deces->save();
 
             // 5. Générer le nouveau lien de paiement
@@ -360,12 +378,12 @@ class DemandeDecesController extends Controller
 
             // 7. Succès ! Construire la réponse (similaire à 'store')
             $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
-                
+
                 'payment_details' => [
                     'payment_url' => $cinetpayResponseData['payment_url'],
                     'payment_token' => $cinetpayResponseData['payment_token'],
@@ -404,16 +422,16 @@ class DemandeDecesController extends Controller
             // 2. Vérifier l'état
             if ($deces->etat !== 'rejetée') {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Cette demande ne peut pas être relancée (état actuel: ' . $deces->etat . ')'
                 ], 400);
             }
 
             // 3. Mettre à jour l'état
             $deces->etat = 'en attente';
-            
+
             if ($deces->choix_option === 'livraison') {
-                $deces->statut_livraison = 'en attente'; 
+                $deces->statut_livraison = 'en attente';
             } else {
                 $deces->statut_livraison = null;
             }
@@ -421,9 +439,9 @@ class DemandeDecesController extends Controller
             // --- MISE À JOUR DEMANDÉE ---
             // Force la date de création à être la date actuelle.
             // Le updated_at sera aussi mis à jour automatiquement.
-            $deces->created_at = now(); 
+            $deces->created_at = now();
             // --- FIN DE L'AJOUT ---
-            
+
             $deces->save();
 
             // 4. Succès ! Construire la réponse
@@ -452,9 +470,9 @@ class DemandeDecesController extends Controller
         // Calcul correct du montant total en incluant la quantité
         // Utilise (?? 1) pour la quantité au cas où elle serait nulle (ancien enregistrement)
         // Utilise (?? 0) pour les montants au cas où ils seraient nuls
-        $montant_total_timbres = (float)($deces->montant_timbre ?? 0) * (int)($deces->quantite ?? 1);
-        $montant_total = $deces->choix_option === 'livraison' 
-            ? $montant_total_timbres + (float)($deces->montant_livraison ?? 0) 
+        $montant_total_timbres = (float) ($deces->montant_timbre ?? 0) * (int) ($deces->quantite ?? 1);
+        $montant_total = $deces->choix_option === 'livraison'
+            ? $montant_total_timbres + (float) ($deces->montant_livraison ?? 0)
             : 0;
         // --- FIN MODIFICATION ---
 
@@ -467,14 +485,14 @@ class DemandeDecesController extends Controller
             'commune' => $deces->commune,
             'etat' => $deces->etat,
             'choix_option' => $deces->choix_option,
-            
+
             // --- AJOUT ---
-            'quantite' => (int)$deces->quantite, 
-            
-            'montant_timbre_unitaire' => (float)$deces->montant_timbre, // Renommé pour plus de clarté
-            'montant_livraison' => (float)$deces->montant_livraison,
+            'quantite' => (int) $deces->quantite,
+
+            'montant_timbre_unitaire' => (float) $deces->montant_timbre, // Renommé pour plus de clarté
+            'montant_livraison' => (float) $deces->montant_livraison,
             'montant_total' => $montant_total, // Montant total calculé
-            
+
             'created_at' => $deces->created_at->format('Y-m-d H:i:s'),
 
             // Infos de livraison (si elles existent)
@@ -491,7 +509,7 @@ class DemandeDecesController extends Controller
 
         // Ajout conditionnel des documents (pour la méthode index)
         if ($includeFiles) {
-             $data['documents'] = [
+            $data['documents'] = [
                 'CNIdfnt' => $deces->CNIdfnt ? Storage::url($deces->CNIdfnt) : null,
                 'CNIdcl' => $deces->CNIdcl ? Storage::url($deces->CNIdcl) : null,
                 'documentMariage' => $deces->documentMariage ? Storage::url($deces->documentMariage) : null,
@@ -506,29 +524,29 @@ class DemandeDecesController extends Controller
     public function handlePaymentNotification(Request $request): JsonResponse
     {
         Log::info('Webhook CinetPay Reçu (Deces) - request:', $request->all());
-    
+
         // Récupérer l'ID de transaction CinetPay
-        $cinetpayTransactionId = $request->input('cpm_trans_id') 
-                                ?? $request->input('transaction_id') 
-                                ?? $request->input('data.cpm_trans_id') 
-                                ?? null;
-    
+        $cinetpayTransactionId = $request->input('cpm_trans_id')
+            ?? $request->input('transaction_id')
+            ?? $request->input('data.cpm_trans_id')
+            ?? null;
+
         if (empty($cinetpayTransactionId)) {
             Log::warning('Webhook CinetPay (Deces): transaction_id manquant dans le webhook.', $request->all());
             return response()->json(['success' => false, 'message' => 'Transaction ID manquant'], 200);
         }
-    
+
         // Extraire la référence originale (enlever le suffixe unique)
         $reference = $cinetpayTransactionId;
         if (strpos($cinetpayTransactionId, '_') !== false) {
             $parts = explode('_', $cinetpayTransactionId);
             $reference = $parts[0]; // Prendre la partie avant le _
         }
-    
+
         try {
             // Trouver la demande Deces par la référence originale
             $deces = Deces::where('reference', $reference)->first();
-    
+
             if (!$deces) {
                 Log::warning("Webhook CinetPay (Deces): Aucune demande trouvée pour reference {$reference}.");
                 return response()->json(['success' => true, 'message' => 'Demande non trouvée'], 200);
@@ -537,17 +555,17 @@ class DemandeDecesController extends Controller
             $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
             $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
             $cinetpayUrl = 'https://api-checkout.cinetpay.com/v2/payment/check';
-    
+
             // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId
             $response = Http::withoutVerifying()->post($cinetpayUrl, [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
                 'transaction_id' => $cinetpayTransactionId, // ✅ CORRIGÉ
             ]);
-    
+
             // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
             Log::info("CinetPay check response status: {$response->status()} for transaction {$cinetpayTransactionId}"); // ✅ CORRIGÉ
-    
+
             if ($response->failed()) {
                 // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
                 Log::error("Webhook CinetPay (Deces) {$cinetpayTransactionId}: échec check API.", [ // ✅ CORRIGÉ
@@ -556,19 +574,19 @@ class DemandeDecesController extends Controller
                 ]);
                 return response()->json(['success' => false, 'message' => 'Vérification CinetPay échouée'], 500);
             }
-    
+
             $verificationData = $response->json();
             // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
             Log::info("CinetPay check body for {$cinetpayTransactionId}:", $verificationData); // ✅ CORRIGÉ
-    
+
             // 4. Extraire info avec tolérance (plusieurs clés possibles)
             $data = $verificationData['data'] ?? $verificationData ?? [];
-    
+
             $status = $data['status'] ?? $data['payment_status'] ?? null; // ACCEPTED / REFUSED / PENDING
-    
+
             // Montant : essayer plusieurs clés
             $amount = $data['amount'] ?? $data['cpm_amount'] ?? $data['amount_paid'] ?? null;
-    
+
             $operatorId = $data['cpm_payid'] ?? $data['payid'] ?? $data['pay_id'] ?? null;
             $paymentToken = $data['payment_token'] ?? $data['cpm_token'] ?? null;
             $paymentDate = $data['payment_date'] ?? $data['cpm_trans_date'] ?? $data['created_at'] ?? null;
@@ -576,20 +594,20 @@ class DemandeDecesController extends Controller
             $operatorTransId = $data['cpm_trans_id'] ?? $data['transaction_id'] ?? $cinetpayTransactionId; // ✅ CORRIGÉ
             $payerName = $data['customer_name'] ?? $data['payer'] ?? ($data['client_name'] ?? null);
             $currency = $data['currency'] ?? 'XOF';
-    
+
             // Normaliser montant
             $montantFloat = null;
             if (!is_null($amount)) {
-                $normalized = preg_replace('/[^\d\.,-]/', '', (string)$amount);
+                $normalized = preg_replace('/[^\d\.,-]/', '', (string) $amount);
                 $normalized = str_replace(',', '.', $normalized);
                 if (is_numeric($normalized)) {
-                    $montantFloat = (float)$normalized;
+                    $montantFloat = (float) $normalized;
                 }
             }
-    
+
             // 5. Si status ACCEPTED -> créer paiement et mettre à jour la demande
             if (strtoupper($status) === 'ACCEPTED') {
-    
+
                 try {
                     $paiement = Paiement::create([
                         'deces_id' => $deces->id,
@@ -613,41 +631,57 @@ class DemandeDecesController extends Controller
                     ]);
                     // Ne pas aborter la suite : on continue à mettre à jour la demande
                 }
-    
+
                 // Mettre à jour le Deces (quelque soit l'état antérieur)
                 // C'est ici que l'état passe à 'en attente' (de traitement/livraison)
                 $deces->etat = 'en attente';
                 $deces->statut_livraison = 'en attente';
                 $deces->save();
-    
+
                 // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
                 Log::info("Demande {$cinetpayTransactionId} mise à jour : en attente"); // ✅ CORRIGÉ
-    
+
+                // Envoi des notifications suite au paiement réussi
+                try {
+                    $user = $deces->user;
+                    if ($user) {
+                        $yellikaSmsService = app(YellikaSmsService::class);
+                        $phoneNumber = $user->indicatif . $user->contact;
+                        $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de décès a été confirmé. Référence : {$deces->reference}.
+Votre demande est maintenant en attente de traitement.";
+                        $yellikaSmsService->sendSms($phoneNumber, $message);
+
+                        Notification::send($user, new DemandeDecesConfirmationNotification($user, $deces));
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Erreur notifications Webhook Deces: " . $e->getMessage());
+                }
+
                 return response()->json(['success' => true, 'message' => 'Paiement accepté et traité'], 200);
             }
-    
+
             // 6. Si status différent -> marquer selon le cas
-            $upper = strtoupper((string)$status);
+            $upper = strtoupper((string) $status);
             if ($upper === 'PENDING' || $upper === 'AWAITING') {
                 $deces->etat = 'en attente de paiement';
                 $deces->statut_livraison = 'en attente'; // Doit être 'en attente de paiement' ?
                 $deces->save();
-    
+
                 // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
                 Log::info("Demande {$cinetpayTransactionId} marquée en attente (CinetPay status: {$status})"); // ✅ CORRIGÉ
                 return response()->json(['success' => true, 'message' => 'Paiement en attente'], 200);
             }
-    
+
             // Pour REFUSED ou autres
             $deces->etat = 'paiement_echoue';
             $deces->statut_livraison = 'paiement_echoue';
             $deces->save();
-    
+
             // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
             Log::warning("Demande {$cinetpayTransactionId} paiement non accepté (status: {$status})."); // ✅ CORRIGÉ
-    
+
             return response()->json(['success' => true, 'message' => 'Paiement non accepté traité'], 200);
-    
+
         } catch (\Exception $e) {
             // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
             Log::error("Webhook CinetPay (Deces) {$cinetpayTransactionId}: Exception critique : " . $e->getMessage(), [ // ✅ CORRIGÉ
@@ -676,20 +710,20 @@ class DemandeDecesController extends Controller
             // --- Construction des données de réponse ---
 
             // 2. Calculer le montant total (logique identique à formatDemandeResponse)
-            $montant_total_timbres = (float)($deces->montant_timbre ?? 0) * (int)($deces->quantite ?? 1);
-            $montant_total = $deces->choix_option === 'livraison' 
-                ? $montant_total_timbres + (float)($deces->montant_livraison ?? 0) 
+            $montant_total_timbres = (float) ($deces->montant_timbre ?? 0) * (int) ($deces->quantite ?? 1);
+            $montant_total = $deces->choix_option === 'livraison'
+                ? $montant_total_timbres + (float) ($deces->montant_livraison ?? 0)
                 : 0;
 
             // 3. Déterminer la date et l'heure
             $date_heure = $deces->created_at->format('Y-m-d H:i:s'); // Par défaut: date de création
-            
+
             if ($deces->etat === 'en attente') {
                 // Si payé, chercher la date de paiement
                 $paiement = Paiement::where('deces_id', $deces->id)
-                                    ->where('status', 'ACCEPTED')
-                                    ->orderBy('paid_at', 'desc')
-                                    ->first();
+                    ->where('status', 'ACCEPTED')
+                    ->orderBy('paid_at', 'desc')
+                    ->first();
                 if ($paiement && $paiement->paid_at) {
                     $date_heure = Carbon::parse($paiement->paid_at)->format('Y-m-d H:i:s');
                 } else {
@@ -706,8 +740,8 @@ class DemandeDecesController extends Controller
                 'status' => $deces->etat, // Le statut est crucial pour le polling
                 'data' => [
                     // Le type est "Acte de décès" car nous sommes dans le DemandeDecesController
-                    'type_document' => 'Acte de décès', 
-                    'quantite' => (int)$deces->quantite,
+                    'type_document' => 'Acte de décès',
+                    'quantite' => (int) $deces->quantite,
                     'montant' => $montant_total,
                     'date_heure' => $date_heure,
                     'id_transaction' => $deces->reference
@@ -737,7 +771,7 @@ class DemandeDecesController extends Controller
             // ✅ NOUVEAU CHEMIN: 'payments.redirect_to_app'
             return view('payments.redirect_to_app', ['transactionId' => null]);
         }
-        
+
         // ❌ ANCIEN CHEMIN: 'redirect_to_app'
         // ✅ NOUVEAU CHEMIN: 'payments.redirect_to_app'
         return view('payments.redirect_to_app', [
@@ -749,11 +783,11 @@ class DemandeDecesController extends Controller
      * Supprimer une demande de décès
      * DELETE /api/utilisateurs/demandes/deces/{deces}
      */
-   public function destroy(Deces $deces): JsonResponse
+    public function destroy(Deces $deces): JsonResponse
     {
         try {
             $user = Auth::user();
-            
+
             // 1. Vérifier que l'utilisateur est bien le propriétaire de la demande
             if ($deces->user_id !== $user->id) {
                 return response()->json([
@@ -766,9 +800,9 @@ class DemandeDecesController extends Controller
             // On convertit l'état en minuscule et on gère les caractères spéciaux (UTF-8)
             // Cela permet de bloquer "Terminé", "TERMINÉ", "terminé", etc.
             $etatActuel = mb_strtolower(trim($deces->etat), 'UTF-8');
-            
+
             // Liste des états qui BLOQUENT la suppression (en minuscule)
-            $etatsInterdits = ['reçu', 'terminé', 'recu', 'termine','réçu']; // J'ajoute les versions sans accent par sécurité
+            $etatsInterdits = ['reçu', 'terminé', 'recu', 'termine', 'réçu']; // J'ajoute les versions sans accent par sécurité
 
             if (in_array($etatActuel, $etatsInterdits)) {
                 return response()->json([
