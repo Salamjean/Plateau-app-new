@@ -38,9 +38,6 @@ Route::prefix('livreur')->group(function () {
     Route::post('/verify-reset-code', [LivreurPasswordForgotController::class, 'verifyResetCode']);
     Route::post('/reset-password', [LivreurPasswordForgotController::class, 'resetPassword']);
 });
-// --- AJOUT DE LA SECTION WEBHOOK ---
-// Routes publiques pour les notifications de services externes (Webhooks)
-// --- Routes publiques Webhook et Statut ---
 
 Route::prefix('webhooks')->group(function () {
     Route::post('/cinetpay/notify/deces', [DemandeDecesController::class, 'handlePaymentNotification'])
@@ -60,16 +57,10 @@ Route::get('/mariage/payment-status/{reference}', [DemandeMariageController::cla
 // ✅ AJOUTÉ
 Route::get('/naissance/payment-status/{reference}', [DemandeNaissanceController::class, 'getPaymentStatus']);
 
-
-// --- FIN Routes publiques ---
-
-
 Route::middleware('auth:sanctum')->group(function () {
 
     // ROUTES UTILISATEURS AUTHENTIFIÉS
     Route::prefix('utilisateurs')->group(function () {
-        
-        // <-- NOUVEAU : ROUTE DE DÉCONNEXION
         Route::post('/logout', [UserLoginController::class, 'logout']);
         Route::post('/deactivate', [UserLoginController::class, 'deactivateAccount']);
         Route::post('/toggle-push-notification', [UserLoginController::class, 'togglePushnotification']);
@@ -82,7 +73,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/naissance')->group(function () {
             Route::get('/', [DemandeNaissanceController::class, 'index']);
             Route::post('/', [DemandeNaissanceController::class, 'store']);
-            // ✅ NOUVELLE ROUTE AJOUTÉE
             Route::post('/{naissance}/retry-payment', [DemandeNaissanceController::class, 'retryPayment']);
             Route::post('/{naissance}/relancer', [DemandeNaissanceController::class, 'relancerDemande']);
             Route::delete('/{naissance}', [DemandeNaissanceController::class, 'destroy']);
@@ -92,7 +82,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('demandes/mariage')->group(function () {
             Route::get('/', [DemandeMariageController::class, 'index']);
             Route::post('/', [DemandeMariageController::class, 'store']);
-            // ✅ NOUVELLE ROUTE AJOUTÉE
             Route::post('/{mariage}/retry-payment', [DemandeMariageController::class, 'retryPayment']);
             Route::post('/{mariage}/relancer', [DemandeMariageController::class, 'relancerDemande']);
             Route::delete('/{mariage}', [DemandeMariageController::class, 'destroy']);
