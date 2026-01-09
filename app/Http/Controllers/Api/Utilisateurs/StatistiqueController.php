@@ -214,11 +214,28 @@ class StatistiqueController extends Controller
             // Calcul du statut selon la logique demandée
             $statut = $this->calculerStatut($demande);
 
-            // Ajout du statut calculé à la demande
-            $demande->statut = $statut;
+            // Convertir la demande en tableau pour modification
+            $demandeArray = $demande->toArray();
+            
+            // Décoder champs_a_modifier de JSON string vers tableau avec valeurs
+            if (isset($demandeArray['champs_a_modifier']) && is_string($demandeArray['champs_a_modifier'])) {
+                $champsNoms = json_decode($demandeArray['champs_a_modifier'], true) ?? [];
+                
+                // Créer un objet avec les noms des champs et leurs valeurs actuelles
+                $champsAvecValeurs = [];
+                foreach ($champsNoms as $champNom) {
+                    // Récupérer la valeur du champ depuis la demande
+                    $champsAvecValeurs[$champNom] = $demandeArray[$champNom] ?? null;
+                }
+                
+                $demandeArray['champs_a_modifier'] = $champsAvecValeurs;
+            }
+            
+            // Ajouter le statut calculé
+            $demandeArray['statut'] = $statut;
 
             return response()->json([
-                'demande' => $demande,
+                'demande' => $demandeArray,
                 'type' => $type,
                 'statut' => $statut
             ]);
@@ -949,5 +966,51 @@ class StatistiqueController extends Controller
         ];
 
         return $etapes[$statut] ?? ['Statut non reconnu'];
+    }
+
+    /**
+     * Rechercher une demande par référence et afficher uniquement l'état de traitement
+     * Accessible à tous les utilisateurs, même si la demande ne leur appartient pas
+     */
+    public function rechercherParReference(Request $request)
+    {
+        try {
+            $reference = $request->input('reference');
+
+            if (empty($reference)) {
+                return response()->json(['error' => 'La référence est requise'], 400);
+            }
+
+            // Recherche dans tous les modèles sans restriction d'utilisateur
+            $demande = Naissance::where('reference', $reference)->first();
+            $type = 'naissance';
+
+            if (!$demande) {
+                $demande = Mariage::where('reference', $reference)->first();
+                $type = 'mariage';
+            }
+
+            if (!$demande) {
+                $demande = Deces::where('reference', $reference)->first();
+                $type = 'deces';
+            }
+
+            // Si aucune demande trouvée avec cette référence
+            if (!$demande) {
+                return response()->json(['error' => 'Aucune demande trouvée avec cette référence'], 404);
+            }
+
+            // Retourner uniquement les informations d'état
+            return response()->json([
+                'success' => true,
+                'reference' => $demande->reference,
+                'type' => $type,
+                'etat' => $demande->etat,
+                'statut_livraison' => $demande->statut_livraison,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur rechercherParReference: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
     }
 }

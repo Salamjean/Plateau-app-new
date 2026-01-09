@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Extrait\Deces;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deces;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -110,7 +111,24 @@ class AgentDecesController extends Controller
             $deces->motif_de_rejet = null;
         }
 
+        // Sauvegarder l'ancien état avant modification
+        $ancienEtat = $deces->getOriginal('etat') ?? 'nouveau';
+        $user = $deces->user;
         $deces->save();
+
+        // =================================================================
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+        // =================================================================
+        if ($user && $ancienEtat !== $deces->etat) {
+            UserNotification::notifyStatusChange(
+                $user->id,
+                'deces',
+                $deces->id,
+                $deces->reference,
+                $ancienEtat,
+                $deces->etat
+            );
+        }
 
         // =================================================================
         // ENVOI DE NOTIFICATION PUSH
@@ -229,8 +247,27 @@ class AgentDecesController extends Controller
         if ($deces->reference !== $request->reference) {
             return response()->json(['error' => 'Référence incorrecte'], 400);
         }
+        
+        // Sauvegarder l'ancien statut
+        $ancienStatut = $deces->statut_livraison ?? 'en attente';
+        $user = $deces->user;
+        
         $deces->statut_livraison = $request->statut_livraison;
         $deces->save();
+
+        // =================================================================
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+        // =================================================================
+        if ($user) {
+            UserNotification::notifyStatusChange(
+                $user->id,
+                'deces',
+                $deces->id,
+                $deces->reference,
+                $ancienStatut,
+                'livré'
+            );
+        }
 
         // =================================================================
         // <-- NOTIFICATION PUSH POUR MOBILE

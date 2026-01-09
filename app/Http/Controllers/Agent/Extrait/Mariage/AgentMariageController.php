@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Extrait\Mariage;
 
 use App\Http\Controllers\Controller;
 use App\Models\Mariage;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -131,7 +132,24 @@ class AgentMariageController extends Controller
             $mariage->motif_de_rejet = null;
         }
 
+        // Sauvegarder l'ancien état avant modification
+        $ancienEtat = $mariage->getOriginal('etat') ?? 'nouveau';
+        $user = $mariage->user;
         $mariage->save();
+
+        // =================================================================
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+        // =================================================================
+        if ($user && $ancienEtat !== $mariage->etat) {
+            UserNotification::notifyStatusChange(
+                $user->id,
+                'mariage',
+                $mariage->id,
+                $mariage->reference,
+                $ancienEtat,
+                $mariage->etat
+            );
+        }
 
         // =================================================================
         // ENVOI DE NOTIFICATION PUSH
@@ -258,9 +276,27 @@ class AgentMariageController extends Controller
             return response()->json(['error' => 'Référence incorrecte'], 400);
         }
 
+        // Sauvegarder l'ancien statut
+        $ancienStatut = $mariage->statut_livraison ?? 'en attente';
+        $user = $mariage->user;
+        
         // Mettre à jour le statut de livraison
         $mariage->statut_livraison = $request->statut_livraison;
         $mariage->save();
+
+        // =================================================================
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+        // =================================================================
+        if ($user) {
+            UserNotification::notifyStatusChange(
+                $user->id,
+                'mariage',
+                $mariage->id,
+                $mariage->reference,
+                $ancienStatut,
+                'livré'
+            );
+        }
 
         // =================================================================
         // <-- NOTIFICATION PUSH POUR MOBILE

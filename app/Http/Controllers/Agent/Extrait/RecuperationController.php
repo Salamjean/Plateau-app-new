@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Deces;
 use App\Models\Mariage;
 use App\Models\Naissance;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http; // <-- AJOUT
@@ -49,18 +50,42 @@ class RecuperationController extends Controller
             return redirect()->route('agent.dashboard')->with('error', "Cette demande de {$modelName} a déjà été récupérée par un autre agent.");
         }
 
+        // Sauvegarder l'ancien état
+        $ancienEtat = $demande->etat ?? 'en attente';
+        
         $demande->is_read = true;
         $demande->agent_id = $agent->id;
         $demande->etat = 'réçu';
         $demande->save();
 
         // =================================================================
-        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
         // =================================================================
-        // On recharge la demande pour s'assurer d'avoir la relation 'user'
         $demande->load('user');
         $user = $demande->user;
+        
+        // Mapper le nom du modèle vers le type de notification
+        $typeMapping = [
+            'naissance' => 'naissance',
+            'décès' => 'deces',
+            'mariage' => 'mariage',
+        ];
+        $notificationType = $typeMapping[$modelName] ?? $modelName;
+        
+        if ($user) {
+            UserNotification::notifyStatusChange(
+                $user->id,
+                $notificationType,
+                $demande->id,
+                $demande->reference,
+                $ancienEtat,
+                'réçu'
+            );
+        }
 
+        // =================================================================
+        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+        // =================================================================
         if ($user && !empty($user->push_notification)) {
             $title = 'Demande reçue';
             $body = "Votre demande de {$modelName} est bien reçue par la mairie et est en cours de traitement.";

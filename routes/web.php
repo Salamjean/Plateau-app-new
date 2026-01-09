@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Utilisateurs\DemandeMariageController;
+use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\ProfiluserController;
 use App\Http\Controllers\User\ProfileUpdateRequest;
 use App\Http\Controllers\Api\Utilisateurs\DemandeDecesController;
@@ -372,6 +373,12 @@ Route::prefix('user')->group(function () {
 Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
     Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
+
+    // Routes des notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('user.notifications');
+    Route::get('/notifications/count', [NotificationController::class, 'getUnreadCount'])->name('user.notifications.count');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('user.notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('user.notifications.readAll');
 
 
     //Les demandes d'extrait de naissance 

@@ -57,6 +57,9 @@ Route::get('/mariage/payment-status/{reference}', [DemandeMariageController::cla
 // ✅ AJOUTÉ
 Route::get('/naissance/payment-status/{reference}', [DemandeNaissanceController::class, 'getPaymentStatus']);
 
+// Route publique pour rechercher une demande par référence (etat + statut_livraison)
+Route::get('/demandes/recherche', [StatistiqueController::class, 'rechercherParReference']);
+
 Route::middleware('auth:sanctum')->group(function () {
 
     // ROUTES UTILISATEURS AUTHENTIFIÉS

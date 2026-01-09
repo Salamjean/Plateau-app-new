@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Extrait\Naissance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Naissance;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -107,7 +108,25 @@ class AgentNaissanceController extends Controller
             $naissance->motif_de_rejet = null;
         }
 
+        // Récupérer l'utilisateur et l'ancien état AVANT le save
+        $user = $naissance->user;
+        $ancienEtat = $naissance->getOriginal('etat') ?? 'nouveau';
+        
         $naissance->save();
+
+        // =================================================================
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+        // =================================================================
+        if ($user && $ancienEtat !== $naissance->etat) {
+            UserNotification::notifyStatusChange(
+                $user->id,
+                'naissance',
+                $naissance->id,
+                $naissance->reference,
+                $ancienEtat,
+                $naissance->etat
+            );
+        }
 
         // =================================================================
         // ENVOI DE NOTIFICATION PUSH
@@ -312,9 +331,26 @@ class AgentNaissanceController extends Controller
             return response()->json(['error' => 'Référence incorrecte'], 400);
         }
 
+        // Sauvegarder l'ancien statut
+        $ancienStatut = $naissance->statut_livraison ?? 'en attente';
+        
         // Mettre à jour le statut de livraison
         $naissance->statut_livraison = $request->statut_livraison;
         $naissance->save();
+
+        // =================================================================
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+        // =================================================================
+        if ($user) {
+            UserNotification::notifyStatusChange(
+                $user->id,
+                'naissance',
+                $naissance->id,
+                $naissance->reference,
+                $ancienStatut,
+                'livré'
+            );
+        }
 
         // =================================================================
         // <-- NOTIFICATION PUSH POUR MOBILE

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Mairie;
 
 use App\Http\Controllers\Controller;
 use App\Models\Rendezvous;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http; // <-- AJOUT IMPORTANT
 use Illuminate\Support\Facades\Log;  // <-- AJOUT IMPORTANT
@@ -22,21 +23,44 @@ class MairieRendezVousController extends Controller
             'heure_souhaitee' => 'required',
         ]);
 
-        $rendezvous = Rendezvous::findOrFail($id);
+        $rendezvous = Rendezvous::with('user')->findOrFail($id);
+        
+        // Sauvegarder l'ancien statut
+        $ancienStatut = $rendezvous->statut ?? 'en attente';
+        
         $rendezvous->date_mariage_souhaitee = $request->date_mariage_souhaitee;
         $rendezvous->heure_souhaitee = $request->heure_souhaitee;
         $rendezvous->statut = 'confirmé';
         $rendezvous->save();
- // =================================================================
-        // <-- NOTIFICATION PUSH : MODIFICATION AVEC DATE FORMATÉE
+
         // =================================================================
-        
+        // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+        // =================================================================
         // 1. Configurer Carbon en français
         Carbon::setLocale('fr');
         
         // 2. Formater la date (ex: lundi 24 novembre 2025)
         $dateLitterale = Carbon::parse($rendezvous->date_mariage_souhaitee)->translatedFormat('l d F Y');
+        
+        if ($rendezvous->user) {
+            // Créer un message personnalisé pour la modification
+            $message = "Votre rendez-vous de mariage (Réf: RDV-{$rendezvous->id}) a été reprogrammé au {$dateLitterale} à {$rendezvous->heure_souhaitee}.";
+            
+            UserNotification::create([
+                'user_id' => $rendezvous->user->id,
+                'type' => 'rendezvous',
+                'demande_id' => $rendezvous->id,
+                'reference' => 'RDV-' . $rendezvous->id,
+                'ancien_statut' => $ancienStatut,
+                'nouveau_statut' => 'modifié',
+                'message' => $message,
+                'is_read' => false,
+            ]);
+        }
 
+        // =================================================================
+        // <-- NOTIFICATION PUSH : MODIFICATION AVEC DATE FORMATÉE
+        // =================================================================
         $this->triggerNotification(
             $rendezvous, 
             'Rendez-vous modifié', 
@@ -59,8 +83,23 @@ class MairieRendezVousController extends Controller
             $rendezvous = Rendezvous::findOrFail($id);
             
             // Mettre à jour le statut du rendez-vous
+            $ancienStatut = $rendezvous->statut ?? 'en attente';
             $rendezvous->statut = 'confirmé';
             $rendezvous->save();
+            
+            // =================================================================
+            // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+            // =================================================================
+            if ($rendezvous->user) {
+                UserNotification::notifyStatusChange(
+                    $rendezvous->user->id,
+                    'rendezvous',
+                    $rendezvous->id,
+                    'RDV-' . $rendezvous->id,
+                    $ancienStatut,
+                    'confirmé'
+                );
+            }
             
             // =================================================================
             // <-- NOTIFICATION PUSH : CONFIRMATION
@@ -84,8 +123,23 @@ class MairieRendezVousController extends Controller
             $rendezvous = Rendezvous::findOrFail($id);
             
             // Mettre à jour le statut du rendez-vous
+            $ancienStatut = $rendezvous->statut ?? 'en attente';
             $rendezvous->statut = 'annulé';
             $rendezvous->save();
+            
+            // =================================================================
+            // CRÉATION DE NOTIFICATION WEB POUR L'UTILISATEUR
+            // =================================================================
+            if ($rendezvous->user) {
+                UserNotification::notifyStatusChange(
+                    $rendezvous->user->id,
+                    'rendezvous',
+                    $rendezvous->id,
+                    'RDV-' . $rendezvous->id,
+                    $ancienStatut,
+                    'annulé'
+                );
+            }
             
             // =================================================================
             // <-- NOTIFICATION PUSH : ANNULATION
