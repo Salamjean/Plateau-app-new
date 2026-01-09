@@ -102,4 +102,18 @@ class NotificationController extends Controller
             'message' => 'Toutes les notifications ont été marquées comme lues',
         ]);
     }
+
+    /**
+     * Supprimer toutes les notifications de l'utilisateur
+     */
+    public function deleteAll()
+    {
+        $deleted = UserNotification::where('user_id', Auth::id())->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Toutes les notifications ont été supprimées',
+            'deleted_count' => $deleted,
+        ]);
+    }
 }

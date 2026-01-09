@@ -237,6 +237,7 @@ class StatistiqueController extends Controller
             return response()->json([
                 'demande' => $demandeArray,
                 'type' => $type,
+                'choix_option' => $demande->choix_option,
                 'statut' => $statut
             ]);
         } catch (\Exception $e) {
@@ -1007,6 +1008,7 @@ class StatistiqueController extends Controller
                 'type' => $type,
                 'etat' => $demande->etat,
                 'statut_livraison' => $demande->statut_livraison,
+                'choix_option' => $demande->choix_option,
             ]);
         } catch (\Exception $e) {
             Log::error('Erreur rechercherParReference: ' . $e->getMessage());

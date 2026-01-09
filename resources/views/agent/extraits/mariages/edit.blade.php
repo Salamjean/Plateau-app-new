@@ -142,8 +142,6 @@
                         'typeDemande' => 'Type de demande',
                         'nomEpoux' => 'Nom du conjoint',
                         'prenomEpoux' => 'Prénom du conjoint',
-                        'commune' => 'Commune',
-                        'quantite' => 'Quantité',
                         'CMU' => 'Numéro NNI'
                     ] as $field => $label)
                         <div class="rejet-item">

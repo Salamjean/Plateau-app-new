@@ -379,6 +379,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/notifications/count', [NotificationController::class, 'getUnreadCount'])->name('user.notifications.count');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('user.notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('user.notifications.readAll');
+    Route::delete('/notifications/delete-all', [NotificationController::class, 'deleteAll'])->name('user.notifications.deleteAll');
 
 
     //Les demandes d'extrait de naissance 

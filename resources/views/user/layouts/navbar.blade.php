@@ -26,7 +26,8 @@
                                           </div>
                                        </div>
                                        <div class="notification-footer">
-                                          <a href="{{route('user.history')}}">Voir l'historique des demandes</a>
+                                          <a href="{{route('user.history')}}">Voir l'historique</a>
+                                          <a href="#" id="deleteAllNotifications" class="delete-all-notifications"><i class="fa fa-trash"></i> Tout supprimer</a>
                                        </div>
                                     </div>
                                  </li>
@@ -53,17 +54,18 @@
                </div>
 
 <style>
-/* Styles pour les notifications - avec haute spécificité pour override */
-.topbar .notification-item {
+/* Styles pour les notifications - sélecteurs universels avec haute priorité */
+.notification-item {
    position: relative !important;
    display: inline-block !important;
    list-style: none !important;
    z-index: 1000 !important;
 }
 
-.topbar .notification-bell {
+#notificationBell,
+.notification-bell {
    color: white !important;
-   font-size: 20px !important;
+   font-size: 22px !important;
    padding: 10px 15px !important;
    display: inline-flex !important;
    align-items: center !important;
@@ -78,20 +80,28 @@
    min-height: 44px !important;
 }
 
-.topbar .notification-bell i {
-   font-size: 20px !important;
+/* Forcer l'affichage de l'icône cloche sur TOUTES les pages */
+#notificationBell i,
+#notificationBell .fa,
+#notificationBell .fa-bell-o,
+.notification-bell i,
+.notification-bell .fa,
+.notification-bell .fa-bell-o {
+   font-size: 22px !important;
    color: white !important;
    display: inline-block !important;
    visibility: visible !important;
    opacity: 1 !important;
+   line-height: 1 !important;
+   font-family: 'FontAwesome' !important;
+   font-style: normal !important;
+   font-weight: normal !important;
 }
 
-.topbar .notification-bell:hover {
-   opacity: 0.8 !important;
-}
-
+#notificationBell:hover,
 .notification-bell:hover {
-   opacity: 0.8;
+   opacity: 0.8 !important;
+   color: white !important;
 }
 
 .notification-badge {
@@ -139,29 +149,37 @@
 }
 
 .notification-header {
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-   padding: 15px;
-   background: linear-gradient(135deg, #1977cc, #1565b8);
-   color: white;
+   display: flex !important;
+   justify-content: space-between !important;
+   align-items: center !important;
+   padding: 12px 15px !important;
+   background: linear-gradient(135deg, #1977cc, #1565b8) !important;
+   color: white !important;
+   flex-wrap: nowrap !important;
+   gap: 10px !important;
 }
 
 .notification-header h6 {
-   margin: 0;
-   font-weight: 600;
-   font-size: 14px;
+   margin: 0 !important;
+   font-weight: 600 !important;
+   font-size: 14px !important;
+   white-space: nowrap !important;
+   flex-shrink: 0 !important;
+   display: flex !important;
+   align-items: center !important;
 }
 
 .notification-header h6 i {
-   margin-right: 8px;
+   margin-right: 8px !important;
 }
 
 .mark-all-read {
-   color: rgba(255, 255, 255, 0.9);
-   font-size: 12px;
-   text-decoration: none;
-   transition: all 0.3s ease;
+   color: rgba(255, 255, 255, 0.9) !important;
+   font-size: 11px !important;
+   text-decoration: none !important;
+   transition: all 0.3s ease !important;
+   white-space: nowrap !important;
+   flex-shrink: 0 !important;
 }
 
 .mark-all-read:hover {
@@ -267,7 +285,9 @@
 
 .notification-footer {
    padding: 12px;
-   text-align: center;
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
    background: #f8f9fa;
    border-top: 1px solid #eee;
 }
@@ -275,12 +295,29 @@
 .notification-footer a {
    color: #1977cc;
    text-decoration: none;
-   font-size: 13px;
+   font-size: 12px;
    font-weight: 500;
 }
 
 .notification-footer a:hover {
    text-decoration: underline;
+}
+
+.delete-all-notifications {
+   color: #dc3545 !important;
+   background-color: #ffebee !important;
+   padding: 5px 10px !important;
+   border-radius: 5px !important;
+   font-weight: 600 !important;
+   display: inline-flex !important;
+   align-items: center !important;
+   gap: 5px !important;
+}
+
+.delete-all-notifications:hover {
+   color: #fff !important;
+   background-color: #dc3545 !important;
+   text-decoration: none !important;
 }
 
 /* Style responsive */
@@ -405,6 +442,30 @@ document.addEventListener('DOMContentLoaded', function() {
          }
       });
    });
+
+   // Supprimer toutes les notifications
+   const deleteAllBtn = document.getElementById('deleteAllNotifications');
+   if (deleteAllBtn) {
+      deleteAllBtn.addEventListener('click', function(e) {
+         e.preventDefault();
+         if (confirm('Êtes-vous sûr de vouloir supprimer toutes les notifications ?')) {
+            fetch('{{ route("user.notifications.deleteAll") }}', {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}'
+               }
+            })
+            .then(response => response.json())
+            .then(data => {
+               if (data.success) {
+                  loadUnreadCount();
+                  loadNotifications();
+               }
+            });
+         }
+      });
+   }
 
    // Charger le compteur au démarrage et rafraîchir toutes les 30 secondes
    loadUnreadCount();

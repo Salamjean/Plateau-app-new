@@ -216,8 +216,6 @@
                         'name' => 'Nom et Prénoms du Défunt',
                         'numberR' => 'Numéro de Registre',
                         'dateR' => 'Date de Registre',
-                        'commune' => 'Commune',
-                        'quantite' => 'Quantité',
                         'CNIdfnt' => 'CNI/extrait de naissance du défunt',
                         'CNIdcl' => 'Certificat médical de décès'
                     ] as $field => $label)
