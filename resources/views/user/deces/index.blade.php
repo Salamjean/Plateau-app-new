@@ -213,7 +213,7 @@
                                             <td>
                                                 @if ($decesItem->etat == 'rejetée')
                                                     <span class="badge badge-danger">
-                                                        REJETÉE
+                                                        MODIFIER LES INFORMATIONS
                                                         @if ($decesItem->peut_modifier)
                                                             <br><small class="text-white">(Modification requise)</small>
                                                         @endif

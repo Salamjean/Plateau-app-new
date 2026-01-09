@@ -261,7 +261,7 @@
                                         <td>
                                             @if ($naissance->etat == 'rejetée')
                                                 <span class="badge badge-danger">
-                                                    REJETÉE
+                                                    MODIFIER LES INFORMATIONS
                                                     @if ($naissance->peut_modifier)
                                                         <br><small class="text-white">(Modification requise)</small>
                                                     @endif

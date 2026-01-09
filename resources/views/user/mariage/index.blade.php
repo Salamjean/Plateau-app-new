@@ -330,7 +330,7 @@
                                         <td>
                                             @if ($mariage->etat == 'rejetée')
                                                 <span class="badge badge-rejected">
-                                                    REJETÉE
+                                                    MODIFIER LES INFORMATIONS
                                                     @if ($mariage->peut_modifier)
                                                         <br><small class="text-white">(Modification requise)</small>
                                                     @endif
