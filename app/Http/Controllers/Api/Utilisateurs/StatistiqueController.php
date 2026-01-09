@@ -217,15 +217,58 @@ class StatistiqueController extends Controller
             // Convertir la demande en tableau pour modification
             $demandeArray = $demande->toArray();
             
-            // Décoder champs_a_modifier de JSON string vers tableau avec valeurs
+            // Décoder champs_a_modifier de JSON string vers tableau avec valeurs et libellés français
             if (isset($demandeArray['champs_a_modifier']) && is_string($demandeArray['champs_a_modifier'])) {
                 $champsNoms = json_decode($demandeArray['champs_a_modifier'], true) ?? [];
                 
-                // Créer un objet avec les noms des champs et leurs valeurs actuelles
+                // Mapping des champs techniques vers libellés français par type
+                $labelsMapping = [
+                    'naissance' => [
+                        'type' => 'Type de document',
+                        'pour' => 'Bénéficiaire',
+                        'name' => 'Nom',
+                        'prenom' => 'Prénoms',
+                        'number' => 'Numéro de registre',
+                        'DateR' => 'Date de registre',
+                        'CNI' => 'Pièce d\'identité',
+                        'commune' => 'Commune',
+                        'quantite' => 'Quantité',
+                    ],
+                    'mariage' => [
+                        'typeDemande' => 'Type de demande',
+                        'nomEpoux' => 'Nom du conjoint',
+                        'prenomEpoux' => 'Prénom du conjoint',
+                        'dateNaissanceEpoux' => 'Date de naissance du conjoint',
+                        'lieuNaissanceEpoux' => 'Lieu de naissance du conjoint',
+                        'commune' => 'Commune',
+                        'quantite' => 'Quantité',
+                        'pieceIdentite' => 'Pièce d\'identité',
+                        'extraitMariage' => 'Extrait de mariage',
+                        'CMU' => 'Numéro NNI',
+                    ],
+                    'deces' => [
+                        'name' => 'Nom et Prénoms du Défunt',
+                        'numberR' => 'Numéro de Registre',
+                        'dateR' => 'Date de Registre',
+                        'commune' => 'Commune',
+                        'quantite' => 'Quantité',
+                        'CNIdfnt' => 'CNI/Extrait de naissance du défunt',
+                        'CNIdcl' => 'Certificat médical de décès',
+                        'documentMariage' => 'Document de mariage',
+                        'RequisPolice' => 'Réquisition de police',
+                    ],
+                ];
+                
+                // Récupérer le mapping pour le type actuel
+                $labels = $labelsMapping[$type] ?? [];
+                
+                // Créer un objet avec les libellés français et leurs valeurs actuelles
                 $champsAvecValeurs = [];
                 foreach ($champsNoms as $champNom) {
+                    // Utiliser le libellé français ou le nom technique si pas de mapping
+                    $libelle = $labels[$champNom] ?? $champNom;
                     // Récupérer la valeur du champ depuis la demande
-                    $champsAvecValeurs[$champNom] = $demandeArray[$champNom] ?? null;
+                    $champsAvecValeurs[$libelle] = $demandeArray[$champNom] ?? null;
                 }
                 
                 $demandeArray['champs_a_modifier'] = $champsAvecValeurs;
