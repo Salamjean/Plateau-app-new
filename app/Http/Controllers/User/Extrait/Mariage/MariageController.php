@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MariageController extends Controller
@@ -132,6 +133,100 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         Notification::send($user, new DemandeMariageConfirmationNotification($user, $mariage));
 
         return redirect()->route('user.extrait.mariage.index')->with('success', 'Votre demande a été traitée avec succès.');
+    }
+
+    /**
+     * Modifier une demande rejetée
+     */
+    public function modifierDemande(Request $request, $id)
+    {
+        $demande = Mariage::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->where('peut_modifier', true)
+            ->firstOrFail();
+
+        // Valider uniquement les champs qui étaient à modifier
+        $champsAModifier = json_decode($demande->champs_a_modifier, true);
+        $rules = [];
+
+        // Définir les règles de validation par champ
+        foreach ($champsAModifier as $champ) {
+            switch ($champ) {
+                case 'typeDemande':
+                    $rules['typeDemande'] = 'required|string|in:extraitSimple,copieIntegrale';
+                    break;
+                case 'nomEpoux':
+                    $rules['nomEpoux'] = 'required|string|max:255';
+                    break;
+                case 'prenomEpoux':
+                    $rules['prenomEpoux'] = 'required|string|max:255';
+                    break;
+                case 'dateNaissanceEpoux':
+                    $rules['dateNaissanceEpoux'] = 'required|date';
+                    break;
+                case 'lieuNaissanceEpoux':
+                    $rules['lieuNaissanceEpoux'] = 'required|string|max:255';
+                    break;
+                case 'commune':
+                    $rules['commune'] = 'required|string';
+                    break;
+                case 'quantite':
+                    $rules['quantite'] = 'required|integer|min:1|max:10';
+                    break;
+                case 'pieceIdentite':
+                    $rules['pieceIdentite'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    break;
+                case 'extraitMariage':
+                    $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    break;
+                case 'CMU':
+                    $rules['CMU'] = 'required|string|max:50';
+                    break;
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        // Mettre à jour uniquement les champs spécifiés
+        foreach ($champsAModifier as $champ) {
+            if (in_array($champ, ['pieceIdentite', 'extraitMariage']) && $request->hasFile($champ)) {
+                // Supprimer l'ancien fichier si existe
+                if ($demande->$champ) {
+                    Storage::delete($demande->$champ);
+                }
+
+                // Enregistrer le nouveau fichier
+                $file = $request->file($champ);
+
+                // Déterminer le sous-dossier
+                $subDir = match ($champ) {
+                    'pieceIdentite' => 'pieces-identite',
+                    'extraitMariage' => 'extraits-mariage',
+                    default => ''
+                };
+
+                $extension = $file->getClientOriginalExtension();
+                $newFileName = (string) Str::uuid() . '.' . $extension;
+                $path = $file->storeAs("images/mariage/$subDir", $newFileName, 'public');
+
+                $demande->$champ = "images/mariage/$subDir/$newFileName";
+            } elseif (isset($validated[$champ])) {
+                $demande->$champ = $validated[$champ];
+            }
+        }
+
+        // Réinitialiser l'état et désactiver la modification
+        $demande->etat = 'en attente';
+        $demande->peut_modifier = false;
+        $demande->champs_a_modifier = null;
+        $demande->motif_de_rejet = null;
+        $demande->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+            'demande' => $demande
+        ]);
     }
 
     public function delete(Mariage $mariage)

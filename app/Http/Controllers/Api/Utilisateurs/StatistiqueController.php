@@ -587,7 +587,6 @@ class StatistiqueController extends Controller
             'traité' => 'Votre demande a été traitée',
             'refusé' => 'Votre demande a été refusée',
             'annulé' => 'Votre demande a été annulée'
-            // NOTE: Ajoutez ici 'en attente de paiement', 'paiement_echoue' etc. si nécessaire
         ];
 
         return $descriptions[$statut] ?? 'Statut inconnu';

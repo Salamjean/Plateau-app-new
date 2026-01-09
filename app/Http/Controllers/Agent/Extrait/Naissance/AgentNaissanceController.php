@@ -12,8 +12,8 @@ use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Illuminate\Support\Facades\Storage;
 use PDF;
-use Illuminate\Support\Facades\Http; // <-- AJOUT
-use Illuminate\Support\Facades\Log;  // <-- AJOUT
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log; 
 
 class AgentNaissanceController extends Controller
 {
@@ -23,9 +23,9 @@ class AgentNaissanceController extends Controller
 
         $naissances = Naissance::where('commune', $admin->communeM)
             ->where('agent_id', $admin->id)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('statut_livraison')
-                        ->orWhere('statut_livraison', '!=', 'livré');
+                    ->orWhere('statut_livraison', '!=', 'livré');
             })
             ->where('etat', '!=', 'rejetée')
             ->with('user')
@@ -38,7 +38,7 @@ class AgentNaissanceController extends Controller
     public function edit($id)
     {
         $naissance = Naissance::findOrFail($id);
-        
+
         // Récupérer le statut diaspora de l'utilisateur
         $isDiaspora = $naissance->user->diaspora ?? false;
 
@@ -47,25 +47,30 @@ class AgentNaissanceController extends Controller
         return view('agent.extraits.naissances.edit_etat', compact('naissance', 'etats', 'isDiaspora'));
     }
 
-   public function updateEtat(Request $request, $id)
+    public function updateEtat(Request $request, $id)
     {
-        // <-- MODIFIÉ : Chargement de l'utilisateur avec la demande
         $naissance = Naissance::with('user')->findOrFail($id);
-        
-        // Validation de l'état
+
         $request->validate([
             'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
             'livraison_id' => 'nullable|exists:postes,id',
-            'motif_de_rejet' => 'required_if:etat,rejetée|string|nullable', // Ajout de la validation
+            'motif_champs' => 'required_if:etat,rejetée|array',
+            'motif_commentaire' => 'nullable|string',
+            'motif_de_rejet' => 'nullable|string',
         ]);
 
-        // Mise à jour de l'état
         $naissance->etat = $request->etat;
-        
+
         if ($naissance->etat === 'rejetée') {
-            $naissance->motif_de_rejet = $request->motif_de_rejet;
-            
-            // Annuler toute livraison si la demande est rejetée
+            // Construire le motif structuré
+            $motif = $this->construireMotifRejet($request);
+            $naissance->motif_de_rejet = $motif;
+
+            // Enregistrer les champs à modifier
+            $naissance->champs_a_modifier = json_encode($request->motif_champs);
+            $naissance->peut_modifier = true; // Activer la possibilité de modifier
+
+            // Annuler toute livraison
             $naissance->statut_livraison = null;
             $naissance->livraison_code = null;
             $naissance->qr_code_path = null;
@@ -73,63 +78,67 @@ class AgentNaissanceController extends Controller
             $naissance->dhl_id = null;
             $naissance->livreur_id = null;
             $naissance->agent_id = null;
-        } elseif ($naissance->etat === 'terminé' && $naissance->choix_option === 'livraison' && is_null($naissance->livraison_code)) {
-            // (Logique existante pour 'terminé'...)
-            
-            $livraisonCode = 'LIVN' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
-
-            while (Naissance::where('livraison_code', $livraisonCode)->exists()) {
+        } elseif ($naissance->etat === 'terminé') {
+            // Logique existante pour 'terminé'
+            if ($naissance->choix_option === 'livraison' && is_null($naissance->livraison_code)) {
                 $livraisonCode = 'LIVN' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
+
+                while (Naissance::where('livraison_code', $livraisonCode)->exists()) {
+                    $livraisonCode = 'LIVN' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
+                }
+
+                $qrCodePath = $this->generateQrCode($livraisonCode);
+
+                $naissance->statut_livraison = 'en attente';
+                $naissance->livraison_code = $livraisonCode;
+                $naissance->qr_code_path = $qrCodePath;
+                $naissance->livraison_id = 1;
+                $naissance->dhl_id = null;
             }
 
-            $qrCodePath = $this->generateQrCode($livraisonCode);
-
-            $naissance->statut_livraison = 'en attente';
-            $naissance->livraison_code = $livraisonCode;
-            $naissance->qr_code_path = $qrCodePath;
-            $naissance->livraison_id = 1;
-            $naissance->dhl_id = null; 
-
-            // Vider le motif si on termine
+            // Désactiver la modification pour les demandes terminées
+            $naissance->champs_a_modifier = null;
+            $naissance->peut_modifier = false;
             $naissance->motif_de_rejet = null;
-
         } else {
-             // Pour 'en attente' ou 'réçu', vider aussi le motif
-             $naissance->motif_de_rejet = null;
+            // Pour 'en attente' ou 'réçu', désactiver la modification
+            $naissance->champs_a_modifier = null;
+            $naissance->peut_modifier = false;
+            $naissance->motif_de_rejet = null;
         }
-        
+
         $naissance->save();
-        
+
         // =================================================================
-        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
+        // ENVOI DE NOTIFICATION PUSH
         // =================================================================
         $user = $naissance->user;
-        
+
         if ($user && !empty($user->push_notification)) {
             $title = '';
             $body = '';
-            $data = []; 
+            $data = [];
 
             switch ($naissance->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande d\'extrait de naissance a été bien reçue et en cours de traitement.';
+                    $body = 'Votre demande d\'extrait de naissance a été bien reçue et est en cours de traitement.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
                     break;
-                
+
                 case 'terminé':
                     $title = 'Demande Traitée';
                     $body = 'Votre demande d\'extrait de naissance a été traitée.';
                     if ($naissance->livraison_code) {
-                         $body .= ' Votre code de livraison est : ' . $naissance->livraison_code;
+                        $body .= ' Votre code de livraison est : ' . $naissance->livraison_code;
                     }
                     $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
                     break;
-                
+
                 case 'rejetée':
-                    $title = 'Demande Rejetée';
-                    $body = 'Votre demande d\'extrait de naissance a été rejetée. Motif : ' . ($naissance->motif_de_rejet ?? 'Non spécifié');
-                    $data = ['url' => 'plateauapps://echec?reference=' . $naissance->reference];
+                    $title = 'Demande Rejetée - Modification requise';
+                    $body = 'Votre demande d\'extrait de naissance a été rejetée. Vous pouvez maintenant modifier les informations incorrectes.';
+                    $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
                     break;
             }
 
@@ -138,9 +147,7 @@ class AgentNaissanceController extends Controller
             }
         }
         // =================================================================
-        // FIN DU BLOC DE NOTIFICATION
-        // =================================================================
-        
+
         // Redirection en fonction de l'état
         if ($naissance->etat === 'terminé') {
             return redirect()->route('agent.demandes.naissance.index')
@@ -152,19 +159,133 @@ class AgentNaissanceController extends Controller
         }
     }
 
+    /**
+     * Construire le motif de rejet structuré
+     */
+    private function construireMotifRejet(Request $request)
+    {
+        // Mapping des champs vers leurs libellés
+        $labels = [
+            'name' => 'Nom',
+            'prenom' => 'Prénoms',
+            'number' => 'Numéro de registre',
+            'DateR' => 'Date de registre',
+            'commune' => 'Commune de naissance',
+            'CNI' => 'Pièce d\'identité (CNI/Passeport)',
+            'type' => 'Type de document',
+            'quantite' => 'Quantité'
+        ];
+
+        $motif = "Les champs suivants contiennent des informations incorrectes ou incomplètes :\n\n";
+
+        // Ajouter les champs cochés
+        foreach ($request->motif_champs ?? [] as $champ) {
+            if (isset($labels[$champ])) {
+                $motif .= "• " . $labels[$champ] . "\n";
+            }
+        }
+
+        // Ajouter le commentaire additionnel si présent
+        if (!empty($request->motif_commentaire)) {
+            $motif .= "\nCommentaire additionnel : " . $request->motif_commentaire;
+        }
+
+        return $motif;
+    }
+
+    /**
+     * Modifier une demande rejetée
+     */
+    public function modifierDemande(Request $request, $id)
+    {
+        $demande = Naissance::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->where('peut_modifier', true)
+            ->firstOrFail();
+
+        // Valider uniquement les champs qui étaient à modifier
+        $champsAModifier = json_decode($demande->champs_a_modifier, true);
+        $rules = [];
+
+        // Définir les règles de validation par champ
+        foreach ($champsAModifier as $champ) {
+            switch ($champ) {
+                case 'name':
+                    $rules['name'] = 'required|string|max:255';
+                    break;
+                case 'prenom':
+                    $rules['prenom'] = 'required|string|max:255';
+                    break;
+                case 'number':
+                    $rules['number'] = 'required|string|max:50';
+                    break;
+                case 'DateR':
+                    $rules['DateR'] = 'required|date';
+                    break;
+                case 'commune':
+                    $rules['commune'] = 'required|string';
+                    break;
+                case 'type':
+                    $rules['type'] = 'required|string|in:simple,extrait_integral';
+                    break;
+                case 'quantite':
+                    $rules['quantite'] = 'required|integer|min:1|max:10';
+                    break;
+                case 'CNI':
+                    $rules['CNI'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    break;
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        // Mettre à jour uniquement les champs spécifiés
+        foreach ($champsAModifier as $champ) {
+            if ($champ === 'CNI' && $request->hasFile('CNI')) {
+                // Supprimer l'ancien fichier si existe
+                if ($demande->CNI) {
+                    Storage::delete($demande->CNI);
+                }
+
+                // Enregistrer le nouveau fichier
+                $file = $request->file('CNI');
+                $path = $file->store('pieces-identite', 'public');
+                $demande->CNI = $path;
+            } elseif (isset($validated[$champ])) {
+                $demande->$champ = $validated[$champ];
+            }
+        }
+
+        // Réinitialiser l'état et désactiver la modification
+        $demande->etat = 'en attente';
+        $demande->peut_modifier = false;
+        $demande->champs_a_modifier = null;
+        $demande->motif_de_rejet = null;
+        $demande->save();
+
+        // Notification à l'admin/agent
+        // Vous pouvez ajouter ici une notification ou un email
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+            'demande' => $demande
+        ]);
+    }
+
     private function generateQrCode($livraisonCode)
     {
         $qrCode = new QrCode($livraisonCode);
         $qrCode->setSize(300);
         $qrCode->setMargin(10);
         $qrCode->setErrorCorrectionLevel(ErrorCorrectionLevel::High);
-        
+
         $writer = new PngWriter();
         $result = $writer->write($qrCode);
-        
+
         $fileName = 'qrcodes/' . $livraisonCode . '.png';
         Storage::disk('public')->put($fileName, $result->getString());
-        
+
         return $fileName;
     }
 
@@ -199,12 +320,12 @@ class AgentNaissanceController extends Controller
         // <-- NOTIFICATION PUSH POUR MOBILE
         // =================================================================
         $user = $naissance->user;
-        
+
         if ($user && !empty($user->push_notification)) {
             $title = 'Extrait de Naissance Remis';
             $body = 'Votre demande d\'extrait de naissance vous a été remis avec succès.';
             $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
-            
+
             $this->sendPushNotification($user->push_notification, $title, $body, $data);
         }
         // =================================================================
@@ -217,17 +338,17 @@ class AgentNaissanceController extends Controller
     public function downloadDeliveryInfo($id)
     {
         $naissance = Naissance::with(['user'])->findOrFail($id);
-        
+
         $data = [
             'naissance' => $naissance,
             'livraison' => $naissance->livraison,
             'date' => now()->format('d/m/Y'),
         ];
-        
+
         $pdf = PDF::loadView('agent.pdf.delivery-info', $data)
             ->setPaper('a6', 'landscape')
             ->setOption('isRemoteEnabled', true);
-        
+
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }
 
@@ -250,19 +371,18 @@ class AgentNaissanceController extends Controller
         ];
 
         try {
-            $response = Http::withoutVerifying() 
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Accept-Encoding' => 'gzip, deflate',
-            ])->post('https://exp.host/--/api/v2/push/send', $payload);
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Accept-Encoding' => 'gzip, deflate',
+                ])->post('https://exp.host/--/api/v2/push/send', $payload);
 
             if ($response->failed()) {
                 Log::error('Échec envoi notification Expo: ' . $response->body());
             } else {
                 Log::info('Notification Expo envoyée: ' . $response->body());
             }
-
         } catch (\Exception $e) {
             Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
         }

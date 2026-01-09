@@ -22,7 +22,7 @@ class UserRegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-             'name' => 'required',
+            'name' => 'required',
             'prenom' => 'required',
             'email' => 'required|email|unique:users,email',
             'indicatif' => 'required',

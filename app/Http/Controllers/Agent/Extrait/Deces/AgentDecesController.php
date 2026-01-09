@@ -12,8 +12,9 @@ use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use PDF;
-use Illuminate\Support\Facades\Http; 
-use Illuminate\Support\Facades\Log;  
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AgentDecesController extends Controller
 {
@@ -24,9 +25,9 @@ class AgentDecesController extends Controller
 
         $decesQuery = Deces::where('commune', $admin->communeM)
             ->where('agent_id', $admin->id)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('statut_livraison')
-                        ->orWhere('statut_livraison', '!=', 'livré');
+                    ->orWhere('statut_livraison', '!=', 'livré');
             })
             ->where('etat', '!=', 'rejetée')
             ->with('user');
@@ -43,35 +44,39 @@ class AgentDecesController extends Controller
         return view('agent.extraits.deces.deces', compact('deces'));
     }
 
-    // ...
     // Deces edit 
     public function edit($id)
     {
-        // ... (votre code edit inchangé)
         $deces = Deces::findOrFail($id);
         $isDiaspora = $deces->user->diaspora ?? false;
-        $etats = ['en attente', 'réçu', 'terminé', 'rejetée']; 
+        $etats = ['en attente', 'réçu', 'terminé', 'rejetée'];
         return view('agent.extraits.deces.edit_etat', compact('deces', 'etats', 'isDiaspora'));
     }
 
     public function updateEtat(Request $request, $id)
     {
-        // On charge la demande AVEC l'utilisateur associé
-        $deces = Deces::with('user')->findOrFail($id); 
-        
-        // Validation de l'état
+        $deces = Deces::with('user')->findOrFail($id);
+
         $request->validate([
             'etat' => 'required|string|in:en attente,réçu,terminé,rejetée',
             'livraison_id' => 'nullable|exists:postes,id',
-            'motif_de_rejet' => 'required_if:etat,rejetée|string|nullable',
+            'motif_champs' => 'required_if:etat,rejetée|array',
+            'motif_commentaire' => 'nullable|string',
+            'motif_de_rejet' => 'nullable|string',
         ]);
 
-        // Mise à jour de l'état
         $deces->etat = $request->etat;
-        
-        // ... (toute votre logique if/elseif/else pour 'rejetée', 'terminé', etc. reste inchangée)
+
         if ($deces->etat === 'rejetée') {
-            $deces->motif_de_rejet = $request->motif_de_rejet;
+            // Construire le motif structuré
+            $motif = $this->construireMotifRejet($request);
+            $deces->motif_de_rejet = $motif;
+
+            // Enregistrer les champs à modifier
+            $deces->champs_a_modifier = json_encode($request->motif_champs);
+            $deces->peut_modifier = true; // Activer la possibilité de modifier
+
+            // Annuler toute livraison
             $deces->statut_livraison = null;
             $deces->livraison_code = null;
             $deces->qr_code_path = null;
@@ -79,84 +84,119 @@ class AgentDecesController extends Controller
             $deces->dhl_id = null;
             $deces->agent_id = null;
             $deces->livreur_id = null;
-        } elseif ($deces->etat === 'terminé' && $deces->choix_option === 'livraison' && is_null($deces->livraison_code)) {
-            $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
-            while (Deces::where('livraison_code', $livraisonCode)->exists()) {
+        } elseif ($deces->etat === 'terminé') {
+            // Logique existante pour 'terminé'
+            if ($deces->choix_option === 'livraison' && is_null($deces->livraison_code)) {
                 $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
+                while (Deces::where('livraison_code', $livraisonCode)->exists()) {
+                    $livraisonCode = 'LIVD' . str_pad(mt_rand(1, 9999999), 7, '0', STR_PAD_LEFT);
+                }
+                $qrCodePath = $this->generateQrCode($livraisonCode);
+                $deces->statut_livraison = 'en attente';
+                $deces->livraison_code = $livraisonCode;
+                $deces->qr_code_path = $qrCodePath;
+                $deces->livraison_id = 1;
+                $deces->dhl_id = null;
             }
-            $qrCodePath = $this->generateQrCode($livraisonCode);
-            $deces->statut_livraison = 'en attente';
-            $deces->livraison_code = $livraisonCode;
-            $deces->qr_code_path = $qrCodePath; 
-            $deces->livraison_id = 1;
-            $deces->dhl_id = null; 
+
+            // Désactiver la modification pour les demandes terminées
+            $deces->champs_a_modifier = null;
+            $deces->peut_modifier = false;
             $deces->motif_de_rejet = null;
         } else {
+            // Pour 'en attente' ou 'réçu', désactiver la modification
+            $deces->champs_a_modifier = null;
+            $deces->peut_modifier = false;
             $deces->motif_de_rejet = null;
         }
-        
+
         $deces->save();
-        
+
         // =================================================================
-        // BLOC D'ENVOI DE NOTIFICATION PUSH
+        // ENVOI DE NOTIFICATION PUSH
         // =================================================================
         $user = $deces->user;
-        
-        // Vérifier si l'utilisateur existe et s'il a un token de notification
+
         if ($user && !empty($user->push_notification)) {
             $title = '';
             $body = '';
-            $data = []; // <-- NOUVEAU : Initialisation de $data
-
-            // La ligne '$data = [...]' qui était ici a été SUPPRIMÉE.
+            $data = [];
 
             switch ($deces->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande d\'extrait de décès a été bien reçue par la mairie et est en cours de traitement.';
-                    // <-- NOUVEAU : Lien pour 'réçu'
+                    $body = 'Votre demande d\'extrait de décès a été bien reçue et est en cours de traitement.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
                     break;
-                
+
                 case 'terminé':
                     $title = 'Demande Traitée';
                     $body = 'Votre demande d\'extrait de décès a été traitée.';
                     if ($deces->livraison_code) {
-                         $body .= ' Votre code de livraison est : ' . $deces->livraison_code;
+                        $body .= ' Votre code de livraison est : ' . $deces->livraison_code;
                     }
-                    // <-- NOUVEAU : Lien pour 'terminé'
                     $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
                     break;
-                
+
                 case 'rejetée':
-                    $title = 'Demande rejetée';
-                    $body = 'Votre demande d\'extrait de décès a été rejetée. Motif : ' . ($deces->motif_de_rejet ?? 'Non spécifié');
-                    // <-- NOUVEAU : Lien pour 'rejetée'
-                    $data = ['url' => 'plateauapps://echec?reference=' . $deces->reference];
+                    $title = 'Demande Rejetée - Modification requise';
+                    $body = 'Votre demande d\'extrait de décès a été rejetée. Vous pouvez maintenant modifier les informations incorrectes.';
+                    $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
                     break;
             }
 
-            // Si un titre et un corps ont été définis (donc pour 'réçu', 'terminé', 'rejetée')
             if (!empty($title) && !empty($body)) {
                 $this->sendPushNotification($user->push_notification, $title, $body, $data);
             }
         }
         // =================================================================
-        // FIN DU BLOC DE NOTIFICATION
-        // =================================================================
-        
-        // ... (votre code de redirection inchangé)
+
+        // Redirection en fonction de l'état
         if ($deces->etat === 'terminé') {
             return redirect()->route('agent.demandes.deces.index')
                 ->with('success', 'État mis à jour avec succès' .
                     ($deces->choix_option === 'livraison' ? ' et livraison initiée (Code: ' . $deces->livraison_code . ')' : ''));
-        
         } else {
             return redirect()->route('agent.demandes.deces.index')
                 ->with('success', 'État mis à jour avec succès');
         }
     }
-    
+
+    /**
+     * Construire le motif de rejet structuré
+     */
+    private function construireMotifRejet(Request $request)
+    {
+        // Mapping des champs vers leurs libellés
+        $labels = [
+            'name' => 'Nom et Prénoms du Défunt',
+            'numberR' => 'Numéro de Registre',
+            'dateR' => 'Date de Registre',
+            'commune' => 'Commune',
+            'quantite' => 'Quantité',
+            'CNIdfnt' => 'CNI/extrait de naissance du défunt',
+            'CNIdcl' => 'Certificat médical de décès',
+            'documentMariage' => 'Document de mariage',
+            'RequisPolice' => 'Réquisition de police'
+        ];
+
+        $motif = "Les champs suivants contiennent des informations incorrectes ou incomplètes :\n\n";
+
+        // Ajouter les champs cochés
+        foreach ($request->motif_champs ?? [] as $champ) {
+            if (isset($labels[$champ])) {
+                $motif .= "• " . $labels[$champ] . "\n";
+            }
+        }
+
+        // Ajouter le commentaire additionnel si présent
+        if (!empty($request->motif_commentaire)) {
+            $motif .= "\nCommentaire additionnel : " . $request->motif_commentaire;
+        }
+
+        return $motif;
+    }
+
     private function generateQrCode($livraisonCode)
     {
         // ... (votre code inchangé)
@@ -174,7 +214,7 @@ class AgentDecesController extends Controller
 
     public function markAsDeliveredDeces(Request $request, $id)
     {
-        
+
         $validator = Validator::make($request->all(), [
             'statut_livraison' => 'required|string|in:livré',
             'reference' => 'required|string|max:255',
@@ -196,12 +236,12 @@ class AgentDecesController extends Controller
         // <-- NOTIFICATION PUSH POUR MOBILE
         // =================================================================
         $user = $deces->user;
-        
+
         if ($user && !empty($user->push_notification)) {
             $title = 'Extrait de Décès Remis';
             $body = 'Votre demande d\'extrait de décès vous a été remis avec succès.';
             $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
-            
+
             $this->sendPushNotification($user->push_notification, $title, $body, $data);
         }
         // =================================================================
@@ -246,19 +286,18 @@ class AgentDecesController extends Controller
         ];
 
         try {
-            $response = Http::withoutVerifying() 
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Accept-Encoding' => 'gzip, deflate',
-            ])->post('https://exp.host/--/api/v2/push/send', $payload);
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Accept-Encoding' => 'gzip, deflate',
+                ])->post('https://exp.host/--/api/v2/push/send', $payload);
 
             if ($response->failed()) {
                 Log::error('Échec envoi notification Expo: ' . $response->body());
             } else {
                 Log::info('Notification Expo envoyée: ' . $response->body());
             }
-
         } catch (\Exception $e) {
             Log::error('Exception lors de l\'envoi de notification Expo: ' . $e->getMessage());
         }

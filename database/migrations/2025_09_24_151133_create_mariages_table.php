@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('commune')->nullable();
             $table->string('quantite');
             $table->string('etat')->default('en attente'); // État par défaut
+            $table->string('CMU')->nullable();
 
             // <-- LIGNE AJOUTÉE -->
             $table->text('motif_de_rejet')->nullable();

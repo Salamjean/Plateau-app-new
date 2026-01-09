@@ -4,193 +4,421 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <link rel="stylesheet" href="{{asset('dasboard/edit.css')}}">
+
+<style>
+    .rejet-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .rejet-item {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .rejet-item:hover {
+        background: #e9f7fe;
+        border-color: #1977cc;
+    }
+
+    .rejet-checkbox {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .rejet-checkbox input[type="checkbox"] {
+        margin-right: 10px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .rejet-current-value {
+        background: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        border-left: 3px solid #1977cc;
+    }
+
+    .rejet-current-value small {
+        color: #6c757d;
+        font-size: 0.8rem;
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    .value-text {
+        color: #495057;
+        font-weight: 500;
+        word-break: break-word;
+    }
+
+    .motif-checkbox:checked + .checkmark + .rejet-label {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .rejet-item .motif-checkbox:checked ~ .rejet-current-value {
+        border-left-color: #dc3545;
+        background: #fff5f5;
+    }
+    
+    .status-badge.status-rejected {
+        background-color: #ffebee;
+        color: #d32f2f;
+        border: 1px solid #d32f2f;
+    }
+    
+    .info-item-full {
+        grid-column: 1 / -1;
+    }
+</style>
+
 <div class="dashboard-container">
- @if ($errors->any())
-   <script>
-     Swal.fire({
-       icon: 'error',
-       title: 'Erreur',
-       html: `<ul class="text-left">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
-       confirmButtonColor: '#007e00',
-       background: 'white'
-     });
-   </script>
- @endif
+    @if ($errors->any())
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                html: `<ul class="text-left">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>`,
+                confirmButtonColor: '#007e00',
+                background: 'white'
+            });
+        </script>
+    @endif
 
- <div class="page-title">
-   <h2>
-     <i class="fas fa-edit me-2"></i>Modifier l'état de la demande
-   </h2>
-   <div class="page-actions">
-     <a href="{{ route('agent.demandes.deces.index') }}" class="btn-action">
-       <i class="fas fa-arrow-left btn-icon"></i>Retour
-     </a>
-   </div>
- </div>
+    <div class="page-title">
+        <h2>
+            <i class="fas fa-edit me-2"></i>Modifier l'état de la demande
+        </h2>
+        <div class="page-actions">
+            <a href="{{ route('agent.demandes.deces.index') }}" class="btn-action">
+                <i class="fas fa-arrow-left btn-icon"></i>Retour
+            </a>
+        </div>
+    </div>
 
- <div class="form-container">
-   <div class="info-card">
-     <div class="info-header">
-       <i class="fas fa-info-circle info-icon"></i>
-       <h4 class="info-title">Informations sur la demande</h4>
-     </div>
-     <div class="info-grid">
-       <div class="info-item">
-         <span class="info-label">Demandeur</span>
-         <span class="info-value">{{ $deces->user->name.' '.$deces->user->prenom ?? 'N/A' }}</span>
-       </div>
-       <div class="info-item">
-         <span class="info-label">Date de demande</span>
-         <span class="info-value">{{ $deces->created_at->format('d/m/Y à H:i') }}</span>
-       </div>
-       <div class="info-item">
-         <span class="info-label">Statut actuel</span>
-         <span class="info-value">
-           @if($deces->etat == 'en attente')
-             <span class="status-badge status-pending">En attente</span>
-           @elseif($deces->etat == 'réçu')
-             <span class="status-badge status-recu">Réçu</span>
-           
-           @elseif($deces->etat == 'rejetée')
-             <span class="status-badge status-rejected">Rejetée</span>
-           
-           @else
-             <span class="status-badge status-termine">Terminé</span>
-           @endif
-         </span>
-       </div>
-       
-       @if($deces->etat == 'rejetée' && $deces->motif_de_rejet)
-       <div class="info-item info-item-full">
-         <span class="info-label">Motif de Rejet</span>
-         <span class="info-value" style="white-space: pre-wrap;">{{ $deces->motif_de_rejet }}</span>
-       </div>
-       @endif
-     </div>
-   </div>
+    <div class="form-container">
+        <div class="info-card">
+            <div class="info-header">
+                <i class="fas fa-info-circle info-icon"></i>
+                <h4 class="info-title">Informations sur la demande</h4>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Demandeur</span>
+                    <span class="info-value">{{ $deces->user->name.' '.$deces->user->prenom ?? 'N/A' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date de demande</span>
+                    <span class="info-value">{{ $deces->created_at->format('d/m/Y à H:i') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Référence</span>
+                    <span class="info-value">{{ $deces->reference }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Statut actuel</span>
+                    <span class="info-value">
+                        @if($deces->etat == 'en attente')
+                            <span class="status-badge status-pending">En attente</span>
+                        @elseif($deces->etat == 'réçu')
+                            <span class="status-badge status-recu">Réçu</span>
+                        @elseif($deces->etat == 'rejetée')
+                            <span class="status-badge status-rejected">Rejetée</span>
+                        @else
+                            <span class="status-badge status-termine">Terminé</span>
+                        @endif
+                    </span>
+                </div>
+                
+                @if($deces->etat == 'rejetée' && $deces->motif_de_rejet)
+                    <div class="info-item info-item-full">
+                        <span class="info-label">Motif de Rejet (ancien)</span>
+                        <span class="info-value" style="white-space: pre-wrap;">{{ $deces->motif_de_rejet }}</span>
+                    </div>
+                @endif
+                
+                @if($deces->etat == 'rejetée' && $deces->champs_a_modifier)
+                    <div class="info-item info-item-full">
+                        <span class="info-label">Champs à modifier</span>
+                        <span class="info-value">
+                            @php
+                                $champs = json_decode($deces->champs_a_modifier, true);
+                                $labels = [
+                                    'name' => 'Nom et Prénoms du Défunt',
+                                    'numberR' => 'Numéro de Registre',
+                                    'dateR' => 'Date de Registre',
+                                    'commune' => 'Commune',
+                                    'quantite' => 'Quantité',
+                                    'CNIdfnt' => 'CNI/extrait de naissance du défunt',
+                                    'CNIdcl' => 'Certificat médical de décès',
+                                    'documentMariage' => 'Document de mariage',
+                                    'RequisPolice' => 'Réquisition de police'
+                                ];
+                            @endphp
+                            @foreach($champs as $champ)
+                                <span class="badge badge-warning me-1">{{ $labels[$champ] ?? $champ }}</span>
+                            @endforeach
+                        </span>
+                    </div>
+                @endif
+            </div>
+        </div>
 
-   <form action="{{ route('agent.demandes.deces.update', $deces->id) }}" method="POST" id="update-etat-form">
-     @csrf
-     @method('POST')
-     
-     <input type="hidden" name="motif_de_rejet" id="motif_de_rejet_input">
+        <form action="{{ route('agent.demandes.deces.update', $deces->id) }}" method="POST" id="update-etat-form">
+            @csrf
+            @method('POST')
+            
+            <input type="hidden" name="motif_de_rejet" id="motif_de_rejet_input">
 
-     <div class="form-section">
-       <h4 class="section-title">
-         <i class="fas fa-cog"></i>Modifier le statut de la demande
-       </h4>
-       
-       <div class="form-group">
-         <label class="form-label">
-           <i class="fas fa-tasks"></i>Nouveau statut
-         </label>
-         <select class="form-select" name="etat" id="etat_select" required>
-           <option value="">Sélectionnez un statut</option>
-           @foreach($etats as $etat)
-             <option value="{{ $etat }}" {{ $deces->etat == $etat ? 'selected' : '' }}>
-               {{-- Met la première lettre en majuscule --}}
-               {{ ucfirst($etat) }}
-             </option>
-           @endforeach
-         </select>
-       </div>
-     </div>
+            <div class="form-section">
+                <h4 class="section-title">
+                    <i class="fas fa-cog"></i>Modifier le statut de la demande
+                </h4>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tasks"></i>Nouveau statut
+                    </label>
+                    <select class="form-select" name="etat" id="etat_select" required>
+                        <option value="">Sélectionnez un statut</option>
+                        @foreach($etats as $etat)
+                            <option value="{{ $etat }}" {{ $deces->etat == $etat ? 'selected' : '' }}>
+                                {{ ucfirst($etat) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
 
-     <div class="action-buttons">
-       <button type="submit" class="btn-action btn-secondary">
-         <i class="fas fa-save btn-icon"></i>Enregistrer les modifications
-       </button>
-     </div>
-   </form>
- </div>
+            {{-- Section pour les motifs de rejet détaillés --}}
+            <div id="rejet-details" class="form-section" style="display: none;">
+                <h4 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>Spécifiez les informations incorrectes
+                </h4>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    Cochez les champs qui contiennent des informations incorrectes :
+                </div>
+                
+                <div class="rejet-grid">
+                    @foreach([
+                        'name' => 'Nom et Prénoms du Défunt',
+                        'numberR' => 'Numéro de Registre',
+                        'dateR' => 'Date de Registre',
+                        'commune' => 'Commune',
+                        'quantite' => 'Quantité',
+                        'CNIdfnt' => 'CNI/extrait de naissance du défunt',
+                        'CNIdcl' => 'Certificat médical de décès'
+                    ] as $field => $label)
+                        <div class="rejet-item">
+                            <label class="rejet-checkbox">
+                                <input type="checkbox" name="motif_champs[]" value="{{ $field }}" 
+                                       class="motif-checkbox" data-label="{{ $label }}">
+                                <span class="checkmark"></span>
+                                <span class="rejet-label">{{ $label }}</span>
+                            </label>
+                            <div class="rejet-current-value">
+                                <small>Valeur actuelle:</small>
+                                <span class="value-text">
+                                    @if($field === 'CNIdfnt' || $field === 'CNIdcl')
+                                        {{ $deces->$field ? 'Fichier joint' : 'Non fourni' }}
+                                    @elseif($field === 'dateR')
+                                        {{ \Carbon\Carbon::parse($deces->$field)->format('d/m/Y') }}
+                                    @else
+                                        {{ $deces->$field ?? 'Non renseigné' }}
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                    
+                    {{-- Champs conditionnels --}}
+                    @if($deces->documentMariage)
+                        <div class="rejet-item">
+                            <label class="rejet-checkbox">
+                                <input type="checkbox" name="motif_champs[]" value="documentMariage" 
+                                       class="motif-checkbox" data-label="Document de mariage">
+                                <span class="checkmark"></span>
+                                <span class="rejet-label">Document de mariage</span>
+                            </label>
+                            <div class="rejet-current-value">
+                                <small>Valeur actuelle:</small>
+                                <span class="value-text">Fichier joint</span>
+                            </div>
+                        </div>
+                    @endif
+                    
+                    @if($deces->RequisPolice)
+                        <div class="rejet-item">
+                            <label class="rejet-checkbox">
+                                <input type="checkbox" name="motif_champs[]" value="RequisPolice" 
+                                       class="motif-checkbox" data-label="Réquisition de police">
+                                <span class="checkmark"></span>
+                                <span class="rejet-label">Réquisition de police</span>
+                            </label>
+                            <div class="rejet-current-value">
+                                <small>Valeur actuelle:</small>
+                                <span class="value-text">Fichier joint</span>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                
+                <div class="form-group mt-3">
+                    <label class="form-label">
+                        <i class="fas fa-comment-alt"></i>Commentaire additionnel (optionnel)
+                    </label>
+                    <textarea class="form-control" name="motif_commentaire" id="motif_commentaire" 
+                              rows="3" placeholder="Ajoutez des détails supplémentaires si nécessaire..."></textarea>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn-action btn-secondary">
+                    <i class="fas fa-save btn-icon"></i>Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
- document.addEventListener('DOMContentLoaded', function() {
-   // ... (partie animation, inchangée) ...
-   const formContainer = document.querySelector('.form-container');
-   formContainer.style.opacity = '0';
-   formContainer.style.transform = 'translateY(20px)';
-   setTimeout(() => {
-     formContainer.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-     formContainer.style.opacity = '1';
-     formContainer.style.transform = 'translateY(0)';
-   }, 100);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation d'apparition
+        const formContainer = document.querySelector('.form-container');
+        formContainer.style.opacity = '0';
+        formContainer.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            formContainer.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            formContainer.style.opacity = '1';
+            formContainer.style.transform = 'translateY(0)';
+        }, 100);
 
-   // --- Logique de soumission mise à jour ---
-   const form = document.getElementById('update-etat-form');
-   const etatSelect = document.getElementById('etat_select');
-   
-   form.addEventListener('submit', function(e) {
-     // On empêche la soumission pour TOUS les cas afin de vérifier
-     e.preventDefault();
-     
-     const selectedEtat = etatSelect.value;
-     
-     // CAS 1: 'rejetée'
-     if (selectedEtat === 'rejetée') {
-       Swal.fire({
-         title: 'Motif de Rejet',
-         text: 'Veuillez saisir le motif du rejet :',
-         input: 'textarea',
-         inputPlaceholder: 'Expliquez pourquoi la demande est rejetée...',
-         inputAttributes: {
-           'aria-label': 'Saisir le motif ici'
-         },
-         showCancelButton: true,
-         confirmButtonColor: '#d33', // Rouge pour rejeter
-         cancelButtonColor: '#3085d6',
-         confirmButtonText: 'Oui, rejeter',
-         cancelButtonText: 'Annuler',
-         inputValidator: (value) => {
-           if (!value) {
-             return 'Vous devez obligatoirement saisir un motif !'
-           }
-         }
-       }).then((result) => {
-         if (result.isConfirmed) {
-           // Si confirmé, on met la valeur du motif dans le champ caché
-           document.getElementById('motif_de_rejet_input').value = result.value;
-           // Et on soumet le formulaire
-           form.submit();
-         }
-       });
-       
-     // CAS 2: 'terminé' (votre logique existante)
-     } else if (selectedEtat === 'terminé') {
-       Swal.fire({
-         title: 'Confirmer la finalisation',
-         text: 'Êtes-vous sûr de vouloir marquer cette demande comme terminée ? Cette action est irréversible.',
-         icon: 'warning',
-         showCancelButton: true,
-         confirmButtonColor: '#1977cc',
-         cancelButtonColor: 'red',
-         confirmButtonText: 'Oui, terminer',
-         cancelButtonText: 'Annuler'
-       }).then((result) => {
-         if (result.isConfirmed) {
-           form.submit();
-         }
-       });
-       
-     // CAS 3: Tous les autres statuts ('en attente', 'réçu')
-     } else {
-       // Pas besoin de confirmation, on soumet directement
-       form.submit();
-     }
-   });
- });
+        // Éléments du DOM
+        const form = document.getElementById('update-etat-form');
+        const etatSelect = document.getElementById('etat_select');
+        const rejetDetailsSection = document.getElementById('rejet-details');
+        const motifInput = document.getElementById('motif_de_rejet_input');
+        
+        // Afficher/masquer la section de rejet détaillé
+        etatSelect.addEventListener('change', function() {
+            if (this.value === 'rejetée') {
+                rejetDetailsSection.style.display = 'block';
+                // Faire défiler jusqu'à la section
+                setTimeout(() => {
+                    rejetDetailsSection.scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+            } else {
+                rejetDetailsSection.style.display = 'none';
+                // Décocher toutes les cases
+                document.querySelectorAll('.motif-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                // Vider le commentaire
+                document.getElementById('motif_commentaire').value = '';
+            }
+        });
+        
+        // Initialiser l'état au chargement
+        if (etatSelect.value === 'rejetée') {
+            rejetDetailsSection.style.display = 'block';
+        }
+        
+        // Gestion de la soumission du formulaire
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const selectedEtat = etatSelect.value;
+            
+            // CAS 1: 'rejetée'
+            if (selectedEtat === 'rejetée') {
+                // Récupérer les champs cochés
+                const checkedBoxes = document.querySelectorAll('.motif-checkbox:checked');
+                const commentaire = document.getElementById('motif_commentaire').value.trim();
+                
+                if (checkedBoxes.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sélection requise',
+                        text: 'Veuillez sélectionner au moins un champ incorrect pour justifier le rejet.',
+                        confirmButtonColor: '#1977cc'
+                    });
+                    return;
+                }
+                
+                // Construire le message de motif
+                let motif = "Les champs suivants contiennent des informations incorrectes ou incomplètes :\n\n";
+                
+                checkedBoxes.forEach((checkbox, index) => {
+                    const label = checkbox.getAttribute('data-label');
+                    motif += `• ${label}\n`;
+                });
+                
+                if (commentaire) {
+                    motif += `\nCommentaire additionnel : ${commentaire}`;
+                }
+                
+                // Afficher la confirmation avec le motif
+                Swal.fire({
+                    title: 'Confirmer le rejet',
+                    html: `
+                        <div class="text-start">
+                            <p>Vous êtes sur le point de rejeter cette demande pour les raisons suivantes :</p>
+                            <div class="alert alert-danger p-3">
+                                <strong>Motif :</strong><br>
+                                <pre style="white-space: pre-wrap; background: #fff5f5; padding: 10px; border-radius: 5px; margin-top: 5px;">${motif}</pre>
+                            </div>
+                            <p>Êtes-vous sûr de vouloir procéder ?</p>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Oui, rejeter la demande',
+                    cancelButtonText: 'Annuler',
+                    width: '600px'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mettre le motif dans le champ caché
+                        motifInput.value = motif;
+                        // Soumettre le formulaire
+                        form.submit();
+                    }
+                });
+                
+            } else if (selectedEtat === 'terminé') {
+                // CAS 2: 'terminé'
+                Swal.fire({
+                    title: 'Confirmer la finalisation',
+                    text: 'Êtes-vous sûr de vouloir marquer cette demande comme terminée ? Cette action est irréversible.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1977cc',
+                    cancelButtonColor: 'red',
+                    confirmButtonText: 'Oui, terminer',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+                
+            } else {
+                // CAS 3: Tous les autres statuts ('en attente', 'réçu')
+                form.submit();
+            }
+        });
+    });
 </script>
-
-<style>
- .status-badge.status-rejected {
-   background-color: #ffebee; /* Fond rouge très clair */
-   color: #d32f2f; /* Texte rouge foncé */
-   border: 1px solid #d32f2f; /* Bordure rouge foncé */
- }
- .info-item-full {
-   grid-column: 1 / -1; /* Fait en sorte que le motif prenne toute la largeur */
- }
-</style>
-
 @endsection

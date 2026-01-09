@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DecesController extends Controller
@@ -139,12 +140,104 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         return redirect()->route('user.extrait.deces.index')->with('success', 'Demande envoyée avec succès.');
     }
 
+    /**
+     * Modifier une demande rejetée
+     */
+    public function modifierDemande(Request $request, $id)
+    {
+        $demande = Deces::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->where('peut_modifier', true)
+            ->firstOrFail();
+
+        // Valider uniquement les champs qui étaient à modifier
+        $champsAModifier = json_decode($demande->champs_a_modifier, true);
+        $rules = [];
+
+        // Définir les règles de validation par champ
+        foreach ($champsAModifier as $champ) {
+            switch ($champ) {
+                case 'name':
+                    $rules['name'] = 'required|string|max:255';
+                    break;
+                case 'numberR':
+                    $rules['numberR'] = 'required|string|max:50';
+                    break;
+                case 'dateR':
+                    $rules['dateR'] = 'required|date';
+                    break;
+                case 'commune':
+                    $rules['commune'] = 'required|string';
+                    break;
+                case 'quantite':
+                    $rules['quantite'] = 'required|integer|min:1|max:10';
+                    break;
+                case 'CNIdfnt':
+                    $rules['CNIdfnt'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    break;
+                case 'CNIdcl':
+                    $rules['CNIdcl'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    break;
+                case 'documentMariage':
+                    $rules['documentMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    break;
+                case 'RequisPolice':
+                    $rules['RequisPolice'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    break;
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        // Mettre à jour uniquement les champs spécifiés
+        foreach ($champsAModifier as $champ) {
+            if (in_array($champ, ['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice']) && $request->hasFile($champ)) {
+                // Supprimer l'ancien fichier si existe
+                if ($demande->$champ) {
+                    Storage::delete($demande->$champ);
+                }
+
+                // Enregistrer le nouveau fichier
+                $file = $request->file($champ);
+
+                // Déterminer le sous-dossier
+                $subDir = match ($champ) {
+                    'CNIdfnt' => 'cnid',
+                    'CNIdcl' => 'cnid',
+                    'documentMariage' => 'mariage',
+                    'RequisPolice' => 'police',
+                    default => ''
+                };
+
+                $extension = $file->getClientOriginalExtension();
+                $newFileName = (string) Str::uuid() . '.' . $extension;
+                $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
+
+                $demande->$champ = "images/deces/$subDir/$newFileName";
+            } elseif (isset($validated[$champ])) {
+                $demande->$champ = $validated[$champ];
+            }
+        }
+
+        // Réinitialiser l'état et désactiver la modification
+        $demande->etat = 'en attente';
+        $demande->peut_modifier = false;
+        $demande->champs_a_modifier = null;
+        $demande->motif_de_rejet = null;
+        $demande->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+            'demande' => $demande
+        ]);
+    }
+
     public function delete(Deces $dece)
     {
         try {
             $dece->delete();
             return redirect()->route('user.extrait.deces.index')->with('success', 'La demande a été supprimée avec succès.');
-
         } catch (Exception $e) {
             // Log l'erreur pour le débogage
             Log::error('Erreur lors de la suppression de la demande : ' . $e->getMessage());

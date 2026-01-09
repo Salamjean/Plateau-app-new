@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\Api\Utilisateurs\DemandeMariageController;
 use App\Http\Controllers\User\ProfiluserController;
 use App\Http\Controllers\User\ProfileUpdateRequest;
@@ -61,8 +62,8 @@ use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::prefix('/')->group( function(){
-    Route::get('/',[HomeController::class,'home'])->name('home');
+Route::prefix('/')->group(function () {
+    Route::get('/', [HomeController::class, 'home'])->name('home');
     Route::match(['get', 'post'], 'home/search', [HomeController::class, 'recherche'])->name('recherche.demande');
     Route::get('home/about', [HomeController::class, 'about'])->name('about.demande');
     Route::get('home/service', [HomeController::class, 'service'])->name('service.demande');
@@ -88,15 +89,15 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/logout', [AdminDashboard::class, 'logout'])->name('admin.logout');
 
     //Les routes pouvoir les demandes effectuées 
-    Route::prefix('request')->group(function(){
-        Route::get('/birth',[AdminExtraitController::class,'birth'])->name('admin.birth');
-        Route::get('/death',[AdminExtraitController::class,'death'])->name('admin.death');
-        Route::get('/wedding',[AdminExtraitController::class,'mariage'])->name('admin.mariage');
+    Route::prefix('request')->group(function () {
+        Route::get('/birth', [AdminExtraitController::class, 'birth'])->name('admin.birth');
+        Route::get('/death', [AdminExtraitController::class, 'death'])->name('admin.death');
+        Route::get('/wedding', [AdminExtraitController::class, 'mariage'])->name('admin.mariage');
     });
 
 
     //Les routes de gestion de la mairie par l'admin
-    Route::prefix('mairie')->group(function(){
+    Route::prefix('mairie')->group(function () {
         Route::get('/index', [MairieController::class, 'index'])->name('admin.index');
         Route::get('/index/archive', [MairieController::class, 'archive'])->name('admin.archive');
         Route::get('/create', [MairieController::class, 'create'])->name('admin.create');
@@ -108,7 +109,7 @@ Route::middleware('admin')->prefix('admin')->group(function () {
         Route::delete('/{vendor}/delete', [MairieController::class, 'vendordelete'])->name('mairie.delete');
     });
 
-     Route::prefix('dhl')->group(function(){
+    Route::prefix('dhl')->group(function () {
         Route::get('/indexdhl', [Dhlcontroller::class, 'index'])->name('dhl.index');
         Route::get('/createdhl', [Dhlcontroller::class, 'create'])->name('dhl.create');
         Route::post('/createdhl', [Dhlcontroller::class, 'store'])->name('dhl.store');
@@ -117,43 +118,43 @@ Route::middleware('admin')->prefix('admin')->group(function () {
 });
 
 //Les routes de gestion de la @mairie
-Route::prefix('mairie')->group(function(){
-    Route::get('/login',[MairieAuthenticate::class,'login'])->name('mairie.login');
-    Route::post('/login',[MairieAuthenticate::class,'handleLogin'])->name('mairie.handleLogin');
+Route::prefix('mairie')->group(function () {
+    Route::get('/login', [MairieAuthenticate::class, 'login'])->name('mairie.login');
+    Route::post('/login', [MairieAuthenticate::class, 'handleLogin'])->name('mairie.handleLogin');
 });
 
-Route::middleware('mairie')->prefix('mairie')->group(function(){
-     Route::get('/dashboard',[MairieDashboard::class,'dashboard'])->name('mairie.dashboard');
-     Route::get('/logout', [MairieDashboard::class, 'logout'])->name('mairie.logout');
+Route::middleware('mairie')->prefix('mairie')->group(function () {
+    Route::get('/dashboard', [MairieDashboard::class, 'dashboard'])->name('mairie.dashboard');
+    Route::get('/logout', [MairieDashboard::class, 'logout'])->name('mairie.logout');
 
-     //Les routes pour la liste des demandes 
-     Route::prefix('request')->group(function(){
-        Route::get('/birth',[MairieNaissanceController::class,'birthRequest'])->name('mairie.request.birth');
-        Route::get('/death',[MairieDecesController::class,'deathRequest'])->name('mairie.request.death');
-        Route::get('/wedding',[MairieMariageController::class,'weddingRequest'])->name('mairie.request.wedding');
-     });
+    //Les routes pour la liste des demandes 
+    Route::prefix('request')->group(function () {
+        Route::get('/birth', [MairieNaissanceController::class, 'birthRequest'])->name('mairie.request.birth');
+        Route::get('/death', [MairieDecesController::class, 'deathRequest'])->name('mairie.request.death');
+        Route::get('/wedding', [MairieMariageController::class, 'weddingRequest'])->name('mairie.request.wedding');
+    });
 
-     //Les routes de gestion d'etat civil par la mairie 
-     Route::prefix('state')->group(function(){
-        Route::get('/indexd',[EtatCivilController::class,'index'])->name('mairie.state.index');
-        Route::get('/create',[EtatCivilController::class,'create'])->name('mairie.state.create');
-        Route::post('/create',[EtatCivilController::class,'store'])->name('mairie.state.store');
+    //Les routes de gestion d'etat civil par la mairie 
+    Route::prefix('state')->group(function () {
+        Route::get('/indexd', [EtatCivilController::class, 'index'])->name('mairie.state.index');
+        Route::get('/create', [EtatCivilController::class, 'create'])->name('mairie.state.create');
+        Route::post('/create', [EtatCivilController::class, 'store'])->name('mairie.state.store');
         Route::delete('/etat-civil/{id}', [EtatCivilController::class, 'destroy'])->name('etat-civil.destroy');
         Route::get('/etat-civil/{id}/edit', [EtatCivilController::class, 'edit'])->name('etat-civil.edit');
         Route::put('/etat-civil/{id}', [EtatCivilController::class, 'update'])->name('etat-civil.update');
-     });
+    });
 
-     Route::prefix('finance')->group(function(){
-        Route::get('/index/money',[FinanceController::class,'index'])->name('mairie.finance.index');
-        Route::get('/create/price',[FinanceController::class,'create'])->name('mairie.finance.create');
-        Route::post('/create',[FinanceController::class,'store'])->name('mairie.finance.store');
+    Route::prefix('finance')->group(function () {
+        Route::get('/index/money', [FinanceController::class, 'index'])->name('mairie.finance.index');
+        Route::get('/create/price', [FinanceController::class, 'create'])->name('mairie.finance.create');
+        Route::post('/create', [FinanceController::class, 'store'])->name('mairie.finance.store');
         Route::delete('/{id}', [FinanceController::class, 'destroy'])->name('finance.destroy');
         Route::get('/{id}/edit', [FinanceController::class, 'edit'])->name('finance.edit');
         Route::put('/{id}', [FinanceController::class, 'update'])->name('finance.update');
-     });
+    });
 
-     //les routes de gestion de la poste par l'admin
-    Route::prefix('post')->group(function(){
+    //les routes de gestion de la poste par l'admin
+    Route::prefix('post')->group(function () {
         Route::get('/indexpost', [PosteController::class, 'index'])->name('post.index');
         Route::get('/createpost', [PosteController::class, 'create'])->name('post.create');
         Route::post('/create', [PosteController::class, 'store'])->name('post.store');
@@ -162,57 +163,57 @@ Route::middleware('mairie')->prefix('mairie')->group(function(){
     });
 
     //Les routes de gestion des rendez-vous par la mairie 
-     Route::get('/rendezvous/index/mariage', [MairieRendezVousController::class, 'index'])->name('mairie.rendezvous.index');
-     Route::put('/rendezvous/{id}', [MairieRendezVousController::class, 'update'])->name('rendezvous.update');
-     Route::post('/mairie/rendezvous/{id}/confirm', [MairieRendezVousController::class, 'confirm'])->name('rendezvous.confirm');
-     Route::get('/rendezvous/{id}/confirmation', [MairieRendezVousController::class, 'confirmation'])->name('rendezvous.confirmation');
-     Route::post('/rendezvous/cancel/{id}', [MairieRendezVousController::class, 'cancel'])->name('rendezvous.cancel');
+    Route::get('/rendezvous/index/mariage', [MairieRendezVousController::class, 'index'])->name('mairie.rendezvous.index');
+    Route::put('/rendezvous/{id}', [MairieRendezVousController::class, 'update'])->name('rendezvous.update');
+    Route::post('/mairie/rendezvous/{id}/confirm', [MairieRendezVousController::class, 'confirm'])->name('rendezvous.confirm');
+    Route::get('/rendezvous/{id}/confirmation', [MairieRendezVousController::class, 'confirmation'])->name('rendezvous.confirmation');
+    Route::post('/rendezvous/cancel/{id}', [MairieRendezVousController::class, 'cancel'])->name('rendezvous.cancel');
 });
 
 //Les routes de gestion de la @etat_civil
-Route::prefix('state')->group(function(){
-    Route::get('/login',[AuthenticateEtatCivil::class,'login'])->name('etat_civil.login');
-    Route::post('/login',[AuthenticateEtatCivil::class,'handleLogin'])->name('etat_civil.handleLogin');
+Route::prefix('state')->group(function () {
+    Route::get('/login', [AuthenticateEtatCivil::class, 'login'])->name('etat_civil.login');
+    Route::post('/login', [AuthenticateEtatCivil::class, 'handleLogin'])->name('etat_civil.handleLogin');
 });
 
-Route::middleware('etatCivil')->prefix('state')->group(function(){
-     Route::get('/dashboard',[EtatCivilDashboard::class,'dashboard'])->name('etat_civil.dashboard');
-     Route::get('/logout', [EtatCivilDashboard::class, 'logout'])->name('etat_civil.logout');
-     Route::get('/etat-civil/rapports', [RapportController::class, 'rapports'])->name('etatCivil.rapports');
-     Route::get('/etat-civil/rapports/export-pdf', [RapportController::class, 'exportPdf'])->name('etatCivil.rapports.export');
-     Route::get('/etat-civil/rapports/preview-pdf', [RapportController::class, 'previewPdf'])->name('etatCivil.rapports.preview');
+Route::middleware('etatCivil')->prefix('state')->group(function () {
+    Route::get('/dashboard', [EtatCivilDashboard::class, 'dashboard'])->name('etat_civil.dashboard');
+    Route::get('/logout', [EtatCivilDashboard::class, 'logout'])->name('etat_civil.logout');
+    Route::get('/etat-civil/rapports', [RapportController::class, 'rapports'])->name('etatCivil.rapports');
+    Route::get('/etat-civil/rapports/export-pdf', [RapportController::class, 'exportPdf'])->name('etatCivil.rapports.export');
+    Route::get('/etat-civil/rapports/preview-pdf', [RapportController::class, 'previewPdf'])->name('etatCivil.rapports.preview');
 
-     //Les routes pour la liste des demandes 
-     Route::prefix('request')->group(function(){
-        Route::get('/birth',[EtatNaissanceController::class,'birthRequest'])->name('etat_civil.request.birth');
-        Route::get('/death',[EtatDecesController::class,'deathRequest'])->name('etat_civil.request.death');
-        Route::get('/wedding',[EtatMariageController::class,'weddingRequest'])->name('etat_civil.request.wedding');
-     });
+    //Les routes pour la liste des demandes 
+    Route::prefix('request')->group(function () {
+        Route::get('/birth', [EtatNaissanceController::class, 'birthRequest'])->name('etat_civil.request.birth');
+        Route::get('/death', [EtatDecesController::class, 'deathRequest'])->name('etat_civil.request.death');
+        Route::get('/wedding', [EtatMariageController::class, 'weddingRequest'])->name('etat_civil.request.wedding');
+    });
 
-     //les routes d'ajoutes des @agent_etat_civil
-     Route::prefix('agent/state')->group(function(){
-        Route::get('/index',[AgentController::class,'index'])->name('etat_civil.agent.state.index');
-        Route::get('/create',[AgentController::class,'create'])->name('etat_civil.agent.state.create');
-        Route::post('/create',[AgentController::class,'store'])->name('etat_civil.agent.state.store');
+    //les routes d'ajoutes des @agent_etat_civil
+    Route::prefix('agent/state')->group(function () {
+        Route::get('/index', [AgentController::class, 'index'])->name('etat_civil.agent.state.index');
+        Route::get('/create', [AgentController::class, 'create'])->name('etat_civil.agent.state.create');
+        Route::post('/create', [AgentController::class, 'store'])->name('etat_civil.agent.state.store');
         Route::get('/agents/{agent}', [AgentController::class, 'show'])->name('agents.show');
         Route::get('/agents/{agent}/edit', [AgentController::class, 'edit'])->name('agents.edit');
         Route::put('/agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
         Route::post('/agents/{agent}/archive', [AgentController::class, 'archive'])->name('agents.archive');
         Route::post('/agents/{agent}/unarchive', [AgentController::class, 'unarchive'])->name('agents.unarchive');
-     });
+    });
 
-     //Historiques des traitements de tous les agents 
-    Route::get('/task/end/history',[EtatHistoriquesController::class, 'history'])->name('etat_civil.history.taskend');
-    Route::get('/task/end/livree',[EtatHistoriquesController::class, 'livree'])->name('etat_civil.livree.taskend');
+    //Historiques des traitements de tous les agents 
+    Route::get('/task/end/history', [EtatHistoriquesController::class, 'history'])->name('etat_civil.history.taskend');
+    Route::get('/task/end/livree', [EtatHistoriquesController::class, 'livree'])->name('etat_civil.livree.taskend');
 });
 
 //Les routes de gestion des @agents
-Route::prefix('agent')->group(function() {
+Route::prefix('agent')->group(function () {
     Route::get('/login', [AuthenticateAgent::class, 'login'])->name('agent.login');
     Route::post('/login', [AuthenticateAgent::class, 'handleLogin'])->name('agent.handleLogin');
 });
 
-Route::middleware('agent')->prefix('agent')->group(function(){
+Route::middleware('agent')->prefix('agent')->group(function () {
     Route::get('/dashboard', [AgentDashboard::class, 'dashboard'])->name('agent.dashboard');
     Route::get('/logout', [AgentDashboard::class, 'logout'])->name('agent.logout');
 
@@ -230,7 +231,7 @@ Route::middleware('agent')->prefix('agent')->group(function(){
 
     //Les routes des demandes recuperer de deces 
     Route::get('/all/requests/death', [AgentDecesController::class, 'index'])->name('agent.demandes.deces.index');
-    Route::get('/deces/{id}/edit', [AgentDecesController::class, 'edit'])->name('agent.demandes.deces.edit'); 
+    Route::get('/deces/{id}/edit', [AgentDecesController::class, 'edit'])->name('agent.demandes.deces.edit');
     Route::post('/deces/{id}/update-etat', [AgentDecesController::class, 'updateEtat'])->name('agent.demandes.deces.update');
     Route::post('/deces/livraison/{id}', [AgentDecesController::class, 'markAsDeliveredDeces'])->name('livraison.mark.deces');
     Route::get('/deces/telecharger-info-livraison/{id}', [AgentDecesController::class, 'downloadDeliveryInfo'])->name('agent.download.deces.delivery.info');
@@ -244,33 +245,33 @@ Route::middleware('agent')->prefix('agent')->group(function(){
 
 
     //Historiques des traitements effectuer par l'agent 
-    Route::get('/task/end/history',[AgentHistoriqueController::class, 'history'])->name('agent.history.taskend');
-    Route::get('/task/end/livree',[AgentHistoriqueController::class, 'livree'])->name('agent.livree.taskend');
+    Route::get('/task/end/history', [AgentHistoriqueController::class, 'history'])->name('agent.history.taskend');
+    Route::get('/task/end/livree', [AgentHistoriqueController::class, 'livree'])->name('agent.livree.taskend');
 });
 
 //Les routes de gestion de la @finance
-Route::prefix('finance')->group(function(){
-    Route::get('/login',[AuthenticateFinance::class,'login'])->name('finance.login');
-    Route::post('/login',[AuthenticateFinance::class,'handleLogin'])->name('finance.handleLogin');
+Route::prefix('finance')->group(function () {
+    Route::get('/login', [AuthenticateFinance::class, 'login'])->name('finance.login');
+    Route::post('/login', [AuthenticateFinance::class, 'handleLogin'])->name('finance.handleLogin');
 });
 
-Route::middleware('finance')->prefix('finance')->group(function(){
+Route::middleware('finance')->prefix('finance')->group(function () {
     Route::get('/dashboard', [FinanceDashboard::class, 'dashboard'])->name('finance.dashboard');
     Route::get('/logout', [FinanceDashboard::class, 'logout'])->name('finance.logout');
 
-     //les routes des financiers de la caisse
+    //les routes des financiers de la caisse
     Route::prefix('accounting')->group(function () {
-        Route::get('/index',[ComptableController::class, 'index'])->name('comptable.index');
-        Route::get('/create',[ComptableController::class, 'create'])->name('comptable.create');
-        Route::post('/create',[ComptableController::class, 'store'])->name('comptable.store');
-        Route::get('/edit/{comptable}',[ComptableController::class, 'edit'])->name('comptable.edit');
-        Route::put('/edit/{comptable}',[ComptableController::class, 'update'])->name('comptable.update');
-        Route::delete('/delete/{comptable}',[ComptableController::class, 'delete'])->name('comptable.delete');
+        Route::get('/index', [ComptableController::class, 'index'])->name('comptable.index');
+        Route::get('/create', [ComptableController::class, 'create'])->name('comptable.create');
+        Route::post('/create', [ComptableController::class, 'store'])->name('comptable.store');
+        Route::get('/edit/{comptable}', [ComptableController::class, 'edit'])->name('comptable.edit');
+        Route::put('/edit/{comptable}', [ComptableController::class, 'update'])->name('comptable.update');
+        Route::delete('/delete/{comptable}', [ComptableController::class, 'delete'])->name('comptable.delete');
         Route::get('/accounting/export-pdf/{id}', [ComptableController::class, 'exportPdf'])->name('comptable.comptable.export-pdf');
     });
 
-     //Les routes de timbres 
-    Route::prefix('stamp')->group(function(){
+    //Les routes de timbres 
+    Route::prefix('stamp')->group(function () {
         Route::get('/refill', [FinanceTimbreController::class, 'recharge'])->name('finance.timbre.recharge');
         Route::post('/refill', [FinanceTimbreController::class, 'store'])->name('finance.timbre.store');
         Route::get('/sell', [FinanceTimbreController::class, 'vente'])->name('finance.timbre.vente');
@@ -281,116 +282,119 @@ Route::middleware('finance')->prefix('finance')->group(function(){
 });
 
 //Les routes de gestion de la @comptable
-Route::prefix('accounting')->group(function(){
-    Route::get('/login',[AuthenticateComptable::class,'login'])->name('comptable.login');
-    Route::post('/login',[AuthenticateComptable::class,'handleLogin'])->name('comptable.handleLogin');
+Route::prefix('accounting')->group(function () {
+    Route::get('/login', [AuthenticateComptable::class, 'login'])->name('comptable.login');
+    Route::post('/login', [AuthenticateComptable::class, 'handleLogin'])->name('comptable.handleLogin');
 });
 
-Route::middleware('comptable')->prefix('accounting')->group(function(){
+Route::middleware('comptable')->prefix('accounting')->group(function () {
     Route::get('/dashboard', [ComptableDashboard::class, 'dashboard'])->name('comptable.dashboard');
     Route::get('/logout', [ComptableDashboard::class, 'logout'])->name('comptable.logout');
 
     //les routes des timbres 
-    Route::prefix('stamp')->group(function(){
-         Route::get('/create', [TimbreController::class, 'create'])->name('timbre.create');
-         Route::post('/sell', [TimbreController::class, 'store'])->name('comptable.timbre.storeVente');
-         Route::get('/history', [TimbreController::class, 'history'])->name('comptable.timbre.history');
-         Route::get('/statistiques', [TimbreController::class, 'statistiques'])->name('comptable.timbre.statistiques');
-         Route::get('/tendance-ventes', [TimbreController::class, 'tendanceVentes'])->name('comptable.timbre.tendanceVentes');
+    Route::prefix('stamp')->group(function () {
+        Route::get('/create', [TimbreController::class, 'create'])->name('timbre.create');
+        Route::post('/sell', [TimbreController::class, 'store'])->name('comptable.timbre.storeVente');
+        Route::get('/history', [TimbreController::class, 'history'])->name('comptable.timbre.history');
+        Route::get('/statistiques', [TimbreController::class, 'statistiques'])->name('comptable.timbre.statistiques');
+        Route::get('/tendance-ventes', [TimbreController::class, 'tendanceVentes'])->name('comptable.timbre.tendanceVentes');
     });
 });
 
 //Les routes de getsion de @postes 
-    Route::prefix('post')->group(function() {
-        Route::get('/login', [AuthenticatePoste::class, 'login'])->name('post.login');
-        Route::post('/login', [AuthenticatePoste::class, 'handleLogin'])->name('post.handleLogin');
+Route::prefix('post')->group(function () {
+    Route::get('/login', [AuthenticatePoste::class, 'login'])->name('post.login');
+    Route::post('/login', [AuthenticatePoste::class, 'handleLogin'])->name('post.handleLogin');
+});
+
+Route::middleware('poste')->prefix('post')->group(function () {
+    Route::get('/dahboard', [PosteDashboard::class, 'dashboard'])->name('post.dashboard');
+    Route::get('/logout', [PosteDashboard::class, 'logout'])->name('post.logout');
+
+    //Gestion des livreurs par la poste 
+    Route::prefix('delivery')->group(function () {
+        Route::get('/index', [DeliveryController::class, 'index'])->name('delivery.index');
+        Route::get('/create', [DeliveryController::class, 'create'])->name('delivery.create');
+        Route::post('/create', [DeliveryController::class, 'store'])->name('delivery.store');
+        Route::get('/edit/{livreur}', [DeliveryController::class, 'edit'])->name('poste.livreur.edit');
+        Route::put('/{livreur}', [DeliveryController::class, 'update'])->name('poste.livreur.update');
+        Route::put('/{livreur}/archive', [DeliveryController::class, 'archive'])->name('poste.livreur.archive');
+        Route::put('/{livreur}/restore', [DeliveryController::class, 'restore'])->name('poste.livreur.restore');
+        Route::get('/archives', [DeliveryController::class, 'archives'])->name('poste.livreur.archives');
+
+        Route::get('/livreur/{livreur}/versement', [DeliveryVersement::class, 'versement'])->name('poste.livreur.versement');
+        Route::post('/livreur/{livreur}/versement', [DeliveryVersement::class, 'processVersement'])->name('poste.livreur.versement.process');
     });
 
-    Route::middleware('poste')->prefix('post')->group(function(){
-        Route::get('/dahboard', [PosteDashboard::class, 'dashboard'])->name('post.dashboard');
-        Route::get('/logout', [PosteDashboard::class, 'logout'])->name('post.logout');
-
-        //Gestion des livreurs par la poste 
-            Route::prefix('delivery')->group(function(){
-                Route::get('/index',[DeliveryController::class, 'index'])->name('delivery.index');
-                Route::get('/create',[DeliveryController::class, 'create'])->name('delivery.create');
-                Route::post('/create',[DeliveryController::class, 'store'])->name('delivery.store');
-                Route::get('/edit/{livreur}', [DeliveryController::class, 'edit'])->name('poste.livreur.edit');
-                Route::put('/{livreur}', [DeliveryController::class, 'update'])->name('poste.livreur.update');
-                Route::put('/{livreur}/archive', [DeliveryController::class, 'archive'])->name('poste.livreur.archive');
-                Route::put('/{livreur}/restore', [DeliveryController::class, 'restore'])->name('poste.livreur.restore');
-                Route::get('/archives', [DeliveryController::class, 'archives'])->name('poste.livreur.archives');
-
-                Route::get('/livreur/{livreur}/versement', [DeliveryVersement::class, 'versement'])->name('poste.livreur.versement');
-                Route::post('/livreur/{livreur}/versement', [DeliveryVersement::class, 'processVersement'])->name('poste.livreur.versement.process');
-            });
-
-            //La route des demandes à livrer
-            Route::prefix('livraison')->group(function () {
-                Route::get('/createed', [LivraisonExtraitController::class, 'create'])->name('livraison.create');
-                Route::post('/posted/attribuer-demande', [LivraisonExtraitController::class, 'attribuerDemande'])->name('poste.attribuer-demande');
-                Route::get('/poste/demandes-attribuees', [LivraisonExtraitController::class, 'demandesAttribuees'])->name('poste.demandes-attribuees');
-                Route::get('/poste/demandes-livree', [LivraisonExtraitController::class, 'demandesLivree'])->name('poste.demandes-livree');
-                Route::post('/poste/assigner-livreur', [LivraisonExtraitController::class, 'assignerLivreur'])->name('poste.assigner-livreur');
-            });
-
-            Route::get('/poste/mairies/colis', [PosteDashboard::class, 'getColisParMairie'])->name('poste.mairies.colis');
+    //La route des demandes à livrer
+    Route::prefix('livraison')->group(function () {
+        Route::get('/createed', [LivraisonExtraitController::class, 'create'])->name('livraison.create');
+        Route::post('/posted/attribuer-demande', [LivraisonExtraitController::class, 'attribuerDemande'])->name('poste.attribuer-demande');
+        Route::get('/poste/demandes-attribuees', [LivraisonExtraitController::class, 'demandesAttribuees'])->name('poste.demandes-attribuees');
+        Route::get('/poste/demandes-livree', [LivraisonExtraitController::class, 'demandesLivree'])->name('poste.demandes-livree');
+        Route::post('/poste/assigner-livreur', [LivraisonExtraitController::class, 'assignerLivreur'])->name('poste.assigner-livreur');
     });
+
+    Route::get('/poste/mairies/colis', [PosteDashboard::class, 'getColisParMairie'])->name('poste.mairies.colis');
+});
 
 //Les routes de getsion de @livreur 
-        Route::prefix('delivery')->group(function() {
-            Route::get('/login', [AuthenticateDelivery::class, 'login'])->name('delivery.login');
-            Route::post('/login', [AuthenticateDelivery::class, 'handleLogin'])->name('delivery.handleLogin');
-        });
+Route::prefix('delivery')->group(function () {
+    Route::get('/login', [AuthenticateDelivery::class, 'login'])->name('delivery.login');
+    Route::post('/login', [AuthenticateDelivery::class, 'handleLogin'])->name('delivery.handleLogin');
+});
 
-        Route::middleware('livreur')->prefix('delivery')->group(function(){
-            Route::get('/dahboard', [DeliveryDashboard::class, 'dashboard'])->name('delivery.dashboard');
-            Route::get('/logout', [DeliveryDashboard::class, 'logout'])->name('delivery.logout');
-            Route::post('/livreur/toggle-disponibilite', [DeliveryDashboard::class, 'toggleDisponibilite'])->name('livreur.toggleDisponibilite');
+Route::middleware('livreur')->prefix('delivery')->group(function () {
+    Route::get('/dahboard', [DeliveryDashboard::class, 'dashboard'])->name('delivery.dashboard');
+    Route::get('/logout', [DeliveryDashboard::class, 'logout'])->name('delivery.logout');
+    Route::post('/livreur/toggle-disponibilite', [DeliveryDashboard::class, 'toggleDisponibilite'])->name('livreur.toggleDisponibilite');
 
-            //Gestion des livraison par le livreur
-            Route::get('/livraison',[LivraisonDelivery::class,'delivery'])->name('livreur.livraison');
-            Route::get('/delivery/livree',[LivraisonDelivery::class,'livree'])->name('livreur.livree');
+    //Gestion des livraison par le livreur
+    Route::get('/livraison', [LivraisonDelivery::class, 'delivery'])->name('livreur.livraison');
+    Route::get('/delivery/livree', [LivraisonDelivery::class, 'livree'])->name('livreur.livree');
 
-            Route::get('/livraison/validate', [LivraisonDelivery::class, 'validated'])->name('livreur.validated');
-            Route::post('/livraison/validate', [LivraisonDelivery::class, 'validated']);
-            Route::post('/check-reference', [LivraisonDelivery::class, 'checkReference'])->name('livreur.check-reference');
-            
-        });
+    Route::get('/livraison/validate', [LivraisonDelivery::class, 'validated'])->name('livreur.validated');
+    Route::post('/livraison/validate', [LivraisonDelivery::class, 'validated']);
+    Route::post('/check-reference', [LivraisonDelivery::class, 'checkReference'])->name('livreur.check-reference');
+});
 //Les routes de gestion @users 
-Route::prefix('user')->group(function(){
-    Route::get('/login',[UserAuthenticate::class,'login'])->name('login');
-    Route::post('/login',[UserAuthenticate::class,'handleLogin'])->name('user.handleLogin');
-    Route::get('/register',[UserAuthenticate::class,'register'])->name('user.register');
-    Route::post('/register',[UserAuthenticate::class,'handleRegister'])->name('user.handleRegister');
+Route::prefix('user')->group(function () {
+    Route::get('/login', [UserAuthenticate::class, 'login'])->name('login');
+    Route::post('/login', [UserAuthenticate::class, 'handleLogin'])->name('user.handleLogin');
+    Route::get('/register', [UserAuthenticate::class, 'register'])->name('user.register');
+    Route::post('/register', [UserAuthenticate::class, 'handleRegister'])->name('user.handleRegister');
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('user.password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('user.password.email');
     Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('user.password.reset');
     Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('user.password.update');
 });
 
-Route::middleware('auth')->prefix('user')->group(function(){
-     Route::get('/dashboard',[UserController::class,'dashboard'])->name('user.dashboard');
-     Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
+Route::middleware('auth')->prefix('user')->group(function () {
+    Route::get('/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
+    Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
 
-     //Les demandes d'extrait de naissance 
-     Route::get('/extract/index', [NaissanceController::class, 'index'])->name('user.extrait.index'); 
-     Route::get('/extract', [NaissanceController::class, 'create'])->name('user.extrait.create');
-     Route::post('/extract', [NaissanceController::class, 'store'])->name('user.extrait.store');
-     Route::get('/extract/delete/{naissance}', [NaissanceController::class, 'delete'])->name('user.extrait.delete');
 
-     //Les demandes d'extrait de deces 
-     Route::get('/extract/death/index', [DecesController::class, 'index'])->name('user.extrait.deces.index');
-     Route::get('/extract/death/simple',[DecesController::class,'create'])->name('user.extrait.deces.create');
-     Route::post('/extract/death/simple',[DecesController::class,'store'])->name('user.extrait.deces.store');
-     Route::get('/extract/death/certificat{dece}/child', [DecesController::class, 'delete'])->name('user.extrait.deces.delete');
+    //Les demandes d'extrait de naissance 
+    Route::get('/extract/index', [NaissanceController::class, 'index'])->name('user.extrait.index');
+    Route::get('/extract', [NaissanceController::class, 'create'])->name('user.extrait.create');
+    Route::post('/extract', [NaissanceController::class, 'store'])->name('user.extrait.store');
+    Route::put('/naissances/{id}/modifier', [NaissanceController::class, 'modifierDemande'])->name('user.naissances.modifier');
+    Route::get('/extract/delete/{naissance}', [NaissanceController::class, 'delete'])->name('user.extrait.delete');
+
+    //Les demandes d'extrait de deces 
+    Route::get('/extract/death/index', [DecesController::class, 'index'])->name('user.extrait.deces.index');
+    Route::get('/extract/death/simple', [DecesController::class, 'create'])->name('user.extrait.deces.create');
+    Route::post('/extract/death/simple', [DecesController::class, 'store'])->name('user.extrait.deces.store');
+    Route::put('/extrait/deces/{id}/modifier', [DecesController::class, 'modifierDemande'])->name('user.extrait.deces.modifier');
+    Route::get('/extract/death/certificat{dece}/child', [DecesController::class, 'delete'])->name('user.extrait.deces.delete');
 
     //Les routes d'extrait de mariage
     Route::get('/wedding/index', [MariageController::class, 'index'])->name('user.extrait.mariage.index');
     Route::get('/create/wedding', [MariageController::class, 'create'])->name('user.extrait.mariage.create');
     Route::post('/create/wedding', [MariageController::class, 'store'])->name('user.extrait.mariage.store');
+    Route::put('/extrait/mariage/{id}/modifier', [MariageController::class, 'modifierDemande'])->name('user.extrait.mariage.modifier');
     Route::get('/wedding/delete/{mariage}', [MariageController::class, 'delete'])->name('user.extrait.mariage.delete');
-    
+
 
     //Les routes pour prendre un rendez-vous de mariage
     Route::get('/rendezvous/index', [RendezVousController::class, 'index'])->name('user.rendezvous.index');
@@ -398,18 +402,18 @@ Route::middleware('auth')->prefix('user')->group(function(){
     Route::post('/rendezvous', [RendezvousController::class, 'store'])->name('user.rendezvous.store');
 
     //la route de gestion des historiques 
-    Route::get('/history/ends',[UserAuthenticate::class,'history'])->name('user.history');
+    Route::get('/history/ends', [UserAuthenticate::class, 'history'])->name('user.history');
     Route::get('/demande-details/{type}/{id}', [UserAuthenticate::class, 'getDemandeDetails'])->name('demande.details.json');
- // Remplacez les anciennes routes de profil par celles-ci
+    // Remplacez les anciennes routes de profil par celles-ci
     // Routes pour la gestion du profil utilisateur
     Route::get('/profile', [ProfiluserController::class, 'show'])->name('user.profile.show');
     Route::put('/profile', [ProfiluserController::class, 'update'])->name('user.profile.update');
     // Route::put('/profile/password', [ProfiluserController::class, 'updatePassword'])->name('user.profile.password.update'); // <-- SUPPRIMEZ CETTE LIGNE
     Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
- // Les anciennes routes à commenter ou supprimer si elles ne sont plus utilisées par un autre contrôleur
- // Route::get('profil/edit',[UserAuthenticate::class,'profil'])->name('user.profil');
- // Route::put('/profile/update', [UserAuthenticate::class, 'updateProfile'])->name('user.profile.update');
- // Route::post('/verify-password', [UserAuthenticate::class, 'verifyPassword'])->name('user.verify.password')
+    // Les anciennes routes à commenter ou supprimer si elles ne sont plus utilisées par un autre contrôleur
+    // Route::get('profil/edit',[UserAuthenticate::class,'profil'])->name('user.profil');
+    // Route::put('/profile/update', [UserAuthenticate::class, 'updateProfile'])->name('user.profile.update');
+    // Route::post('/verify-password', [UserAuthenticate::class, 'verifyPassword'])->name('user.verify.password')
 });
 //Les routes definition du accès 
 Route::get('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'defineAccess']);
@@ -450,4 +454,4 @@ Route::match(['GET', 'POST'], '/mariage/paiement/redirect-to-app', [DemandeMaria
 Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app', [DemandeNaissanceController::class, 'showRedirectPage'])
     ->name('naissance.redirect_to_app');
 
-Route::get('/privacy-policy',[HomeController::class,'privacy'])->name('plateau.privacy');
+Route::get('/privacy-policy', [HomeController::class, 'privacy'])->name('plateau.privacy');
