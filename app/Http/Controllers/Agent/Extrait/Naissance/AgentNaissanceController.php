@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agent\Extrait\Naissance;
 use App\Http\Controllers\Controller;
 use App\Models\Naissance;
 use App\Models\UserNotification;
+use App\Models\ActionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -127,6 +128,27 @@ class AgentNaissanceController extends Controller
                 $naissance->etat
             );
         }
+
+        // =================================================================
+        // ENREGISTREMENT DANS L'HISTORIQUE DES ACTIONS
+        // =================================================================
+        $action = $naissance->etat === 'rejetée' ? 'rejet' : 'changement_etat';
+        $champsModifies = null;
+        if ($naissance->etat === 'rejetée' && $request->motif_champs) {
+            $champsModifies = $request->motif_champs;
+        }
+        
+        ActionHistory::logAction(
+            'naissance',
+            $naissance->id,
+            $naissance->reference,
+            $action,
+            $ancienEtat,
+            $naissance->etat,
+            $naissance->motif_de_rejet,
+            $champsModifies,
+            null
+        );
 
         // =================================================================
         // ENVOI DE NOTIFICATION PUSH

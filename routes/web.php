@@ -18,6 +18,7 @@ use App\Http\Controllers\Agent\Extrait\Deces\AgentDecesController;
 use App\Http\Controllers\Agent\Extrait\Mariage\AgentMariageController;
 use App\Http\Controllers\Agent\Extrait\Naissance\AgentNaissanceController;
 use App\Http\Controllers\Agent\Extrait\RecuperationController;
+use App\Http\Controllers\Agent\ActionHistoryController;
 use App\Http\Controllers\Comptable\AuthenticateComptable;
 use App\Http\Controllers\Comptable\ComptableController;
 use App\Http\Controllers\Comptable\ComptableDashboard;
@@ -248,6 +249,9 @@ Route::middleware('agent')->prefix('agent')->group(function () {
     //Historiques des traitements effectuer par l'agent 
     Route::get('/task/end/history', [AgentHistoriqueController::class, 'history'])->name('agent.history.taskend');
     Route::get('/task/end/livree', [AgentHistoriqueController::class, 'livree'])->name('agent.livree.taskend');
+    
+    // Historique des actions de l'agent
+    Route::get('/history/actions', [ActionHistoryController::class, 'index'])->name('agent.history.actions');
 });
 
 //Les routes de gestion de la @finance

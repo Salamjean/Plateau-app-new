@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agent\Extrait\Deces;
 use App\Http\Controllers\Controller;
 use App\Models\Deces;
 use App\Models\UserNotification;
+use App\Models\ActionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -129,6 +130,27 @@ class AgentDecesController extends Controller
                 $deces->etat
             );
         }
+
+        // =================================================================
+        // ENREGISTREMENT DANS L'HISTORIQUE DES ACTIONS
+        // =================================================================
+        $action = $deces->etat === 'rejetée' ? 'rejet' : 'changement_etat';
+        $champsModifies = null;
+        if ($deces->etat === 'rejetée' && $request->motif_champs) {
+            $champsModifies = $request->motif_champs;
+        }
+        
+        ActionHistory::logAction(
+            'deces',
+            $deces->id,
+            $deces->reference,
+            $action,
+            $ancienEtat,
+            $deces->etat,
+            $deces->motif_de_rejet,
+            $champsModifies,
+            null
+        );
 
         // =================================================================
         // ENVOI DE NOTIFICATION PUSH

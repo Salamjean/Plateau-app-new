@@ -247,7 +247,7 @@ class StatistiqueController extends Controller
                         'CMU' => 'Numéro NNI',
                     ],
                     'deces' => [
-                        'name' => 'Nom et Prénoms du Défunt',
+                        'name' => 'Nom et Prénoms du défunt',
                         'numberR' => 'Numéro de Registre',
                         'dateR' => 'Date de Registre',
                         'commune' => 'Commune',

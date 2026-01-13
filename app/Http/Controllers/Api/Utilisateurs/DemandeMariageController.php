@@ -134,20 +134,20 @@ class DemandeMariageController extends Controller
 
             $mariage->save();
 
-            // Envoi des notifications (SMS & Email)
-            try {
-                $phoneNumber = $user->indicatif . $user->contact;
-                $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie du plateau. Référence : {$mariage->reference}.
-Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-                $yellikaSmsService->sendSms($phoneNumber, $message);
-
-                Notification::send($user, new DemandeMariageConfirmationNotification($user, $mariage));
-            } catch (\Exception $e) {
-                Log::error("Erreur notifications DemandeMariage (API): " . $e->getMessage());
-            }
-
             // 5. Réponse conditionnelle (Cas "Retrait")
             if ($mariage->choix_option === 'retrait') {
+                // Envoi des notifications (SMS & Email) - Seulement pour "retrait" car pas de paiement
+                try {
+                    $phoneNumber = $user->indicatif . $user->contact;
+                    $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie du plateau. Référence : {$mariage->reference}.
+Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+                    $yellikaSmsService->sendSms($phoneNumber, $message);
+
+                    Notification::send($user, new DemandeMariageConfirmationNotification($user, $mariage));
+                } catch (\Exception $e) {
+                    Log::error("Erreur notifications DemandeMariage (API): " . $e->getMessage());
+                }
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Demande de mariage (retrait) créée avec succès',
@@ -155,6 +155,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'data' => ['demande' => $this->formatDemandeResponse($mariage)]
                 ], 201);
             }
+
+            // Pour "livraison", les notifications SMS & Email seront envoyées
+            // dans handlePaymentNotification() après confirmation du paiement
 
             // --- DEBUT DE LA LOGIQUE DE PAIEMENT (Adaptée) ---
 

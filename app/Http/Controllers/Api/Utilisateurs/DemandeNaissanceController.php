@@ -146,20 +146,20 @@ class DemandeNaissanceController extends Controller
 
             $naissance->save();
 
-            // Envoi des notifications (SMS & Email)
-            try {
-                $phoneNumber = $user->indicatif . $user->contact;
-                $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
-Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
-                $yellikaSmsService->sendSms($phoneNumber, $message);
-
-                Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $naissance));
-            } catch (\Exception $e) {
-                Log::error("Erreur notifications DemandeNaissance (API): " . $e->getMessage());
-            }
-
             // 6. Cas "Retrait"
             if ($naissance->choix_option === 'retrait') {
+                // Envoi des notifications (SMS & Email) - Seulement pour "retrait" car pas de paiement
+                try {
+                    $phoneNumber = $user->indicatif . $user->contact;
+                    $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
+Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+                    $yellikaSmsService->sendSms($phoneNumber, $message);
+
+                    Notification::send($user, new DemandeNaissanceConfirmationNotification($user, $naissance));
+                } catch (\Exception $e) {
+                    Log::error("Erreur notifications DemandeNaissance (API): " . $e->getMessage());
+                }
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Demande de naissance (retrait) créée avec succès',
@@ -167,6 +167,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'data' => ['demande' => $this->formatDemandeResponse($naissance)]
                 ], 201);
             }
+
+            // Pour "livraison", les notifications SMS & Email seront envoyées
+            // dans handlePaymentNotification() après confirmation du paiement
 
             // --- DEBUT LOGIQUE PAIEMENT (Cas "Livraison") ---
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agent\Extrait\Mariage;
 use App\Http\Controllers\Controller;
 use App\Models\Mariage;
 use App\Models\UserNotification;
+use App\Models\ActionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -150,6 +151,27 @@ class AgentMariageController extends Controller
                 $mariage->etat
             );
         }
+
+        // =================================================================
+        // ENREGISTREMENT DANS L'HISTORIQUE DES ACTIONS
+        // =================================================================
+        $action = $mariage->etat === 'rejetée' ? 'rejet' : 'changement_etat';
+        $champsModifies = null;
+        if ($mariage->etat === 'rejetée' && $request->motif_champs) {
+            $champsModifies = $request->motif_champs;
+        }
+        
+        ActionHistory::logAction(
+            'mariage',
+            $mariage->id,
+            $mariage->reference,
+            $action,
+            $ancienEtat,
+            $mariage->etat,
+            $mariage->motif_de_rejet,
+            $champsModifies,
+            null
+        );
 
         // =================================================================
         // ENVOI DE NOTIFICATION PUSH
