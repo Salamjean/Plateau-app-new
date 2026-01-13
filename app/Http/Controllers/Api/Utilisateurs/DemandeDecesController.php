@@ -582,7 +582,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'success' => true,
                 'message' => 'Demande modifiée avec succès et soumise à nouveau.',
                 'data' => [
-                    'demande' => $this->formatDemandeResponse($deces)
+                    'demande' => $this->formatDemandeResponse($deces, true)
                 ]
             ]);
 
