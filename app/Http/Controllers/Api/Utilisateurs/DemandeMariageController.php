@@ -427,6 +427,210 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     }
 
     /**
+     * Modifier une demande rejetée
+     * POST /api/utilisateurs/demandes/mariage/{mariage}/modifier
+     */
+    public function modifierDemande(Request $request, Mariage $mariage): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($mariage->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier que la demande peut être modifiée
+            if (!$mariage->peut_modifier) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée'
+                ], 400);
+            }
+
+            // 3. Récupérer les champs à modifier
+            $champsAModifier = json_decode($mariage->champs_a_modifier, true) ?? [];
+
+            if (empty($champsAModifier)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun champ à modifier spécifié'
+                ], 400);
+            }
+
+            // 4. Définir les règles de validation par champ
+            $rules = [];
+            foreach ($champsAModifier as $champ) {
+                switch ($champ) {
+                    case 'nomEpoux':
+                        $rules['nomEpoux'] = 'required|string|max:255';
+                        break;
+                    case 'prenomEpoux':
+                        $rules['prenomEpoux'] = 'required|string|max:255';
+                        break;
+                    case 'dateNaissanceEpoux':
+                        $rules['dateNaissanceEpoux'] = 'required|date';
+                        break;
+                    case 'lieuNaissanceEpoux':
+                        $rules['lieuNaissanceEpoux'] = 'required|string|max:255';
+                        break;
+                    case 'commune':
+                        $rules['commune'] = 'required|string';
+                        break;
+                    case 'quantite':
+                        $rules['quantite'] = 'required|integer|min:1|max:10';
+                        break;
+                    case 'pieceIdentite':
+                        $rules['pieceIdentite'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
+                        break;
+                    case 'extraitMariage':
+                        $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
+                        break;
+                    case 'CMU':
+                        $rules['CMU'] = 'required|string|max:50';
+                        break;
+                }
+            }
+
+            // 5. Valider les données
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur de validation',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            // 6. Mettre à jour les champs
+            $fileFields = ['pieceIdentite', 'extraitMariage'];
+            $subDirs = [
+                'pieceIdentite' => 'identite',
+                'extraitMariage' => 'extrait',
+            ];
+
+            foreach ($champsAModifier as $champ) {
+                if (in_array($champ, $fileFields) && $request->hasFile($champ)) {
+                    // Supprimer l'ancien fichier si existe
+                    if ($mariage->$champ && Storage::disk('public')->exists($mariage->$champ)) {
+                        Storage::disk('public')->delete($mariage->$champ);
+                    }
+
+                    // Enregistrer le nouveau fichier
+                    $file = $request->file($champ);
+                    $extension = $file->getClientOriginalExtension();
+                    $newFileName = (string) Str::uuid() . '.' . $extension;
+                    $subDir = $subDirs[$champ] ?? '';
+                    $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
+                    $mariage->$champ = $path;
+                } elseif (isset($validated[$champ])) {
+                    $mariage->$champ = $validated[$champ];
+                }
+            }
+
+            // 7. Réinitialiser l'état et désactiver la modification
+            $mariage->etat = 'en attente';
+            $mariage->peut_modifier = false;
+            $mariage->champs_a_modifier = null;
+            $mariage->motif_de_rejet = null;
+            $mariage->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($mariage)
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeMariageController@modifierDemande: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la modification: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupérer les champs à modifier pour une demande rejetée
+     * GET /api/utilisateurs/demandes/mariage/{mariage}/champs-a-modifier
+     */
+    public function getChampsAModifier(Mariage $mariage): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($mariage->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier que la demande peut être modifiée
+            if (!$mariage->peut_modifier) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée'
+                ], 400);
+            }
+
+            // 3. Récupérer les champs à modifier
+            $champsNoms = json_decode($mariage->champs_a_modifier, true) ?? [];
+
+            if (empty($champsNoms)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun champ à modifier spécifié'
+                ], 400);
+            }
+
+            // 4. Mapping des champs avec label et type
+            $fieldsMapping = [
+                'typeDemande' => ['label' => 'Type de demande', 'type' => 'text'],
+                'nomEpoux' => ['label' => 'Nom du conjoint', 'type' => 'text'],
+                'prenomEpoux' => ['label' => 'Prénom du conjoint', 'type' => 'text'],
+                'dateNaissanceEpoux' => ['label' => 'Date de naissance du conjoint', 'type' => 'date'],
+                'lieuNaissanceEpoux' => ['label' => 'Lieu de naissance du conjoint', 'type' => 'text'],
+                'commune' => ['label' => 'Commune', 'type' => 'text'],
+                'quantite' => ['label' => 'Quantité', 'type' => 'number'],
+                'pieceIdentite' => ['label' => 'Pièce d\'identité', 'type' => 'file'],
+                'extraitMariage' => ['label' => 'Extrait de mariage', 'type' => 'file'],
+                'CMU' => ['label' => 'Numéro NNI', 'type' => 'text'],
+            ];
+
+            // 5. Construire la réponse avec les valeurs actuelles
+            $champsAvecValeurs = [];
+            foreach ($champsNoms as $champNom) {
+                $fieldInfo = $fieldsMapping[$champNom] ?? ['label' => $champNom, 'type' => 'text'];
+                $champsAvecValeurs[$champNom] = [
+                    'label' => $fieldInfo['label'],
+                    'type' => $fieldInfo['type'],
+                    'value' => $mariage->$champNom ?? null,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $mariage->id,
+                    'reference' => $mariage->reference,
+                    'motif_de_rejet' => $mariage->motif_de_rejet,
+                    'champs_a_modifier' => $champsAvecValeurs,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeMariageController@getChampsAModifier: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Helper pour formater la réponse de la demande (Spécifique au Mariage)
      */
     private function formatDemandeResponse(Mariage $mariage, bool $includeFiles = false)

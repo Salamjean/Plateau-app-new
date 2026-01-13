@@ -464,6 +464,212 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             ], 500);
         }
     }
+
+    /**
+     * Modifier une demande rejetée
+     * POST /api/utilisateurs/demandes/deces/{deces}/modifier
+     */
+    public function modifierDemande(Request $request, Deces $deces): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($deces->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier que la demande peut être modifiée
+            if (!$deces->peut_modifier) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée'
+                ], 400);
+            }
+
+            // 3. Récupérer les champs à modifier
+            $champsAModifier = json_decode($deces->champs_a_modifier, true) ?? [];
+
+            if (empty($champsAModifier)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun champ à modifier spécifié'
+                ], 400);
+            }
+
+            // 4. Définir les règles de validation par champ
+            $rules = [];
+            foreach ($champsAModifier as $champ) {
+                switch ($champ) {
+                    case 'name':
+                        $rules['name'] = 'required|string|max:255';
+                        break;
+                    case 'numberR':
+                        $rules['numberR'] = 'required|string|max:50';
+                        break;
+                    case 'dateR':
+                        $rules['dateR'] = 'required|date';
+                        break;
+                    case 'commune':
+                        $rules['commune'] = 'required|string';
+                        break;
+                    case 'quantite':
+                        $rules['quantite'] = 'required|integer|min:1|max:10';
+                        break;
+                    case 'CNIdfnt':
+                        $rules['CNIdfnt'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
+                        break;
+                    case 'CNIdcl':
+                        $rules['CNIdcl'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
+                        break;
+                    case 'documentMariage':
+                        $rules['documentMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
+                        break;
+                    case 'RequisPolice':
+                        $rules['RequisPolice'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
+                        break;
+                }
+            }
+
+            // 5. Valider les données
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur de validation',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            // 6. Mettre à jour les champs
+            $fileFields = ['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice'];
+            $subDirs = [
+                'CNIdfnt' => 'cnid',
+                'CNIdcl' => 'cnid',
+                'documentMariage' => 'mariage',
+                'RequisPolice' => 'police',
+            ];
+
+            foreach ($champsAModifier as $champ) {
+                if (in_array($champ, $fileFields) && $request->hasFile($champ)) {
+                    // Supprimer l'ancien fichier si existe
+                    if ($deces->$champ && Storage::disk('public')->exists($deces->$champ)) {
+                        Storage::disk('public')->delete($deces->$champ);
+                    }
+
+                    // Enregistrer le nouveau fichier
+                    $file = $request->file($champ);
+                    $extension = $file->getClientOriginalExtension();
+                    $newFileName = (string) Str::uuid() . '.' . $extension;
+                    $subDir = $subDirs[$champ] ?? '';
+                    $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
+                    $deces->$champ = $path;
+                } elseif (isset($validated[$champ])) {
+                    $deces->$champ = $validated[$champ];
+                }
+            }
+
+            // 7. Réinitialiser l'état et désactiver la modification
+            $deces->etat = 'en attente';
+            $deces->peut_modifier = false;
+            $deces->champs_a_modifier = null;
+            $deces->motif_de_rejet = null;
+            $deces->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($deces)
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeDecesController@modifierDemande: ' . $e->getMessage(), ['deces_id' => $deces->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la modification: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupérer les champs à modifier pour une demande rejetée
+     * GET /api/utilisateurs/demandes/deces/{deces}/champs-a-modifier
+     */
+    public function getChampsAModifier(Deces $deces): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($deces->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier que la demande peut être modifiée
+            if (!$deces->peut_modifier) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée'
+                ], 400);
+            }
+
+            // 3. Récupérer les champs à modifier
+            $champsNoms = json_decode($deces->champs_a_modifier, true) ?? [];
+
+            if (empty($champsNoms)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun champ à modifier spécifié'
+                ], 400);
+            }
+
+            // 4. Mapping des champs avec label et type
+            $fieldsMapping = [
+                'name' => ['label' => 'Nom et Prénoms du défunt', 'type' => 'text'],
+                'numberR' => ['label' => 'Numéro de Registre', 'type' => 'text'],
+                'dateR' => ['label' => 'Date de Registre', 'type' => 'date'],
+                'commune' => ['label' => 'Commune', 'type' => 'text'],
+                'quantite' => ['label' => 'Quantité', 'type' => 'number'],
+                'CNIdfnt' => ['label' => 'CNI/Extrait de naissance du défunt', 'type' => 'file'],
+                'CNIdcl' => ['label' => 'Certificat médical de décès', 'type' => 'file'],
+                'documentMariage' => ['label' => 'Document de mariage', 'type' => 'file'],
+                'RequisPolice' => ['label' => 'Réquisition de police', 'type' => 'file'],
+            ];
+
+            // 5. Construire la réponse avec les valeurs actuelles
+            $champsAvecValeurs = [];
+            foreach ($champsNoms as $champNom) {
+                $fieldInfo = $fieldsMapping[$champNom] ?? ['label' => $champNom, 'type' => 'text'];
+                $champsAvecValeurs[$champNom] = [
+                    'label' => $fieldInfo['label'],
+                    'type' => $fieldInfo['type'],
+                    'value' => $deces->$champNom ?? null,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $deces->id,
+                    'reference' => $deces->reference,
+                    'motif_de_rejet' => $deces->motif_de_rejet,
+                    'champs_a_modifier' => $champsAvecValeurs,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeDecesController@getChampsAModifier: ' . $e->getMessage(), ['deces_id' => $deces->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Helper pour formater la réponse de la demande
      */

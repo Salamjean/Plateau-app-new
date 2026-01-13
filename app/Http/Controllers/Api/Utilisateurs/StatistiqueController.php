@@ -221,54 +221,57 @@ class StatistiqueController extends Controller
             if (isset($demandeArray['champs_a_modifier']) && is_string($demandeArray['champs_a_modifier'])) {
                 $champsNoms = json_decode($demandeArray['champs_a_modifier'], true) ?? [];
                 
-                // Mapping des champs techniques vers libellés français par type
-                $labelsMapping = [
+                // Mapping des champs techniques vers libellés français et types par type de demande
+                $fieldsMapping = [
                     'naissance' => [
-                        'type' => 'Type de document',
-                        'pour' => 'Bénéficiaire',
-                        'name' => 'Nom',
-                        'prenom' => 'Prénoms',
-                        'number' => 'Numéro de registre',
-                        'DateR' => 'Date de registre',
-                        'CNI' => 'Pièce d\'identité',
-                        'commune' => 'Commune',
-                        'quantite' => 'Quantité',
+                        'type' => ['label' => 'Type de document', 'type' => 'text'],
+                        'pour' => ['label' => 'Bénéficiaire', 'type' => 'text'],
+                        'name' => ['label' => 'Nom', 'type' => 'text'],
+                        'prenom' => ['label' => 'Prénoms', 'type' => 'text'],
+                        'number' => ['label' => 'Numéro de registre', 'type' => 'text'],
+                        'DateR' => ['label' => 'Date de registre', 'type' => 'date'],
+                        'CNI' => ['label' => 'Pièce d\'identité', 'type' => 'file'],
+                        'commune' => ['label' => 'Commune', 'type' => 'text'],
+                        'quantite' => ['label' => 'Quantité', 'type' => 'number'],
                     ],
                     'mariage' => [
-                        'typeDemande' => 'Type de demande',
-                        'nomEpoux' => 'Nom du conjoint',
-                        'prenomEpoux' => 'Prénom du conjoint',
-                        'dateNaissanceEpoux' => 'Date de naissance du conjoint',
-                        'lieuNaissanceEpoux' => 'Lieu de naissance du conjoint',
-                        'commune' => 'Commune',
-                        'quantite' => 'Quantité',
-                        'pieceIdentite' => 'Pièce d\'identité',
-                        'extraitMariage' => 'Extrait de mariage',
-                        'CMU' => 'Numéro NNI',
+                        'typeDemande' => ['label' => 'Type de demande', 'type' => 'text'],
+                        'nomEpoux' => ['label' => 'Nom du conjoint', 'type' => 'text'],
+                        'prenomEpoux' => ['label' => 'Prénom du conjoint', 'type' => 'text'],
+                        'dateNaissanceEpoux' => ['label' => 'Date de naissance du conjoint', 'type' => 'date'],
+                        'lieuNaissanceEpoux' => ['label' => 'Lieu de naissance du conjoint', 'type' => 'text'],
+                        'commune' => ['label' => 'Commune', 'type' => 'text'],
+                        'quantite' => ['label' => 'Quantité', 'type' => 'number'],
+                        'pieceIdentite' => ['label' => 'Pièce d\'identité', 'type' => 'file'],
+                        'extraitMariage' => ['label' => 'Extrait de mariage', 'type' => 'file'],
+                        'CMU' => ['label' => 'Numéro NNI', 'type' => 'text'],
                     ],
                     'deces' => [
-                        'name' => 'Nom et Prénoms du défunt',
-                        'numberR' => 'Numéro de Registre',
-                        'dateR' => 'Date de Registre',
-                        'commune' => 'Commune',
-                        'quantite' => 'Quantité',
-                        'CNIdfnt' => 'CNI/Extrait de naissance du défunt',
-                        'CNIdcl' => 'Certificat médical de décès',
-                        'documentMariage' => 'Document de mariage',
-                        'RequisPolice' => 'Réquisition de police',
+                        'name' => ['label' => 'Nom et Prénoms du défunt', 'type' => 'text'],
+                        'numberR' => ['label' => 'Numéro de Registre', 'type' => 'text'],
+                        'dateR' => ['label' => 'Date de Registre', 'type' => 'date'],
+                        'commune' => ['label' => 'Commune', 'type' => 'text'],
+                        'quantite' => ['label' => 'Quantité', 'type' => 'number'],
+                        'CNIdfnt' => ['label' => 'CNI/Extrait de naissance du défunt', 'type' => 'file'],
+                        'CNIdcl' => ['label' => 'Certificat médical de décès', 'type' => 'file'],
+                        'documentMariage' => ['label' => 'Document de mariage', 'type' => 'file'],
+                        'RequisPolice' => ['label' => 'Réquisition de police', 'type' => 'file'],
                     ],
                 ];
                 
                 // Récupérer le mapping pour le type actuel
-                $labels = $labelsMapping[$type] ?? [];
+                $fields = $fieldsMapping[$type] ?? [];
                 
-                // Créer un objet avec les libellés français et leurs valeurs actuelles
+                // Créer un objet avec les informations complètes pour chaque champ
                 $champsAvecValeurs = [];
                 foreach ($champsNoms as $champNom) {
-                    // Utiliser le libellé français ou le nom technique si pas de mapping
-                    $libelle = $labels[$champNom] ?? $champNom;
-                    // Récupérer la valeur du champ depuis la demande
-                    $champsAvecValeurs[$libelle] = $demandeArray[$champNom] ?? null;
+                    $fieldInfo = $fields[$champNom] ?? ['label' => $champNom, 'type' => 'text'];
+                    
+                    $champsAvecValeurs[$champNom] = [
+                        'label' => $fieldInfo['label'],
+                        'type' => $fieldInfo['type'],
+                        'value' => $demandeArray[$champNom] ?? null,
+                    ];
                 }
                 
                 $demandeArray['champs_a_modifier'] = $champsAvecValeurs;

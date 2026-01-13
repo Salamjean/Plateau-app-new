@@ -436,6 +436,199 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     }
 
     /**
+     * Modifier une demande rejetée
+     * POST /api/utilisateurs/demandes/naissance/{naissance}/modifier
+     */
+    public function modifierDemande(Request $request, Naissance $naissance): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($naissance->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier que la demande peut être modifiée
+            if (!$naissance->peut_modifier) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée'
+                ], 400);
+            }
+
+            // 3. Récupérer les champs à modifier
+            $champsAModifier = json_decode($naissance->champs_a_modifier, true) ?? [];
+
+            if (empty($champsAModifier)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun champ à modifier spécifié'
+                ], 400);
+            }
+
+            // 4. Définir les règles de validation par champ
+            $rules = [];
+            foreach ($champsAModifier as $champ) {
+                switch ($champ) {
+                    case 'name':
+                        $rules['name'] = 'required|string|max:255';
+                        break;
+                    case 'prenom':
+                        $rules['prenom'] = 'required|string|max:255';
+                        break;
+                    case 'number':
+                        $rules['number'] = 'required|string|max:50';
+                        break;
+                    case 'DateR':
+                        $rules['DateR'] = 'required|date';
+                        break;
+                    case 'commune':
+                        $rules['commune'] = 'required|string';
+                        break;
+                    case 'type':
+                        $rules['type'] = 'required|string|in:simple,extrait_integral';
+                        break;
+                    case 'quantite':
+                        $rules['quantite'] = 'required|integer|min:1|max:10';
+                        break;
+                    case 'CNI':
+                        $rules['CNI'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
+                        break;
+                }
+            }
+
+            // 5. Valider les données
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur de validation',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+
+            // 6. Mettre à jour les champs
+            foreach ($champsAModifier as $champ) {
+                if ($champ === 'CNI' && $request->hasFile('CNI')) {
+                    // Supprimer l'ancien fichier si existe
+                    if ($naissance->CNI && Storage::disk('public')->exists($naissance->CNI)) {
+                        Storage::disk('public')->delete($naissance->CNI);
+                    }
+
+                    // Enregistrer le nouveau fichier
+                    $file = $request->file('CNI');
+                    $extension = $file->getClientOriginalExtension();
+                    $newFileName = (string) Str::uuid() . '.' . $extension;
+                    $path = $file->storeAs('images/naissances/cni', $newFileName, 'public');
+                    $naissance->CNI = $path;
+                } elseif (isset($validated[$champ])) {
+                    $naissance->$champ = $validated[$champ];
+                }
+            }
+
+            // 7. Réinitialiser l'état et désactiver la modification
+            $naissance->etat = 'en attente';
+            $naissance->peut_modifier = false;
+            $naissance->champs_a_modifier = null;
+            $naissance->motif_de_rejet = null;
+            $naissance->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($naissance)
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeNaissanceController@modifierDemande: ' . $e->getMessage(), ['naissance_id' => $naissance->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la modification: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupérer les champs à modifier pour une demande rejetée
+     * GET /api/utilisateurs/demandes/naissance/{naissance}/champs-a-modifier
+     */
+    public function getChampsAModifier(Naissance $naissance): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($naissance->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier que la demande peut être modifiée
+            if (!$naissance->peut_modifier) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée'
+                ], 400);
+            }
+
+            // 3. Récupérer les champs à modifier
+            $champsNoms = json_decode($naissance->champs_a_modifier, true) ?? [];
+
+            if (empty($champsNoms)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun champ à modifier spécifié'
+                ], 400);
+            }
+
+            // 4. Mapping des champs avec label et type
+            $fieldsMapping = [
+                'type' => ['label' => 'Type de document', 'type' => 'text'],
+                'pour' => ['label' => 'Bénéficiaire', 'type' => 'text'],
+                'name' => ['label' => 'Nom', 'type' => 'text'],
+                'prenom' => ['label' => 'Prénoms', 'type' => 'text'],
+                'number' => ['label' => 'Numéro de registre', 'type' => 'text'],
+                'DateR' => ['label' => 'Date de registre', 'type' => 'date'],
+                'CNI' => ['label' => 'Pièce d\'identité', 'type' => 'file'],
+                'commune' => ['label' => 'Commune', 'type' => 'text'],
+                'quantite' => ['label' => 'Quantité', 'type' => 'number'],
+            ];
+
+            // 5. Construire la réponse avec les valeurs actuelles
+            $champsAvecValeurs = [];
+            foreach ($champsNoms as $champNom) {
+                $fieldInfo = $fieldsMapping[$champNom] ?? ['label' => $champNom, 'type' => 'text'];
+                $champsAvecValeurs[$champNom] = [
+                    'label' => $fieldInfo['label'],
+                    'type' => $fieldInfo['type'],
+                    'value' => $naissance->$champNom ?? null,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $naissance->id,
+                    'reference' => $naissance->reference,
+                    'motif_de_rejet' => $naissance->motif_de_rejet,
+                    'champs_a_modifier' => $champsAvecValeurs,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeNaissanceController@getChampsAModifier: ' . $e->getMessage(), ['naissance_id' => $naissance->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Helper pour formater la réponse de la demande (Spécifique à Naissance)
      */
     private function formatDemandeResponse(Naissance $naissance, bool $includeFiles = false)
