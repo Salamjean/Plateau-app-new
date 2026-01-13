@@ -115,10 +115,7 @@
            'prenom' => 'Prénoms', 
            'number' => 'Numéro de registre',
            'DateR' => 'Date de registre',
-           'commune' => 'Commune de naissance',
-           'CNI' => 'Pièce d\'identité',
-           'type' => 'Type de document',
-           'quantite' => 'Quantité'
+           'CNI' => 'Pièce d\'identité'
          ] as $field => $label)
          <div class="rejet-item">
            <label class="rejet-checkbox">
@@ -132,8 +129,6 @@
              <span class="value-text">
                @if($field === 'CNI')
                  {{ $naissance->CNI ? 'Fichier joint' : 'Non fourni' }}
-               @elseif($field === 'type')
-                 {{ $naissance->type === 'simple' ? 'Extrait simple' : 'Extrait intégral' }}
                @elseif($field === 'DateR')
                  {{ \Carbon\Carbon::parse($naissance->DateR)->format('d/m/Y') }}
                @else

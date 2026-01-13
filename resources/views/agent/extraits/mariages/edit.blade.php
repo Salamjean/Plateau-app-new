@@ -139,7 +139,6 @@
                 <div class="rejet-grid">
                     {{-- Champs de base --}}
                     @foreach([
-                        'typeDemande' => 'Type de demande',
                         'nomEpoux' => 'Nom du conjoint',
                         'prenomEpoux' => 'Prénom du conjoint',
                         'CMU' => 'Numéro NNI'
@@ -154,13 +153,7 @@
                             <div class="rejet-current-value">
                                 <small>Valeur actuelle:</small>
                                 <span class="value-text">
-                                    @if($field === 'typeDemande')
-                                        {{ $mariage->$field == 'copieIntegrale' ? 'Copie intégrale' : 'Extrait simple' }}
-                                    @elseif($field === 'quantite')
-                                        {{ $mariage->$field }} copie(s)
-                                    @else
-                                        {{ $mariage->$field ?? 'Non renseigné' }}
-                                    @endif
+                                    {{ $mariage->$field ?? 'Non renseigné' }}
                                 </span>
                             </div>
                         </div>

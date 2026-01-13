@@ -487,7 +487,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         $rules['commune'] = 'required|string';
                         break;
                     case 'type':
-                        $rules['type'] = 'required|string|in:simple,extrait_integral';
+                        $rules['type'] = 'required|string|max:255';
                         break;
                     case 'quantite':
                         $rules['quantite'] = 'required|integer|min:1|max:10';
