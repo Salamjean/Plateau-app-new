@@ -114,7 +114,7 @@ class DemandeNaissanceController extends Controller
             $naissance->name = $request->name;
             $naissance->prenom = $request->prenom;
             $naissance->number = $request->number;
-            $naissance->DateR = $request->DateR;
+            $naissance->DateR = Carbon::parse($request->DateR)->format('Y-m-d');
             $naissance->commune = $request->commune;
             $naissance->quantite = $request->quantite;
             $naissance->CNI = $uploadedPaths['CNI'] ?? null;

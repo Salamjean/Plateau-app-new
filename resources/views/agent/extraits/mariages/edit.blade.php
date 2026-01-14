@@ -83,11 +83,8 @@
                                     'prenomEpoux' => 'Prénom du conjoint',
                                     'dateNaissanceEpoux' => 'Date de naissance du conjoint',
                                     'lieuNaissanceEpoux' => 'Lieu de naissance du conjoint',
-                                    'commune' => 'Commune',
-                                    'quantite' => 'Quantité',
                                     'pieceIdentite' => 'Pièce d\'identité',
-                                    'extraitMariage' => 'Extrait de mariage',
-                                    'CMU' => 'Numéro NNI'
+                                    'extraitMariage' => 'Extrait de mariage'
                                 ];
                             @endphp
                             @foreach($champs as $champ)
@@ -140,8 +137,7 @@
                     {{-- Champs de base --}}
                     @foreach([
                         'nomEpoux' => 'Nom du conjoint',
-                        'prenomEpoux' => 'Prénom du conjoint',
-                        'CMU' => 'Numéro NNI'
+                        'prenomEpoux' => 'Prénom du conjoint'
                     ] as $field => $label)
                         <div class="rejet-item">
                             <label class="rejet-checkbox">

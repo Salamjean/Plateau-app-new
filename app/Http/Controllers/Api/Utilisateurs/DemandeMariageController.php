@@ -486,9 +486,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     case 'extraitMariage':
                         $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:5120';
                         break;
-                    case 'CMU':
-                        $rules['CMU'] = 'required|string|max:50';
-                        break;
                 }
             }
 
@@ -593,11 +590,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'prenomEpoux' => ['label' => 'Prénom du conjoint', 'type' => 'text'],
                 'dateNaissanceEpoux' => ['label' => 'Date de naissance du conjoint', 'type' => 'date'],
                 'lieuNaissanceEpoux' => ['label' => 'Lieu de naissance du conjoint', 'type' => 'text'],
-                'commune' => ['label' => 'Commune', 'type' => 'text'],
-                'quantite' => ['label' => 'Quantité', 'type' => 'number'],
                 'pieceIdentite' => ['label' => 'Pièce d\'identité', 'type' => 'file'],
                 'extraitMariage' => ['label' => 'Extrait de mariage', 'type' => 'file'],
-                'CMU' => ['label' => 'Numéro NNI', 'type' => 'text'],
             ];
 
             // 5. Construire la réponse avec les valeurs actuelles

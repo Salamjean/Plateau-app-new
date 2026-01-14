@@ -235,11 +235,8 @@ class AgentMariageController extends Controller
             'prenomEpoux' => 'Prénom du conjoint',
             'dateNaissanceEpoux' => 'Date de naissance du conjoint',
             'lieuNaissanceEpoux' => 'Lieu de naissance du conjoint',
-            'commune' => 'Commune',
-            'quantite' => 'Quantité',
             'pieceIdentite' => 'Pièce d\'identité',
-            'extraitMariage' => 'Extrait de mariage',
-            'CMU' => 'Numéro NNI'
+            'extraitMariage' => 'Extrait de mariage'
         ];
 
         $motif = "Les champs suivants contiennent des informations incorrectes ou incomplètes :\n\n";

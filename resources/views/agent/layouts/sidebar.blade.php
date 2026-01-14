@@ -58,7 +58,7 @@
                   </div>
                   <div class="mdc-list-item mdc-drawer-item">
                     <a class="mdc-drawer-link" href="{{route('agent.history.actions')}}">
-                      Historique des actions
+                      Actions
                     </a>
                   </div>
                 </nav>

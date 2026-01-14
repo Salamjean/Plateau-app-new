@@ -170,13 +170,15 @@
 
   .table-responsive {
     border-radius: var(--border-radius);
-    overflow: hidden;
+    overflow-x: auto;
   }
 
   .table {
     margin-bottom: 0;
     border-collapse: separate;
     border-spacing: 0;
+    font-size: 0.85rem;
+    min-width: 1200px;
   }
 
   .table thead th {
@@ -184,9 +186,11 @@
     color: var(--secondary-color);
     font-weight: 600;
     border: none;
-    padding: 15px;
+    padding: 10px 8px;
     vertical-align: middle;
     border-bottom: 2px solid rgba(0, 126, 0, 0.1);
+    white-space: nowrap;
+    font-size: 0.8rem;
   }
 
   .table tbody tr {
@@ -198,17 +202,19 @@
   }
 
   .table tbody td {
-    padding: 15px;
+    padding: 10px 8px;
     vertical-align: middle;
     border-top: 1px solid rgba(0, 126, 0, 0.05);
+    font-size: 0.8rem;
   }
 
   .badge-status {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .badge-pending {
@@ -229,9 +235,9 @@
   .btn-action {
     background-color: var(--primary-color);
     border: none;
-    border-radius: 20px;
-    padding: 8px 15px;
-    font-size: 0.9rem;
+    border-radius: 15px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
     font-weight: 500;
     transition: var(--transition);
     color: white;
@@ -262,20 +268,23 @@
   }
 
   .btn-icon {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin: 0 3px;
+    margin: 0 2px;
+    padding: 0;
   }
   
   .badge{
-    padding: 5px;
+    padding: 4px 8px;
     color: white;
     border-radius: 50px;
     background-color: #ff8800;
+    font-size: 0.7rem;
+    white-space: nowrap;
   }
 
   .empty-state {
@@ -301,8 +310,8 @@
   }
 
   .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background-color: var(--primary-color);
     color: white;
@@ -310,11 +319,13 @@
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    margin-right: 10px;
+    font-size: 0.7rem;
+    margin-right: 8px;
+    flex-shrink: 0;
   }
   .user-avatar1 {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background-color: var(--secondary-color);
     color: white;
@@ -322,20 +333,24 @@
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    margin-right: 10px;
+    font-size: 0.7rem;
+    margin-right: 8px;
+    flex-shrink: 0;
   }
 
   .user-details {
-    line-height: 1.2;
+    line-height: 1.1;
   }
 
   .user-name {
     font-weight: 600;
     color: var(--dark-color);
+    font-size: 0.75rem;
+    white-space: nowrap;
   }
 
   .user-email {
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     color: var(--gray-color);
   }
 
@@ -824,7 +839,6 @@
                     <h4 style="color: #1977cc; margin-bottom: 10px;">Détails de la Commande</h4>
                     <div><strong>Type:</strong> ${documentType}</div>
                     <div><strong>Quantité:</strong> ${naissance.quantite} copie(s)</div>
-                    <div><strong>Référence:</strong> ${naissance.reference || 'Non spécifiée'}</div>
                     <div><strong>Statut:</strong> 
                         <span class="badge-status-popup ${naissance.etat === 'en attente' ? 'badge-pending-popup' : naissance.etat === 'réçu' ? 'badge-progress-popup' : 'badge-completed-popup'}">
                             ${naissance.etat}

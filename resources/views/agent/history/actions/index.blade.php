@@ -26,16 +26,16 @@
       <div class="stat-label">Changements d'état</div>
     </div>
     
-    <div class="stat-card secondary" style="background: linear-gradient(135deg, #dc3545, #c82333);">
+    <div class="stat-card">
       <i class="fas fa-times-circle stat-icon"></i>
       <div class="stat-number">{{ $stats['rejets'] }}</div>
       <div class="stat-label">Rejets</div>
     </div>
     
-    <div class="stat-card secondary" style="background: linear-gradient(135deg, #28a745, #20c997);">
-      <i class="fas fa-hand-paper stat-icon"></i>
+    <div class="stat-card">
+      <i class="fas fa-check-circle stat-icon"></i>
       <div class="stat-number">{{ $stats['recuperations'] }}</div>
-      <div class="stat-label">Récupérations</div>
+      <div class="stat-label">Reçus</div>
     </div>
   </div>
 
@@ -59,7 +59,8 @@
           <option value="">Toutes</option>
           <option value="changement_etat" {{ request('action') == 'changement_etat' ? 'selected' : '' }}>Changement d'état</option>
           <option value="rejet" {{ request('action') == 'rejet' ? 'selected' : '' }}>Rejet</option>
-          <option value="recuperation" {{ request('action') == 'recuperation' ? 'selected' : '' }}>Récupération</option>
+          <option value="recu" {{ request('action') == 'recu' ? 'selected' : '' }}>Reçu</option>
+          <option value="termine" {{ request('action') == 'termine' ? 'selected' : '' }}>Terminé</option>
         </select>
       </div>
 
@@ -128,27 +129,41 @@
                 </td>
                 <td>
                   @if($action->action == 'rejet')
-                    <span class="badge bg-danger">Rejet</span>
+                    <span class="badge-action badge-action-rejet">Rejet</span>
                   @elseif($action->action == 'changement_etat')
-                    <span class="badge bg-primary">Changement</span>
-                  @elseif($action->action == 'recuperation')
-                    <span class="badge bg-info">Récupération</span>
+                    <span class="badge-action badge-action-changement">Changement</span>
+                  @elseif($action->action == 'recu')
+                    <span class="badge-action badge-action-recu">Reçu</span>
+                  @elseif($action->action == 'termine')
+                    <span class="badge-action badge-action-termine">Terminé</span>
                   @else
-                    <span class="badge bg-secondary">{{ $action->action }}</span>
+                    <span class="badge-action badge-action-default">{{ $action->action }}</span>
                   @endif
                 </td>
                 <td>
-                  <span class="badge bg-warning text-dark">{{ $action->ancien_etat ?? '-' }}</span>
+                  @if($action->ancien_etat == 'terminé')
+                    <span class="badge-etat badge-etat-termine">{{ $action->ancien_etat }}</span>
+                  @elseif($action->ancien_etat == 'rejetée')
+                    <span class="badge-etat badge-etat-rejete">{{ $action->ancien_etat }}</span>
+                  @elseif($action->ancien_etat == 'réçu')
+                    <span class="badge-etat badge-etat-recu">{{ $action->ancien_etat }}</span>
+                  @elseif($action->ancien_etat == 'en attente')
+                    <span class="badge-etat badge-etat-attente">{{ $action->ancien_etat }}</span>
+                  @else
+                    <span class="badge-etat badge-etat-default">{{ $action->ancien_etat ?? '-' }}</span>
+                  @endif
                 </td>
                 <td>
                   @if($action->nouvel_etat == 'terminé')
-                    <span class="badge bg-success">{{ $action->nouvel_etat }}</span>
+                    <span class="badge-etat badge-etat-termine">{{ $action->nouvel_etat }}</span>
                   @elseif($action->nouvel_etat == 'rejetée')
-                    <span class="badge bg-danger">{{ $action->nouvel_etat }}</span>
+                    <span class="badge-etat badge-etat-rejete">{{ $action->nouvel_etat }}</span>
                   @elseif($action->nouvel_etat == 'réçu')
-                    <span class="badge bg-info">{{ $action->nouvel_etat }}</span>
+                    <span class="badge-etat badge-etat-recu">{{ $action->nouvel_etat }}</span>
+                  @elseif($action->nouvel_etat == 'en attente')
+                    <span class="badge-etat badge-etat-attente">{{ $action->nouvel_etat }}</span>
                   @else
-                    <span class="badge bg-secondary">{{ $action->nouvel_etat ?? '-' }}</span>
+                    <span class="badge-etat badge-etat-default">{{ $action->nouvel_etat ?? '-' }}</span>
                   @endif
                 </td>
                 <td>
@@ -192,10 +207,37 @@
         </table>
       </div>
       
-      <!-- Pagination -->
-      <div class="d-flex justify-content-center mt-4">
-        {{ $actions->withQueryString()->links() }}
+      <!-- Pagination personnalisée -->
+      @if($actions->hasPages())
+      <div class="custom-pagination">
+        <div class="pagination-info">
+          Affichage {{ $actions->firstItem() }} à {{ $actions->lastItem() }} sur {{ $actions->total() }} résultats
+        </div>
+        <div class="pagination-buttons">
+          @if($actions->onFirstPage())
+            <span class="page-btn disabled">« Précédent</span>
+          @else
+            <a href="{{ $actions->previousPageUrl() }}" class="page-btn">« Précédent</a>
+          @endif
+          
+          <span class="page-numbers">
+            @foreach($actions->getUrlRange(1, $actions->lastPage()) as $page => $url)
+              @if($page == $actions->currentPage())
+                <span class="page-num active">{{ $page }}</span>
+              @else
+                <a href="{{ $url }}" class="page-num">{{ $page }}</a>
+              @endif
+            @endforeach
+          </span>
+          
+          @if($actions->hasMorePages())
+            <a href="{{ $actions->nextPageUrl() }}" class="page-btn">Suivant »</a>
+          @else
+            <span class="page-btn disabled">Suivant »</span>
+          @endif
+        </div>
       </div>
+      @endif
     </div>
   </div>
 </div>
@@ -262,6 +304,143 @@ function showMotif(id) {
 
 .pagination .page-item.active .page-link {
   background-color: #1977cc;
+  border-color: #1977cc;
+}
+
+/* Badges pour Action */
+.badge-action {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+}
+
+.badge-action-rejet {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.badge-action-changement {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.badge-action-recu {
+  background: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+.badge-action-termine {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+.badge-action-default {
+  background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+/* Badges pour États */
+.badge-etat {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+}
+
+.badge-etat-termine {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+.badge-etat-rejete {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.badge-etat-recu {
+  background: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+.badge-etat-attente {
+  background: linear-gradient(135deg, #ffc107, #e0a800);
+  color: #212529;
+}
+
+.badge-etat-default {
+  background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+/* Pagination personnalisée */
+.custom-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.pagination-info {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #1977cc, #1565c0);
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.page-btn:hover {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.page-btn.disabled {
+  background: #e9ecef;
+  color: #adb5bd;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 5px;
+}
+
+.page-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: #f8f9fa;
+  color: #495057;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid #dee2e6;
+}
+
+.page-num:hover {
+  background: #e9ecef;
+  color: #1977cc;
+}
+
+.page-num.active {
+  background: linear-gradient(135deg, #1977cc, #1565c0);
+  color: white;
   border-color: #1977cc;
 }
 </style>

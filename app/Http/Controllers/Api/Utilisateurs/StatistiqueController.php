@@ -235,16 +235,12 @@ class StatistiqueController extends Controller
                         'quantite' => ['label' => 'Quantité', 'type' => 'number'],
                     ],
                     'mariage' => [
-                        'typeDemande' => ['label' => 'Type de demande', 'type' => 'text'],
                         'nomEpoux' => ['label' => 'Nom du conjoint', 'type' => 'text'],
                         'prenomEpoux' => ['label' => 'Prénom du conjoint', 'type' => 'text'],
                         'dateNaissanceEpoux' => ['label' => 'Date de naissance du conjoint', 'type' => 'date'],
                         'lieuNaissanceEpoux' => ['label' => 'Lieu de naissance du conjoint', 'type' => 'text'],
-                        'commune' => ['label' => 'Commune', 'type' => 'text'],
-                        'quantite' => ['label' => 'Quantité', 'type' => 'number'],
                         'pieceIdentite' => ['label' => 'Pièce d\'identité', 'type' => 'file'],
                         'extraitMariage' => ['label' => 'Extrait de mariage', 'type' => 'file'],
-                        'CMU' => ['label' => 'Numéro NNI', 'type' => 'text'],
                     ],
                     'deces' => [
                         'name' => ['label' => 'Nom et Prénoms du défunt', 'type' => 'text'],

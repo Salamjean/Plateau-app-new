@@ -129,7 +129,7 @@ class DemandeDecesController extends Controller
             $deces = new Deces();
             $deces->name = $request->name;
             $deces->numberR = $request->numberR;
-            $deces->dateR = $request->dateR;
+            $deces->dateR = Carbon::parse($request->dateR)->format('Y-m-d');
 
             // --- AJOUT ---
             $deces->quantite = $request->quantite;
