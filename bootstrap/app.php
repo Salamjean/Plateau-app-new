@@ -23,7 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'livreur' => \App\Http\Middleware\LivreurMiddleware::class,
             'dhl' => \App\Http\Middleware\DhlMiddleware::class,
             'agency' => \App\Http\Middleware\AgencyMiddleware::class,
+            'webMaintenance' => \App\Http\Middleware\WebMaintenanceMiddleware::class,
+            'apiMaintenance' => \App\Http\Middleware\ApiMaintenanceMiddleware::class,
         ]);
+
+        // Appliquer le middleware de maintenance web à TOUTES les routes web
+        $middleware->appendToGroup('web', \App\Http\Middleware\WebMaintenanceMiddleware::class);
 
         // --- AJOUTEZ CETTE SECTION ---
         // C'est la nouvelle façon (Laravel 11+) de définir

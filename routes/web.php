@@ -10,6 +10,7 @@ use App\Http\Controllers\RedirectToAppController;
 use App\Http\Controllers\Admin\AdminDashboard;
 use App\Http\Controllers\Admin\AuthenticateAdmin;
 use App\Http\Controllers\Admin\Extrait\AdminExtraitController;
+use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\Agent\AgentDashboard;
 use App\Http\Controllers\Agent\AuthenticateAgent;
@@ -116,6 +117,13 @@ Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/createdhl', [Dhlcontroller::class, 'create'])->name('dhl.create');
         Route::post('/createdhl', [Dhlcontroller::class, 'store'])->name('dhl.store');
         Route::get('/{dhl}/edit', [Dhlcontroller::class, 'edit'])->name('dhl.edit');
+    });
+
+    //Les routes de gestion de la maintenance
+    Route::prefix('maintenance')->group(function () {
+        Route::get('/', [MaintenanceController::class, 'index'])->name('admin.maintenance.index');
+        Route::post('/web/toggle', [MaintenanceController::class, 'toggleWebMaintenance'])->name('admin.maintenance.web.toggle');
+        Route::post('/api/toggle', [MaintenanceController::class, 'toggleApiMaintenance'])->name('admin.maintenance.api.toggle');
     });
 });
 

@@ -63,6 +63,20 @@
       </div>
     </div>
   </li>
+
+  <hr class="sidebar-divider">
+
+  <div class="sidebar-heading" style="font-size: 15px; text-align:center">
+    Paramètres
+  </div>
+
+  <!-- Section Maintenance -->
+  <li class="nav-item">
+    <a class="nav-link" href="{{route('admin.maintenance.index')}}">
+      <i class="fas fa-tools"></i>
+      <span>Maintenance</span>
+    </a>
+  </li>
   {{-- <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDocteur"
         aria-expanded="true" aria-controls="collapseDocteur">

@@ -60,7 +60,7 @@ Route::get('/naissance/payment-status/{reference}', [DemandeNaissanceController:
 // Route publique pour rechercher une demande par référence (etat + statut_livraison)
 Route::get('/demandes/recherche', [StatistiqueController::class, 'rechercherParReference']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
 
     // ROUTES UTILISATEURS AUTHENTIFIÉS
     Route::prefix('utilisateurs')->group(function () {
