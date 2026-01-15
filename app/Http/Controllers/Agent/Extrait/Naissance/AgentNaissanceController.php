@@ -356,6 +356,9 @@ class AgentNaissanceController extends Controller
         // Sauvegarder l'ancien statut
         $ancienStatut = $naissance->statut_livraison ?? 'en attente';
         
+        // Récupérer l'utilisateur associé à la demande
+        $user = $naissance->user;
+        
         // Mettre à jour le statut de livraison
         $naissance->statut_livraison = $request->statut_livraison;
         $naissance->save();
@@ -377,7 +380,6 @@ class AgentNaissanceController extends Controller
         // =================================================================
         // <-- NOTIFICATION PUSH POUR MOBILE
         // =================================================================
-        $user = $naissance->user;
 
         if ($user && !empty($user->push_notification)) {
             $title = 'Extrait de Naissance Remis';
