@@ -216,7 +216,7 @@ Route::middleware('etatCivil')->prefix('state')->group(function () {
 });
 
 //Les routes de gestion des @agents
-Route::prefix('civil/agent')->group(function () {
+Route::prefix('civil-agent')->group(function () {
     Route::get('/', [AuthenticateAgent::class, 'login'])->name('agent.login');
     Route::post('/login', [AuthenticateAgent::class, 'handleLogin'])->name('agent.handleLogin');
 });
