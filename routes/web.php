@@ -179,7 +179,7 @@ Route::middleware('mairie')->prefix('mairie')->group(function () {
 });
 
 //Les routes de gestion de la @etat_civil
-Route::prefix('Civil')->group(function () {
+Route::prefix('civil')->group(function () {
     Route::get('/', [AuthenticateEtatCivil::class, 'login'])->name('etat_civil.login');
     Route::post('/login', [AuthenticateEtatCivil::class, 'handleLogin'])->name('etat_civil.handleLogin');
 });
