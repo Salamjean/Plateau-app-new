@@ -186,7 +186,7 @@ class AgentMariageController extends Controller
             switch ($mariage->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande d\'extrait de mariage a été bien reçue et est en cours de traitement.';
+                    $body = 'Votre demande d’extrait de mariage a été reçue et sera traitée dans les plus brefs délais.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $mariage->reference];
                     break;
 
@@ -201,7 +201,7 @@ class AgentMariageController extends Controller
 
                 case 'rejetée':
                     $title = 'Demande Rejetée - Modification requise';
-                    $body = 'Votre demande d\'extrait de mariage a été rejetée. Vous pouvez maintenant modifier les informations incorrectes.';
+                    $body = 'Votre demande d’extrait de mariage n’a pas pu être traitée. Veuillez vérifier et corriger les informations fournies.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $mariage->reference];
                     break;
             }
@@ -323,8 +323,8 @@ class AgentMariageController extends Controller
         $user = $mariage->user;
 
         if ($user && !empty($user->push_notification)) {
-            $title = 'Extrait de Mariage Remis';
-            $body = 'Votre demande d\'extrait de mariage vous a été remis avec succès.';
+            $title = 'Retrait d’extrait de mariage';
+            $body = 'La récupération de votre extrait de mariage a été effectuée avec succès.';
             $data = ['url' => 'plateauapps://demande?reference=' . $mariage->reference];
 
             $this->sendPushNotification($user->push_notification, $title, $body, $data);

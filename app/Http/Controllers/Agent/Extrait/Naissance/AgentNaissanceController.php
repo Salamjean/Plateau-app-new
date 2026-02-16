@@ -163,13 +163,13 @@ class AgentNaissanceController extends Controller
             switch ($naissance->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande d\'extrait de naissance a été bien reçue et est en cours de traitement.';
+                    $body = 'Votre demande d’extrait de naissance a été reçue et sera traitée dans les plus brefs délais.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
                     break;
 
                 case 'terminé':
                     $title = 'Demande Traitée';
-                    $body = 'Votre demande d\'extrait de naissance a été traitée.';
+                    $body = 'Votre demande d\'extrait de mariage a été traitée.';
                     if ($naissance->livraison_code) {
                         $body .= ' Votre code de livraison est : ' . $naissance->livraison_code;
                     }
@@ -178,7 +178,7 @@ class AgentNaissanceController extends Controller
 
                 case 'rejetée':
                     $title = 'Demande Rejetée - Modification requise';
-                    $body = 'Votre demande d\'extrait de naissance a été rejetée. Vous pouvez maintenant modifier les informations incorrectes.';
+                    $body = 'Votre demande d’extrait de naissance n’a pas pu être traitée. Veuillez vérifier et corriger les informations fournies.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
                     break;
             }
@@ -382,8 +382,8 @@ class AgentNaissanceController extends Controller
         // =================================================================
 
         if ($user && !empty($user->push_notification)) {
-            $title = 'Extrait de Naissance Remis';
-            $body = 'Votre demande d\'extrait de naissance vous a été remis avec succès.';
+            $title = 'Retrait d’extrait de naissance';
+            $body = 'La récupération de votre extrait de naissance a été effectuée avec succès.';
             $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
 
             $this->sendPushNotification($user->push_notification, $title, $body, $data);

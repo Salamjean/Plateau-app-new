@@ -165,7 +165,7 @@ class AgentDecesController extends Controller
             switch ($deces->etat) {
                 case 'réçu':
                     $title = 'Demande reçue';
-                    $body = 'Votre demande d\'extrait de décès a été bien reçue et est en cours de traitement.';
+                    $body = 'Votre demande d’extrait de décès a été reçue et sera traitée dans les plus brefs délais.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
                     break;
 
@@ -180,7 +180,7 @@ class AgentDecesController extends Controller
 
                 case 'rejetée':
                     $title = 'Demande Rejetée - Modification requise';
-                    $body = 'Votre demande d\'extrait de décès a été rejetée. Vous pouvez maintenant modifier les informations incorrectes.';
+                    $body = 'Votre demande d’extrait de décès n’a pas pu être traitée. Veuillez vérifier et corriger les informations fournies.';
                     $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
                     break;
             }
@@ -297,8 +297,8 @@ class AgentDecesController extends Controller
         $user = $deces->user;
 
         if ($user && !empty($user->push_notification)) {
-            $title = 'Extrait de Décès Remis';
-            $body = 'Votre demande d\'extrait de décès vous a été remis avec succès.';
+            $title = 'Retrait d’extrait de décès';
+            $body = 'La récupération de votre extrait de décès a été effectuée avec succès.';
             $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
 
             $this->sendPushNotification($user->push_notification, $title, $body, $data);
