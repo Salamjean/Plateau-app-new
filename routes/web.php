@@ -225,6 +225,7 @@ Route::prefix('agent')->group(function () {
 
 Route::middleware('agent')->prefix('agent')->group(function () {
     Route::get('/dashboard', [AgentDashboard::class, 'dashboard'])->name('agent.dashboard');
+    Route::get('/dashboard/refresh', [AgentDashboard::class, 'refreshTable'])->name('agent.dashboard.refresh');
     Route::get('/logout', [AgentDashboard::class, 'logout'])->name('agent.logout');
 
     //les routes pour la recuperation des demandes 
@@ -257,7 +258,7 @@ Route::middleware('agent')->prefix('agent')->group(function () {
     //Historiques des traitements effectuer par l'agent 
     Route::get('/task/end/history', [AgentHistoriqueController::class, 'history'])->name('agent.history.taskend');
     Route::get('/task/end/livree', [AgentHistoriqueController::class, 'livree'])->name('agent.livree.taskend');
-    
+
     // Historique des actions de l'agent
     Route::get('/history/actions', [ActionHistoryController::class, 'index'])->name('agent.history.actions');
 });

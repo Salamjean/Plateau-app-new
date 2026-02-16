@@ -188,18 +188,29 @@
    text-transform: uppercase;
  }
 
+  /* Couleurs par type de demande */
+  .row-naissance {
+    background-color: rgba(40, 167, 69, 0.08) !important;
+  }
+  .row-deces {
+    background-color: rgba(108, 117, 125, 0.08) !important;
+  }
+  .row-mariage {
+    background-color: rgba(220, 53, 69, 0.08) !important;
+  }
+
  .badge-naiss {
-   background-color: var(--primary-color);
+   background-color: #28a745 !important;
    color: white;
  }
 
  .badge-deces {
-   background-color: var(--gray-color);
+   background-color: #6c757d !important;
    color: white;
  }
 
  .badge-mariage {
-   background-color: var(--secondary-color);
+   background-color: #dc3545 !important;
    color: white;
  }
 

@@ -11,10 +11,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AgentDashboard extends Controller
 {
-    public function dashboard(Request $request) {
+    public function dashboard(Request $request)
+    {
         // Récupérer l'admin connecté
         $admin = Auth::guard('agent')->user();
-        
+
         // Récupérer le mois et l'année sélectionnés
         $selectedMonth = $request->input('month', date('m'));
         $selectedYear = $request->input('year', date('Y'));
@@ -22,42 +23,22 @@ class AgentDashboard extends Controller
         $selectedYearHops = $request->input('year_hops', date('Y'));
 
         // Récupérer les données associées à la commune de cet admin pour le mois sélectionné
-        
-        // --- MODIFIÉ ICI ---
-        // On ne récupère que les demandes "en attente"
-        $naissances = Naissance::where('commune', $admin->communeM)
-            ->where('etat', 'en attente') // <-- MODIFIÉ ICI
-            ->whereMonth('created_at', $selectedMonth)
-            ->whereYear('created_at', $selectedYear)
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        // --- MODIFIÉ ICI ---
-        $deces = Deces::where('commune', $admin->communeM)
-            ->where('etat', 'en attente') // <-- MODIFIÉ ICI
-            ->whereMonth('created_at', $selectedMonth)
-            ->whereYear('created_at', $selectedYear)
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        // --- MODIFIÉ ICI ---
-        $mariages = Mariage::where('commune', $admin->communeM)
-            ->where('etat', 'en attente') // <-- MODIFIÉ ICI
-            ->whereMonth('created_at', $selectedMonth)
-            ->whereYear('created_at', $selectedYear)
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $requestsData = $this->getRequestsData($admin, $selectedMonth, $selectedYear);
+        $naissances = $requestsData['naissances'];
+        $deces = $requestsData['deces'];
+        $mariages = $requestsData['mariages'];
+        $allRequests = $requestsData['allRequests'];
 
         // Calcul des données globales
-        $totalData = $naissances->count()+ $deces->count() + $mariages->count();
+        $totalData = $allRequests->count();
 
         // Pourcentages
         $naissancePercentage = $totalData > 0 ? ($naissances->count() / $totalData) * 100 : 0;
         $decesPercentage = $totalData > 0 ? ($deces->count() / $totalData) * 100 : 0;
         $mariagePercentage = $totalData > 0 ? ($mariages->count() / $totalData) * 100 : 0;
 
-        $Dece = $decesPercentage ;
-        $NaissP = $naissancePercentage ;
+        $Dece = $decesPercentage;
+        $NaissP = $naissancePercentage;
 
         // Données pour le tableau de bord
         $naissancedash = $naissances->count();
@@ -72,15 +53,87 @@ class AgentDashboard extends Controller
 
         // Retourne la vue avec les données
         return view('agent.dashboard', compact(
-            'naissancedash', 'decesdash','NaissP', 'mariagedash', 
-            'naissances','deces','mariages','totalData', 'naissancePercentage', 
-            'decesPercentage', 'mariagePercentage','recentNaissances', 'recentDeces', 
-            'recentMariages', 'Naiss','Dece','selectedMonth', 'selectedYear', 
-            'selectedMonthHops', 'selectedYearHops',
+            'naissancedash',
+            'decesdash',
+            'NaissP',
+            'mariagedash',
+            'naissances',
+            'deces',
+            'mariages',
+            'totalData',
+            'naissancePercentage',
+            'decesPercentage',
+            'mariagePercentage',
+            'recentNaissances',
+            'recentDeces',
+            'recentMariages',
+            'Naiss',
+            'Dece',
+            'selectedMonth',
+            'selectedYear',
+            'selectedMonthHops',
+            'selectedYearHops',
+            'allRequests'
         ));
     }
 
-    public function logout(){
+    public function refreshTable(Request $request)
+    {
+        $admin = Auth::guard('agent')->user();
+        $selectedMonth = $request->input('month', date('m'));
+        $selectedYear = $request->input('year', date('Y'));
+
+        $requestsData = $this->getRequestsData($admin, $selectedMonth, $selectedYear);
+        $allRequests = $requestsData['allRequests'];
+
+        return view('agent.partials.table_partial', compact('allRequests'))->render();
+    }
+
+    private function getRequestsData($admin, $month, $year)
+    {
+        $naissances = Naissance::where('commune', $admin->communeM)
+            ->where('etat', 'en attente')
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $deces = Deces::where('commune', $admin->communeM)
+            ->where('etat', 'en attente')
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $mariages = Mariage::where('commune', $admin->communeM)
+            ->where('etat', 'en attente')
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $allRequests = collect()
+            ->concat($naissances->map(function ($item) {
+                $item->request_type = 'naissance';
+                return $item; }))
+            ->concat($deces->map(function ($item) {
+                $item->request_type = 'deces';
+                return $item; }))
+            ->concat($mariages->map(function ($item) {
+                $item->request_type = 'mariage';
+                return $item; }))
+            ->sortByDesc('created_at');
+
+        return [
+            'naissances' => $naissances,
+            'deces' => $deces,
+            'mariages' => $mariages,
+            'allRequests' => $allRequests
+        ];
+    }
+
+    public function logout()
+    {
         Auth::guard('agent')->logout();
         return redirect()->route('agent.login');
     }

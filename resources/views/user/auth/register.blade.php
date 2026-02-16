@@ -530,11 +530,7 @@
                     <i class="fas fa-info-circle"></i> Informations supplémentaires
                 </h3>
 
-                <!-- Option Diaspora -->
-                <div class="checkbox-group">
-                    <input type="checkbox" id="diaspora" name="diaspora" value="1" {{ old('diaspora') ? 'checked' : '' }}>
-                    <label for="diaspora">Je suis de la diaspora</label>
-                </div>
+                
 
                 <div class="form-row">
                     <div class="input-group">
@@ -602,6 +598,12 @@
                             </div>
                         @enderror
                     </div>
+                </div>
+
+                <!-- Option Diaspora -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="diaspora" name="diaspora" value="1" {{ old('diaspora') ? 'checked' : '' }}>
+                    <label for="diaspora">Je suis de la diaspora</label>
                 </div>
 
                 <!-- Champs Diaspora (cachés par défaut) -->
