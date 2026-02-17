@@ -128,7 +128,7 @@ Route::middleware('admin')->prefix('admin')->group(function () {
 //Les routes de gestion de la @mairie
 Route::prefix('mairie')->group(function () {
     Route::get('/', [MairieAuthenticate::class, 'login'])->name('mairie.login');
-    Route::post('/login', [MairieAuthenticate::class, 'handleLogin'])->name('mairie.handleLogin');
+    Route::post('/', [MairieAuthenticate::class, 'handleLogin'])->name('mairie.handleLogin');
 });
 
 Route::middleware('mairie')->prefix('mairie')->group(function () {
@@ -181,7 +181,7 @@ Route::middleware('mairie')->prefix('mairie')->group(function () {
 //Les routes de gestion de la @etat_civil
 Route::prefix('civil')->group(function () {
     Route::get('/', [AuthenticateEtatCivil::class, 'login'])->name('etat_civil.login');
-    Route::post('/login', [AuthenticateEtatCivil::class, 'handleLogin'])->name('etat_civil.handleLogin');
+    Route::post('/', [AuthenticateEtatCivil::class, 'handleLogin'])->name('etat_civil.handleLogin');
 });
 
 Route::middleware('etatCivil')->prefix('state')->group(function () {
@@ -218,7 +218,7 @@ Route::middleware('etatCivil')->prefix('state')->group(function () {
 //Les routes de gestion des @agents
 Route::prefix('civil-agent')->group(function () {
     Route::get('/', [AuthenticateAgent::class, 'login'])->name('agent.login');
-    Route::post('/login', [AuthenticateAgent::class, 'handleLogin'])->name('agent.handleLogin');
+    Route::post('/', [AuthenticateAgent::class, 'handleLogin'])->name('agent.handleLogin');
 });
 
 Route::middleware('agent')->prefix('agent')->group(function () {
@@ -264,7 +264,7 @@ Route::middleware('agent')->prefix('agent')->group(function () {
 //Les routes de gestion de la @finance
 Route::prefix('finance')->group(function () {
     Route::get('/', [AuthenticateFinance::class, 'login'])->name('finance.login');
-    Route::post('/login', [AuthenticateFinance::class, 'handleLogin'])->name('finance.handleLogin');
+    Route::post('/', [AuthenticateFinance::class, 'handleLogin'])->name('finance.handleLogin');
 });
 
 Route::middleware('finance')->prefix('finance')->group(function () {
@@ -296,7 +296,7 @@ Route::middleware('finance')->prefix('finance')->group(function () {
 //Les routes de gestion de la @comptable
 Route::prefix('finance-agent')->group(function () {
     Route::get('/', [AuthenticateComptable::class, 'login'])->name('comptable.login');
-    Route::post('/login', [AuthenticateComptable::class, 'handleLogin'])->name('comptable.handleLogin');
+    Route::post('/', [AuthenticateComptable::class, 'handleLogin'])->name('comptable.handleLogin');
 });
 
 Route::middleware('comptable')->prefix('accounting')->group(function () {
@@ -316,7 +316,7 @@ Route::middleware('comptable')->prefix('accounting')->group(function () {
 //Les routes de getsion de @postes 
 Route::prefix('livraison')->group(function () {
     Route::get('/', [AuthenticatePoste::class, 'login'])->name('post.login');
-    Route::post('/login', [AuthenticatePoste::class, 'handleLogin'])->name('post.handleLogin');
+    Route::post('/', [AuthenticatePoste::class, 'handleLogin'])->name('post.handleLogin');
 });
 
 Route::middleware('poste')->prefix('post')->group(function () {
@@ -353,7 +353,7 @@ Route::middleware('poste')->prefix('post')->group(function () {
 //Les routes de getsion de @livreur 
 Route::prefix('livreur')->group(function () {
     Route::get('/', [AuthenticateDelivery::class, 'login'])->name('delivery.login');
-    Route::post('/login', [AuthenticateDelivery::class, 'handleLogin'])->name('delivery.handleLogin');
+    Route::post('/', [AuthenticateDelivery::class, 'handleLogin'])->name('delivery.handleLogin');
 });
 
 Route::middleware('livreur')->prefix('delivery')->group(function () {
