@@ -467,15 +467,15 @@
     <div class="filter-tabs">
       <a href="{{ route('agent.livree.taskend', ['type' => 'naissance']) }}"
         class="filter-tab {{ $type == 'naissance' ? 'active' : '' }}">
-        <i class="fas fa-baby"></i>Naissances
+        <i class="fas fa-baby"></i>Acte Naissance
       </a>
       <a href="{{ route('agent.livree.taskend', ['type' => 'deces']) }}"
         class="filter-tab {{ $type == 'deces' ? 'active' : '' }}">
-        <i class="fas fa-cross"></i>Décès
+        <i class="fas fa-cross"></i>Acte Décès
       </a>
       <a href="{{ route('agent.livree.taskend', ['type' => 'mariage']) }}"
         class="filter-tab {{ $type == 'mariage' ? 'active' : '' }}">
-        <i class="fas fa-ring"></i>Mariages
+        <i class="fas fa-ring"></i>Acte Mariage
       </a>
     </div>
 

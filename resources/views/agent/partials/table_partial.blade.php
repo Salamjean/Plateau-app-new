@@ -21,19 +21,19 @@
                     if ($request->request_type == 'naissance') {
                         $badgeClass = 'badge-naiss';
                         $rowClass = 'row-naissance';
-                        $typeName = 'Naissance';
+                        $typeName = 'Acte de naissance';
                         $actionRoute = route('naissance.traiter', $request->id);
                         $details = $request->name . ' ' . $request->prenom;
                     } elseif ($request->request_type == 'deces') {
                         $badgeClass = 'badge-deces';
                         $rowClass = 'row-deces';
-                        $typeName = 'Décès';
+                        $typeName = 'Acte de décès';
                         $actionRoute = route('deces.traiter', $request->id);
                         $details = $request->name;
                     } elseif ($request->request_type == 'mariage') {
                         $badgeClass = 'badge-mariage';
                         $rowClass = 'row-mariage';
-                        $typeName = 'Mariage';
+                        $typeName = 'Acte de mariage';
                         $actionRoute = route('mariage.traiter', $request->id);
                         // Tentative de récupérer un nom pour le mariage
                         if (isset($request->nomEpoux)) {
@@ -70,7 +70,7 @@
                 <tr>
                     <td colspan="5" class="empty-state">
                         <i class="fas fa-file-invoice" style="align-items: center"></i>
-                        <h5>Aucune demande en attente pour cette période</h5>
+                        <h5>Aucune demande en attente trouvée</h5>
                     </td>
                 </tr>
             @endforelse

@@ -191,7 +191,7 @@
         @foreach ($naissances as $naissance)
             @if ($naissance->archived_at)
                 <marquee behavior="" direction="left" style="font-size:15px; color:red; font-weight:bold">
-                    Motif d'annulation de demande pour l'extrait de {{ $naissance->nom . ' ' . $naissance->prenom }} :
+                    Motif d'annulation de demande pour l'acte de {{ $naissance->nom . ' ' . $naissance->prenom }} :
                     {{ $naissance->autre_motif_text ?? $naissance->motif_annulation }}
                 </marquee>
             @endif
@@ -202,14 +202,14 @@
             <div class="card card-rounded">
                 <div class="card-body">
                     <div class="d-sm-flex justify-content-between align-items-start mb-4">
-                        <h4 class="card-title card-title-dash mb-0" style="text-align:center">Les demandes d'extrait que
+                        <h4 class="card-title card-title-dash mb-0" style="text-align:center">Les demandes d'acte que
                             vous avez effectué</h4>
                         <a href="{{ route('user.extrait.create') }}" class="btn btn-new-request">
                             <i class="fas fa-plus me-2"></i>Nouvelle demande
                         </a>
                     </div>
 
-                    <h5 class="section-title">Demandes d'extrait de naissance</h5>
+                    <h5 class="section-title">Demandes d'acte de naissance</h5>
                     <div class="table-responsive">
                         <table class="table select-table">
                             <thead>
@@ -217,7 +217,7 @@
                                     <th>Référence</th>
                                     <th>Quantité</th>
                                     <th>Type</th>
-                                    <th>Nom sur l'extrait</th>
+                                    <th>Nom sur l'acte</th>
                                     <th>Détails</th>
                                     <th>Document</th>
                                     <th>Statut</th>
@@ -305,7 +305,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="10" class="text-center py-4">Aucune demande d'extrait de naissance
+                                        <td colspan="10" class="text-center py-4">Aucune demande d'acte de naissance
                                             trouvée</td>
                                     </tr>
                                 @endforelse

@@ -467,15 +467,15 @@
   <div class="filter-tabs">
     <a href="{{ route('agent.history.taskend', ['type' => 'naissance']) }}" 
        class="filter-tab {{ $type == 'naissance' ? 'active' : '' }}">
-      <i class="fas fa-baby"></i>Naissances
+      <i class="fas fa-baby"></i>Acte Naissance
     </a>
     <a href="{{ route('agent.history.taskend', ['type' => 'deces']) }}" 
        class="filter-tab {{ $type == 'deces' ? 'active' : '' }}">
-      <i class="fas fa-cross"></i>Décès
+      <i class="fas fa-cross"></i>Acte Décès
     </a>
     <a href="{{ route('agent.history.taskend', ['type' => 'mariage']) }}" 
        class="filter-tab {{ $type == 'mariage' ? 'active' : '' }}">
-      <i class="fas fa-ring"></i>Mariages
+      <i class="fas fa-ring"></i>Acte Mariage
     </a>
   </div>
 
@@ -520,11 +520,11 @@
                 </td>
                 <td style="text-align: center" data-label="Type">
                   @if($type == 'naissance')
-                    Extrait naissance
+                    Acte naissance
                   @elseif($type == 'deces')
-                    Extrait décès
+                    Acte décès
                   @else
-                    Extrait mariage
+                    Acte mariage
                   @endif
                 </td>
                 <td style="text-align: center" data-label="Date demande">{{ $task->created_at->format('d/m/Y') }}</td>

@@ -6,7 +6,7 @@
       </div>
       <div class="mdc-drawer__content">
         <div class="user-info">
-          <p class="name text-center">Mairie : {{Auth::guard('agent')->user()->commune}} </p>
+          <p class="name text-center">Mairie : Plateau </p>
         </div>
         <div class="mdc-list-group">
           <nav class="mdc-list mdc-drawer-menu">
@@ -21,19 +21,19 @@
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-drawer-link" href="{{route('agent.demandes.naissance.index')}}">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">child_care</i>
-                Extrait Naissance
+                Acte Naissance
               </a>
             </div>
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-drawer-link" href="{{route('agent.demandes.deces.index')}}">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">spa</i>
-                Extrait Décès
+                Acte Décès
               </a>
             </div>
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-drawer-link" href="{{route('agent.demandes.wedding.index')}}">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">favorite</i>
-                Extrait Mariage
+                Acte Mariage
               </a>
             </div>
               <hr style="color: white">

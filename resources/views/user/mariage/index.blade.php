@@ -261,7 +261,7 @@
                 <div class="card-body">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
                         <h4 class="card-title card-title-dash mb-3 mb-md-0 text-center text-md-start">
-                            <i class="fas fa-file-contract me-2"></i> Mes d'extrait de mariage
+                            <i class="fas fa-file-contract me-2"></i> Mes actes de mariage
                         </h4>
                         <a href="{{ route('user.extrait.mariage.create') }}" class="btn btn-new-request">
                             <i class="fas fa-plus-circle me-2"></i>Nouvelle demande
@@ -270,7 +270,7 @@
 
                     <!-- Demandes d'extrait de mariage -->
                     <h5 class="section-title">
-                        <i class="fas fa-list-check me-2"></i>Mes demandes d'extraits
+                        <i class="fas fa-list-check me-2"></i>Mes demandes d'actes
                     </h5>
                     <div class="table-responsive">
                         <table class="table" id="mariageTable">
@@ -378,7 +378,7 @@
                                             <div class="empty-state">
                                                 <i class="fas fa-inbox"></i>
                                                 <h5 class="mt-3">Aucune demande trouvée</h5>
-                                                <p class="text-muted">Vous n'avez effectué aucune demande d'extrait de
+                                                <p class="text-muted">Vous n'avez effectué aucune demande d'acte de
                                                     mariage</p>
                                             </div>
                                         </td>

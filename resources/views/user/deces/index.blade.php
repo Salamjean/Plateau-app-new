@@ -157,7 +157,7 @@
             <div class="card card-rounded">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="card-title card-title-dash mb-0">Demandes d'extrait de décès</h4>
+                        <h4 class="card-title card-title-dash mb-0">Demandes d'acte de décès</h4>
                         <a href="{{ route('user.extrait.deces.create') }}" class="btn btn-new-request">
                             <i class="fas fa-plus me-2"></i>Nouvelle demande
                         </a>
@@ -165,7 +165,7 @@
 
                     <!-- Section Demandes pour tierce personne -->
                     <div>
-                        <h5 class="section-header">Mes demandes d'extraits de décès</h5>
+                        <h5 class="section-header">Mes demandes d'actes de décès</h5>
                         <div class="table-responsive">
                             <table class="table select-table">
                                 <thead>
@@ -257,7 +257,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-center py-4">Aucune demande d'extrait de décès
+                                            <td colspan="9" class="text-center py-4">Aucune demande d'acte de décès
                                                 trouvée</td>
                                         </tr>
                                     @endforelse

@@ -71,10 +71,24 @@ class ComptableDashboard extends Controller
             ->count();
         $totalMois = $decesMois + $naissanceMois + $mariageMois;
 
-        // Récupérer les demandes récentes
-        $demandesNaissance = Naissance::where('commune', $commune)->latest()->take(5)->get();
-        $demandesDeces = Deces::where('commune', $commune)->latest()->take(5)->get();
-        $demandesMariage = Mariage::where('commune', $commune)->latest()->take(5)->get();
+        // Récupérer les demandes récentes (4 de chaque type)
+        $naissancesRecent = Naissance::where('commune', $commune)->latest()->take(4)->get()->map(function ($item) {
+            $item->type_demande = 'naissance';
+            return $item;
+        });
+        $decesRecent = Deces::where('commune', $commune)->latest()->take(4)->get()->map(function ($item) {
+            $item->type_demande = 'deces';
+            return $item;
+        });
+        $mariagesRecent = Mariage::where('commune', $commune)->latest()->take(4)->get()->map(function ($item) {
+            $item->type_demande = 'mariage';
+            return $item;
+        });
+
+        // Fusionner et trier par date décroissante, puis limiter à 4 au total
+        $recentDemandes = $naissancesRecent->concat($decesRecent)->concat($mariagesRecent)
+            ->sortByDesc('created_at')
+            ->take(4);
 
         // Récupérer les statistiques par période pour le graphique
         $weeklyData = [
@@ -182,9 +196,7 @@ class ComptableDashboard extends Controller
                 'decesnombre',
                 'naissancenombre',
                 'mariagenombre',
-                'demandesNaissance',
-                'demandesDeces',
-                'demandesMariage',
+                'recentDemandes',
                 'weeklyData',
                 'monthlyData',
                 'yearlyData',

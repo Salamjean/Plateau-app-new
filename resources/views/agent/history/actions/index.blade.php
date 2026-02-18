@@ -47,9 +47,9 @@
         <label class="form-label">Type de demande</label>
         <select class="form-select" name="type">
           <option value="">Tous</option>
-          <option value="naissance" {{ request('type') == 'naissance' ? 'selected' : '' }}>Naissance</option>
-          <option value="mariage" {{ request('type') == 'mariage' ? 'selected' : '' }}>Mariage</option>
-          <option value="deces" {{ request('type') == 'deces' ? 'selected' : '' }}>Décès</option>
+          <option value="naissance" {{ request('type') == 'naissance' ? 'selected' : '' }}>Acte Naissance</option>
+          <option value="mariage" {{ request('type') == 'mariage' ? 'selected' : '' }}>Acte Mariage</option>
+          <option value="deces" {{ request('type') == 'deces' ? 'selected' : '' }}>Acte Décès</option>
         </select>
       </div>
       
@@ -57,7 +57,6 @@
         <label class="form-label">Action</label>
         <select class="form-select" name="action">
           <option value="">Toutes</option>
-          <option value="changement_etat" {{ request('action') == 'changement_etat' ? 'selected' : '' }}>Changement d'état</option>
           <option value="rejet" {{ request('action') == 'rejet' ? 'selected' : '' }}>Rejet</option>
           <option value="recu" {{ request('action') == 'recu' ? 'selected' : '' }}>Reçu</option>
           <option value="termine" {{ request('action') == 'termine' ? 'selected' : '' }}>Terminé</option>
@@ -120,18 +119,16 @@
                 </td>
                 <td>
                   @if($action->demande_type == 'naissance')
-                    <span class="badge-type badge-naiss">Naissance</span>
+                    <span class="badge-type badge-naiss">Acte Naissance</span>
                   @elseif($action->demande_type == 'mariage')
-                    <span class="badge-type badge-mariage">Mariage</span>
+                    <span class="badge-type badge-mariage">Acte Mariage</span>
                   @else
-                    <span class="badge-type badge-deces">Décès</span>
+                    <span class="badge-type badge-deces">Acte Décès</span>
                   @endif
                 </td>
                 <td>
                   @if($action->action == 'rejet')
                     <span class="badge-action badge-action-rejet">Rejet</span>
-                  @elseif($action->action == 'changement_etat')
-                    <span class="badge-action badge-action-changement">Changement</span>
                   @elseif($action->action == 'recu')
                     <span class="badge-action badge-action-recu">Reçu</span>
                   @elseif($action->action == 'termine')

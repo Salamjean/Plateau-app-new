@@ -45,7 +45,7 @@
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="name_respo" class="form-label">Nom complet du service <span class="text-danger">*</span></label>
+                                    <label for="name_respo" class="form-label">Nom du service <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1977cc"></i></span>
                                         <input type="text" class="form-control rounded-end" id="name_respo" name="name_respo" 
@@ -193,7 +193,7 @@
                                     <i class="fas fa-arrow-left me-2"></i>Précédent
                                 </button>
                                 <button type="submit" class="btn btn-success px-4 py-2 fw-bold" id="submit-btn">
-                                    <i class="fas fa-save me-2"></i>Modifier le responsable
+                                    <i class="fas fa-save me-2"></i>Modifier
                                 </button>
                             </div>
                         </div>

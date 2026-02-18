@@ -11,7 +11,7 @@
         <div class="col-12 col-md-10 col-lg-8">
             <div class="card shadow-lg border-0 rounded-20">
                 <div class="card-header py-4 text-center bg-gradient-primary rounded-top-20">
-                    <h2 class="mb-0 fw-bold text-white"><i class="fas fa-home me-2 text-white"></i>Enregistrement du service financier</h2>
+                    <h2 class="mb-0 fw-bold text-white"><i class="fas fa-home me-2 text-white"></i>Enregistrement du registre des taxes</h2>
                     <p class="mb-0 mt-2 opacity-75 text-white">Formulaire d'enregistrement par la Mairie</p>
                 </div>
 
@@ -48,7 +48,7 @@
                                     <label for="name_respo" class="form-label">Nom du service <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-user " style="color:#1977cc"></i></span>
-                                        <input type="text" class="form-control rounded-end" id="name_respo" name="name_respo" value="Service financier" readonly>
+                                        <input type="text" class="form-control rounded-end" id="name_respo" name="name_respo" value="Registre des taxes" readonly>
                                     </div>
                                 </div>
                                 
@@ -171,7 +171,7 @@
                                     <i class="fas fa-arrow-left me-2"></i>Précédent
                                 </button>
                                 <button type="submit" class="btn btn-success px-4 py-2 fw-bold" id="submit-btn">
-                                    <i class="fas fa-save me-2"></i>Enregistrer le responsable
+                                    <i class="fas fa-save me-2"></i>Enregistrer
                                 </button>
                             </div>
                         </div>

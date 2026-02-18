@@ -101,23 +101,19 @@
         </div>
     </div>
     <div class="header">
-        <h1>RAPPORT FINANCIER ANNUEL</h1>
+        <h1>RAPPORT REGISTRAIRE ANNUEL</h1>
         <h2>Année : {{ $currentYear }}</h2>
     </div>
     
     <div class="info-agent">
         <table>
             <tr>
-                <td class="label">Agent :</td>
-                <td>{{ $agent->name }} {{ $agent->prenom }}</td>
-                <td class="label">Email :</td>
-                <td>{{ $agent->email }}</td>
+                <td class="label">Registraire : <span>{{ $agent->name }} {{ $agent->prenom }}</span></td>
+                <td class="label">Email : <span>{{ $agent->email }}</span></td>
             </tr>
             <tr>
-                <td class="label">Contact :</td>
-                <td>{{ $agent->contact }}</td>
-                <td class="label">Commune :</td>
-                <td>{{ $agent->commune }}</td>
+                <td class="label">Contact : <span>{{ $agent->contact }}</span></td>
+                <td class="label">Commune : <span>{{ $agent->commune }}</span></td>
             </tr>
         </table>
     </div>

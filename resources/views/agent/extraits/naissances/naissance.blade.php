@@ -534,7 +534,7 @@
 
   <div class="page-title">
     <h2>
-      <i class="fas fa-baby me-2"></i>Gestion des demandes d'extrait de naissance
+      <i class="fas fa-baby me-2"></i>Gestion des demandes d'acte de naissance
     </h2>
     <div class="page-actions">
       <a href="{{ route('agent.dashboard') }}" class="btn-action">
@@ -550,14 +550,14 @@
     </div>
     <div class="stats-content">
       <h3>{{ $naissances->total() }}</h3>
-      <p>Demandes d'extrait de naissance en cours</p>
+      <p>Demandes d'acte de naissance en cours</p>
     </div>
   </div>
 
   <!-- Tableau des demandes -->
   <div class="dashboard-card">
     <div class="card-header">
-      <h5><i class="fas fa-list me-2"></i>Liste des demandes</h5>
+      <h5><i class="fas fa-list me-2"></i>Liste des demandes d'acte de naissance</h5>
       <div class="search-box">
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" class="form-control" placeholder="Rechercher...">
@@ -571,7 +571,7 @@
               <th style="text-align: center">Infos Livraison</th>
               <th style="text-align: center">Quantité</th>
               <th style="text-align: center">Demandeur</th>
-              <th style="text-align: center">Nom sur l'extrait</th>
+              <th style="text-align: center">Nom sur l'acte</th>
               <th style="text-align: center">N° Registre</th>
               <th style="text-align: center">Date Registre</th>
               <th style="text-align: center">Date demande</th>
@@ -603,9 +603,9 @@
                       {{ substr($naissance->user->name, 0, 1).''.substr($naissance->user->prenom, 0, 1) }}
                     </div>
                     <div class="user-details">
-                      <div class="user-name">{{ $naissance->user->name.' '.$naissance->user->prenom }}</div>
-                      <div class="user-email">{{ $naissance->user->contact }}</div>
-                      <div class="user-email">{{ $naissance->user->email }}</div>
+                      <div class="user-name">{{ $naissance->user->name.' '.$naissance->user->prenom ?? '--' }}</div>
+                      <div class="user-email">{{ $naissance->user->contact ?? '--' }}</div>
+                      <div class="user-email">{{ $naissance->user->email ?? '--' }}</div>
                     </div>
                   </div>
                 </td>

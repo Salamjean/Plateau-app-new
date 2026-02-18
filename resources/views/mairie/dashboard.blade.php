@@ -23,6 +23,7 @@
                     <div class="col-md-6">
                         <label for="month" class="form-label">Mois</label>
                         <select class="form-select" id="month" name="month">
+                            <option value="">Tous les mois</option>
                             @php
                                 $months = [
                                     1 => 'Janvier',
@@ -49,6 +50,7 @@
                     <div class="col-md-6">
                         <label for="year" class="form-label">Année</label>
                         <select class="form-select" id="year" name="year">
+                            <option value="">Toutes les années</option>
                             @for ($year = date('Y'); $year >= date('Y') - 5; $year--)
                                 <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
                                     {{ $year }}
@@ -71,7 +73,7 @@
                     <div class="dashboard-card card-primary p-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="text-muted mb-1">Naissances</h6>
+                                <h6 class="text-muted mb-1">Demandes d'actes de naissances</h6>
                                 <h2 class="stat-number primary-text">{{ $naissancedash }}</h2>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-primary-light primary-text me-2">
@@ -91,7 +93,7 @@
                     <div class="dashboard-card card-secondary p-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="text-muted mb-1">Décès</h6>
+                                <h6 class="text-muted mb-1">Demandes d'actes de décès</h6>
                                 <h2 class="stat-number secondary-text">{{ $decesdash }}</h2>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-secondary-light secondary-text me-2">
@@ -111,7 +113,7 @@
                     <div class="dashboard-card p-4" style="border-bottom: 4px solid red;">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="text-muted mb-1">Mariages</h6>
+                                <h6 class="text-muted mb-1">Demandes d'actes de mariages</h6>
                                 <h2 class="stat-number" style="color: red;">{{ $mariagedash }}</h2>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-light me-2" style="color: red;">
@@ -133,7 +135,7 @@
                 <!-- Graphique circulaire -->
                 <div class="col-lg-6">
                     <div class="dashboard-card p-4">
-                        <h5 class="section-title">Répartition des actes demandés</h5>
+                        <h5 class="section-title">Répartition des demandes d'actes</h5>
                         <div class="chart-container">
                             <canvas id="distributionChart"></canvas>
                         </div>
@@ -165,39 +167,39 @@
                             <div class="tab-pane fade show active" id="naissances" role="tabpanel">
                                 @forelse($recentNaissances as $naissance)
                                     <div class="recent-item">
-                                        <h6 class="mb-1">Demande d'extrait de naissance de {{ $naissance->name }}
+                                        <h6 class="mb-1">Demande d'acte de naissance de {{ $naissance->name }}
                                             {{ $naissance->prenom }}</h6>
                                         <p class="mb-0 text-muted">Le {{ $naissance->created_at->format('d/m/Y') }} à
                                             {{ $naissance->created_at->format('H:i') }}</p>
                                     </div>
                                 @empty
-                                    <p class="text-muted">Aucune naissance enregistrée ce mois-ci.</p>
+                                    <p class="text-muted">Aucune demande d'acte de naissance trouvée.</p>
                                 @endforelse
                             </div>
 
                             <div class="tab-pane fade" id="deces" role="tabpanel">
                                 @forelse($recentDeces as $deces)
                                     <div class="recent-item">
-                                        <h6 class="mb-1">Demande d'extrait de décès de {{ $deces->name }}</h6>
+                                        <h6 class="mb-1">Demande d'acte de décès de {{ $deces->name }}</h6>
                                         <p class="mb-0 text-muted">Le {{ $deces->created_at->format('d/m/Y') }} à
                                             {{ $deces->created_at->format('H:i') }}</p>
                                     </div>
                                 @empty
-                                    <p class="text-muted">Aucun décès enregistré ce mois-ci.</p>
+                                    <p class="text-muted">Aucune demande d'acte de décès trouvée.</p>
                                 @endforelse
                             </div>
 
                             <div class="tab-pane fade" id="mariages" role="tabpanel">
                                 @forelse($recentMariages as $mariage)
                                     <div class="recent-item">
-                                        <h6 class="mb-1">Demande d'extrait de mariage
+                                        <h6 class="mb-1">Demande d'acte de mariage
                                             {{$mariage->nomEpoux == null ? 'copie simple' : 'copie integrale'}} par
                                             {{ $mariage->user->name }} {{ $mariage->user->prenom }}</h6>
                                         <p class="mb-0 text-muted">Le {{ $mariage->created_at->format('d/m/Y') }} à
                                             {{ $mariage->created_at->format('H:i') }}</p>
                                     </div>
                                 @empty
-                                    <p class="text-muted">Aucun mariage enregistré ce mois-ci.</p>
+                                    <p class="text-muted">Aucune demande d'acte de mariage trouvée.</p>
                                 @endforelse
                             </div>
                         </div>
@@ -213,7 +215,7 @@
             const distributionChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Naissances', 'Décès', 'Mariages'],
+                    labels: ['Actes de Naissances', 'Actes de Décès', 'Actes de Mariages'],
                     datasets: [{
                         data: [{{ $naissancedash }}, {{ $decesdash }}, {{ $mariagedash }}],
                         backgroundColor: [

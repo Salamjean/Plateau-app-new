@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Étiquette Livraison Extrait de Deces</title>
+    <title>Acte de Deces</title>
     <style>
         * {
             box-sizing: border-box;
@@ -191,7 +191,7 @@
     <div class="etiquette-page last-page">
         <div class="etiquette-content">
             <div class="etiquette-header">
-                EXTRAT DE DECES - LIVRAISON
+                ACTE DE DECES - LIVRAISON
             </div>
 
             {{-- Section Logo / Adresse / QR --}}
@@ -207,7 +207,7 @@
                     <td class="address-cell">
                         <div class="address-details">
                             <strong>MAIRIE - ÉTAT CIVIL</strong>
-                            Service des Extraits de décès<br>
+                            Service des Actes de décès<br>
                             @if(isset($mairie_adresse))
                                 {{ $mairie_adresse }}<br>
                             @endif

@@ -6,7 +6,7 @@
       </div>
       <div class="mdc-drawer__content">
         <div class="user-info">
-          <p class="name text-center">Mairie : {{Auth::guard('mairie')->user()->name}} </p>
+          <p class="name text-center">Mairie : Plateau </p>
           <p class="email text-center">{{Auth::guard('mairie')->user()->email}}</p>
         </div>
         <div class="mdc-list-group">
@@ -54,7 +54,7 @@
              <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-expansion-panel-link" href="#" data-toggle="expansionPanel" data-target="sample-page-submenu">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">monetization_on</i>
-                Finance
+                Registre des taxes
                 <i class="mdc-drawer-arrow material-icons">chevron_right</i>
               </a>
               <div class="mdc-expansion-panel" id="sample-page-submenu">
@@ -119,19 +119,19 @@
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-drawer-link" href="{{route('mairie.request.birth')}}">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">child_care</i>
-                Extrait Naissance
+                Acte Naissance
               </a>
             </div>
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-drawer-link" href="{{route('mairie.request.death')}}">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">spa</i>
-                Extrait Décès
+                Acte Décès
               </a>
             </div>
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-drawer-link" href="{{route('mairie.request.wedding')}}">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">favorite</i>
-                Extrait Mariage
+                Acte Mariage
               </a>
             </div>
             <hr style="color: white">

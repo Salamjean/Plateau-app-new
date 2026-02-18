@@ -7,7 +7,7 @@
   </div>
   <div class="mdc-drawer__content">
     <div class="user-info">
-      <p class="name text-center">Mairie : {{Auth::guard('comptable')->user()->commune}} </p>
+      <p class="name text-center">Mairie : Plateau </p>
     </div>
     <div class="mdc-list-group">
       <nav class="mdc-list mdc-drawer-menu">

@@ -1,612 +1,642 @@
 @extends('user.layouts.template')
 @section('content')
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.cinetpay.com/seamless/main.js"></script>
-<script src="{{ asset('js/cinetpayM.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.cinetpay.com/seamless/main.js"></script>
+    <script src="{{ asset('js/cinetpayM.js') }}"></script>
 
-<style>
-    .demande-container {
-        max-width: 900px;
-        margin: 2rem auto;
-        padding: 2rem;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .form-title {
-        text-align: center;
-        color: #2c3e50;
-        margin-bottom: 2rem;
-        font-weight: 600;
-        font-size: 2rem;
-        position: relative;
-        padding-bottom: 0.5rem;
-    }
-
-    .form-title::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80px;
-        height: 4px;
-        background-color: #ff7e5f;
-        border-radius: 2px;
-    }
-
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-    .form-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: #34495e;
-        font-weight: 500;
-        font-size: 0.9rem;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 0.60rem 1rem;
-        border: 1px solid #dfe6e9;
-        border-radius: 8px;
-        background-color: #f8f9fa;
-        transition: all 0.3s ease;
-        font-size: 0.95rem;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        background-color: white;
-    }
-
-    .radio-options {
-        display: flex;
-        gap: 1.5rem;
-        margin: 1.5rem 0;
-        justify-content: center;
-    }
-
-    .radio-option {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-    }
-
-    .radio-input {
-        margin-right: 0.5rem;
-        accent-color: #3498db;
-        transform: scale(1.2);
-    }
-
-    .submit-btn {
-        width: 100%;
-        padding: 1rem;
-        background: linear-gradient(135deg, #1977cc, #1977cc);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .submit-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .hidden-section {
-        display: none;
-        animation: fadeIn 0.5s ease-out;
-    }
-
-    .section-title {
-        color: #2c3e50;
-        margin: 1.5rem 0 1rem;
-        font-size: 1.2rem;
-        font-weight: 500;
-        border-bottom: 1px solid #ecf0f1;
-        padding-bottom: 0.5rem;
-    }
-
-    .error-message {
-        color: #e74c3c;
-        font-size: 0.8rem;
-        margin-top: 0.3rem;
-        display: block;
-    }
-
-    .radio-options {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin: 1.5rem 0;
-        justify-content: center;
-    }
-
-    .radio-card {
-        position: relative;
-        flex: 1 1 200px;
-        max-width: 250px;
-    }
-
-    .radio-card input[type="radio"] {
-        position: absolute;
-        opacity: 0;
-    }
-
-    .radio-card label {
-        display: block;
-        padding: 1.5rem 1rem;
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 10px;
-        text-align: center;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-    .radio-card label:hover {
-        border-color: var(--secondary-color);
-    }
-
-    .radio-card input[type="radio"]:checked + label {
-        border-color: var(--primary-color);
-        background-color: rgba(44, 120, 115, 0.05);
-        box-shadow: 0 0 0 1px var(--primary-color);
-    }
-
-    .radio-card .icon {
-        font-size: 2rem;
-        color: var(--primary-color);
-        margin-bottom: 0.5rem;
-        display: inline-block;
-    }
-
-    
-        /* Style pour la popup de livraison */
-    .swal-delivery-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-
-    @media (max-width: 600px) {
-        .swal-delivery-grid {
-            grid-template-columns: 1fr;
+    <style>
+        :root {
+            --primary: #1977cc;
+            --primary-soft: rgba(25, 119, 204, 0.1);
+            --secondary: #2c7873;
+            --accent: #ff7e5f;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+            --border-radius: 16px;
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-    }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        .marriage-certificate-container {
+            background: var(--bg-glass);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(12px);
+            padding: 3rem;
+            width: 70%;
+            margin: 2rem auto;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .demande-container {
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .marriage-certificate-title {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 2.5rem;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .marriage-certificate-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            margin: 12px auto 0;
+            border-radius: 2px;
+        }
+
+        .section-card {
+            background: #ffffff;
+            border-radius: 12px;
             padding: 1.5rem;
-            margin: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid #edf2f7;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
         }
-        
-        .form-title {
-            font-size: 1.5rem;
+
+        .section-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-soft);
         }
-        
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
         .form-grid {
-            grid-template-columns: 1fr;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
         }
-        
-        .radio-options {
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid #eef2f7;
+            border-radius: 10px;
+            background-color: #fcfdfe;
+            transition: var(--transition);
+            font-size: 0.95rem;
+            color: #2d3748;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(25, 119, 204, 0.1);
+        }
+
+        .input-icon-wrapper {
+            position: relative;
+        }
+
+        .input-icon-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        .input-icon-wrapper .form-control {
+            padding-left: 40px;
+        }
+
+        /* Radio Cards */
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .radio-card {
+            position: relative;
+        }
+
+        .radio-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .radio-card label {
+            display: flex;
             flex-direction: column;
-            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: #fff;
+            border: 2px solid #edf2f7;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            height: 100%;
         }
-    }
-</style>
 
-@if (Session::get('success'))
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Succès',
-            text: '{{ Session::get('success') }}',
-            timer: 3000,
-            showConfirmButton: false,
-        });
-    </script>
-@endif
-
-@if (Session::get('error'))
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Erreur',
-            text: '{{ Session::get('error') }}',
-            timer: 3000,
-            showConfirmButton: false,
-        });
-    </script>
-@endif
-
-<div class="demande-container">
-    <h1 class="form-title">Demande d'extrait de mariage</h1>
-    
-    <form id="demandeForm" method="POST" enctype="multipart/form-data" action="#">
-        @csrf
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="typeDemande" class="form-label">Type de demande</label>
-                <select id="typeDemande" name="typeDemande" class="form-control">
-                    <option value="extraitSimple">Extrait simple</option>
-                    <option value="copieIntegrale">Copie intégrale</option>
-                </select>
-            </div>
-        </div>
-
-        <div id="infoEpoux" class="hidden-section">
-            <h3 class="section-title">Informations sur le conjoint(e)</h3>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="nomEpoux" class="form-label">Nom du conjoint(e)</label>
-                    <input type="text" id="nomEpoux" name="nomEpoux" class="form-control" placeholder="Entrez le nom de l'époux">
-                </div>
-                <div class="form-group">
-                    <label for="prenomEpoux" class="form-label">Prénom du conjoint(e)</label>
-                    <input type="text" id="prenomEpoux" name="prenomEpoux" class="form-control" placeholder="Entrez le prénom de l'époux">
-                </div>
-                <div class="form-group">
-                    <label for="dateNaissanceEpoux" class="form-label">Date de naissance du conjoint(e)</label>
-                    <input type="date" id="dateNaissanceEpoux" name="dateNaissanceEpoux" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="lieuNaissanceEpoux" class="form-label">Lieu de naissance du conjoint(e)</label>
-                    <input type="text" id="lieuNaissanceEpoux" name="lieuNaissanceEpoux" class="form-control" placeholder="Entrez le lieu de naissance">
-                </div>
-            </div>
-        </div>
-
-        <div class="form-grid">
-    <div class="form-group">
-        <label for="commune" class="form-label">Commune</label>
-        <input type="text" id="commune" value="plateau" name="commune" class="form-control" readonly>
-    </div>
-    <div class="form-group">
-        <label for="quantite" class="form-label">Quantité :</label>
-        <input type="number" id="quantite" name="quantite" class="form-control" value="{{ old('quantite', 1) }}" min="1" max="10">
-        @error('quantite')
-            <span class="error-message">{{ $message }}</span>
-        @enderror
-    </div>
-    <div class="form-group">
-        <label for="pieceIdentite" class="form-label">Pièce d'identité</label>
-        <input type="file" id="pieceIdentite" name="pieceIdentite" class="form-control">
-        @error('pieceIdentite')
-            <span class="error-message">{{ $message }}</span>
-        @enderror
-    </div>
-    <div class="form-group">
-        <label for="extraitMariage" class="form-label">Extrait de mariage</label>
-        <input type="file" id="extraitMariage" name="extraitMariage" class="form-control">
-        @error('extraitMariage')
-            <span class="error-message">{{ $message }}</span>
-        @enderror
-    </div>
-    <div class="form-group">
-        <label for="CMU" class="form-label">Numéro NNI</label>
-        <input type="text" id="CMU" value="{{ Auth::user()->CMU }}" name="CMU" placeholder="Entrez votre numéro CMU" class="form-control">
-    </div>
-</div>
-
-        <div class="delivery-options">
-            <p class="form-label text-center" style="margin-bottom: 1rem;">Options de retrait :</p>
-            <div class="radio-options">
-                <div class="radio-card">
-                    <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
-                    <label for="option1">
-                        <div class="icon">🏢</div>
-                        <div>Retrait sur place</div>
-                        <small>Gratuit</small>
-                    </label>
-                </div>
-                <div class="radio-card">
-                    <input type="radio" id="option2" name="choix_option" value="livraison">
-                    <label for="option2">
-                        <div class="icon">🚚</div>
-                        <div>Livraison à domicile</div>
-                        <small>Frais: 1500 FCFA</small>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <button type="submit" class="submit-btn">Soumettre la demande</button>
-    </form>
-</div>
-
-<script>
-    let formSubmitted = false;
-    let submitAfterPopup = false;
-    const optionsSection = document.getElementById('optionsSection');
-    
-    document.getElementById('typeDemande').addEventListener('change', function() {
-        const infoEpoux = document.getElementById('infoEpoux');
-        if (this.value === 'copieIntegrale') {
-            infoEpoux.classList.remove('hidden-section');
-        } else {
-            infoEpoux.classList.add('hidden-section');
+        .radio-card label:hover {
+            border-color: var(--primary-soft);
+            background: #fafbff;
         }
-    });
 
-    function showLivraisonPopup() {
-    // Récupérer la quantité depuis le formulaire
-    const quantite = parseInt(document.getElementById('quantite').value) || 1;
-    const montantTimbreUnitaire = 50; // 50 FCFA par timbre
-    const montantTimbreTotal = montantTimbreUnitaire * quantite;
-    const montantLivraison = 50; // 1500 FCFA pour la livraison
+        .radio-card input[type="radio"]:checked+label {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            box-shadow: var(--shadow-sm);
+        }
 
-    Swal.fire({
-        title: 'Informations de Livraison',
-        width: '700px',
-        html: `
-            <div class="swal-delivery-grid">
-                <div>
-                    <label for="swal-quantite" style="font-weight: bold">Quantité</label>
-                    <input id="swal-quantite" class="swal2-input text-center" value="${quantite}" readonly>
-                    <small style="color:#666">Nombre d'exemplaires</small>
-                </div>
-                <div>
-                    <label for="swal-montant_timbre_unitaire" style="font-weight: bold">Timbre unitaire</label>
-                    <input id="swal-montant_timbre_unitaire" class="swal2-input text-center" value="${montantTimbreUnitaire}" readonly>
-                    <small style="color:#666">Frais par exemplaire</small>
-                </div>
-                <div>
-                    <label for="swal-montant_timbre" style="font-weight: bold">Total Timbre</label>
-                    <input id="swal-montant_timbre" class="swal2-input text-center" value="${montantTimbreTotal}" readonly>
-                    <small style="color:#666">${quantite} × ${montantTimbreUnitaire} FCFA</small>
-                </div>
-                <div>
-                    <label for="swal-montant_livraison" style="font-weight: bold">Frais Livraison</label>
-                    <input id="swal-montant_livraison" class="swal2-input text-center" value="${montantLivraison}" readonly>
-                    <small style="color:#666">Frais fixes pour la livraison</small>
-                </div>
-                <div style="grid-column: 1 / -1; background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">
-                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem;">
-                        <span>Total à payer :</span>
-                        <span>${montantTimbreTotal + montantLivraison} FCFA</span>
-                    </div>
-                    <small style="color:#666">Timbre (${montantTimbreTotal} FCFA) + Livraison (${montantLivraison} FCFA)</small>
-                </div>
-                <div>
-                    <label for="swal-nom_destinataire" style="font-weight: bold">Nom</label>
-                    <input id="swal-nom_destinataire" class="swal2-input" placeholder="Nom du destinataire">
-                </div>
-                <div>
-                    <label for="swal-prenom_destinataire" style="font-weight: bold">Prénom</label>
-                    <input id="swal-prenom_destinataire" class="swal2-input" placeholder="Prénom du destinataire">
-                </div>
-                <div>
-                    <label for="swal-email_destinataire" style="font-weight: bold">Email</label>
-                    <input id="swal-email_destinataire" class="swal2-input" placeholder="Email du destinataire" type="email">
-                </div>
-                <div>
-                    <label for="swal-contact_destinataire" style="font-weight: bold">Téléphone</label>
-                    <input id="swal-contact_destinataire" class="swal2-input" placeholder="Contact du destinataire" type="tel">
-                </div>
-                <div>
-                    <label for="swal-adresse_livraison" style="font-weight: bold">Adresse</label>
-                    <input id="swal-adresse_livraison" class="swal2-input" placeholder="Adresse complète">
-                </div>
-                <div>
-                    <label for="swal-ville" style="font-weight: bold">Ville</label>
-                    <input id="swal-ville" class="swal2-input" placeholder="Ville de livraison">
-                </div>
-                <div>
-                    <label for="swal-commune_livraison" style="font-weight: bold">Commune</label>
-                    <input id="swal-commune_livraison" class="swal2-input" placeholder="Commune">
-                </div>
-                <div>
-                    <label for="swal-quartier" style="font-weight: bold">Quartier</label>
-                    <input id="swal-quartier" class="swal2-input" placeholder="Quartier">
-                </div>
-            </div>`,
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: `Payer ${montantTimbreTotal + montantLivraison} FCFA`,
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#1977cc',
-        focusConfirm: false,
-        preConfirm: () => {
-            const nom_destinataire = document.getElementById('swal-nom_destinataire').value;
-            const prenom_destinataire = document.getElementById('swal-prenom_destinataire').value;
-            const email_destinataire = document.getElementById('swal-email_destinataire').value;
-            const contact_destinataire = document.getElementById('swal-contact_destinataire').value;
-            const adresse_livraison = document.getElementById('swal-adresse_livraison').value;
-            const ville = document.getElementById('swal-ville').value;
-            const commune_livraison = document.getElementById('swal-commune_livraison').value;
-            const quartier = document.getElementById('swal-quartier').value;
+        .radio-card i,
+        .radio-card .icon-fs {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
 
-            if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier) {
-                Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires");
-                return false;
-            }
-            // Validation d'email simple
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
-                Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
-                return false;
-            }
-            // Validation de numéro de téléphone (8 à 15 chiffres)
-            if (!/^\d{8,15}$/.test(contact_destinataire)) {
-                Swal.showValidationMessage("Veuillez entrer un numéro de téléphone valide (8 à 15 chiffres).");
-                return false;
+        .radio-card span {
+            font-weight: 700;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+
+        .radio-card small {
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--primary), #1565b8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(25, 119, 204, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(25, 119, 204, 0.4);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .hidden-section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
             }
 
-            return {
-                nom_destinataire: nom_destinataire,
-                prenom_destinataire: prenom_destinataire,
-                email_destinataire: email_destinataire,
-                contact_destinataire: contact_destinataire,
-                adresse_livraison: adresse_livraison,
-                ville: ville,
-                commune_livraison: commune_livraison,
-                quartier: quartier,
-                quantite: quantite,
-                montant_timbre_unitaire: montantTimbreUnitaire,
-                montant_timbre: montantTimbreTotal,
-                montant_livraison: montantLivraison,
-            };
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const formData = result.value;
-            initializeCinetPay(formData);
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            document.getElementById('option1').checked = true;
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .marriage-certificate-container {
+                width: 90%;
+            }
         }
-    });
-}
 
-   function initializeCinetPay(formData) {
-    // Configuration CinetPay
-    CinetPay.setConfig({
-        apikey: '{{ config("services.cinetpay.api_key") }}',
-        site_id: '{{ config("services.cinetpay.site_id") }}',
-        mode: 'PRODUCTION'
-    });
+        @media (max-width: 768px) {
+            .marriage-certificate-container {
+                padding: 1.5rem;
+                width: 95%;
+            }
 
-    // ID de transaction
-    const transactionId = 'MAR-' + Date.now();
-    
-    // Montant total (timbre total + livraison)
-    const totalAmount = formData.montant_timbre + formData.montant_livraison;
+            .form-grid,
+            .radio-grid {
+                grid-template-columns: 1fr;
+            }
 
-    // Chargement
-    Swal.fire({
-        title: 'Redirection en cours',
-        html: `Préparation du paiement de ${totalAmount} FCFA...`,
-        allowOutsideClick: true,
-        didOpen: () => Swal.showLoading()
-    });
+            .marriage-certificate-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
 
-    // Données client
-    const customer = {
-        name: '{{ Auth::user()->name ?? "Client" }}',
-        email: '{{ Auth::user()->email ?? "contact@client.com" }}',
-        phone: '{{ Auth::user()->telephone ?? "00000000" }}'
-    };
-
-    // Description détaillée avec la quantité
-    const description = `Paiement pour ${formData.quantite} exemplaire(s) d'extrait de mariage (Timbre: ${formData.montant_timbre} FCFA + Livraison: ${formData.montant_livraison} FCFA)`;
-
-    // Paiement
-    CinetPay.getCheckout({
-        transaction_id: transactionId,
-        amount: totalAmount,
-        currency: 'XOF',
-        channels: 'ALL',
-        description: description,
-        customer_name: customer.name,
-        customer_email: customer.email,
-        customer_phone_number: customer.phone,
-        customer_address: formData.adresse_livraison,
-        customer_city: formData.ville,
-        customer_country: 'CI',
-        customer_state: 'CI',
-        customer_zip_code: '00225'
-    });
-
-    // Gestion réponse
-    CinetPay.waitResponse(function(data) {
-        Swal.close();
-        if (data.status === "ACCEPTED") {
-            // Ajouter les données de livraison au formulaire
-            const form = document.getElementById('demandeForm');
-            
-            // Créer des champs cachés pour les données de livraison
-            const hiddenFields = [
-                { name: 'nom_destinataire', value: formData.nom_destinataire },
-                { name: 'prenom_destinataire', value: formData.prenom_destinataire },
-                { name: 'email_destinataire', value: formData.email_destinataire },
-                { name: 'contact_destinataire', value: formData.contact_destinataire },
-                { name: 'adresse_livraison', value: formData.adresse_livraison },
-                { name: 'ville', value: formData.ville },
-                { name: 'commune_livraison', value: formData.commune_livraison },
-                { name: 'quartier', value: formData.quartier },
-                { name: 'montant_timbre_unitaire', value: formData.montant_timbre_unitaire },
-                { name: 'montant_timbre', value: formData.montant_timbre },
-                { name: 'montant_livraison', value: formData.montant_livraison },
-                { name: 'transaction_id', value: transactionId }
-            ];
-
-            hiddenFields.forEach(field => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = field.name;
-                input.value = field.value;
-                form.appendChild(input);
+    @if (Session::get('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Succès',
+                text: '{{ Session::get('success') }}',
+                timer: 3000,
+                showConfirmButton: false,
             });
+        </script>
+    @endif
 
-            // Soumettre le formulaire
-            formSubmitted = true;
-            form.submit();
-        } else {
+    @if (Session::get('error'))
+        <script>
             Swal.fire({
                 icon: 'error',
-                title: 'Échec du paiement',
-                text: data.message || 'Une erreur est survenue lors du traitement de votre paiement. Veuillez réessayer.'
+                title: 'Erreur',
+                text: '{{ Session::get('error') }}',
+                timer: 3000,
+                showConfirmButton: false,
+            });
+        </script>
+    @endif
+
+    <div class="marriage-certificate-container">
+        <h1 class="marriage-certificate-title">Demande d'acte de mariage</h1>
+
+        <form id="demandeForm" method="POST" enctype="multipart/form-data" action="{{ route('user.extrait.mariage.store') }}">
+            @csrf
+
+            <!-- Section: Type de demande -->
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-file-signature"></i> Type de demande</h3>
+                <div class="form-group full-width">
+                    <label for="typeDemande" class="form-label">Type d'acte souhaité</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fas fa-list"></i>
+                        <select id="typeDemande" name="typeDemande" class="form-control">
+                            <option value="extraitSimple">Acte simple (Extrait)</option>
+                            <option value="copieIntegrale">Copie intégrale</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Informations Conjoint (Conditionnelle) -->
+            <div id="infoEpoux" class="section-card hidden-section">
+                <h3 class="section-title"><i class="fas fa-user-friends"></i> Informations sur le conjoint(e)</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nomEpoux" class="form-label">Nom du conjoint(e)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="nomEpoux" name="nomEpoux" class="form-control"
+                                placeholder="Nom de l'époux(se)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prenomEpoux" class="form-label">Prénom du conjoint(e)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="prenomEpoux" name="prenomEpoux" class="form-control"
+                                placeholder="Prénom de l'époux(se)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateNaissanceEpoux" class="form-label">Date de naissance</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" id="dateNaissanceEpoux" name="dateNaissanceEpoux" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lieuNaissanceEpoux" class="form-label">Lieu de naissance</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" id="lieuNaissanceEpoux" name="lieuNaissanceEpoux" class="form-control"
+                                placeholder="Ville de naissance">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Détails de l'acte -->
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-book"></i> Détails de l'acte et Pièces</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="commune" class="form-label">Commune de l'acte</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-city"></i>
+                            <input type="text" id="commune" value="Plateau" name="commune" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantite" class="form-label">Quantité souhaitée</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-copy"></i>
+                            <input type="number" id="quantite" name="quantite" class="form-control"
+                                value="{{ old('quantite', 1) }}" min="1" max="10">
+                        </div>
+                        @error('quantite') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pieceIdentite" class="form-label">Pièce d'identité (CNI/Pass)</label>
+                        <input type="file" id="pieceIdentite" name="pieceIdentite" class="form-control"
+                            accept=".pdf,.jpg,.jpeg,.png">
+                        @error('pieceIdentite') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="extraitMariage" class="form-label">Ancien acte de mariage</label>
+                        <input type="file" id="extraitMariage" name="extraitMariage" class="form-control"
+                            accept=".pdf,.jpg,.jpeg,.png">
+                        @error('extraitMariage') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="CMU" class="form-label">Numéro NNI (Optionnel)</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-id-card"></i>
+                            <input type="text" id="CMU" value="{{ Auth::user()->CMU }}" name="CMU"
+                                placeholder="Votre numéro NNI" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Mode de retrait -->
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-shipping-fast"></i> Option de retrait</h3>
+                <div class="radio-grid">
+                    <div class="radio-card">
+                        <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
+                        <label for="option1">
+                            <i class="fas fa-building icon-fs"></i>
+                            <span>Retrait sur place</span>
+                            <small>À la mairie (Gratuit)</small>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" id="option2" name="choix_option" value="livraison">
+                        <label for="option2">
+                            <i class="fas fa-truck icon-fs"></i>
+                            <span>Livraison à domicile</span>
+                            <small>Frais : 1500 FCFA</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-check-circle"></i> Soumettre la demande
+            </button>
+        </form>
+    </div>
+
+    <script>
+        let formSubmitted = false;
+        let submitAfterPopup = false;
+
+        document.getElementById('typeDemande').addEventListener('change', function () {
+            const infoEpoux = document.getElementById('infoEpoux');
+            if (this.value === 'copieIntegrale') {
+                infoEpoux.classList.remove('hidden-section');
+            } else {
+                infoEpoux.classList.add('hidden-section');
+            }
+        });
+
+        function showLivraisonPopup() {
+            const quantite = parseInt(document.getElementById('quantite').value) || 1;
+            const montantTimbreUnitaire = 50;
+            const montantTimbreTotal = montantTimbreUnitaire * quantite;
+            const montantLivraison = 1500; // 1500 FCFA pour la livraison
+
+            Swal.fire({
+                title: '<i class="fas fa-shipping-fast" style="color: #1977cc;"></i> Informations de Livraison',
+                width: '800px',
+                html: `
+                    <div class="swal-custom-container" style="text-align: left; padding: 10px;">
+                        <!-- Résumé de la commande -->
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
+                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
+                                <span style="font-weight: 600; color: #64748b;">Quantité demandée</span>
+                                <span style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">${quantite} Exemplaire(s)</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <small style="display: block; color: #94a3b8; font-weight: 600;">TIMBRE (${quantite})</small>
+                                    <span style="font-weight: 700; color: #1e293b;">${montantTimbreTotal} FCFA</span>
+                                </div>
+                                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <small style="display: block; color: #94a3b8; font-weight: 600;">LIVRAISON</small>
+                                    <span style="font-weight: 700; color: #1e293b;">${montantLivraison} FCFA</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: #1977cc; color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(25, 119, 204, 0.2);">
+                                <span style="font-weight: 600;">TOTAL À PAYER</span>
+                                <span style="font-weight: 800; font-size: 1.3rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
+                            </div>
+                        </div>
+
+                        <!-- Formulaire Détaillé -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <div>
+                                <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #1977cc; padding-left: 10px;">
+                                    <i class="fas fa-user-check" style="color: #1977cc; margin-right: 8px;"></i>Destinataire
+                                </h4>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">NOM</label>
+                                    <input id="swal-nom_destinataire" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">PRÉNOM</label>
+                                    <input id="swal-prenom_destinataire" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">EMAIL</label>
+                                    <input id="swal-email_destinataire" type="email" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">TÉLÉPHONE</label>
+                                    <input id="swal-contact_destinataire" type="tel" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #2c7873; padding-left: 10px;">
+                                    <i class="fas fa-map-marked-alt" style="color: #2c7873; margin-right: 8px;"></i>Adresse
+                                </h4>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">VILLE</label>
+                                    <input id="swal-ville" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">COMMUNE</label>
+                                    <input id="swal-commune_livraison" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">QUARTIER</label>
+                                    <input id="swal-quartier" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">ADRESSE EXACTE</label>
+                                    <input id="swal-adresse_livraison" class="swal2-input" style="width: 100%; margin: 0; height: 45px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: `<i class="fas fa-credit-card"></i> Payer ${montantTimbreTotal + montantLivraison} FCFA`,
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1977cc',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const nom = document.getElementById('swal-nom_destinataire').value;
+                    const prenom = document.getElementById('swal-prenom_destinataire').value;
+                    const email = document.getElementById('swal-email_destinataire').value;
+                    const tel = document.getElementById('swal-contact_destinataire').value;
+                    const ville = document.getElementById('swal-ville').value;
+                    const commune = document.getElementById('swal-commune_livraison').value;
+                    const quartier = document.getElementById('swal-quartier').value;
+                    const adresse = document.getElementById('swal-adresse_livraison').value;
+
+                    if (!nom || !prenom || !email || !tel || !ville || !commune || !quartier || !adresse) {
+                        Swal.showValidationMessage("Remplissez tous les champs obligatoires");
+                        return false;
+                    }
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        Swal.showValidationMessage("Email invalide");
+                        return false;
+                    }
+                    return { nom, prenom, email, tel, ville, commune, quartier, adresse, quantite, montantTimbreTotal, montantLivraison };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    initializeCinetPay(result.value);
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    document.getElementById('option1').checked = true;
+                }
             });
         }
-    });
 
-    // Gestion erreurs
-    CinetPay.onError(function(error) {
-        Swal.close();
-        Swal.fire({
-            icon: 'error',
-            title: 'Erreur de connexion',
-            html: `Une erreur est survenue lors de la connexion à CinetPay.<br><small>${error.message || 'Veuillez vérifier votre connexion et réessayer.'}</small>`
+        function initializeCinetPay(formData) {
+            CinetPay.setConfig({
+                apikey: '{{ config("services.cinetpay.api_key") }}',
+                site_id: '{{ config("services.cinetpay.site_id") }}',
+                mode: 'PRODUCTION'
+            });
+
+            const transactionId = 'MAR-' + Date.now();
+            const totalAmount = formData.montantTimbreTotal + formData.montantLivraison;
+
+            Swal.fire({
+                title: 'Redirection...',
+                html: `Paiement de ${totalAmount} FCFA en cours...`,
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            CinetPay.getCheckout({
+                transaction_id: transactionId,
+                amount: totalAmount,
+                currency: 'XOF',
+                channels: 'ALL',
+                description: `Acte Mariage x${formData.quantite}`,
+                customer_name: '{{ Auth::user()->name }}',
+                customer_email: '{{ Auth::user()->email }}',
+                customer_phone_number: '{{ Auth::user()->telephone }}',
+                customer_address: formData.adresse,
+                customer_city: formData.ville,
+                customer_country: 'CI'
+            });
+
+            CinetPay.waitResponse(function (data) {
+                Swal.close();
+                if (data.status === "ACCEPTED") {
+                    const form = document.getElementById('demandeForm');
+                    const fields = [
+                        { n: 'nom_destinataire', v: formData.nom },
+                        { n: 'prenom_destinataire', v: formData.prenom },
+                        { n: 'email_destinataire', v: formData.email },
+                        { n: 'contact_destinataire', v: formData.tel },
+                        { n: 'adresse_livraison', v: formData.adresse },
+                        { n: 'ville', v: formData.ville },
+                        { n: 'commune_livraison', v: formData.commune },
+                        { n: 'quartier', v: formData.quartier },
+                        { n: 'montant_timbre_unitaire', v: 50 }, // Assuming 50 FCFA per unit
+                        { n: 'montant_timbre', v: formData.montantTimbreTotal },
+                        { n: 'montant_livraison', v: formData.montantLivraison },
+                        { n: 'transaction_id', v: transactionId }
+                    ];
+
+                    fields.forEach(f => {
+                        const i = document.createElement('input');
+                        i.type = 'hidden'; i.name = f.n; i.value = f.v;
+                        form.appendChild(i);
+                    });
+
+                    formSubmitted = true;
+                    form.submit();
+                } else {
+                    Swal.fire('Erreur', data.message || 'Échec du paiement', 'error');
+                }
+            });
+        }
+
+        document.getElementById('demandeForm').addEventListener('submit', function (event) {
+            if (formSubmitted) return;
+            const livraison = document.getElementById('option2').checked;
+            if (livraison && !submitAfterPopup) {
+                event.preventDefault();
+                showLivraisonPopup();
+            } else {
+                formSubmitted = true;
+            }
         });
-    });
-}
-
-    document.getElementById('demandeForm').addEventListener('submit', function(event) {
-        if (formSubmitted) {
-            event.preventDefault();
-            return;
-        }
-        const livraisonCheckbox = document.getElementById('option2');
-        if (livraisonCheckbox.checked && !submitAfterPopup) {
-            event.preventDefault();
-            showLivraisonPopup();
-        } else {
-            formSubmitted = true;
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const isFilled = Array.from(document.querySelectorAll("#demandeForm input[required], #demandeForm select"))
-            .every(input => input.value.trim() !== "");
-        if (isFilled) {
-            optionsSection.style.display = 'block';
-        }
-    });
-</script>
+    </script>
 
 @endsection

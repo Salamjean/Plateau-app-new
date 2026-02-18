@@ -11,8 +11,8 @@
         <div class="col-12 col-md-10 col-lg-8">
             <div class="card shadow-lg border-0 rounded-20">
                 <div class="card-header py-4 text-center bg-gradient-primary rounded-top-20">
-                    <h2 class="mb-0 fw-bold text-white"><i class="fas fa-home me-2 text-white"></i>Enregistrement d'un agent financier</h2>
-                    <p class="mb-0 mt-2 opacity-75 text-white">Formulaire d'enregistrement d'un agent par le service</p>
+                    <h2 class="mb-0 fw-bold text-white"><i class="fas fa-person me-2 text-white"></i>Enregistrement du registraire</h2>
+                    <p class="mb-0 mt-2 opacity-75 text-white">Formulaire d'enregistrement d'un registraire par le service</p>
                 </div>
 
                 <div class="card-body px-4 px-md-5 py-4">
@@ -74,7 +74,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1977cc"></i></span>
                                         <input type="text" class="form-control rounded-end @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required 
-                                               placeholder="Nom de l'agent">
+                                               placeholder="Nom du registraire">
                                         @error('name')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -85,7 +85,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1977cc"></i></span>
                                         <input type="text" class="form-control rounded-end @error('prenom') is-invalid @enderror" id="prenom" name="prenom" value="{{ old('prenom') }}" required 
-                                               placeholder="Prénom de l'agent">
+                                               placeholder="Prénom du registraire">
                                         @error('prenom')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -238,7 +238,7 @@
                                     <i class="fas fa-arrow-left me-2"></i>Précédent
                                 </button>
                                 <button type="submit" class="btn btn-success px-4 py-2 fw-bold" id="submit-btn">
-                                    <i class="fas fa-save me-2"></i>Enregistrer l'agent
+                                    <i class="fas fa-save me-2"></i>Enregistrer le registraire
                                 </button>
                             </div>
                         </div>

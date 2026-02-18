@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demandes d'extrait de naissance</title>
+    <title>Demande d'acte de naissance</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -263,8 +263,8 @@
         <div class="dashboard-header p-4 mb-4">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="h3 mb-2">Demandes d'extrait de naissance</h1>
-                    <p class="mb-0">Gérez et suivez toutes les demandes d'extrait de naissance de votre commune</p>
+                    <h1 class="h3 mb-2">Demande d'acte de naissance</h1>
+                    <p class="mb-0">Gérez et suivez toutes les demandes d'actes de naissance de votre commune</p>
                 </div>
                 <div class="col-md-4 text-md-end">
                     <span class="badge bg-light text-dark p-2">

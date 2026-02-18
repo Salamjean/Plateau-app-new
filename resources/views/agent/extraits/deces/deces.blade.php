@@ -522,7 +522,7 @@
 
   <div class="page-title">
     <h2>
-      <i class="fas fa-cross me-2"></i>Gestion des demandes d'extrait de décès
+      <i class="fas fa-cross me-2"></i>Gestion des demandes d'acte de décès
     </h2>
     <div class="page-actions">
       <a href="{{ route('agent.dashboard') }}" class="btn-action">
@@ -538,7 +538,7 @@
     </div>
     <div class="stats-content">
       <h3>{{ $deces->total() }}</h3>
-      <p>Demandes d'extraits de deces en cours</p>
+      <p>Demandes d'actes de deces en cours</p>
     </div>
   </div>
 

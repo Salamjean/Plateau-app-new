@@ -556,7 +556,7 @@
 
   <div class="page-title">
     <h2>
-      <i class="fas fa-ring me-2"></i>Gestion des demandes d'extrait de mariage
+      <i class="fas fa-ring me-2"></i>Gestion des demandes d'acte de mariage
     </h2>
     <div class="page-actions">
       <a href="{{ route('agent.dashboard') }}" class="btn-action">
@@ -572,7 +572,7 @@
     </div>
     <div class="stats-content">
       <h3>{{ $mariages->total() }}</h3>
-      <p>Demandes d'extraits de mariages en cours</p>
+      <p>Demandes d'actes de mariages en cours</p>
     </div>
   </div>
 
@@ -622,9 +622,9 @@
                       {{ substr($mariage->user->name, 0, 1).''.substr($mariage->user->prenom, 0, 1) }}
                     </div>
                     <div class="user-details">
-                      <div class="user-name">{{ $mariage->user->name.' '.$mariage->user->prenom }} </div>
-                      <div class="user-email">{{ $mariage->user->contact }}</div>
-                      <div class="user-email">{{ $mariage->user->email }}</div>
+                      <div class="user-name">{{ $mariage->user->name.' '.$mariage->user->prenom ?? '--' }} </div>
+                      <div class="user-email">{{ $mariage->user->contact ?? '--' }}</div>
+                      <div class="user-email">{{ $mariage->user->email ?? '--' }}</div>
                     </div>
                   </div>
                 </td>

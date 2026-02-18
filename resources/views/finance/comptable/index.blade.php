@@ -13,8 +13,8 @@
                 <div class="card-header py-3 bg-white">
                     <div class="row align-items-center">
                         <div class="col text-center">
-                            <h2 class="mb-0 fw-bold text-primary"><i class="fas fa-users me-2"></i>Gestion des agents financiers</h2>
-                            <p class="text-muted mb-0">Informations sur les agents financiers</p>
+                            <h2 class="mb-0 fw-bold text-primary"><i class="fas fa-users me-2"></i>Gestion des registraires</h2>
+                            <p class="text-muted mb-0">Informations sur les registraires</p>
                             {{-- <p class="text-muted mb-0">Liste des responsables d'état civil enregistrés</p> --}}
                         </div>
                         {{-- <div class="col-auto">
@@ -50,7 +50,7 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th scope="col" class="border-0 rounded-start-15 ps-4" style="text-align: center">Agent</th>
+                                    <th scope="col" class="border-0 rounded-start-15 ps-4" style="text-align: center">Registraire</th>
                                     <th scope="col" class="border-0" style="text-align: center">Contact</th>
                                     <th scope="col" class="border-0" style="text-align: center">Commune</th>
                                     <th scope="col" class="border-0" style="text-align: center"> en cas d'urgence</th>
@@ -129,7 +129,7 @@
                                 
                                 @for ($i = 1; $i <= $agents->lastPage(); $i++)
                                 <li class="page-item {{ $agents->currentPage() == $i ? 'active' : '' }}">
-                                    <a class="page-link" href="{{ $agents->url($i) }}">{{ $i }}</a>
+                                    <a class="page-link text-white" href="{{ $agents->url($i) }}">{{ $i }}</a>
                                 </li>
                                 @endfor
                                 

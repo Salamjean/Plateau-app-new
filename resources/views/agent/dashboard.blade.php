@@ -47,7 +47,7 @@
 
     <h1 class="dashboard-title">
       <i class="fas fa-tachometer-alt me-2"></i>Tableau de Bord Agent
-      <p>Vous verez ici toutes les demandes d'extraits effectués</p>
+      <p>Vous verez ici toutes les demandes d'actes effectués</p>
     </h1>
     <!-- Filtres -->
     <div class="filter-section">
@@ -56,9 +56,11 @@
         <div class="form-group">
           <label class="form-label">Mois</label>
           <select class="form-select" name="month">
+            <option value="">Tous les mois</option>
             @for ($i = 1; $i <= 12; $i++)
               <option value="{{ $i }}" {{ $selectedMonth == $i ? 'selected' : '' }}>
-                {{ DateTime::createFromFormat('!m', $i)->format('F') }}</option>
+                {{ \Carbon\Carbon::createFromFormat('!m', $i)->locale('fr')->monthName }}
+              </option>
             @endfor
           </select>
         </div>
@@ -66,6 +68,7 @@
         <div class="form-group">
           <label class="form-label">Année</label>
           <select class="form-select" name="year">
+            <option value="">Toutes les années</option>
             @for ($i = date('Y'); $i >= date('Y') - 5; $i--)
               <option value="{{ $i }}" {{ $selectedYear == $i ? 'selected' : '' }}>{{ $i }}</option>
             @endfor
@@ -82,29 +85,29 @@
       <div class="stat-card">
         <i class="fas fa-baby stat-icon"></i>
         <div class="stat-number">{{ $naissancedash }}</div>
-        <div class="stat-label">Naissances ce mois</div>
+        <div class="stat-label">Demandes d'actes de Naissances</div>
         <span class="stat-percentage">{{ number_format($naissancePercentage, 1) }}% du total</span>
       </div>
 
       <div class="stat-card">
         <i class="fas fa-cross stat-icon"></i>
         <div class="stat-number">{{ $decesdash }}</div>
-        <div class="stat-label">Décès ce mois</div>
+        <div class="stat-label">Demandes d'actes de Décès</div>
         <span class="stat-percentage">{{ number_format($decesPercentage, 1) }}% du total</span>
       </div>
 
       <div class="stat-card secondary">
         <i class="fas fa-ring stat-icon"></i>
         <div class="stat-number">{{ $mariagedash }}</div>
-        <div class="stat-label">Mariages ce mois</div>
+        <div class="stat-label">Demandes d'actes de Mariages</div>
         <span class="stat-percentage">{{ number_format($mariagePercentage, 1) }}% du total</span>
       </div>
 
       <div class="stat-card secondary">
         <i class="fas fa-file-alt stat-icon"></i>
         <div class="stat-number">{{ $totalData }}</div>
-        <div class="stat-label">Total des demandes</div>
-        <span class="stat-percentage">Ce mois</span>
+        <div class="stat-label">Total des demandes d'actes</div>
+        <span class="stat-percentage">Actuelles</span>
       </div>
     </div>
 

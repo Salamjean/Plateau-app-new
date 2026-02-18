@@ -7,7 +7,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tableau de Bord Financier | Moderne</title>
+        <title>Tableau de Bord</title>
 
         <!-- Google Fonts -->
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -66,9 +66,7 @@
                 font-size: 1.75rem;
                 font-weight: 700;
                 margin: 0;
-                background: linear-gradient(45deg, var(--primary), var(--secondary));
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
+                color: #1977cc;
             }
 
             .header-title p {
@@ -83,7 +81,7 @@
                 border-radius: 50px;
                 font-size: 0.85rem;
                 font-weight: 600;
-                color: var(--primary);
+                color: #1977cc;
                 box-shadow: var(--shadow-sm);
                 display: flex;
                 align-items: center;
@@ -416,7 +414,7 @@
             <header class="dashboard-header">
                 <div class="header-title">
                     <h1>Vue d'ensemble</h1>
-                    <p>Bienvenue sur votre espace de gestion financière</p>
+                    <p>Bienvenue sur votre espace de gestion des recettes</p>
                 </div>
                 <div class="header-actions">
                     <div class="date-badge">
@@ -431,7 +429,7 @@
                 <!-- Naissances -->
                 <div class="kpi-card kpi-naissance">
                     <div class="kpi-content">
-                        <p>Naissances</p>
+                        <p>Demandes d'actes de naissances</p>
                         <h3>{{ $naissancenombre }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -442,7 +440,7 @@
                 <!-- Décès -->
                 <div class="kpi-card kpi-deces">
                     <div class="kpi-content">
-                        <p>Décès</p>
+                        <p>Demandes d'actes de décès</p>
                         <h3>{{ $decesnombre }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -453,7 +451,7 @@
                 <!-- Mariages -->
                 <div class="kpi-card kpi-mariage">
                     <div class="kpi-content">
-                        <p>Mariages</p>
+                        <p>Demandes d'actes de mariages</p>
                         <h3>{{ $mariagenombre }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -464,7 +462,7 @@
                 <!-- Total -->
                 <div class="kpi-card kpi-total">
                     <div class="kpi-content">
-                        <p>Total Demandes</p>
+                        <p>Total demandes d'actes</p>
                         <h3>{{ $total }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -552,9 +550,9 @@
                     </div>
 
                     <div class="recent-tabs" style="display:flex; gap:10px; margin-bottom:15px;">
-                        <button class="chart-tab-btn active" onclick="showRecent('naissance', this)">Naissances</button>
-                        <button class="chart-tab-btn" onclick="showRecent('deces', this)">Décès</button>
-                        <button class="chart-tab-btn" onclick="showRecent('mariage', this)">Mariages</button>
+                        <button class="chart-tab-btn active" onclick="showRecent('naissance', this)">Actes de naissances</button>
+                        <button class="chart-tab-btn" onclick="showRecent('deces', this)">Actes de décès</button>
+                        <button class="chart-tab-btn" onclick="showRecent('mariage', this)">Actes de mariages</button>
                     </div>
 
                     <div class="recent-list" id="list-naissance">

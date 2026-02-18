@@ -455,7 +455,7 @@
             <div class="grid-stats">
                 <div class="kpi-card kpi-naissance">
                     <div class="kpi-content">
-                        <p>Naissances</p>
+                        <p>Demandes d'actes de naissances</p>
                         <h3>{{ $naissancenombre }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -465,7 +465,7 @@
 
                 <div class="kpi-card kpi-deces">
                     <div class="kpi-content">
-                        <p>Décès</p>
+                        <p>Demandes d'actes de décès</p>
                         <h3>{{ $decesnombre }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -475,7 +475,7 @@
 
                 <div class="kpi-card kpi-mariage">
                     <div class="kpi-content">
-                        <p>Mariages</p>
+                        <p>Demandes d'actes de mariages</p>
                         <h3>{{ $mariagenombre }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -485,7 +485,7 @@
 
                 <div class="kpi-card kpi-total">
                     <div class="kpi-content">
-                        <p>Total Actes</p>
+                        <p>Total demandes d'actes</p>
                         <h3>{{ $total }}</h3>
                     </div>
                     <div class="kpi-icon">
@@ -598,49 +598,40 @@
                         </div>
                     </div>
 
-                    <!-- Liste Demandes -->
+                    <!-- Liste Demandes Unifiée -->
                     <div id="list-requests" class="recent-list">
-                        <!-- Naissances -->
-                        @foreach($demandesNaissance as $demande)
+                        @forelse($recentDemandes as $demande)
                             <div class="recent-item">
-                                <div class="icon-circle" style="background:#eaf2ff; color:#4361ee;">
-                                    <i class="fas fa-baby"></i>
-                                </div>
-                                <div class="recent-info">
-                                    <h5>Naissance #{{ $demande->reference }}</h5>
-                                    <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
-                                </div>
+                                @if($demande->type_demande == 'naissance')
+                                    <div class="icon-circle" style="background:#eaf2ff; color:#4361ee;">
+                                        <i class="fas fa-baby"></i>
+                                    </div>
+                                    <div class="recent-info">
+                                        <h5>Acte de naissance {{ $demande->reference }}</h5>
+                                        <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
+                                    </div>
+                                @elseif($demande->type_demande == 'deces')
+                                    <div class="icon-circle" style="background:#f2f2f2; color:#333;">
+                                        <i class="fas fa-cross"></i>
+                                    </div>
+                                    <div class="recent-info">
+                                        <h5>Acte de décès {{ $demande->reference }}</h5>
+                                        <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
+                                    </div>
+                                @elseif($demande->type_demande == 'mariage')
+                                    <div class="icon-circle" style="background:#fff0f6; color:#f72585;">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div class="recent-info">
+                                        <h5>Acte de mariage {{ $demande->reference }}</h5>
+                                        <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
+                                    </div>
+                                @endif
                                 <span class="status-pill primary">{{ $demande->statut }}</span>
                             </div>
-                        @endforeach
-
-                        <!-- Décès -->
-                        @foreach($demandesDeces as $demande)
-                            <div class="recent-item">
-                                <div class="icon-circle" style="background:#f2f2f2; color:#333;">
-                                    <i class="fas fa-cross"></i>
-                                </div>
-                                <div class="recent-info">
-                                    <h5>Décès #{{ $demande->reference }}</h5>
-                                    <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
-                                </div>
-                                <span class="status-pill primary">{{ $demande->statut }}</span>
-                            </div>
-                        @endforeach
-
-                        <!-- Mariages -->
-                        @foreach($demandesMariage as $demande)
-                            <div class="recent-item">
-                                <div class="icon-circle" style="background:#fff0f6; color:#f72585;">
-                                    <i class="fas fa-heart"></i>
-                                </div>
-                                <div class="recent-info">
-                                    <h5>Mariage #{{ $demande->reference }}</h5>
-                                    <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
-                                </div>
-                                <span class="status-pill primary">{{ $demande->statut }}</span>
-                            </div>
-                        @endforeach
+                        @empty
+                            <div class="text-center text-muted p-4">Aucune demande récente</div>
+                        @endforelse
                     </div>
 
                     <!-- Liste Ventes -->
@@ -713,9 +704,9 @@
                     data: {
                         labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'Hier', 'Aujourd\'hui'],
                         datasets: [
-                            { label: 'Naissances', data: @json($weeklyData['naissances']), borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)', tension: 0.4, fill: true },
-                            { label: 'Décès', data: @json($weeklyData['deces']), borderColor: '#343a40', backgroundColor: 'rgba(52, 58, 64, 0.05)', tension: 0.4, fill: true, borderDash: [5, 5] },
-                            { label: 'Mariages', data: @json($weeklyData['mariages']), borderColor: '#f72585', backgroundColor: 'rgba(247, 37, 133, 0.1)', tension: 0.4, fill: true }
+                            { label: 'Actes de naissances', data: @json($weeklyData['naissances']), borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)', tension: 0.4, fill: true },
+                            { label: 'Actes de décès', data: @json($weeklyData['deces']), borderColor: '#343a40', backgroundColor: 'rgba(52, 58, 64, 0.05)', tension: 0.4, fill: true, borderDash: [5, 5] },
+                            { label: 'Actes de mariages', data: @json($weeklyData['mariages']), borderColor: '#f72585', backgroundColor: 'rgba(247, 37, 133, 0.1)', tension: 0.4, fill: true }
                         ]
                     },
                     options: { ...commonOptions, scales: { y: { beginAtZero: true } } }
@@ -742,7 +733,7 @@
                 new Chart(distCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Naissances', 'Décès', 'Mariages'],
+                        labels: ['Actes de naissances', 'Actes de décès', 'Actes de mariages'],
                         datasets: [{
                             data: [{{ $naissancenombre }}, {{ $decesnombre }}, {{ $mariagenombre }}],
                             backgroundColor: ['#4361ee', '#343a40', '#f72585'],

@@ -16,13 +16,13 @@ class AgentDashboard extends Controller
         // Récupérer l'admin connecté
         $admin = Auth::guard('agent')->user();
 
-        // Récupérer le mois et l'année sélectionnés
-        $selectedMonth = $request->input('month', date('m'));
-        $selectedYear = $request->input('year', date('Y'));
+        // Récupérer le mois et l'année sélectionnés (optionnels)
+        $selectedMonth = $request->input('month');
+        $selectedYear = $request->input('year');
         $selectedMonthHops = $request->input('month_hops', date('m'));
         $selectedYearHops = $request->input('year_hops', date('Y'));
 
-        // Récupérer les données associées à la commune de cet admin pour le mois sélectionné
+        // Récupérer les données associées à la commune de cet admin
         $requestsData = $this->getRequestsData($admin, $selectedMonth, $selectedYear);
         $naissances = $requestsData['naissances'];
         $deces = $requestsData['deces'];
@@ -80,8 +80,8 @@ class AgentDashboard extends Controller
     public function refreshTable(Request $request)
     {
         $admin = Auth::guard('agent')->user();
-        $selectedMonth = $request->input('month', date('m'));
-        $selectedYear = $request->input('year', date('Y'));
+        $selectedMonth = $request->input('month');
+        $selectedYear = $request->input('year');
 
         $requestsData = $this->getRequestsData($admin, $selectedMonth, $selectedYear);
         $allRequests = $requestsData['allRequests'];
@@ -91,37 +91,55 @@ class AgentDashboard extends Controller
 
     private function getRequestsData($admin, $month, $year)
     {
-        $naissances = Naissance::where('commune', $admin->communeM)
-            ->where('etat', 'en attente')
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $naissancesQuery = Naissance::where('commune', $admin->communeM)
+            ->where('etat', 'en attente');
 
-        $deces = Deces::where('commune', $admin->communeM)
-            ->where('etat', 'en attente')
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
-            ->orderBy('created_at', 'asc')
-            ->get();
+        if ($month) {
+            $naissancesQuery->whereMonth('created_at', $month);
+        }
+        if ($year) {
+            $naissancesQuery->whereYear('created_at', $year);
+        }
 
-        $mariages = Mariage::where('commune', $admin->communeM)
-            ->where('etat', 'en attente')
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $naissances = $naissancesQuery->orderBy('created_at', 'asc')->get();
+
+        $decesQuery = Deces::where('commune', $admin->communeM)
+            ->where('etat', 'en attente');
+
+        if ($month) {
+            $decesQuery->whereMonth('created_at', $month);
+        }
+        if ($year) {
+            $decesQuery->whereYear('created_at', $year);
+        }
+
+        $deces = $decesQuery->orderBy('created_at', 'asc')->get();
+
+        $mariagesQuery = Mariage::where('commune', $admin->communeM)
+            ->where('etat', 'en attente');
+
+        if ($month) {
+            $mariagesQuery->whereMonth('created_at', $month);
+        }
+        if ($year) {
+            $mariagesQuery->whereYear('created_at', $year);
+        }
+
+        $mariages = $mariagesQuery->orderBy('created_at', 'asc')->get();
 
         $allRequests = collect()
             ->concat($naissances->map(function ($item) {
                 $item->request_type = 'naissance';
-                return $item; }))
+                return $item;
+            }))
             ->concat($deces->map(function ($item) {
                 $item->request_type = 'deces';
-                return $item; }))
+                return $item;
+            }))
             ->concat($mariages->map(function ($item) {
                 $item->request_type = 'mariage';
-                return $item; }))
+                return $item;
+            }))
             ->sortByDesc('created_at');
 
         return [

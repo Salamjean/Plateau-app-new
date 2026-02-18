@@ -399,11 +399,11 @@
                             <tr>
                                 <td style="text-align: center;">
                                     @if($demande->type_demande == 'naissance')
-                                        <span class="badge-custom badge-naissance"><i class="fas fa-baby"></i> Naissance</span>
+                                        <span class="badge-custom badge-naissance"><i class="fas fa-baby"></i> Acte de naissance</span>
                                     @elseif($demande->type_demande == 'deces')
-                                        <span class="badge-custom badge-deces"><i class="fas fa-cross"></i> Décès</span>
+                                        <span class="badge-custom badge-deces"><i class="fas fa-cross"></i> Acte de décès</span>
                                     @elseif($demande->type_demande == 'mariage')
-                                        <span class="badge-custom badge-mariage"><i class="fas fa-heart"></i> Mariage</span>
+                                        <span class="badge-custom badge-mariage"><i class="fas fa-heart"></i> Acte de mariage</span>
                                     @endif
                                 </td>
                                 <td style="text-align: center;">

@@ -12,38 +12,40 @@ use Illuminate\Support\Facades\Auth;
 
 class MairieDashboard extends Controller
 {
-    public function dashboard(Request $request){
+    public function dashboard(Request $request)
+    {
         Carbon::setLocale('fr');
         // Récupérer l'admin connecté
         $mairie = Auth::guard('mairie')->user();
 
-        // Récupérer le mois et l'année sélectionnés pour les naissances, décès et mariages
-        $selectedMonth = $request->input('month', date('m'));
-        $selectedYear = $request->input('year', date('Y'));
+        // Récupérer le mois et l'année sélectionnés (optionnels)
+        $selectedMonth = $request->input('month');
+        $selectedYear = $request->input('year');
 
         // Récupérer le mois et l'année sélectionnés pour les naisshops et deceshops
         $selectedMonthHops = $request->input('month_hops', date('m'));
         $selectedYearHops = $request->input('year_hops', date('Y'));
 
-        // Récupérer les données associées à la commune de cet admin pour le mois sélectionné
-        // Données pour naissances, décès, et mariages
-        $naissances = Naissance::where('commune', $mairie->name)
-            ->whereMonth('created_at', $selectedMonth)
-            ->whereYear('created_at', $selectedYear)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Requêtes de base
+        $naissancesQuery = Naissance::where('commune', $mairie->name);
+        $decesQuery = Deces::where('commune', $mairie->name);
+        $mariagesQuery = Mariage::where('commune', $mairie->name);
 
-        $deces = Deces::where('commune', $mairie->name)
-            ->whereMonth('created_at', $selectedMonth)
-            ->whereYear('created_at', $selectedYear)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Appliquer les filtres si présents
+        if ($selectedMonth) {
+            $naissancesQuery->whereMonth('created_at', $selectedMonth);
+            $decesQuery->whereMonth('created_at', $selectedMonth);
+            $mariagesQuery->whereMonth('created_at', $selectedMonth);
+        }
+        if ($selectedYear) {
+            $naissancesQuery->whereYear('created_at', $selectedYear);
+            $decesQuery->whereYear('created_at', $selectedYear);
+            $mariagesQuery->whereYear('created_at', $selectedYear);
+        }
 
-        $mariages = Mariage::where('commune', $mairie->name)
-            ->whereMonth('created_at', $selectedMonth)
-            ->whereYear('created_at', $selectedYear)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $naissances = $naissancesQuery->orderBy('created_at', 'desc')->get();
+        $deces = $decesQuery->orderBy('created_at', 'desc')->get();
+        $mariages = $mariagesQuery->orderBy('created_at', 'desc')->get();
 
         // Calcul des données globales
         $totalData = $naissances->count() + $deces->count() + $mariages->count();
@@ -53,8 +55,8 @@ class MairieDashboard extends Controller
         $decesPercentage = $totalData > 0 ? ($deces->count() / $totalData) * 100 : 0;
         $mariagePercentage = $totalData > 0 ? ($mariages->count() / $totalData) * 100 : 0;
 
-        $NaissP = $naissancePercentage;    
-        $DecesP = $decesPercentage;  
+        $NaissP = $naissancePercentage;
+        $DecesP = $decesPercentage;
 
         // Données pour le tableau de bord
         $naissancedash = $naissances->count();
@@ -70,12 +72,29 @@ class MairieDashboard extends Controller
 
         // Retourne la vue avec les données
         return view('mairie.dashboard', compact(
-            'naissancedash', 'decesdash', 'NaissP','DecesP', 'mariagedash', 
-            'naissances', 'deces', 'mariages', 'totalData', 'naissancePercentage', 'decesPercentage',
-            'mariagePercentage','recentNaissances', 'recentDeces', 'recentMariages', 'Naiss','Dece', 
-            'selectedMonth', 'selectedYear','selectedMonthHops', 'selectedYearHops',
+            'naissancedash',
+            'decesdash',
+            'NaissP',
+            'DecesP',
+            'mariagedash',
+            'naissances',
+            'deces',
+            'mariages',
+            'totalData',
+            'naissancePercentage',
+            'decesPercentage',
+            'mariagePercentage',
+            'recentNaissances',
+            'recentDeces',
+            'recentMariages',
+            'Naiss',
+            'Dece',
+            'selectedMonth',
+            'selectedYear',
+            'selectedMonthHops',
+            'selectedYearHops',
         ));
-        
+
     }
 
     public function logout()

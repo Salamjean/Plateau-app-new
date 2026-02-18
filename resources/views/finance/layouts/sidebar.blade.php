@@ -6,7 +6,7 @@
       </div>
       <div class="mdc-drawer__content">
         <div class="user-info">
-          <p class="name text-center">Mairie : {{Auth::guard('finance')->user()->commune}} </p>
+          <p class="name text-center">Mairie : Plateau </p>
           <p class="email text-center">{{Auth::guard('finance')->user()->email}}</p>
         </div>
         <div class="mdc-list-group">
@@ -41,7 +41,7 @@
               <hr style="color: white">
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-expansion-panel-link" href="#" data-toggle="expansionPanel" data-target="ui-sub-menu">
-                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">personal</i>
+                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">monetization_on</i>
                 Timbre
                 <i class="mdc-drawer-arrow material-icons">chevron_right</i>
               </a>
@@ -69,20 +69,20 @@
               <hr style="color: white">
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-expansion-panel-link" href="#" data-toggle="expansionPanel" data-target="sample-page-submenu">
-                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">personal</i>
-                Agent
+                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">person</i>
+                Registraire
                 <i class="mdc-drawer-arrow material-icons">chevron_right</i>
               </a>
               <div class="mdc-expansion-panel" id="sample-page-submenu">
                 <nav class="mdc-list mdc-drawer-submenu">
                   <div class="mdc-list-item mdc-drawer-item">
                     <a class="mdc-drawer-link" href="{{route('comptable.create')}}">
-                     Ajout d'agent
+                     Ajout registraire
                     </a>
                   </div>
                   <div class="mdc-list-item mdc-drawer-item">
                     <a class="mdc-drawer-link" href="{{route('comptable.index')}}">
-                     Listes des agents
+                     Registraires
                     </a>
                   </div>
                 </nav>
