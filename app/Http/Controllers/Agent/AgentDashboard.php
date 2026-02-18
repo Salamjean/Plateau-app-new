@@ -140,7 +140,7 @@ class AgentDashboard extends Controller
                 $item->request_type = 'mariage';
                 return $item;
             }))
-            ->sortByDesc('created_at');
+            ->sortBy('created_at');
 
         return [
             'naissances' => $naissances,
