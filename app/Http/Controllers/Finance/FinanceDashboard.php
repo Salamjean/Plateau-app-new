@@ -44,7 +44,7 @@ class FinanceDashboard extends Controller
         // Statistiques de la semaine en cours
         $weekStart = Carbon::now()->startOfWeek();
         $weekEnd = Carbon::now()->endOfWeek();
-        
+
         $decesSemaine = Deces::where('commune', $finance->communeM)
             ->whereBetween('created_at', [$weekStart, $weekEnd])
             ->count();
@@ -85,8 +85,43 @@ class FinanceDashboard extends Controller
         $montantSemaine = $timbresSemaine * 500;
         $montantMois = $timbresMois * 500;
 
-        // Récupérer le solde total des timbres
-        $soldeTimbres = Timbre::sum('nombre_timbre');
+        // Calculs financiers alignés sur le tableau de bord Admin
+        $mairie = $finance->mairie;
+
+        // 1. Montant Total Ajouté par l'Admin (champ solde de la table mairies)
+        $montantTotalAjoute = $mairie->solde ?? 0;
+
+        // 2. Montant Total Débité (500 FCFA par demande terminée & timbre récupéré)
+        // Correction : On ne débité que si 'timbre_recupere' est true pour les livraisons
+
+        $naissDebit = Naissance::where('commune', $finance->communeM)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->count();
+
+        $decesDebit = Deces::where('commune', $finance->communeM)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->count();
+
+        $mariageDebit = Mariage::where('commune', $finance->communeM)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->count();
+
+        $totalDebiteCount = $naissDebit + $decesDebit + $mariageDebit;
+        $montantTotalDebite = $totalDebiteCount * 500;
+
+        // Solde et Montant restant pour la mairie
+        $soldeTimbres = ($montantTotalAjoute - $montantTotalDebite) / 500;
+        $montantRestant = $montantTotalAjoute - $montantTotalDebite;
+
+        // On garde ces variables pour l'affichage
+        $totalTimbresAjoutes = $montantTotalAjoute / 500;
+        $totalTimbresDebites = $total;
 
         // Récupérer les demandes récentes
         $demandesNaissance = Naissance::where('commune', $finance->communeM)->latest()->take(5)->get();
@@ -95,7 +130,7 @@ class FinanceDashboard extends Controller
 
         // Récupérer les statistiques par période pour le graphique
         $now = Carbon::now();
-        
+
         // Données pour les 7 derniers jours
         $weeklyData = [
             'naissances' => $this->getWeeklyStats(Naissance::class, $finance->communeM),
@@ -117,21 +152,45 @@ class FinanceDashboard extends Controller
             'mariages' => $this->getYearlyStats(Mariage::class, $finance->communeM)
         ];
 
-        return view('finance.dashboard', 
+        return view(
+            'finance.dashboard',
             compact(
-                'total', 'soldeTimbres',
-                'decesnombre', 'naissancenombre', 'mariagenombre',
-                'demandesNaissance', 'demandesDeces', 'demandesMariage',
-                'weeklyData', 'monthlyData', 'yearlyData',
-                'decesMois', 'mariageMois', 'naissanceMois', 'totalMois',
-                'totalAujourdhui', 'totalSemaine',
-                'timbresAujourdhui', 'montantAujourdhui',
-                'timbresSemaine', 'montantSemaine',
-                'timbresMois', 'montantMois',
-                'naissanceAujourdhui', 'decesAujourdhui',
-                'mariageAujourdhui', 'naissanceSemaine',
-                'decesSemaine', 'mariageSemaine',
-            ));
+                'total',
+                'soldeTimbres',
+                'decesnombre',
+                'naissancenombre',
+                'mariagenombre',
+                'demandesNaissance',
+                'demandesDeces',
+                'demandesMariage',
+                'weeklyData',
+                'monthlyData',
+                'yearlyData',
+                'decesMois',
+                'mariageMois',
+                'naissanceMois',
+                'totalMois',
+                'totalAujourdhui',
+                'totalSemaine',
+                'timbresAujourdhui',
+                'montantAujourdhui',
+                'timbresSemaine',
+                'montantSemaine',
+                'timbresMois',
+                'montantMois',
+                'naissanceAujourdhui',
+                'decesAujourdhui',
+                'mariageAujourdhui',
+                'naissanceSemaine',
+                'decesSemaine',
+                'mariageSemaine',
+                'montantTotalAjoute',
+                'montantTotalDebite',
+                'montantRestant',
+                'totalTimbresAjoutes',
+                'totalTimbresDebites',
+            )
+        );
     }
 
     // Méthodes helper pour récupérer les statistiques
@@ -167,7 +226,7 @@ class FinanceDashboard extends Controller
         for ($i = 11; $i >= 0; $i--) {
             $start = Carbon::now()->subMonths($i)->startOfMonth();
             $end = Carbon::now()->subMonths($i)->endOfMonth();
-            
+
             $count = $model::where('commune', $commune)
                 ->whereBetween('created_at', [$start, $end])
                 ->count();
@@ -176,7 +235,8 @@ class FinanceDashboard extends Controller
         return $data;
     }
 
-    public function logout(){
+    public function logout()
+    {
         Auth::guard('finance')->logout();
         return redirect()->route('finance.login');
     }

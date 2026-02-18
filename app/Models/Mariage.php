@@ -36,16 +36,17 @@ class Mariage extends Model
         'ville',
         'user_id',
         'commune_livraison',
-        'quartier'
+        'quartier',
+        'timbre_recupere'
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id'); 
+        return $this->belongsTo(User::class, 'user_id');
     }
     public function poste()
     {
-        return $this->belongsTo(Poste::class, 'livraison_id'); 
+        return $this->belongsTo(Poste::class, 'livraison_id');
     }
     public function livreur()
     {

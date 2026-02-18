@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Agent - Etat - Civil</title>
+  <title>Agent - Registre - Civil</title>
   <!-- plugins:css -->
   <link rel="stylesheet" href="{{asset('assetsPoste/assets/vendors/mdi/css/materialdesignicons.min.css')}}">
   <link rel="stylesheet" href="{{asset('assetsPoste/assets/vendors/css/vendor.bundle.base.css')}}">

@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class ComptableDashboard extends Controller
 {
-    public function dashboard(){
+    public function dashboard()
+    {
         // Récupérer l'utilisateur connecté (comptable)
         $comptable = Auth::guard('comptable')->user();
         $comptableId = $comptable->id;
@@ -46,7 +47,7 @@ class ComptableDashboard extends Controller
         // Statistiques de la semaine en cours
         $weekStart = Carbon::now()->startOfWeek();
         $weekEnd = Carbon::now()->endOfWeek();
-        
+
         $decesSemaine = Deces::where('commune', $commune)
             ->whereBetween('created_at', [$weekStart, $weekEnd])
             ->count();
@@ -122,16 +123,16 @@ class ComptableDashboard extends Controller
         $tendanceTimbres = [];
         $labelsTimbres = [];
         $valeursTimbres = [];
-        
+
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $labelsTimbres[] = $date->format('d M');
-            
+
             $ventesJour = Timbre::where('nombre_timbre', '<', 0)
                 ->where('comptable_id', $comptableId)
                 ->whereDate('created_at', $date->format('Y-m-d'))
                 ->sum(DB::raw('ABS(nombre_timbre)'));
-            
+
             $valeursTimbres[] = $ventesJour;
         }
 
@@ -142,21 +143,79 @@ class ComptableDashboard extends Controller
             ->take(3)
             ->get();
 
-        return view('comptable.dashboard',
+        // Montant ajouté par l'admin (Solde Mairie)
+        $montantTotalAjoute = 0;
+        if ($comptable->finance && $comptable->finance->mairie) {
+            $montantTotalAjoute = $comptable->finance->mairie->solde;
+        }
+
+        // Calcul du Solde Restant (Logique : Débit immédiat sauf pour Livraison non récupérée)
+        // On compte les actes qui sont SOIT non-livraison (sur place), SOIT livraison ET timbre récupéré
+
+        $naissDebit = Naissance::where('commune', $commune)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->count();
+
+        $decesDebit = Deces::where('commune', $commune)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->count();
+
+        $mariageDebit = Mariage::where('commune', $commune)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->count();
+
+        $totalDebiteCount = $naissDebit + $decesDebit + $mariageDebit;
+        $montantTotalDebite = $totalDebiteCount * 500;
+
+        $montantRestant = $montantTotalAjoute - $montantTotalDebite;
+
+        return view(
+            'comptable.dashboard',
             compact(
-                'total', 'decesnombre', 'naissancenombre', 'mariagenombre',
-                'demandesNaissance', 'demandesDeces', 'demandesMariage',
-                'weeklyData', 'monthlyData', 'yearlyData',
-                'decesMois', 'mariageMois', 'naissanceMois', 'totalMois',
-                'totalAujourdhui', 'totalSemaine',
-                'decesAujourdhui', 'mariageAujourdhui', 'naissanceAujourdhui',
-                'decesSemaine', 'mariageSemaine', 'naissanceSemaine',
+                'total',
+                'decesnombre',
+                'naissancenombre',
+                'mariagenombre',
+                'demandesNaissance',
+                'demandesDeces',
+                'demandesMariage',
+                'weeklyData',
+                'monthlyData',
+                'yearlyData',
+                'decesMois',
+                'mariageMois',
+                'naissanceMois',
+                'totalMois',
+                'totalAujourdhui',
+                'totalSemaine',
+                'decesAujourdhui',
+                'mariageAujourdhui',
+                'naissanceAujourdhui',
+                'decesSemaine',
+                'mariageSemaine',
+                'naissanceSemaine',
                 // Données timbres
-                'timbresAujourdhui', 'timbresSemaine', 'timbresMois',
-                'montantAujourdhui', 'montantSemaine', 'montantMois',
-                'soldeTimbres', 'tendanceTimbres', 'labelsTimbres', 'valeursTimbres',
-                'dernieresVentesTimbres'
-            ));
+                'timbresAujourdhui',
+                'timbresSemaine',
+                'timbresMois',
+                'montantAujourdhui',
+                'montantSemaine',
+                'montantMois',
+                'soldeTimbres',
+                'tendanceTimbres',
+                'labelsTimbres',
+                'valeursTimbres',
+                'dernieresVentesTimbres',
+                'montantTotalAjoute',
+                'montantRestant' // Variable calculée
+            )
+        );
     }
     // Méthodes helper pour récupérer les statistiques
     private function getWeeklyStats($model, $commune)
@@ -191,7 +250,7 @@ class ComptableDashboard extends Controller
         for ($i = 11; $i >= 0; $i--) {
             $start = Carbon::now()->subMonths($i)->startOfMonth();
             $end = Carbon::now()->subMonths($i)->endOfMonth();
-            
+
             $count = $model::where('commune', $commune)
                 ->whereBetween('created_at', [$start, $end])
                 ->count();
@@ -200,7 +259,8 @@ class ComptableDashboard extends Controller
         return $data;
     }
 
-    public function logout(){
+    public function logout()
+    {
         Auth::guard('comptable')->logout();
         return redirect()->route('comptable.login');
     }

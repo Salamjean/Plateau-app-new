@@ -311,6 +311,10 @@ Route::middleware('comptable')->prefix('accounting')->group(function () {
         Route::get('/statistiques', [TimbreController::class, 'statistiques'])->name('comptable.timbre.statistiques');
         Route::get('/tendance-ventes', [TimbreController::class, 'tendanceVentes'])->name('comptable.timbre.tendanceVentes');
     });
+
+    // Demandes en ligne
+    Route::get('/demandes-en-ligne', [\App\Http\Controllers\Comptable\ComptableDemandeController::class, 'index'])->name('comptable.demandes.index');
+    Route::post('/demandes-en-ligne/recover/{type}/{id}', [\App\Http\Controllers\Comptable\ComptableDemandeController::class, 'markRecovered'])->name('comptable.demandes.recover');
 });
 
 //Les routes de getsion de @postes 

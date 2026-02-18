@@ -1,543 +1,763 @@
 @extends('comptable.layouts.template')
 @section('content')
 
-<div class="comptable-dashboard">
-    <!-- Header Section -->
-    <div class="dashboard-header">
-        <h1>Tableau de Bord de l'agent financier</h1>
-        <p>Bienvenue, {{ Auth::guard('comptable')->user()->name }} {{ Auth::guard('comptable')->user()->prenom }}</p>
-    </div>
+    <!DOCTYPE html>
+    <html lang="fr">
 
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-        <!-- Today's Stats -->
-        <div class="stat-card today">
-            <div class="stat-icon">
-                <i class="fas fa-calendar-day"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Aujourd'hui</h3>
-                <div class="stat-number">{{ $totalAujourdhui }}</div>
-                <div class="stat-details">
-                    <span>Naissances: {{ $naissanceAujourdhui }}</span>
-                    <span>Décès: {{ $decesAujourdhui }}</span>
-                    <span>Mariages: {{ $mariageAujourdhui }}</span>
-                </div>
-                <div class="timbres-stats">
-                    <span class="timbre-badge">{{ number_format($timbresAujourdhui, 0, ',', ' ') }} timbres</span>
-                    <span class="montant-badge">{{ number_format($montantAujourdhui, 0, ',', ' ') }} FCFA</span>
-                </div>
-            </div>
-        </div>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tableau de Bord Comptable | Moderne</title>
 
-        <!-- Week's Stats -->
-        <div class="stat-card week">
-            <div class="stat-icon">
-                <i class="fas fa-calendar-week"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Cette semaine</h3>
-                <div class="stat-number">{{ $totalSemaine }}</div>
-                <div class="stat-details">
-                    <span>Naissances: {{ $naissanceSemaine }}</span>
-                    <span>Décès: {{ $decesSemaine }}</span>
-                    <span>Mariages: {{ $mariageSemaine }}</span>
-                </div>
-                <div class="timbres-stats">
-                    <span class="timbre-badge">{{ number_format($timbresSemaine, 0, ',', ' ') }} timbres</span>
-                    <span class="montant-badge">{{ number_format($montantSemaine, 0, ',', ' ') }} FCFA</span>
-                </div>
-            </div>
-        </div>
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        <!-- Month's Stats -->
-        <div class="stat-card month">
-            <div class="stat-icon">
-                <i class="fas fa-calendar-alt"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Ce mois</h3>
-                <div class="stat-number">{{ $totalMois }}</div>
-                <div class="stat-details">
-                    <span>Naissances: {{ $naissanceMois }}</span>
-                    <span>Décès: {{ $decesMois }}</span>
-                    <span>Mariages: {{ $mariageMois }}</span>
-                </div>
-                <div class="timbres-stats">
-                    <span class="timbre-badge">{{ number_format($timbresMois, 0, ',', ' ') }} timbres</span>
-                    <span class="montant-badge">{{ number_format($montantMois, 0, ',', ' ') }} FCFA</span>
-                </div>
-            </div>
-        </div>
+        <style>
+            :root {
+                --primary: #4361ee;
+                --secondary: #3f37c9;
+                --success: #4cc9f0;
+                --info: #4895ef;
+                --warning: #f72585;
+                --danger: #e63946;
+                --light: #f8f9fa;
+                --dark: #212529;
+                --gray-100: #f8f9fa;
+                --gray-200: #e9ecef;
+                --gray-600: #6c757d;
+                --text-main: #2b2d42;
+                --text-muted: #8d99ae;
+                --card-bg: #ffffff;
+                --border-radius: 16px;
+                --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
+                --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+                --transition: all 0.3s ease;
+            }
 
-        <!-- Total Stats -->
-        <div class="stat-card total">
-            <div class="stat-icon">
-                <i class="fas fa-chart-bar"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Total général</h3>
-                <div class="stat-number">{{ $total }}</div>
-                <div class="stat-details">
-                    <span>Naissances: {{ $naissancenombre }}</span>
-                    <span>Décès: {{ $decesnombre }}</span>
-                    <span>Mariages: {{ $mariagenombre }}</span>
-                </div>
-                <div class="timbres-stats">
-                    <span class="solde-badge">Solde: {{ number_format($soldeTimbres, 0, ',', ' ') }} timbres</span>
-                </div>
-            </div>
-        </div>
-    </div>
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: #f3f6fd;
+                color: var(--text-main);
+                margin: 0;
+                padding: 0;
+            }
 
-    <!-- Recent Requests & Charts Section -->
-    <div class="dashboard-content">
-        <!-- Left Column: Recent Requests and Timbres -->
-        <div class="left-column">
-            <!-- Recent Requests -->
-            <div class="recent-requests">
-                <h2>Demandes récentes</h2>
-                
-                <div class="request-type">
-                    <h3>Naissances</h3>
-                    @foreach($demandesNaissance as $demande)
-                    <div class="request-item">
-                        <div class="request-info">
-                            <h4>Naissance #{{ $demande->reference }}</h4>
-                            <p>Date: {{ $demande->created_at->format('d/m/Y') }}</p>
-                        </div>
-                        <div class="request-status">
-                            <span class="status-badge">{{ $demande->statut }}</span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
+            .dashboard-container {
+                padding: 2rem;
+                width: 95%;
+                margin: 0 auto;
+            }
 
-                <div class="request-type">
-                    <h3>Décès</h3>
-                    @foreach($demandesDeces as $demande)
-                    <div class="request-item">
-                        <div class="request-info">
-                            <h4>Décès #{{ $demande->reference }}</h4>
-                            <p>Date: {{ $demande->created_at->format('d/m/Y') }}</p>
-                        </div>
-                        <div class="request-status">
-                            <span class="status-badge">{{ $demande->statut }}</span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
+            /* --- Header --- */
+            .dashboard-header {
+                margin-bottom: 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-                <div class="request-type">
-                    <h3>Mariages</h3>
-                    @foreach($demandesMariage as $demande)
-                    <div class="request-item">
-                        <div class="request-info">
-                            <h4>Mariage #{{ $demande->reference }}</h4>
-                            <p>Date: {{ $demande->created_at->format('d/m/Y') }}</p>
-                        </div>
-                        <div class="request-status">
-                            <span class="status-badge">{{ $demande->statut }}</span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
+            .header-title h1 {
+                font-size: 1.75rem;
+                font-weight: 700;
+                color: #1977cc;
+                margin: 0;
+            }
 
-            <!-- Recent Timbre Sales -->
-            <div class="recent-timbres">
-                <h2>Ventes récentes de timbres</h2>
-                @foreach($dernieresVentesTimbres as $vente)
-                <div class="timbre-item">
-                    <div class="timbre-info">
-                        <h4>Vente de {{ abs($vente->nombre_timbre) }} timbres</h4>
-                        <p>Le {{ $vente->created_at->format('d/m/Y à H:i') }}</p>
-                    </div>
-                    <div class="timbre-montant">
-                        {{ number_format(abs($vente->nombre_timbre) * 500, 0, ',', ' ') }} FCFA
-                    </div>
-                </div>
-                @endforeach
-                @if($dernieresVentesTimbres->isEmpty())
-                <p class="no-data">Aucune vente de timbres récente</p>
-                @endif
-            </div>
-        </div>
+            .header-title p {
+                color: var(--text-muted);
+                margin-top: 0.5rem;
+                font-size: 0.95rem;
+            }
 
-        <!-- Right Column: Charts -->
-        <div class="right-column">
-            <!-- Actes Chart -->
-            <div class="chart-container">
-                <h3>Actes des 7 derniers jours</h3>
-                <canvas id="weeklyChart"></canvas>
-            </div>
-            
-            <!-- Timbres Chart -->
-            <div class="chart-container">
-                <h3>Ventes de timbres (7 jours)</h3>
-                <canvas id="timbresChart"></canvas>
-            </div>
-            
-            <!-- Distribution Chart -->
-            <div class="chart-container">
-                <h3>Répartition des actes</h3>
-                <canvas id="distributionChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
+            .header-actions .date-badge {
+                background: white;
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #1977cc;
+                box-shadow: var(--shadow-sm);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-<style>
-.comptable-dashboard {
-    padding: 20px;
-    background-color: #f5f5f5;
-    min-height: 100vh;
-}
+            /* --- KPI Grid (Activités) --- */
+            .grid-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2rem;
+            }
 
-.dashboard-header {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
+            .kpi-card {
+                background: var(--card-bg);
+                border-radius: var(--border-radius);
+                padding: 1.5rem;
+                box-shadow: var(--shadow-sm);
+                transition: var(--transition);
+                border: 1px solid rgba(0, 0, 0, 0.03);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
 
-.dashboard-header h1 {
-    color: #1977cc;
-    margin: 0;
-}
+            .kpi-card:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-md);
+            }
 
-.dashboard-header p {
-    color: #666;
-    margin: 5px 0 0 0;
-}
+            .kpi-content h3 {
+                font-size: 2rem;
+                font-weight: 700;
+                margin: 0;
+                color: var(--text-main);
+            }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
-}
+            .kpi-content p {
+                margin: 0;
+                color: var(--text-muted);
+                font-size: 0.9rem;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
 
-.stat-card {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
+            .kpi-icon {
+                width: 56px;
+                height: 56px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                flex-shrink: 0;
+            }
 
-.stat-card.today {
-    border-top: 4px solid #ff8800;
-}
+            .kpi-naissance .kpi-icon {
+                background: rgba(67, 97, 238, 0.1);
+                color: var(--primary);
+            }
 
-.stat-card.week {
-    border-top: 4px solid #1977cc;
-}
+            .kpi-deces .kpi-icon {
+                background: rgba(33, 37, 41, 0.1);
+                color: var(--dark);
+            }
 
-.stat-card.month {
-    border-top: 4px solid #ff5500;
-}
+            .kpi-mariage .kpi-icon {
+                background: rgba(247, 37, 133, 0.1);
+                color: var(--warning);
+            }
 
-.stat-card.total {
-    border-top: 4px solid #0055aa;
-}
+            .kpi-total .kpi-icon {
+                background: rgba(72, 149, 239, 0.1);
+                color: var(--info);
+            }
 
-.stat-icon {
-    font-size: 2rem;
-    margin-right: 15px;
-    color: #1977cc;
-}
 
-.stat-content h3 {
-    margin: 0;
-    color: #333;
-    font-size: 1rem;
-}
+            /* --- Timbre Section (Middle) --- */
+            .section-title {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: var(--text-muted);
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-.stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #1977cc;
-    margin: 5px 0;
-}
+            .section-title::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: var(--gray-200);
+            }
 
-.stat-details {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
+            .grid-finance {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1.5rem;
+                margin-bottom: 2rem;
+            }
 
-.stat-details span {
-    font-size: 0.85rem;
-    color: #666;
-}
-
-.timbres-stats {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #f0f0f0;
-}
-
-.timbre-badge {
-    background-color: #ff8800;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    margin-right: 5px;
-}
-
-.montant-badge {
-    background-color: #1977cc;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-}
-
-.solde-badge {
-    background-color: #0055aa;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-}
-
-.dashboard-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.left-column, .right-column {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.recent-requests, .recent-timbres, .chart-container {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.recent-requests h2, .recent-timbres h2, .chart-container h3 {
-    color: #1977cc;
-    margin-top: 0;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-.request-type {
-    margin-bottom: 20px;
-}
-
-.request-type h3 {
-    color: #ff8800;
-    margin-bottom: 10px;
-}
-
-.request-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.request-item:last-child {
-    border-bottom: none;
-}
-
-.request-info h4 {
-    margin: 0;
-    color: #333;
-}
-
-.request-info p {
-    margin: 5px 0 0 0;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.status-badge {
-    background-color: #1977cc;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-}
-
-.timbre-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.timbre-item:last-child {
-    border-bottom: none;
-}
-
-.timbre-info h4 {
-    margin: 0;
-    color: #333;
-}
-
-.timbre-info p {
-    margin: 5px 0 0 0;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.timbre-montant {
-    font-weight: bold;
-    color: #1977cc;
-}
-
-.no-data {
-    text-align: center;
-    color: #666;
-    font-style: italic;
-    padding: 20px;
-}
-
-.chart-container canvas {
-    width: 100% !important;
-    height: 250px !important;
-}
-
-@media (max-width: 992px) {
-    .dashboard-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Weekly Chart
-    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
-    const weeklyChart = new Chart(weeklyCtx, {
-        type: 'line',
-        data: {
-            labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'Hier', 'Aujourd\'hui'],
-            datasets: [
-                {
-                    label: 'Naissances',
-                    data: @json($weeklyData['naissances']),
-                    borderColor: '#1977cc',
-                    backgroundColor: 'rgba(0, 126, 0, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                },
-                {
-                    label: 'Décès',
-                    data: @json($weeklyData['deces']),
-                    borderColor: '#333',
-                    backgroundColor: 'rgba(51, 51, 51, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                },
-                {
-                    label: 'Mariages',
-                    data: @json($weeklyData['mariages']),
-                    borderColor: '#ff8800',
-                    backgroundColor: 'rgba(255, 136, 0, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Évolution des 7 derniers jours'
+            @media (max-width: 1200px) {
+                .grid-finance {
+                    grid-template-columns: repeat(2, 1fr);
                 }
             }
-        }
-    });
 
-    // Timbres Chart
-    const timbresCtx = document.getElementById('timbresChart').getContext('2d');
-    const timbresChart = new Chart(timbresCtx, {
-        type: 'bar',
-        data: {
-            labels: @json($labelsTimbres),
-            datasets: [{
-                label: 'Timbres vendus',
-                data: @json($valeursTimbres),
-                backgroundColor: '#ff8800',
-                borderColor: '#e67e00',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: 'Ventes quotidiennes de timbres'
+            @media (max-width: 768px) {
+                .grid-finance {
+                    grid-template-columns: 1fr;
                 }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Nombre de timbres'
+            }
+
+            .finance-card {
+                background: var(--card-bg);
+                border-radius: var(--border-radius);
+                padding: 1.5rem;
+                box-shadow: var(--shadow-sm);
+                border-left: 4px solid transparent;
+            }
+
+            .finance-card.allocated {
+                border-color: #2ecc71;
+            }
+
+            .finance-card.sales-day {
+                border-color: #4cc9f0;
+            }
+
+            /* Bleu clair */
+            .finance-card.sales-month {
+                border-color: #4361ee;
+            }
+
+            /* Bleu primaire */
+            .finance-card.stock {
+                border-color: #f72585;
+            }
+
+            /* Rose */
+
+            .finance-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+            }
+
+            .finance-info h4 {
+                margin: 0;
+                font-size: 0.9rem;
+                color: var(--text-muted);
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+
+            .finance-info .amount {
+                font-size: 1.6rem;
+                font-weight: 700;
+                display: block;
+                color: var(--text-main);
+            }
+
+            .finance-sub {
+                font-size: 0.85rem;
+                color: #888;
+                margin-top: 4px;
+                display: block;
+            }
+
+            .finance-icon-bg {
+                font-size: 1.8rem;
+                opacity: 0.15;
+            }
+
+            .finance-card.sales-day .finance-icon-bg {
+                color: #4cc9f0;
+            }
+
+            .finance-card.sales-month .finance-icon-bg {
+                color: #4361ee;
+            }
+
+            .finance-card.stock .finance-icon-bg {
+                color: #f72585;
+            }
+
+            .finance-card.balance {
+                border-color: #f39c12;
+            }
+
+            .finance-card.balance .finance-icon-bg {
+                color: #f39c12;
+            }
+
+
+            /* --- Main Content --- */
+            .grid-main {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 1.5rem;
+            }
+
+            @media (max-width: 1200px) {
+                .grid-main {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .chart-container-card {
+                background: var(--card-bg);
+                border-radius: var(--border-radius);
+                padding: 1.5rem;
+                box-shadow: var(--shadow-sm);
+                height: 100%;
+            }
+
+            .card-header-flex {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+
+            .card-heading {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text-main);
+            }
+
+            .tabs-container {
+                background: var(--gray-100);
+                padding: 4px;
+                border-radius: 8px;
+                display: flex;
+                gap: 4px;
+            }
+
+            .tab-btn {
+                border: none;
+                background: transparent;
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                border-radius: 6px;
+                cursor: pointer;
+                color: var(--text-muted);
+                font-weight: 500;
+                transition: all 0.2s;
+            }
+
+            .tab-btn.active {
+                background: white;
+                color: var(--primary);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            }
+
+            /* Recent Lists */
+            .recent-list {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                max-height: 450px;
+                overflow-y: auto;
+                padding-right: 5px;
+            }
+
+            .recent-item {
+                display: flex;
+                align-items: center;
+                padding: 12px;
+                border-radius: 12px;
+                background: #fff;
+                border: 1px solid var(--gray-200);
+                transition: var(--transition);
+            }
+
+            .recent-item:hover {
+                border-color: var(--primary);
+                background: #f8faff;
+            }
+
+            .icon-circle {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 12px;
+                flex-shrink: 0;
+                font-size: 1.1rem;
+            }
+
+            .recent-info {
+                flex: 1;
+            }
+
+            .recent-info h5 {
+                margin: 0;
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-main);
+            }
+
+            .recent-info span {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                display: block;
+                margin-top: 2px;
+            }
+
+            .status-pill {
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+
+            .status-pill.primary {
+                background: #eaf2ff;
+                color: #4361ee;
+            }
+
+            .status-pill.success {
+                background: #d1e7dd;
+                color: #0f5132;
+            }
+
+            /* Scrollbar */
+            ::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #ccc;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #aaa;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="dashboard-container">
+
+            <!-- HEADER -->
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h1>Vue d'ensemble</h1>
+                    <p>Bienvenue, {{ Auth::guard('comptable')->user()->name }}
+                        {{ Auth::guard('comptable')->user()->prenom }}
+                    </p>
+                </div>
+                <div class="header-actions">
+                    <div class="date-badge">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ \Carbon\Carbon::now()->locale('fr')->isoFormat('D MMMM YYYY') }}
+                    </div>
+                </div>
+            </header>
+
+            <!-- KPI GRID (Activités) -->
+            <div class="grid-stats">
+                <div class="kpi-card kpi-naissance">
+                    <div class="kpi-content">
+                        <p>Naissances</p>
+                        <h3>{{ $naissancenombre }}</h3>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="fas fa-baby"></i>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-deces">
+                    <div class="kpi-content">
+                        <p>Décès</p>
+                        <h3>{{ $decesnombre }}</h3>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="fas fa-cross"></i>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-mariage">
+                    <div class="kpi-content">
+                        <p>Mariages</p>
+                        <h3>{{ $mariagenombre }}</h3>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-total">
+                    <div class="kpi-content">
+                        <p>Total Actes</p>
+                        <h3>{{ $total }}</h3>
+                    </div>
+                    <div class="kpi-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FINANCE/TIMBRES SECTION -->
+            <div class="section-title">
+                <i class="fas fa-stamp"></i> Gestion des Timbres
+            </div>
+
+            <div class="grid-finance">
+                <!-- Ventes Aujourd'hui -->
+                <div class="finance-card sales-day">
+                    <div class="finance-header">
+                        <div class="finance-info">
+                            <h4>Ventes Aujourd'hui</h4>
+                            <span class="amount">{{ number_format($montantAujourdhui, 0, ',', ' ') }} FCFA</span>
+                            <span class="finance-sub">{{ number_format($timbresAujourdhui, 0, ',', ' ') }} timbres
+                                vendus</span>
+                        </div>
+                        <div class="finance-icon-bg">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ventes Mois -->
+                <div class="finance-card sales-month">
+                    <div class="finance-header">
+                        <div class="finance-info">
+                            <h4>Ventes ce Mois</h4>
+                            <span class="amount">{{ number_format($montantMois, 0, ',', ' ') }} FCFA</span>
+                            <span class="finance-sub">{{ number_format($timbresMois, 0, ',', ' ') }} timbres vendus</span>
+                        </div>
+                        <div class="finance-icon-bg">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Restant -->
+                <div class="finance-card stock">
+                    <div class="finance-header">
+                        <div class="finance-info">
+                            <h4>Stock Disponible</h4>
+                            <span class="amount">{{ number_format($soldeTimbres, 0, ',', ' ') }}</span>
+                            <span class="finance-sub">Timbres en stock</span>
+                        </div>
+                        <div class="finance-icon-bg">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Solde Disponible -->
+                <div class="finance-card balance">
+                    <div class="finance-header">
+                        <div class="finance-info">
+                            <h4>Solde Disponible --> (KKS-TECHNOLOGIES)</h4>
+                            <span class="amount">{{ number_format($montantRestant ?? 0, 0, ',', ' ') }} FCFA</span>
+                            <span class="finance-sub">Montant actuel</span>
+                        </div>
+                        <div class="finance-icon-bg">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- MAIN CONTENT (Charts & Lists) -->
+            <div class="grid-main">
+                <!-- Chart Section -->
+                <div class="chart-container-card">
+                    <div class="card-header-flex">
+                        <div class="card-heading">Analyses & Tendance</div>
+                        <div class="tabs-container">
+                            <button class="tab-btn active" onclick="switchChart('weekly', this)">Actes (7j)</button>
+                            <button class="tab-btn" onclick="switchChart('sales', this)">Ventes Timbres</button>
+                            <button class="tab-btn" onclick="switchChart('dist', this)">Répartition</button>
+                        </div>
+                    </div>
+
+                    <div style="height: 320px; width: 100%; position: relative;">
+                        <!-- Canvases superposés, on gère l'affichage -->
+                        <div id="chart-wrapper-weekly" style="height:100%; width:100%;">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                        <div id="chart-wrapper-sales" style="height:100%; width:100%; display:none;">
+                            <canvas id="timbresChart"></canvas>
+                        </div>
+                        <div id="chart-wrapper-dist" style="height:100%; width:100%; display:none;">
+                            <!-- Pour le doughnut, on limite la taille pour qu'il soit joli -->
+                            <div style="height:100%; width:100%; display:flex; justify-content:center;">
+                                <canvas id="distributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Lists Section -->
+                <div class="chart-container-card">
+                    <div class="card-header-flex">
+                        <div class="card-heading">Récemment</div>
+                        <div class="tabs-container">
+                            <button class="tab-btn active" onclick="switchList('requests', this)">Demandes</button>
+                            <button class="tab-btn" onclick="switchList('sales', this)">Ventes</button>
+                        </div>
+                    </div>
+
+                    <!-- Liste Demandes -->
+                    <div id="list-requests" class="recent-list">
+                        <!-- Naissances -->
+                        @foreach($demandesNaissance as $demande)
+                            <div class="recent-item">
+                                <div class="icon-circle" style="background:#eaf2ff; color:#4361ee;">
+                                    <i class="fas fa-baby"></i>
+                                </div>
+                                <div class="recent-info">
+                                    <h5>Naissance #{{ $demande->reference }}</h5>
+                                    <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
+                                </div>
+                                <span class="status-pill primary">{{ $demande->statut }}</span>
+                            </div>
+                        @endforeach
+
+                        <!-- Décès -->
+                        @foreach($demandesDeces as $demande)
+                            <div class="recent-item">
+                                <div class="icon-circle" style="background:#f2f2f2; color:#333;">
+                                    <i class="fas fa-cross"></i>
+                                </div>
+                                <div class="recent-info">
+                                    <h5>Décès #{{ $demande->reference }}</h5>
+                                    <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
+                                </div>
+                                <span class="status-pill primary">{{ $demande->statut }}</span>
+                            </div>
+                        @endforeach
+
+                        <!-- Mariages -->
+                        @foreach($demandesMariage as $demande)
+                            <div class="recent-item">
+                                <div class="icon-circle" style="background:#fff0f6; color:#f72585;">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="recent-info">
+                                    <h5>Mariage #{{ $demande->reference }}</h5>
+                                    <span>{{ $demande->created_at->locale('fr')->diffForHumans() }}</span>
+                                </div>
+                                <span class="status-pill primary">{{ $demande->statut }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Liste Ventes -->
+                    <div id="list-sales" class="recent-list" style="display:none;">
+                        @forelse($dernieresVentesTimbres as $vente)
+                            <div class="recent-item">
+                                <div class="icon-circle" style="background:#e0f7fa; color:#00acc1;">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="recent-info">
+                                    <h5>Vente de {{ abs($vente->nombre_timbre) }} timbres</h5>
+                                    <span>{{ $vente->created_at->locale('fr')->format('d M Y à H:i') }}</span>
+                                </div>
+                                <span
+                                    class="status-pill success">{{ number_format(abs($vente->nombre_timbre) * 500, 0, ',', ' ') }}
+                                    F</span>
+                            </div>
+                        @empty
+                            <div class="text-center text-muted p-4">Aucune vente récente</div>
+                        @endforelse
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SCRIPTS -->
+        <script>
+            // Fonction Switch List
+            function switchList(type, btn) {
+                document.getElementById('list-requests').style.display = 'none';
+                document.getElementById('list-sales').style.display = 'none';
+                document.getElementById('list-' + type).style.display = 'flex';
+
+                const buttons = btn.parentElement.querySelectorAll('button');
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            // Fonction Switch Chart
+            function switchChart(type, btn) {
+                document.getElementById('chart-wrapper-weekly').style.display = 'none';
+                document.getElementById('chart-wrapper-sales').style.display = 'none';
+                document.getElementById('chart-wrapper-dist').style.display = 'none';
+
+                document.getElementById('chart-wrapper-' + type).style.display = (type === 'dist') ? 'flex' : 'block';
+                if (type === 'dist') document.getElementById('chart-wrapper-' + type).style.justifyContent = 'center';
+
+                const buttons = btn.parentElement.querySelectorAll('button');
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            // Charts Initialization
+            document.addEventListener('DOMContentLoaded', function () {
+                // Options communes
+                const commonOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6 } }
                     }
-                }
-            }
-        }
-    });
+                };
 
-    // Distribution Chart
-    const distCtx = document.getElementById('distributionChart').getContext('2d');
-    const distChart = new Chart(distCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Naissances', 'Décès', 'Mariages'],
-            datasets: [{
-                data: [{{ $naissancenombre }}, {{ $decesnombre }}, {{ $mariagenombre }}],
-                backgroundColor: [
-                    '#1977cc',
-                    '#333',
-                    '#ff8800'
-                ],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-});
-</script>
+                // 1. Weekly Chart
+                const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+                new Chart(weeklyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'Hier', 'Aujourd\'hui'],
+                        datasets: [
+                            { label: 'Naissances', data: @json($weeklyData['naissances']), borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)', tension: 0.4, fill: true },
+                            { label: 'Décès', data: @json($weeklyData['deces']), borderColor: '#343a40', backgroundColor: 'rgba(52, 58, 64, 0.05)', tension: 0.4, fill: true, borderDash: [5, 5] },
+                            { label: 'Mariages', data: @json($weeklyData['mariages']), borderColor: '#f72585', backgroundColor: 'rgba(247, 37, 133, 0.1)', tension: 0.4, fill: true }
+                        ]
+                    },
+                    options: { ...commonOptions, scales: { y: { beginAtZero: true } } }
+                });
 
+                // 2. Timbres Chart
+                const timbresCtx = document.getElementById('timbresChart').getContext('2d');
+                new Chart(timbresCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: @json($labelsTimbres),
+                        datasets: [{
+                            label: 'Ventes',
+                            data: @json($valeursTimbres),
+                            backgroundColor: '#4cc9f0',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: commonOptions
+                });
+
+                // 3. Distribution Chart
+                const distCtx = document.getElementById('distributionChart').getContext('2d');
+                new Chart(distCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Naissances', 'Décès', 'Mariages'],
+                        datasets: [{
+                            data: [{{ $naissancenombre }}, {{ $decesnombre }}, {{ $mariagenombre }}],
+                            backgroundColor: ['#4361ee', '#343a40', '#f72585'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            });
+        </script>
+    </body>
+
+    </html>
 @endsection

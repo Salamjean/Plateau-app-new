@@ -38,15 +38,16 @@ class Deces extends Model
         'code_postal',
         'ville',
         'commune_livraison',
-        'quartier'
+        'quartier',
+        'timbre_recupere'
     ];
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id'); 
+        return $this->belongsTo(User::class, 'user_id');
     }
     public function poste()
     {
-        return $this->belongsTo(Poste::class, 'livraison_id'); 
+        return $this->belongsTo(Poste::class, 'livraison_id');
     }
     public function livreur()
     {
