@@ -444,7 +444,7 @@
                                 @if($i == $current)
                                     <span class="page-link">{{ $i }}</span>
                                 @else
-                                    <a class="page-link" href="{{ $mariages->url($i) }}">{{ $i }}</a>
+                                    <a class="page-link" href="{{ $naissances->url($i) }}">{{ $i }}</a>
                                 @endif
                             </li>
                         @endfor
@@ -456,14 +456,14 @@
                                 </li>
                             @endif
                             <li class="page-item">
-                                <a class="page-link" href="{{ $mariages->url($last) }}">{{ $last }}</a>
+                                <a class="page-link" href="{{ $naissances->url($last) }}">{{ $last }}</a>
                             </li>
                         @endif
 
                         <!-- Page suivante -->
-                        @if($mariages->hasMorePages())
+                        @if($naissances->hasMorePages())
                             <li class="page-item">
-                                <a class="page-link" href="{{ $mariages->nextPageUrl() }}" aria-label="Suivant">
+                                <a class="page-link" href="{{ $naissances->nextPageUrl() }}" aria-label="Suivant">
                                     <i class="fas fa-chevron-right"></i>
                                 </a>
                             </li>
@@ -476,9 +476,9 @@
                         @endif
 
                         <!-- Dernière page -->
-                        @if($mariages->hasMorePages())
+                        @if($naissances->hasMorePages())
                             <li class="page-item">
-                                <a class="page-link" href="{{ $mariages->url($last) }}" aria-label="Dernière page">
+                                <a class="page-link" href="{{ $naissances->url($last) }}" aria-label="Dernière page">
                                     <i class="fas fa-angle-double-right"></i>
                                 </a>
                             </li>
