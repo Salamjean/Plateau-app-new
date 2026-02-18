@@ -6,7 +6,7 @@
       </div>
       <div class="mdc-drawer__content">
         <div class="user-info">
-          <p class="name text-center">Mairie : {{Auth::guard('etatCivil')->user()->commune}} </p>
+          <p class="name text-center">Mairie : Plateau </p>
           <p class="email text-center">{{Auth::guard('etatCivil')->user()->email}}</p>
         </div>
         <div class="mdc-list-group">

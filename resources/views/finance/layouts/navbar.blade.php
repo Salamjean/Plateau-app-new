@@ -10,7 +10,7 @@
                   <span class="figure">
                         <img src="{{ optional(Auth::guard('finance')->user())->profile_picture 
                           ? asset('storage/' . Auth::guard('finance')->user()->profile_picture) 
-                          : asset('assets/assets/img/logo plateau.png') }}" alt="Logo Yopougon"  class="user" />
+                          : asset('assets/assets/img/logo plateau.png') }}" alt="Logo plateau"  class="user" />
                   </span>
                   <span class="user-name"  style="color: white; font-size:20px; font-weight:bold">{{Auth::guard('finance')->user()->name_respo}} </span>
                   <span class="ml-2 text-white">&#9662;</span>
