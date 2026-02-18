@@ -41,7 +41,7 @@
               <hr style="color: white">
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-expansion-panel-link" href="#" data-toggle="expansionPanel" data-target="ui-sub-menu">
-                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">personal</i>
+                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">person</i>
                 Agent
                 <i class="mdc-drawer-arrow material-icons">chevron_right</i>
               </a>

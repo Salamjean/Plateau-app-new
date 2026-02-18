@@ -372,18 +372,127 @@
                 </div>
                 
                 <!-- Pagination -->
-                @if($naissances->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div class="text-muted">
-                        Affichage de {{ $naissances->firstItem() }} à {{ $naissances->lastItem() }} sur {{ $naissances->total() }} résultats
-                    </div>
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination mb-0">
-                            {{ $naissances->withQueryString()->links() }}
-                        </ul>
-                    </nav>
+                   @if($naissances->hasPages())
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Affichage de <strong>{{ $naissances->firstItem() }}</strong> à <strong>{{ $naissances->lastItem() }}</strong> sur <strong>{{ $naissances->total() }}</strong> résultats
                 </div>
-                @endif
+                
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <!-- Première page -->
+                        @if($naissances->onFirstPage())
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </span>
+                            </li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->url(1) }}" aria-label="Première page">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                        @endif
+
+                        <!-- Page précédente -->
+                        @if($naissances->onFirstPage())
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            </li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->previousPageUrl() }}" aria-label="Précédent">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        @endif
+
+                        <!-- Pages numérotées -->
+                        @php
+                            $current = $naissances->currentPage();
+                            $last = $naissances->lastPage();
+                            $start = max($current - 2, 1);
+                            $end = min($current + 2, $last);
+                            
+                            if($start > 1) {
+                                $start = max($current - 1, 1);
+                                $end = min($current + 1, $last);
+                            }
+                            
+                            if($end - $start < 2) {
+                                $start = max($current - 2, 1);
+                                $end = min($current + 2, $last);
+                            }
+                        @endphp
+
+                        @if($start > 1)
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $naissances->url(1) }}">1</a>
+                            </li>
+                            @if($start > 2)
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            @endif
+                        @endif
+
+                        @for($i = $start; $i <= $end; $i++)
+                            <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                @if($i == $current)
+                                    <span class="page-link">{{ $i }}</span>
+                                @else
+                                    <a class="page-link" href="{{ $mariages->url($i) }}">{{ $i }}</a>
+                                @endif
+                            </li>
+                        @endfor
+
+                        @if($end < $last)
+                            @if($end < $last - 1)
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            @endif
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $mariages->url($last) }}">{{ $last }}</a>
+                            </li>
+                        @endif
+
+                        <!-- Page suivante -->
+                        @if($mariages->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $mariages->nextPageUrl() }}" aria-label="Suivant">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        @else
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            </li>
+                        @endif
+
+                        <!-- Dernière page -->
+                        @if($mariages->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link" href="{{ $mariages->url($last) }}" aria-label="Dernière page">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        @else
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </span>
+                            </li>
+                        @endif
+                    </ul>
+                </nav>
+            </div>
+            @endif
             </div>
         </div>
     </div>
