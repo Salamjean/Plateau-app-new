@@ -110,7 +110,6 @@
 
         .form-control {
             width: 100%;
-            padding: 0.8rem 1rem;
             border: 2px solid #eef2f7;
             border-radius: 10px;
             background-color: #fcfdfe;
@@ -290,7 +289,21 @@
             <div class="section-card">
                 <h3 class="section-title"><i class="fas fa-user-ghost"></i> Informations du défunt</h3>
                 <div class="form-grid">
-                    <div class="form-group full-width">
+                    <div class="form-group">
+                        <label for="type" class="form-label">Type de document</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-file-alt"></i>
+                            <select id="type" name="type" class="form-control">
+                                <option value="" disabled selected>Choisir le type de document</option>
+                                <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Copie simple</option>
+                                <option value="integral" {{ old('type') == 'integral' ? 'selected' : '' }}>Copie intégrale
+                                </option>
+                            </select>
+                        </div>
+                        @error('type') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
                         <label for="name" class="form-label">Nom et Prénoms du Défunt</label>
                         <div class="input-icon-wrapper">
                             <i class="fas fa-user"></i>
@@ -451,6 +464,7 @@
 
             // Fields to validate based on your Laravel validation rules
             const fieldsToValidate = [
+                { id: 'type', message: 'Le type de document est obligatoire.' },
                 { id: 'name', message: 'Le nom du défunt est obligatoire.' },
                 { id: 'numberR', message: 'Le numéro de registre est obligatoire.' },
                 { id: 'dateR', message: 'La date de registre est obligatoire.' },
@@ -559,11 +573,11 @@
             const marriedFileInputsContainer = $("#married-file-inputs-container");
             // Added `required` attribute here
             const marriageFields = `
-                            <div class="form-group">
-                                <label for="documentMariage" class="form-label">Photocopie de document de mariage pour le défunt(e)</label>
-                                <input type="file" id="documentMariage" name="documentMariage" class="form-control" required>
-                            </div>
-                        `;
+                                <div class="form-group">
+                                    <label for="documentMariage" class="form-label">Photocopie de document de mariage pour le défunt(e)</label>
+                                    <input type="file" id="documentMariage" name="documentMariage" class="form-control" required>
+                                </div>
+                            `;
 
             function toggleMarriedFields() {
                 if ($('input[name="married"]:checked').val() === 'oui') {
@@ -582,11 +596,11 @@
             const decesFileInputsContainer = $("#deces-file-inputs-container");
             // Added `required` attribute here
             const decesFields = `
-                            <div class="form-group">
-                                <label for="RequisPolice" class="form-label">Photocopie de la réquisition de la police</label>
-                                <input type="file" id="RequisPolice" name="RequisPolice" class="form-control" required>
-                            </div>
-                        `;
+                                <div class="form-group">
+                                    <label for="RequisPolice" class="form-label">Photocopie de la réquisition de la police</label>
+                                    <input type="file" id="RequisPolice" name="RequisPolice" class="form-control" required>
+                                </div>
+                            `;
 
             function toggleDecesFields() {
                 if ($('input[name="DecesHorsS"]:checked').val() === 'oui') {
@@ -645,102 +659,102 @@
                 title: '<i class="fas fa-shipping-fast" style="color: #1977cc;"></i> Informations de Livraison',
                 width: '800px',
                 html: `
-                    <div class="swal-custom-container" style="text-align: left; padding: 10px;">
-                        <!-- Résumé de la commande -->
-                        <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
-                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
-                                <span style="font-weight: 600; color: #64748b;">Quantité demandée</span>
-                                <span style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">${quantite} Exemplaire(s)</span>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                    <small style="display: block; color: #94a3b8; font-weight: 600;">TIMBRE (${quantite})</small>
-                                    <span style="font-weight: 700; color: #1e293b;">${montantTimbreTotal} FCFA</span>
+                        <div class="swal-custom-container" style="text-align: left; padding: 10px;">
+                            <!-- Résumé de la commande -->
+                            <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
+                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
+                                    <span style="font-weight: 600; color: #64748b;">Quantité demandée</span>
+                                    <span style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">${quantite} Exemplaire(s)</span>
                                 </div>
-                                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                    <small style="display: block; color: #94a3b8; font-weight: 600;">LIVRAISON</small>
-                                    <span style="font-weight: 700; color: #1e293b;">${montantLivraison} FCFA</span>
-                                </div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; background: #1977cc; color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(25, 119, 204, 0.2);">
-                                <span style="font-weight: 600;">TOTAL À PAYER</span>
-                                <span style="font-weight: 800; font-size: 1.3rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
-                            </div>
-                        </div>
-
-                        <!-- Formulaire Détaillé -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                            <!-- Colonne 1: Destinataire -->
-                            <div>
-                                <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #1977cc; padding-left: 10px; border-radius: 2px;">
-                                    <i class="fas fa-user-check" style="color: #1977cc; margin-right: 8px;"></i>Coordonnées du Destinataire
-                                </h4>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">NOM DU DESTINATAIRE</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-user" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-nom_destinataire" class="swal2-input" placeholder="Ex: Kouassi" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                        <small style="display: block; color: #94a3b8; font-weight: 600;">TIMBRE (${quantite})</small>
+                                        <span style="font-weight: 700; color: #1e293b;">${montantTimbreTotal} FCFA</span>
+                                    </div>
+                                    <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                        <small style="display: block; color: #94a3b8; font-weight: 600;">LIVRAISON</small>
+                                        <span style="font-weight: 700; color: #1e293b;">${montantLivraison} FCFA</span>
                                     </div>
                                 </div>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">PRÉNOM DU DESTINATAIRE</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-user" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-prenom_destinataire" class="swal2-input" placeholder="Ex: Amenan" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                    </div>
-                                </div>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">EMAIL</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-envelope" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-email_destinataire" type="email" class="swal2-input" placeholder="Ex: contact@email.com" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                    </div>
-                                </div>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">TÉLÉPHONE</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-phone-alt" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-contact_destinataire" type="tel" class="swal2-input" placeholder="Ex: 0708091011" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                    </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: #1977cc; color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(25, 119, 204, 0.2);">
+                                    <span style="font-weight: 600;">TOTAL À PAYER</span>
+                                    <span style="font-weight: 800; font-size: 1.3rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
                                 </div>
                             </div>
 
-                            <!-- Colonne 2: Lieu de livraison -->
-                            <div>
-                                <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #2c7873; padding-left: 10px; border-radius: 2px;">
-                                    <i class="fas fa-map-marked-alt" style="color: #2c7873; margin-right: 8px;"></i>Lieu de Livraison
-                                </h4>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">VILLE</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-city" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-ville" class="swal2-input" placeholder="Ex: Abidjan" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                            <!-- Formulaire Détaillé -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                <!-- Colonne 1: Destinataire -->
+                                <div>
+                                    <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #1977cc; padding-left: 10px; border-radius: 2px;">
+                                        <i class="fas fa-user-check" style="color: #1977cc; margin-right: 8px;"></i>Coordonnées du Destinataire
+                                    </h4>
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">NOM DU DESTINATAIRE</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-user" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-nom_destinataire" class="swal2-input" placeholder="Ex: Kouassi" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">PRÉNOM DU DESTINATAIRE</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-user" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-prenom_destinataire" class="swal2-input" placeholder="Ex: Amenan" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">EMAIL</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-envelope" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-email_destinataire" type="email" class="swal2-input" placeholder="Ex: contact@email.com" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">TÉLÉPHONE</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-phone-alt" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-contact_destinataire" type="tel" class="swal2-input" placeholder="Ex: 0708091011" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
                                     </div>
                                 </div>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">COMMUNE</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-map-marker-alt" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-commune_livraison" class="swal2-input" placeholder="Ex: Plateau" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+
+                                <!-- Colonne 2: Lieu de livraison -->
+                                <div>
+                                    <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #2c7873; padding-left: 10px; border-radius: 2px;">
+                                        <i class="fas fa-map-marked-alt" style="color: #2c7873; margin-right: 8px;"></i>Lieu de Livraison
+                                    </h4>
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">VILLE</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-city" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-ville" class="swal2-input" placeholder="Ex: Abidjan" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
                                     </div>
-                                </div>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">QUARTIER / PRÉCISIONS</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-location-arrow" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-quartier" class="swal2-input" placeholder="Ex: Cité des arts" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">COMMUNE</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-map-marker-alt" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-commune_livraison" class="swal2-input" placeholder="Ex: Plateau" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
                                     </div>
-                                </div>
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">ADRESSE EXACTE</label>
-                                    <div style="position: relative;">
-                                        <i class="fas fa-home" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                        <input id="swal-adresse_livraison" class="swal2-input" placeholder="Ex: Rue 12, Près de l'église" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">QUARTIER / PRÉCISIONS</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-location-arrow" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-quartier" class="swal2-input" placeholder="Ex: Cité des arts" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">ADRESSE EXACTE</label>
+                                        <div style="position: relative;">
+                                            <i class="fas fa-home" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
+                                            <input id="swal-adresse_livraison" class="swal2-input" placeholder="Ex: Rue 12, Près de l'église" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>`,
+                        </div>`,
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonText: `<i class="fas fa-credit-card"></i> Payer ${montantTimbreTotal + montantLivraison} FCFA`,

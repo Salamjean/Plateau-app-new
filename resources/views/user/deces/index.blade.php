@@ -171,6 +171,7 @@
                                 <thead>
                                     <tr style="background-color: #1977cc">
                                         <th>Référence</th>
+                                        <th>Type</th>
                                         <th>Quantité</th>
                                         <th>Défunt</th>
                                         <th>Détails</th>
@@ -185,6 +186,13 @@
                                     @forelse ($deces as $decesItem)
                                         <tr>
                                             <td>{{ $decesItem->reference }}</td>
+                                            <td>
+                                                @if($decesItem->type == 'integral')
+                                                    <span class="badge bg-info text-dark">Intégrale</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Simple</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $decesItem->quantite }} copie(s)</td>
                                             <td>{{ $decesItem->name }}</td>
                                             <td>
@@ -196,15 +204,13 @@
                                             <td>
                                                 @if ($decesItem->CNIdfnt)
                                                     @if (pathinfo($decesItem->CNIdfnt, PATHINFO_EXTENSION) === 'pdf')
-                                                        <a href="{{ asset('storage/' . $decesItem->CNIdfnt) }}"
-                                                            target="_blank">
-                                                            <img src="{{ asset('assets/assets/img/pdf.jpg') }}"
-                                                                alt="PDF" class="document-preview">
+                                                        <a href="{{ asset('storage/' . $decesItem->CNIdfnt) }}" target="_blank">
+                                                            <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF"
+                                                                class="document-preview">
                                                         </a>
                                                     @else
-                                                        <img src="{{ asset('storage/' . $decesItem->CNIdfnt) }}"
-                                                            alt="CNI défunt" class="document-preview"
-                                                            onclick="showImage(this)">
+                                                        <img src="{{ asset('storage/' . $decesItem->CNIdfnt) }}" alt="CNI défunt"
+                                                            class="document-preview" onclick="showImage(this)">
                                                     @endif
                                                 @else
                                                     <span class="text-muted">Aucun document</span>
@@ -231,8 +237,7 @@
                                                     @if ($decesItem->peut_modifier)
                                                         <button
                                                             onclick="showModificationPopup('{{ $decesItem->id }}', {{ json_encode($decesItem) }})"
-                                                            class="btn btn-sm btn-warning action-btn"
-                                                            title="Modifier la demande">
+                                                            class="btn btn-sm btn-warning action-btn" title="Modifier la demande">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
                                                     @endif
@@ -292,7 +297,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('.table').DataTable({
                 responsive: true,
                 language: {
@@ -355,10 +360,10 @@
 
             // Créer le formulaire dynamique
             let formHtml = `
-        <form id="modificationForm" enctype="multipart/form-data">
-            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-    `;
+            <form id="modificationForm" enctype="multipart/form-data">
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+        `;
 
             champsAModifier.forEach(field => {
                 const label = fieldLabels[field] || field;
@@ -371,106 +376,106 @@
 
                 if (field === 'quantite') {
                     formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="number" name="${field}" class="form-control" 
-                           value="${fieldValue}" min="1" max="10" required>
-                </div>
-            `;
+                    <div class="mb-3">
+                        <label class="form-label">${label}</label>
+                        <input type="number" name="${field}" class="form-control" 
+                               value="${fieldValue}" min="1" max="10" required>
+                    </div>
+                `;
                 } else if (field === 'commune') {
                     formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="text" name="${field}" class="form-control" 
-                           value="plateau" readonly>
-                    <small class="text-muted">Commune fixée à Plateau</small>
-                </div>
-            `;
+                    <div class="mb-3">
+                        <label class="form-label">${label}</label>
+                        <input type="text" name="${field}" class="form-control" 
+                               value="plateau" readonly>
+                        <small class="text-muted">Commune fixée à Plateau</small>
+                    </div>
+                `;
                 } else if (['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice'].includes(field)) {
                     formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <div class="file-input-container mb-2">
-                        <label class="file-input-label">
-                            <span class="file-input-text" id="file-name-${field}">Choisir un fichier</span>
-                            <span class="file-input-button">Parcourir</span>
-                            <input type="file" id="${field}" name="${field}" class="file-input" 
-                                   onchange="updateFileName(this, '${field}')" accept=".jpg,.jpeg,.png,.pdf">
-                        </label>
+                    <div class="mb-3">
+                        <label class="form-label">${label}</label>
+                        <div class="file-input-container mb-2">
+                            <label class="file-input-label">
+                                <span class="file-input-text" id="file-name-${field}">Choisir un fichier</span>
+                                <span class="file-input-button">Parcourir</span>
+                                <input type="file" id="${field}" name="${field}" class="file-input" 
+                                       onchange="updateFileName(this, '${field}')" accept=".jpg,.jpeg,.png,.pdf">
+                            </label>
+                        </div>
+                        <small class="text-muted">Formats acceptés: JPG, PNG, PDF (max 1MB)</small>
+                        ${fieldValue ? '<div class="mt-2"><small>Document actuel: ' + fieldValue.split('/').pop() + '</small></div>' : ''}
                     </div>
-                    <small class="text-muted">Formats acceptés: JPG, PNG, PDF (max 1MB)</small>
-                    ${fieldValue ? '<div class="mt-2"><small>Document actuel: ' + fieldValue.split('/').pop() + '</small></div>' : ''}
-                </div>
-            `;
+                `;
                 } else if (field === 'dateR') {
                     formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="date" name="${field}" class="form-control" 
-                           value="${fieldValue}" required>
-                </div>
-            `;
+                    <div class="mb-3">
+                        <label class="form-label">${label}</label>
+                        <input type="date" name="${field}" class="form-control" 
+                               value="${fieldValue}" required>
+                    </div>
+                `;
                 } else {
                     formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="text" name="${field}" class="form-control" 
-                           value="${fieldValue}" required>
-                </div>
-            `;
+                    <div class="mb-3">
+                        <label class="form-label">${label}</label>
+                        <input type="text" name="${field}" class="form-control" 
+                               value="${fieldValue}" required>
+                    </div>
+                `;
                 }
             });
 
             formHtml += `
-            </div>
-        </form>
-        <style>
-            .file-input-container {
-                position: relative;
-                overflow: hidden;
-            }
-            .file-input-label {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0.8rem 1rem;
-                background: #f9f9f9;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .file-input-label:hover {
-                background: #f0f0f0;
-            }
-            .file-input-text {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                color: #666;
-            }
-            .file-input-button {
-                background: #1977cc;
-                color: white;
-                padding: 0.3rem 0.8rem;
-                border-radius: 6px;
-                font-size: 0.85rem;
-                margin-left: 1rem;
-            }
-            .file-input {
-                position: absolute;
-                left: 0;
-                top: 0;
-                opacity: 0;
-                width: 100%;
-                height: 100%;
-                cursor: pointer;
-            }
-            .swal2-popup .form-control {
-                margin-bottom: 10px;
-            }
-        </style>
-    `;
+                </div>
+            </form>
+            <style>
+                .file-input-container {
+                    position: relative;
+                    overflow: hidden;
+                }
+                .file-input-label {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0.8rem 1rem;
+                    background: #f9f9f9;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                .file-input-label:hover {
+                    background: #f0f0f0;
+                }
+                .file-input-text {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    color: #666;
+                }
+                .file-input-button {
+                    background: #1977cc;
+                    color: white;
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 6px;
+                    font-size: 0.85rem;
+                    margin-left: 1rem;
+                }
+                .file-input {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    opacity: 0;
+                    width: 100%;
+                    height: 100%;
+                    cursor: pointer;
+                }
+                .swal2-popup .form-control {
+                    margin-bottom: 10px;
+                }
+            </style>
+        `;
 
             Swal.fire({
                 title: 'Modifier la demande rejetée',
@@ -536,13 +541,13 @@
 
                     // Envoyer la requête AJAX
                     fetch(url, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            }
-                        })
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
                         .then(response => response.json())
                         .then(data => {
                             Swal.close();
@@ -583,23 +588,23 @@
             document.getElementById(`file-name-${fieldId}`).textContent = fileName;
         }
 
-        @if (session('success'))
-            Swal.fire({
-                title: 'Succès',
-                text: "{{ session('success') }}",
-                icon: 'success',
-                confirmButtonColor: '#3085d6'
-            });
-        @endif
+            @if (session('success'))
+                Swal.fire({
+                    title: 'Succès',
+                    text: "{{ session('success') }}",
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6'
+                });
+            @endif
 
-        @if (session('error'))
-            Swal.fire({
-                title: 'Erreur',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonColor: '#3085d6'
-            });
-        @endif
+            @if (session('error'))
+                Swal.fire({
+                    title: 'Erreur',
+                    text: "{{ session('error') }}",
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6'
+                });
+            @endif
     </script>
 
 @endsection

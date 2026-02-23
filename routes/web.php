@@ -262,7 +262,7 @@ Route::middleware('agent')->prefix('agent')->group(function () {
 });
 
 //Les routes de gestion de la @finance
-Route::prefix('finance')->group(function () {
+Route::prefix('registre')->group(function () {
     Route::get('/', [AuthenticateFinance::class, 'login'])->name('finance.login');
     Route::post('/', [AuthenticateFinance::class, 'handleLogin'])->name('finance.handleLogin');
 });
@@ -294,7 +294,7 @@ Route::middleware('finance')->prefix('finance')->group(function () {
 });
 
 //Les routes de gestion de la @comptable
-Route::prefix('finance-agent')->group(function () {
+Route::prefix('registre-agent')->group(function () {
     Route::get('/', [AuthenticateComptable::class, 'login'])->name('comptable.login');
     Route::post('/', [AuthenticateComptable::class, 'handleLogin'])->name('comptable.handleLogin');
 });

@@ -35,6 +35,7 @@ class DecesController extends Controller
     public function store(Request $request, YellikaSmsService $yellikaSmsService)
     {
         $request->validate([
+            'type' => 'required',
             'name' => 'required',
             'numberR' => 'required',
             'dateR' => 'required',
@@ -99,6 +100,7 @@ class DecesController extends Controller
 
         // Enregistrement de l'objet deces
         $deces = new Deces();
+        $deces->type = $request->type;
         $deces->name = $request->name;
         $deces->numberR = $request->numberR;
         $deces->dateR = $request->dateR;
