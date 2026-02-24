@@ -11,7 +11,7 @@
         <div class="col-12 col-md-10 col-lg-8">
             <div class="card shadow-lg border-0 rounded-20">
                 <div class="card-header py-4 text-center bg-gradient-primary rounded-top-20">
-                    <h2 class="mb-0 fw-bold text-white"><i class="fas fa-home me-2 text-white"></i>Modifier les informations du service financier</h2>
+                    <h2 class="mb-0 fw-bold text-white"><i class="fas fa-home me-2 text-white"></i>Modifier les informations du régie des taxes</h2>
                     <p class="mb-0 mt-2 opacity-75 text-white">Formulaire d'enregistrement par la Mairie</p>
                 </div>
 

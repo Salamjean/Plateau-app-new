@@ -45,7 +45,7 @@
         <div class="col-12">
             <div class="card fade-in">
                 <div class="card-header">
-                    <h5><i class="fas fa-list me-2"></i>Liste des ventes effectuées par les registraires</h5>
+                    <h5><i class="fas fa-list me-2"></i>Liste des ventes effectuées par les régies</h5>
                     <div class="card-actions">
                         <a href="{{ route('finance.timbre.vente') }}" class="btn btn-sm btn-icon" data-bs-toggle="tooltip" title="Actualiser">
                             <i class="fas fa-sync-alt"></i>
@@ -67,9 +67,9 @@
                                         value="{{ request('date_fin') }}">
                                 </div>
                                 <div class="input-group">
-                                    <label class="form-label"><i class="fas fa-user me-1"></i>Registraire</label>
+                                    <label class="form-label"><i class="fas fa-user me-1"></i>Régie</label>
                                     <select name="financier_id" class="form-control">
-                                        <option value="">Tous les agents registraires</option>
+                                        <option value="">Toutes les régies</option>
                                         @foreach($financiers as $financier)
                                             <option value="{{ $financier->id }}" 
                                                     {{ request('financier_id') == $financier->id ? 'selected' : '' }}>
@@ -98,7 +98,7 @@
                                 <tr>
                                     <th scope="col" style="text-align: center">Date</th>
                                     <th scope="col" style="text-align: center">Heure</th>
-                                    <th scope="col" style="text-align: center">Registraire</th>
+                                    <th scope="col" style="text-align: center">Régie</th>
                                     <th scope="col" style="text-align: center" class="text-right">Quantité vendue</th>
                                     <th scope="col" style="text-align: center" class="text-center">Type opération</th>
                                 </tr>

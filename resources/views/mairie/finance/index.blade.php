@@ -13,8 +13,8 @@
                 <div class="card-header py-3 bg-white">
                     <div class="row align-items-center">
                         <div class="col text-center">
-                            <h2 class="mb-0 fw-bold text-primary"><i class="fas fa-users me-2"></i>Gestion du registre des taxes</h2>
-                            <p class="text-muted mb-0">Informations sur le registre des taxes</p>
+                            <h2 class="mb-0 fw-bold text-primary"><i class="fas fa-users me-2"></i>Gestion du régie des taxes</h2>
+                            <p class="text-muted mb-0">Informations sur le régie des taxes</p>
                             {{-- <p class="text-muted mb-0">Liste des responsables financier enregistrés</p> --}}
                         </div>
                         {{-- <div class="col-auto">

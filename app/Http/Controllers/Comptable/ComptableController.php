@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use PDF;
 
@@ -35,7 +36,7 @@ class ComptableController extends Controller
            'name' => 'required|string|max:255',
            'prenom' => 'required|string|max:255',
            'email' => 'required|email|unique:comptables,email',
-           'contact' => 'required|string|min:10',
+           'contact' => 'required|string|min:10|unique:comptables,contact',
            'commune' => 'required|string|max:255',
            'cas_urgence' => 'required|string|max:255',
            'profile_picture' => 'nullable|image|max:2048',
@@ -48,6 +49,7 @@ class ComptableController extends Controller
             'email.unique' => 'Cette adresse e-mail est déjà associée à un compte.',
             'contact.required' => 'Le contact est obligatoire.',
             'contact.min' => 'Le contact doit avoir au moins 10 chiffres.',
+            'contact.unique' => 'Ce contact est déjà associé à un compte.',
             'commune.required' => 'La commune est obligatoire.',
             'cas_urgence.required' => 'La personne à contacter est obligatoire.',
             'profile_picture.image' => 'Le fichier doit être une image.',
@@ -93,6 +95,7 @@ class ComptableController extends Controller
    
            return redirect()->route('comptable.index')->with('success', 'Le financier a bien été enregistré avec succès.');
        } catch (\Exception $e) {
+            Log::error($e->getMessage());
            return redirect()->back()->withErrors(['error' => 'Une erreur est survenue : ' . $e->getMessage()]);
        }
     }

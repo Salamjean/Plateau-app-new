@@ -70,19 +70,19 @@
             <div class="mdc-list-item mdc-drawer-item">
               <a class="mdc-expansion-panel-link" href="#" data-toggle="expansionPanel" data-target="sample-page-submenu">
                 <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">person</i>
-                Registraire
+                Régie
                 <i class="mdc-drawer-arrow material-icons">chevron_right</i>
               </a>
               <div class="mdc-expansion-panel" id="sample-page-submenu">
                 <nav class="mdc-list mdc-drawer-submenu">
                   <div class="mdc-list-item mdc-drawer-item">
                     <a class="mdc-drawer-link" href="{{route('comptable.create')}}">
-                     Ajout registraire
+                     Ajout Régie
                     </a>
                   </div>
                   <div class="mdc-list-item mdc-drawer-item">
                     <a class="mdc-drawer-link" href="{{route('comptable.index')}}">
-                     Registraires
+                     Régies
                     </a>
                   </div>
                 </nav>

@@ -108,7 +108,7 @@
     <div class="info-agent">
         <table>
             <tr>
-                <td class="label">Registraire : <span>{{ $agent->name }} {{ $agent->prenom }}</span></td>
+                <td class="label">Régie : <span>{{ $agent->name }} {{ $agent->prenom }}</span></td>
                 <td class="label">Email : <span>{{ $agent->email }}</span></td>
             </tr>
             <tr>
