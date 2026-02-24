@@ -2,6 +2,9 @@
 @section('content')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- jsPDF pour export PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <div class="dashboard-container">
     <h1 class="page-title">
         <i class="fas fa-chart-line me-2"></i>Tableau de Bord des Ventes
@@ -46,7 +49,10 @@
             <div class="card fade-in">
                 <div class="card-header">
                     <h5><i class="fas fa-list me-2"></i>Liste des ventes effectuées par les régies</h5>
-                    <div class="card-actions">
+                    <div class="card-actions" style="display: flex; gap: 8px; align-items: center;">
+                        <button onclick="exporterPDFJournalier()" class="btn-pdf-jour" title="Télécharger les ventes du jour en PDF">
+                            <i class="fas fa-download"></i> Ventes du jour (PDF)
+                        </button>
                         <a href="{{ route('finance.timbre.vente') }}" class="btn btn-sm btn-icon" data-bs-toggle="tooltip" title="Actualiser">
                             <i class="fas fa-sync-alt"></i>
                         </a>
@@ -706,5 +712,117 @@
             });
         }
     });
+</script>
+
+<style>
+    .btn-pdf-jour {
+        background: linear-gradient(135deg, #ff8800, #e67a00);
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .btn-pdf-jour:hover {
+        background: linear-gradient(135deg, #e67a00, #cc6d00);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 136, 0, 0.3);
+    }
+</style>
+
+<script>
+    window.jsPDF = window.jspdf.jsPDF;
+
+    function exporterPDFJournalier() {
+        try {
+            const doc = new jsPDF();
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('fr-FR');
+            const todayFormatted = today.toISOString().slice(0, 10);
+            const todayDisplay = today.toLocaleDateString('fr-FR');
+
+            // Header bleu
+            doc.setFillColor(25, 119, 204);
+            doc.rect(0, 0, 210, 35, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('RAPPORT DE VENTES DU JOUR', 105, 15, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            doc.text('Date : ' + dateStr + '  |  Toutes les r\u00e9gies', 105, 25, { align: 'center' });
+
+            // Statistique du jour
+            const todayStat = "{{ number_format($stats['today'], 0, ',', ' ') }}";
+            const todayAmount = parseInt('{{ $stats["today"] }}') * 500;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('Timbres vendus aujourd\'hui : ' + todayStat, 14, 45);
+            doc.text('Montant total : ' + todayAmount.toLocaleString('fr-FR') + ' FCFA', 14, 53);
+
+            // Filtrer les lignes du jour dans le tableau
+            const headers = [['Date', 'Heure', 'R\u00e9gie', 'Quantit\u00e9', 'Type']];
+            const rows = [];
+            const tableRows = document.querySelectorAll('.table tbody tr');
+
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                    const dateText = cells[0].textContent.trim();
+                    // V\u00e9rifier si c'est aujourd'hui
+                    if (dateText.includes(todayDisplay)) {
+                        const time = cells[1].textContent.trim();
+                        const regie = cells[2].textContent.trim();
+                        const quantity = cells[3].textContent.trim();
+                        const type = cells[4].textContent.trim();
+                        rows.push([dateText, time, regie, quantity, type]);
+                    }
+                }
+            });
+
+            if (rows.length === 0) {
+                doc.setFont(undefined, 'normal');
+                doc.setFontSize(11);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Aucune vente enregistr\u00e9e pour aujourd\'hui dans cette page.', 105, 70, { align: 'center' });
+                doc.setFontSize(9);
+                doc.text('Utilisez les filtres avec la date du jour puis r\u00e9essayez.', 105, 78, { align: 'center' });
+            } else {
+                doc.autoTable({
+                    head: headers,
+                    body: rows,
+                    startY: 60,
+                    theme: 'grid',
+                    styles: { fontSize: 9, cellPadding: 3 },
+                    headStyles: { fillColor: [25, 119, 204], textColor: 255, fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [245, 247, 251] }
+                });
+            }
+
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text('G\u00e9n\u00e9r\u00e9 le ' + dateStr + ' \u00e0 ' + today.toLocaleTimeString('fr-FR') + ' \u2014 Page ' + i + '/' + pageCount, 105, 290, { align: 'center' });
+            }
+
+            doc.save('ventes_jour_toutes_regies_' + todayFormatted + '.pdf');
+            alert('PDF des ventes du jour t\u00e9l\u00e9charg\u00e9 avec succ\u00e8s !');
+        } catch (error) {
+            console.error('Erreur PDF journalier:', error);
+            alert('Erreur lors de la g\u00e9n\u00e9ration du PDF');
+        }
+    }
 </script>
 @endsection

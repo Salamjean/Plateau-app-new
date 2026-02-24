@@ -15,6 +15,9 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <!-- Chart.js -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- jsPDF pour export PDF -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
         <style>
             :root {
@@ -429,6 +432,29 @@
             ::-webkit-scrollbar-thumb:hover {
                 background: #aaa;
             }
+
+            .btn-pdf-jour {
+                background: linear-gradient(135deg, #ff8800, #e67a00);
+                color: white;
+                border: none;
+                padding: 6px 14px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                white-space: nowrap;
+                margin-left: auto;
+            }
+
+            .btn-pdf-jour:hover {
+                background: linear-gradient(135deg, #e67a00, #cc6d00);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(255, 136, 0, 0.3);
+            }
         </style>
     </head>
 
@@ -495,8 +521,12 @@
             </div>
 
             <!-- FINANCE/TIMBRES SECTION -->
-            <div class="section-title">
+            <div class="section-title" style="justify-content: flex-start; gap: 0.75rem;">
                 <i class="fas fa-stamp"></i> Gestion des Timbres
+                <button onclick="exporterPDFJournalier()" class="btn-pdf-jour"
+                    title="Télécharger les ventes du jour en PDF">
+                    <i class="fas fa-download"></i> Ventes du jour (PDF)
+                </button>
             </div>
 
             <div class="grid-finance">
@@ -747,6 +777,116 @@
                     }
                 });
             });
+        </script>
+
+        <!-- Script PDF Journalier -->
+        <script>
+            window.jsPDF = window.jspdf.jsPDF;
+
+            function exporterPDFJournalier() {
+                try {
+                    const doc = new jsPDF();
+                    const today = new Date();
+                    const dateStr = today.toLocaleDateString('fr-FR');
+                    const comptableName = "{{ Auth::guard('comptable')->user()->name }} {{ Auth::guard('comptable')->user()->prenom }}";
+                    const todayISO = today.toISOString().slice(0, 10);
+
+                    // Header bleu
+                    doc.setFillColor(25, 119, 204);
+                    doc.rect(0, 0, 210, 35, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(18);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('RAPPORT DE VENTES DU JOUR', 105, 15, { align: 'center' });
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'normal');
+                    doc.text('Date : ' + dateStr + '  |  Comptable : ' + comptableName, 105, 25, { align: 'center' });
+
+                    // Résumé financier
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('R\u00e9sum\u00e9 Financier', 14, 50);
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'normal');
+
+                    const timbresAuj = '{{ number_format($timbresAujourdhui, 0, ",", " ") }}';
+                    const montantAuj = '{{ number_format($montantAujourdhui, 0, ",", " ") }}';
+                    const timbresMois = '{{ number_format($timbresMois, 0, ",", " ") }}';
+                    const montantMois = '{{ number_format($montantMois, 0, ",", " ") }}';
+                    const soldeTimbres = '{{ number_format($soldeTimbres, 0, ",", " ") }}';
+
+                    // Tableau récapitulatif
+                    doc.autoTable({
+                        startY: 58,
+                        head: [['Indicateur', 'Quantit\u00e9', 'Montant']],
+                        body: [
+                            ["Ventes aujourd'hui", timbresAuj + ' timbres', montantAuj + ' FCFA'],
+                            ['Ventes ce mois', timbresMois + ' timbres', montantMois + ' FCFA'],
+                            ['Stock disponible', soldeTimbres + ' timbres', '-']
+                        ],
+                        theme: 'grid',
+                        styles: { fontSize: 10, cellPadding: 4 },
+                        headStyles: { fillColor: [25, 119, 204], textColor: 255, fontStyle: 'bold' },
+                        alternateRowStyles: { fillColor: [245, 247, 251] },
+                        columnStyles: {
+                            0: { fontStyle: 'bold', cellWidth: 60 },
+                            1: { halign: 'center' },
+                            2: { halign: 'center' }
+                        }
+                    });
+
+                    // Ventes récentes
+                    const finalY = doc.lastAutoTable.finalY + 15;
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Derni\u00e8res Ventes', 14, finalY);
+
+                    const ventesHeaders = [['Quantit\u00e9', 'Date', 'Montant']];
+                    const ventesRows = [];
+
+                    @foreach($dernieresVentesTimbres as $vente)
+                        ventesRows.push([
+                            '{{ abs($vente->nombre_timbre) }} timbres',
+                            '{{ $vente->created_at->locale("fr")->format("d M Y \u00e0 H:i") }}',
+                            '{{ number_format(abs($vente->nombre_timbre) * 500, 0, ",", " ") }} FCFA'
+                        ]);
+                    @endforeach
+
+                        if (ventesRows.length > 0) {
+                        doc.autoTable({
+                            startY: finalY + 5,
+                            head: ventesHeaders,
+                            body: ventesRows,
+                            theme: 'grid',
+                            styles: { fontSize: 9, cellPadding: 3 },
+                            headStyles: { fillColor: [25, 119, 204], textColor: 255, fontStyle: 'bold' },
+                            alternateRowStyles: { fillColor: [245, 247, 251] }
+                        });
+                    } else {
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(10);
+                        doc.setTextColor(150);
+                        doc.text('Aucune vente r\u00e9cente.', 14, finalY + 8);
+                    }
+
+                    // Footer
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(8);
+                        doc.setTextColor(150);
+                        doc.text('G\u00e9n\u00e9r\u00e9 le ' + dateStr + ' \u00e0 ' + today.toLocaleTimeString('fr-FR') + ' \u2014 Page ' + i + '/' + pageCount, 105, 290, { align: 'center' });
+                    }
+
+                    doc.save('ventes_jour_' + todayISO + '.pdf');
+                    alert('PDF des ventes du jour t\u00e9l\u00e9charg\u00e9 avec succ\u00e8s !');
+                } catch (error) {
+                    console.error('Erreur PDF journalier:', error);
+                    alert('Erreur lors de la g\u00e9n\u00e9ration du PDF');
+                }
+            }
         </script>
     </body>
 
