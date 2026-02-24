@@ -124,8 +124,10 @@ class NaissanceController extends Controller
             'type' => 'required',
             'name' => 'required',
             'prenom' => 'required',
-            'number' => 'required',
-            'DateR' => 'required',
+            'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
+            'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
+            'nom_prenoms_pere' => 'nullable|string|max:255',
+            'nom_prenoms_mere' => 'nullable|string|max:255',
             'commune' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
             'CNI' => 'required',
@@ -133,8 +135,8 @@ class NaissanceController extends Controller
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
             'name.required' => 'Le nom est obligatoire',
             'prenom.required' => 'Le prénom est obligatoire',
-            'number.required' => 'Le numéro de registre sur l\'extrait est obligatoire',
-            'DateR.required' => 'La date de registre est obligatoire',
+            'number.required_without_all' => 'Le numéro de registre est obligatoire si les informations parentales ne sont pas fournies',
+            'DateR.required_without_all' => 'La date de registre est obligatoire si les informations parentales ne sont pas fournies',
             'commune.required' => 'La commune est obligatoire',
             'CNI.required' => 'Le champ CNI est obligatoire',
             'quantite.required' => 'La quantité est obligatoire',
@@ -184,6 +186,8 @@ class NaissanceController extends Controller
         $naissance->name = $request->name;
         $naissance->quantite = $request->quantite;
         $naissance->prenom = $request->prenom;
+        $naissance->nom_prenoms_pere = $request->nom_prenoms_pere;
+        $naissance->nom_prenoms_mere = $request->nom_prenoms_mere;
         $naissance->number = $request->number;
         $naissance->DateR = $request->DateR;
         $naissance->commune = $request->commune;
@@ -208,6 +212,8 @@ class NaissanceController extends Controller
             $naissance->ville = $request->input('ville');
             $naissance->commune_livraison = $request->input('commune_livraison');
             $naissance->quartier = $request->input('quartier');
+            $naissance->date_livraison = $request->input('date_livraison');
+            $naissance->heure_livraison = $request->input('heure_livraison');
         }
 
         $naissance->save();

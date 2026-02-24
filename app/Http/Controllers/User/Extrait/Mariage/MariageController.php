@@ -121,6 +121,8 @@ class MariageController extends Controller
             $mariage->ville = $request->input('ville');
             $mariage->commune_livraison = $request->input('commune_livraison');
             $mariage->quartier = $request->input('quartier');
+            $mariage->date_livraison = $request->input('date_livraison');
+            $mariage->heure_livraison = $request->input('heure_livraison');
         }
 
         $mariage->save();

@@ -11,6 +11,8 @@ class Deces extends Model
         'name',
         'numberR',
         'dateR',
+        'nom_prenoms_pere',
+        'nom_prenoms_mere',
         'CNIdfnt',
         'CNIdcl',
         'documentMariage',
@@ -40,6 +42,8 @@ class Deces extends Model
         'ville',
         'commune_livraison',
         'quartier',
+        'date_livraison',
+        'heure_livraison',
         'timbre_recupere'
     ];
     public function user()

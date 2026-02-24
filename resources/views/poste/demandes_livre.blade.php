@@ -247,13 +247,13 @@
                 <div class="small-card-body">
                     <div class="small-card-row">
                         <span class="small-card-label">Option:</span>
-                        <span>{{ $demande->choix_option === 'livraison' ? 'Livraison' : 'Retrait' }}</span>
+                        <span>{{ $demande->choix_option === 'livraison' ? 'Livraison' : 'Retrait' }}</span>     
                     </div>
                     
                     @if($demande->choix_option === 'livraison')
                         <div class="small-card-row">
                             <span class="small-card-label">Destinataire:</span>
-                            <span>{{ Str::limit($demande->nom_destinataire.' '.$demande->prenom_destinataire, 20) }}</span>
+                            <span>{{ Str::limit($demande->nom_destinataire.' '.$demande->prenom_destinataire, 20 ?? 'N/A') }}</span>
                         </div>
                         
                         <div class="small-card-row">
@@ -305,7 +305,7 @@
                 <div class="small-card-footer">
                     <div class="d-flex justify-content-between align-items-center space">
                         <small class="text-muted">
-                            {{ $demande->created_at->format('d/m/Y H:i') }}
+                            {{ \Carbon\Carbon::parse($demande->date_livraison)->format('d/m/Y H:i') | \Carbon\Carbon::parse($demande->heure_livraison)->format('H:i') }}
                         </small>
                         <div class="checkbox-container">
                             <label class="checkbox-label"> {{ Str::limit(optional($demande->livreur)->name.' '.optional($demande->livreur)->prenom ?? 'Non défini', 13) }} </label>

@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,8 +19,9 @@
   <!-- End layout styles -->
   <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
 </head>
+
 <body>
-<script src="{{asset('assetsPoste/assets/js/preloader.js')}}"></script>
+  <script src="{{asset('assetsPoste/assets/js/preloader.js')}}"></script>
   <div class="body-wrapper">
     <!-- partial:partials/_sidebar.html -->
     @include('mairie.layouts.sidebar')
@@ -50,4 +51,5 @@
   <script src="{{asset('assetsPoste/assets/js/dashboard.js')}}"></script>
   <!-- End custom js for this page-->
 </body>
-</html> 
+
+</html>

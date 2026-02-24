@@ -11,6 +11,8 @@ class Naissance extends Model
         'pour',
         'name',
         'prenom',
+        'nom_prenoms_pere',
+        'nom_prenoms_mere',
         'number',
         'DateR',
         'CNI',
@@ -36,6 +38,8 @@ class Naissance extends Model
         'ville',
         'commune_livraison',
         'quartier',
+        'date_livraison',
+        'heure_livraison',
         'timbre_recupere'
     ];
 

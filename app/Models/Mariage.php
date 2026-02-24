@@ -37,6 +37,8 @@ class Mariage extends Model
         'user_id',
         'commune_livraison',
         'quartier',
+        'date_livraison',
+        'heure_livraison',
         'timbre_recupere'
     ];
 

@@ -37,15 +37,17 @@ class DecesController extends Controller
         $request->validate([
             'type' => 'required',
             'name' => 'required',
-            'numberR' => 'required',
-            'dateR' => 'required',
+            'numberR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
+            'dateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
+            'nom_prenoms_pere' => 'nullable|string|max:255',
+            'nom_prenoms_mere' => 'nullable|string|max:255',
             'CNIdfnt' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
             'CNIdcl' => 'required',
         ], [
             'name.required' => 'Le nom du défunt est obligatoire.',
-            'numberR.required' => 'Le numéro de l\'extrait de décès est obligatoire.',
-            'dateR.required' => 'La date de l\'extrait de décès est obligatoire.',
+            'numberR.required_without_all' => 'Le numéro de registre est obligatoire si les informations parentales ne sont pas fournies.',
+            'dateR.required_without_all' => 'La date de registre est obligatoire si les informations parentales ne sont pas fournies.',
             'CNIdfnt.required' => 'Cet document est obligatoire.',
             'CNIdcl.required' => 'Cet document est obligatoire.',
             'quantite.required' => 'La quantité est obligatoire',
@@ -102,6 +104,8 @@ class DecesController extends Controller
         $deces = new Deces();
         $deces->type = $request->type;
         $deces->name = $request->name;
+        $deces->nom_prenoms_pere = $request->nom_prenoms_pere;
+        $deces->nom_prenoms_mere = $request->nom_prenoms_mere;
         $deces->numberR = $request->numberR;
         $deces->dateR = $request->dateR;
         $deces->CNIdfnt = $uploadedPaths['CNIdfnt'] ?? null;
@@ -128,6 +132,8 @@ class DecesController extends Controller
             $deces->ville = $request->input('ville');
             $deces->commune_livraison = $request->input('commune_livraison');
             $deces->quartier = $request->input('quartier');
+            $deces->date_livraison = $request->input('date_livraison');
+            $deces->heure_livraison = $request->input('heure_livraison');
         }
 
         $deces->save();
