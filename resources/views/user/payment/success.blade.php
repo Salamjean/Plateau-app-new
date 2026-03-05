@@ -9,25 +9,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         body {
-            background: #f8fafc;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #ecfdf5 100%);
+            min-height: 100vh;
         }
         .success-card {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
         }
         .check-icon {
-            background: #22c55e;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             color: white;
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            margin: -40px auto 20px;
-            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
+            font-size: 42px;
+            margin: -45px auto 20px;
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
         }
     </style>
 </head>
@@ -40,43 +41,54 @@
         
         <h1 class="text-2xl font-bold text-slate-800 mb-2">Paiement Réussi !</h1>
         <p class="text-slate-600 mb-6">
-            Votre paiement pour la demande d'extrait de <strong>{{ $type }}</strong> a été traité avec succès.
+            Votre paiement pour la demande d'extrait de <strong class="text-blue-600">{{ $type }}</strong> a été traité avec succès.
         </p>
 
-        <div class="bg-slate-50 rounded-xl p-4 mb-8 text-left border border-slate-100">
-            <div class="flex justify-between mb-2">
+        <div class="bg-slate-50 rounded-xl p-5 mb-8 text-left border border-slate-100">
+            <div class="flex justify-between mb-3">
                 <span class="text-slate-500 text-sm">Référence :</span>
                 <span class="text-slate-800 font-mono font-bold">{{ $reference }}</span>
             </div>
+            <div class="flex justify-between mb-3">
+                <span class="text-slate-500 text-sm">Type :</span>
+                <span class="text-slate-800 font-semibold capitalize">{{ $type }}</span>
+            </div>
             <div class="flex justify-between">
-                <span class="text-slate-500 text-sm">Status Demande :</span>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  En attente
+                <span class="text-slate-500 text-sm">Statut :</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i> Payé
                 </span>
             </div>
         </div>
 
         <div class="space-y-3">
             @php
-                $route = match($type) {
-                    'naissance' => 'user.extrait.index',
-                    'mariage' => 'user.extrait.mariage.index',
-                    'deces' => 'user.extrait.deces.index',
-                    default => 'user.dashboard'
+                $listUrl = match($type) {
+                    'naissance' => url('/user/extract/index'),
+                    'mariage' => url('/user/wedding/index'),
+                    'deces' => url('/user/extract/death/index'),
+                    default => url('/user/dashboard')
                 };
             @endphp
-            <a href="{{ route($route) }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200">
-                Consulter ma liste
+            <a href="{{ $listUrl }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-200">
+                <i class="fas fa-list mr-2"></i> Consulter mes demandes
             </a>
-            <a href="{{ route('user.dashboard') }}" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition duration-200">
-                Retour au tableau de bord
+            <a href="{{ url('/user/dashboard') }}" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition duration-200">
+                <i class="fas fa-home mr-2"></i> Retour au tableau de bord
             </a>
         </div>
 
         <p class="mt-8 text-slate-400 text-xs text-center">
-            Un email et un SMS de confirmation vous seront envoyés sous peu.
+            <i class="fas fa-envelope mr-1"></i> Un email et un SMS de confirmation vous seront envoyés sous peu.
         </p>
     </div>
+
+    <script>
+        // Auto-redirect vers la liste après 15 secondes
+        setTimeout(function() {
+            window.location.href = '{{ $listUrl }}';
+        }, 15000);
+    </script>
 
 </body>
 </html>

@@ -60,11 +60,13 @@ class DemandeNaissanceController extends Controller
             'pour' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
-            'number' => 'required|string|max:255',
-            'DateR' => 'required|date',
+            'number' => 'nullable|string|max:255',
+            'DateR' => 'nullable|date',
             'commune' => 'required|string|max:255',
             'quantite' => 'required|integer|min:1|max:10',
             'CNI' => 'required',
+            'nom_prenoms_pere' => 'nullable|string|max:255',
+            'nom_prenoms_mere' => 'nullable|string|max:255',
             'choix_option' => 'required|in:retrait,livraison',
             'montant_timbre' => 'required_if:choix_option,livraison|numeric',
             'montant_livraison' => 'required_if:choix_option,livraison|numeric',
@@ -113,8 +115,10 @@ class DemandeNaissanceController extends Controller
             $naissance->type = $request->type;
             $naissance->name = $request->name;
             $naissance->prenom = $request->prenom;
+            $naissance->nom_prenoms_pere = $request->nom_prenoms_pere;
+            $naissance->nom_prenoms_mere = $request->nom_prenoms_mere;
             $naissance->number = $request->number;
-            $naissance->DateR = Carbon::parse($request->DateR)->format('Y-m-d');
+            $naissance->DateR = $request->DateR ? Carbon::parse($request->DateR)->format('Y-m-d') : null;
             $naissance->commune = $request->commune;
             $naissance->quantite = $request->quantite;
             $naissance->CNI = $uploadedPaths['CNI'] ?? null;
@@ -228,8 +232,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $baseUrl = config('app.url');
             $returnUrl = "plateauapps://payment?wave=true&transactionId={$naissance->reference}";
             $cancelUrl = "plateauapps://payment?wave=false&transactionId={$naissance->reference}";
-            $fallbackReturnUrl = $baseUrl . "/naissance/paiement/redirect-to-app?transactionId=" . urlencode($naissance->reference);
-            $fallbackCancelUrl = $baseUrl . "/naissance/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($naissance->reference);
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($naissance->reference);
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($naissance->reference);
 
             // 2. Calculer le montant
             $cout_total_timbres = (float) $naissance->montant_timbre * (int) $naissance->quantite;

@@ -91,6 +91,8 @@ class DemandeDecesController extends Controller
             'ville' => 'required_if:choix_option,livraison|string|max:255',
             'commune_livraison' => 'required_if:choix_option,livraison|string|max:255',
             'quartier' => 'nullable|string|max:255',
+            'nom_prenoms_pere' => 'nullable|string|max:255',
+            'nom_prenoms_mere' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -250,8 +252,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $baseUrl = config('app.url');
             $returnUrl = "plateauapps://payment?wave=true&transactionId={$deces->reference}";
             $cancelUrl = "plateauapps://payment?wave=false&transactionId={$deces->reference}";
-            $fallbackReturnUrl = $baseUrl . "/deces/paiement/redirect-to-app?transactionId=" . urlencode($deces->reference);
-            $fallbackCancelUrl = $baseUrl . "/deces/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($deces->reference);
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($deces->reference);
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($deces->reference);
 
             // 2. Calculer le montant
             $cout_total_timbres = (float) $deces->montant_timbre * (int) $deces->quantite;

@@ -433,11 +433,12 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::put('/profile', [ProfiluserController::class, 'update'])->name('user.profile.update');
     // Route::put('/profile/password', [ProfiluserController::class, 'updatePassword'])->name('user.profile.password.update'); // <-- SUPPRIMEZ CETTE LIGNE
     Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
-
-    // Routes de paiement
-    Route::get('/payment/success', [\App\Http\Controllers\User\PaymentController::class, 'success'])->name('payment.success');
-    Route::get('/payment/cancel', [\App\Http\Controllers\User\PaymentController::class, 'cancel'])->name('payment.cancel');
 });
+
+// Routes de paiement (en dehors du middleware auth car la session peut être perdue après redirection Wave/ngrok)
+Route::get('/user/payment/success', [\App\Http\Controllers\User\PaymentController::class, 'success'])->name('payment.success');
+Route::get('/user/payment/cancel', [\App\Http\Controllers\User\PaymentController::class, 'cancel'])->name('payment.cancel');
+
 //Les routes definition du accès 
 Route::get('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'defineAccess']);
 Route::post('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'submitDefineAccess'])->name('mairie.validate');

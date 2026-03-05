@@ -9,25 +9,22 @@ use App\Models\Naissance;
 use App\Models\Paiement;
 use App\Models\User;
 use App\Services\WaveService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    protected $waveService;
-
-    public function __construct(WaveService $waveService)
-    {
-        $this->waveService = $waveService;
-    }
-
     public function success(Request $request)
     {
         $reference = $request->query('reference');
-        $id = $request->query('id'); // Session ID from Wave
 
-        // Identifier le type de demande
+        Log::info("Page de succès paiement atteinte. Référence: {$reference}");
+
+        if (!$reference) {
+            return redirect()->route('user.login')->with('error', 'Référence de paiement manquante.');
+        }
+
+        // Identifier le type de demande à partir du préfixe de la référence
         $demande = null;
         $type = null;
 
@@ -43,44 +40,48 @@ class PaymentController extends Controller
         }
 
         if (!$demande) {
-            return redirect()->route('user.dashboard')->with('error', 'Référence de demande invalide.');
+            Log::error("Demande introuvable pour la référence: {$reference}");
+            return redirect()->route('user.login')->with('error', 'Référence de demande invalide.');
         }
+
+        Log::info("Demande trouvée: {$type} ID={$demande->id}, user_id={$demande->user_id}");
 
         // Vérifier si le paiement est déjà enregistré (par le webhook)
         $paiement = Paiement::where("{$type}_id", $demande->id)->first();
 
         // Fallback: Si pas encore enregistré, on le crée manuellement
-        // Puisqu'on est sur la page de succès, Wave a validé le paiement
         if (!$paiement) {
-            Log::info("Succès paiement: Webhook non encore reçu pour {$reference}. Enregistrement manuel.");
+            Log::info("Webhook non encore reçu pour {$reference}. Enregistrement manuel du paiement.");
             
-            $totalAmount = ($demande->montant_timbre * $demande->quantite) + ($demande->montant_livraison ?? 0);
+            $montantTimbre = (float) ($demande->montant_timbre ?? 0);
+            $quantite = (int) ($demande->quantite ?? 1);
+            $montantLivraison = (float) ($demande->montant_livraison ?? 0);
+            $totalAmount = ($montantTimbre * $quantite) + $montantLivraison;
 
-            Paiement::create([
-                'user_id' => $demande->user_id,
-                'transaction_id' => $demande->reference,
-                'operator_id' => 'WAVE_MANUAL_CHECK',
-                'montant' => $totalAmount,
-                'currency' => 'XOF',
-                'status' => 'ACCEPTED',
-                'paid_at' => now(),
-                "{$type}_id" => $demande->id,
-            ]);
+            try {
+                $paiement = Paiement::create([
+                    'user_id' => $demande->user_id,
+                    'transaction_id' => $demande->reference,
+                    'operator_id' => 'WAVE',
+                    'montant' => $totalAmount,
+                    'currency' => 'XOF',
+                    'status' => 'ACCEPTED',
+                    'paid_at' => now(),
+                    "{$type}_id" => $demande->id,
+                ]);
+                Log::info("Paiement enregistré avec succès. ID: {$paiement->id}");
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'enregistrement du paiement: " . $e->getMessage());
+            }
 
             // Mettre à jour l'état de la demande
             $demande->etat = 'en attente';
-            $demande->save();
-
-            // Envoyer les notifications si nécessaire (optionnel car le webhook pourrait aussi arriver)
-            // Mais pour une meilleure UX locale, on le fait ici.
-            try {
-                $user = User::find($demande->user_id);
-                if ($user) {
-                    $this->sendManualNotifications($user, $demande, $type);
-                }
-            } catch (\Exception $e) {
-                Log::error("Erreur notifications manuelles: " . $e->getMessage());
+            if ($demande->choix_option === 'livraison') {
+                $demande->statut_livraison = 'en attente';
             }
+            $demande->save();
+        } else {
+            Log::info("Paiement déjà enregistré (webhook reçu). Paiement ID: {$paiement->id}");
         }
 
         return view('user.payment.success', [
@@ -90,34 +91,12 @@ class PaymentController extends Controller
         ]);
     }
 
-    private function sendManualNotifications($user, $demande, $type)
-    {
-        // On réutilise la même logique que le webhook
-        // (Copie simplifiée ici ou appel à une méthode partagée)
-        $typeLabel = ucfirst($type);
-        $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de {$type} a été confirmé. Référence : {$demande->reference}.";
-        
-        try {
-            $yellikaSmsService = app(\App\Services\YellikaSmsService::class);
-            $yellikaSmsService->sendSms($user->indicatif . $user->contact, $message);
-        } catch (\Exception $e) {}
-
-        $notificationClass = match($type) {
-            'naissance' => \App\Notifications\DemandeNaissanceConfirmationNotification::class,
-            'mariage' => \App\Notifications\DemandeMariageConfirmationNotification::class,
-            'deces' => \App\Notifications\DemandeDecesConfirmationNotification::class,
-            default => null,
-        };
-
-        if ($notificationClass) {
-            \Illuminate\Support\Facades\Notification::send($user, new $notificationClass($user, $demande));
-        }
-    }
-
     public function cancel(Request $request)
     {
         $reference = $request->query('reference');
         
+        Log::info("Page d'annulation paiement atteinte. Référence: {$reference}");
+
         return view('user.payment.cancel', [
             'reference' => $reference
         ]);

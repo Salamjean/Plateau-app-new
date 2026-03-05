@@ -216,8 +216,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $baseUrl = config('app.url');
             $returnUrl = "plateauapps://payment?wave=true&transactionId={$mariage->reference}";
             $cancelUrl = "plateauapps://payment?wave=false&transactionId={$mariage->reference}";
-            $fallbackReturnUrl = $baseUrl . "/mariage/paiement/redirect-to-app?transactionId=" . urlencode($mariage->reference);
-            $fallbackCancelUrl = $baseUrl . "/mariage/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($mariage->reference);
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($mariage->reference);
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($mariage->reference);
 
             // 2. Calculer le montant
             $cout_total_timbres = (float) $mariage->montant_timbre * (int) $mariage->quantite;
