@@ -52,10 +52,12 @@ class MariageController extends Controller
 
     public function create()
     {
-        return view('user.mariage.create');
+        return view('user.mariage.create', [
+            'user' => Auth::user(),
+        ]);
     }
 
-    public function store(saveMariageRequest $request, YellikaSmsService $yellikaSmsService)
+    public function store(saveMariageRequest $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService)
     {
         $filesToUpload = [
             'pieceIdentite' => 'identite',
@@ -126,6 +128,34 @@ class MariageController extends Controller
         }
 
         $mariage->save();
+
+        if ($request->input('choix_option') === 'livraison') {
+            // Calculer le montant total
+            $cout_total_timbres = (float) $mariage->montant_timbre * (int) $mariage->quantite;
+            $totalAmount = $cout_total_timbres + (float) $mariage->montant_livraison;
+
+            // Préparer les URLs de retour (Wave exige HTTPS)
+            $baseUrl = config('app.url');
+            $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference);
+            $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($mariage->reference);
+
+            // Créer une session de paiement Wave
+            $checkoutSession = $waveService->createCheckoutSession(
+                $totalAmount,
+                'XOF',
+                $successUrl,
+                $errorUrl,
+                $mariage->reference
+            );
+
+            if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                return redirect($checkoutSession['wave_launch_url']);
+            }
+
+            Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
+            return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+        }
+
         $phoneNumber = $user->indicatif . $user->contact;
         $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie du plateau. Référence: {$mariage->reference}.
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";

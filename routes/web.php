@@ -433,10 +433,10 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::put('/profile', [ProfiluserController::class, 'update'])->name('user.profile.update');
     // Route::put('/profile/password', [ProfiluserController::class, 'updatePassword'])->name('user.profile.password.update'); // <-- SUPPRIMEZ CETTE LIGNE
     Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
-    // Les anciennes routes à commenter ou supprimer si elles ne sont plus utilisées par un autre contrôleur
-    // Route::get('profil/edit',[UserAuthenticate::class,'profil'])->name('user.profil');
-    // Route::put('/profile/update', [UserAuthenticate::class, 'updateProfile'])->name('user.profile.update');
-    // Route::post('/verify-password', [UserAuthenticate::class, 'verifyPassword'])->name('user.verify.password')
+
+    // Routes de paiement
+    Route::get('/payment/success', [\App\Http\Controllers\User\PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/cancel', [\App\Http\Controllers\User\PaymentController::class, 'cancel'])->name('payment.cancel');
 });
 //Les routes definition du accès 
 Route::get('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'defineAccess']);

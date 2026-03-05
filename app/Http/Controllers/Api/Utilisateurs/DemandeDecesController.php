@@ -60,7 +60,7 @@ class DemandeDecesController extends Controller
      * @param YellikaSmsService $yellikaSmsService
      * @return JsonResponse
      */
-    public function store(Request $request, YellikaSmsService $yellikaSmsService): JsonResponse
+    public function store(Request $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService): JsonResponse
     {
         // 1. Validation
         $validator = Validator::make($request->all(), [
@@ -190,10 +190,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Pour "livraison", les notifications SMS & Email seront envoyées
             // dans handlePaymentNotification() après confirmation du paiement
 
-            // --- DEBUT DE LA LOGIQUE MISE A JOUR (Cas "Livraison") ---
+            // --- DEBUT DE LA LOGIQUE DE PAIEMENT (Wave) ---
 
-            // 6. Générer le lien de paiement en utilisant la méthode refactorisée
-            $paymentLinkResult = $this->generateCinetPayLink($deces);
+            // 6. Générer le lien de paiement avec Wave
+            $paymentLinkResult = $this->generateWaveLink($deces);
 
             // 7. Gérer l'échec de la génération de lien
             if (!$paymentLinkResult['success']) {
@@ -206,16 +206,13 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 8. Succès ! Construire la réponse
-            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $cinetpayResponseData['payment_url'],
-                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'payment_url' => $paymentLinkResult['wave_launch_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'], // Utiliser l'ID généré
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
@@ -244,75 +241,44 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
     // --------------------------------------------------------------------
     /**
-     * Génère un nouveau lien de paiement CinetPay pour une demande de décès existante.
+     * Génère un nouveau lien de paiement Wave pour une demande de décès existante.
      */
-    private function generateCinetPayLink(Deces $deces): array
+    private function generateWaveLink(Deces $deces): array
     {
         try {
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$deces->reference}";
-            $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$deces->reference}";
+            $returnUrl = "plateauapps://payment?wave=true&transactionId={$deces->reference}";
+            $cancelUrl = "plateauapps://payment?wave=false&transactionId={$deces->reference}";
             $fallbackReturnUrl = $baseUrl . "/deces/paiement/redirect-to-app?transactionId=" . urlencode($deces->reference);
             $fallbackCancelUrl = $baseUrl . "/deces/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($deces->reference);
-            $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/deces";
 
             // 2. Calculer le montant
             $cout_total_timbres = (float) $deces->montant_timbre * (int) $deces->quantite;
             $totalAmount = $cout_total_timbres + (float) $deces->montant_livraison;
 
-            // 3. Infos CinetPay
-            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
-            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+            // 3. Appel API Wave
+            $waveService = app(\App\Services\WaveService::class);
+            $checkoutSession = $waveService->createCheckoutSession(
+                $totalAmount,
+                'XOF',
+                $fallbackReturnUrl,
+                $fallbackCancelUrl,
+                $deces->reference
+            );
 
-            // 4. GÉNÉRER UN NOUVEAU TRANSACTION_ID UNIQUE
-            // C'est crucial pour CinetPay de voir chaque tentative comme nouvelle
-            $cinetpayTransactionId = $deces->reference . '_' . time();
-
-            // 5. Data du paiement
-            $paymentData = [
-                'apikey' => $cinetpayApiKey,
-                'site_id' => $cinetpaySiteId,
-                'transaction_id' => $cinetpayTransactionId, // Le nouvel ID unique
-                'amount' => $totalAmount,
-                'currency' => 'XOF',
-                'description' => "Paiement ({$deces->quantite}x timbre + livr) Acte Décès {$deces->reference}",
-                'notify_url' => $notifyUrl,
-                'return_url' => $fallbackReturnUrl,
-                'cancel_url' => $fallbackCancelUrl,
-                'mode' => 'PRODUCTION',
-                'channels' => 'ALL',
-
-                // Customer info (déjà dans $deces)
-                'customer_name' => $deces->nom_destinataire,
-                'customer_surname' => $deces->prenom_destinataire,
-                'customer_email' => $deces->email_destinataire,
-                'customer_phone_number' => $deces->contact_destinataire,
-                'customer_address' => $deces->adresse_livraison,
-                'customer_city' => $deces->ville,
-                'customer_country' => 'CI',
-                'customer_zip_code' => $deces->code_postal ?? '00225'
-            ];
-
-            // 6. Appel API
-            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
-            // $response = Http::post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
-
-            // 7. Gérer l'échec
-            if ($response->failed() || $response->json('code') !== '201') {
-                Log::error('Erreur CinetPay (Génération lien): ' . $response->body(), ['transaction_id' => $deces->reference]);
+            if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
                 return [
                     'success' => false,
-                    'message' => 'Échec de la génération du lien de paiement.',
-                    'error_details' => $response->json() ?? $response->body()
+                    'message' => 'Échec de la génération du lien de paiement Wave.',
+                    'error_details' => $checkoutSession
                 ];
             }
 
-            // 8. Succès
             return [
                 'success' => true,
-                'cinetpay_data' => $response->json('data'),
-                'generated_transaction_id' => $cinetpayTransactionId, // Renvoyer l'ID unique
+                'wave_launch_url' => $checkoutSession['wave_launch_url'],
+                'generated_transaction_id' => $deces->reference,
                 'return_url_deep_link' => $returnUrl,
                 'cancel_url_deep_link' => $cancelUrl,
                 'return_url_web_fallback' => $fallbackReturnUrl,
@@ -320,7 +286,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             ];
 
         } catch (\Exception $e) {
-            Log::error('Exception in generateCinetPayLink: ' . $e->getMessage(), ['reference' => $deces->reference]);
+            Log::error('Exception in generateWaveLink: ' . $e->getMessage(), ['reference' => $deces->reference]);
             return [
                 'success' => false,
                 'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
@@ -367,29 +333,26 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $deces->statut_livraison = 'paiement_echoue';
             $deces->save();
 
-            // 5. Générer le nouveau lien de paiement
-            $paymentLinkResult = $this->generateCinetPayLink($deces);
+            // 5. Générer le nouveau lien de paiement avec Wave
+            $paymentLinkResult = $this->generateWaveLink($deces);
 
-            // 6. Gérer l'échec de la génération
+            // 6. Gérer l'échec de la génération de lien
             if (!$paymentLinkResult['success']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Échec de la génération du nouveau lien de paiement.',
+                    'message' => 'Échec de la génération du nouveau lien de paiement Wave.',
                     'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
 
-            // 7. Succès ! Construire la réponse (similaire à 'store')
-            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-
+            // 7. Succès ! Construire la réponse
             return response()->json([
                 'success' => true,
                 'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $cinetpayResponseData['payment_url'],
-                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'payment_url' => $paymentLinkResult['wave_launch_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
@@ -399,9 +362,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ],
 
                 'data' => [
-                    'demande' => $this->formatDemandeResponse($deces) // Renvoyer la demande mise à jour
+                    'demande' => $this->formatDemandeResponse($deces)
                 ]
-            ], 200); // 200 OK
+            ], 200);
 
         } catch (\Exception $e) {
             Log::error('Erreur DemandeDecesController@retryPayment: ' . $e->getMessage(), ['deces_id' => $deces->id]);

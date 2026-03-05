@@ -118,7 +118,7 @@
         .input-icon {
             position: absolute;
             left: 15px;
-            top: 50%;
+            top: 25px; /* Fix: Match half of input height (50px) */
             transform: translateY(-50%);
             color: #adb5bd;
             transition: all var(--transition-speed) ease;
@@ -133,7 +133,7 @@
             border: 2px solid #e9ecef;
             background: transparent;
             padding-left: 45px;
-            padding-right: 15px;
+            padding-right: 45px; /* Increased right padding for eye icon */
             font-size: 1rem;
             transition: all var(--transition-speed) ease;
             color: var(--dark-color);
@@ -173,7 +173,7 @@
         .password-toggle {
             position: absolute;
             right: 15px;
-            top: 50%;
+            top: 25px; /* Fix: Match half of input height (50px) */
             transform: translateY(-50%);
             color: #adb5bd;
             cursor: pointer;
@@ -235,6 +235,18 @@
             align-items: center;
             gap: 5px;
             animation: fadeIn var(--transition-speed) ease;
+        }
+
+        .input-field.is-invalid {
+            border-color: var(--error-color);
+        }
+        
+        .input-field.is-invalid ~ .input-icon {
+            color: var(--error-color);
+        }
+
+        .input-field.is-invalid ~ .input-label {
+            color: var(--error-color);
         }
 
         .success-message {
@@ -301,6 +313,64 @@
             color: var(--dark-color);
             font-weight: 500;
             cursor: pointer;
+        }
+
+        /* Custom File Input Styling */
+        .file-input-wrapper {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .custom-file-btn {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding-left: 45px;
+            padding-right: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            background: white;
+            color: #adb5bd;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-input-wrapper:hover .custom-file-btn {
+            border-color: var(--primary-color);
+        }
+
+        .input-field:focus ~ .custom-file-btn {
+            border-color: var(--primary-color);
+        }
+
+        /* Force label to top for file inputs to avoid overlap */
+        .file-input-wrapper + .input-label {
+            top: -10px !important;
+            left: 35px !important;
+            font-size: 0.8rem !important;
+            color: var(--primary-color) !important;
+            background-color: white !important;
+            z-index: 3 !important;
         }
 
         .diaspora-fields {
@@ -426,6 +496,72 @@
                 padding: 20px;
             }
         }
+
+        /* Password Strength & Hints */
+        .password-requirements {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #e9ecef;
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .requirement i {
+            font-size: 0.75rem;
+        }
+
+        .requirement.valid {
+            color: #2ec4b6;
+        }
+
+        .requirement.valid i::before {
+            content: "\f00c"; /* check icon */
+        }
+
+        .password-strength-meter {
+            height: 4px;
+            width: 100%;
+            background: #e9ecef;
+            margin-top: 8px;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            transition: all 0.3s ease;
+        }
+
+        .strength-weak { background: #ff4d4d; width: 33% !important; }
+        .strength-medium { background: #ffa500; width: 66% !important; }
+        .strength-strong { background: #2ec4b6; width: 100% !important; }
+
+        .requirement.invalid {
+            color: #ff4d4d;
+        }
+
+        .match-indicator {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .match-indicator.valid { color: #2ec4b6; display: block; }
+        .match-indicator.invalid { color: #ff4d4d; display: block; }
     </style>
 </head>
 <body>
@@ -467,7 +603,7 @@
                 <div class="form-row">
                     <div class="input-group">
                         <i class="fas fa-user input-icon"></i>
-                        <input class="input-field" type="text" name="name" placeholder=" " value="{{ old('name') }}" />
+                        <input class="input-field @error('name') is-invalid @enderror" type="text" name="name" placeholder=" " value="{{ old('name') }}" />
                         <label class="input-label" for="name">Nom</label>
                         @error('name')
                             <div class="error-message">
@@ -478,7 +614,7 @@
 
                     <div class="input-group">
                         <i class="fas fa-user input-icon"></i>
-                        <input class="input-field" type="text" name="prenom" placeholder=" " value="{{ old('prenom') }}" />
+                        <input class="input-field @error('prenom') is-invalid @enderror" type="text" name="prenom" placeholder=" " value="{{ old('prenom') }}" />
                         <label class="input-label" for="prenom">Prénom</label>
                         @error('prenom')
                             <div class="error-message">
@@ -495,7 +631,7 @@
 
                 <div class="input-group">
                     <i class="fas fa-envelope input-icon"></i>
-                    <input class="input-field" type="email" name="email" placeholder=" " value="{{ old('email') }}" />
+                    <input class="input-field @error('email') is-invalid @enderror" type="email" name="email" placeholder=" " value="{{ old('email') }}" />
                     <label class="input-label" for="email">Adresse Email</label>
                     @error('email')
                         <div class="error-message">
@@ -507,9 +643,32 @@
                 <div class="form-row">
                     <div class="input-group">
                         <i class="fas fa-key input-icon"></i>
-                        <input class="input-field" type="password" name="password" id="password" placeholder=" " />
+                        <input class="input-field @error('password') is-invalid @enderror" type="password" name="password" id="password" placeholder=" " />
                         <label class="input-label" for="password">Mot de passe</label>
                         <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                        
+                        <div class="password-strength-meter" id="strengthMeter">
+                            <div class="strength-bar" id="strengthBar"></div>
+                        </div>
+
+                        <div class="password-requirements" id="passwordRequirements">
+                            <div class="requirement" id="reqLength">
+                                <i class="fas fa-circle"></i> Au moins 8 caractères
+                            </div>
+                            <div class="requirement" id="reqUpper">
+                                <i class="fas fa-circle"></i> Une lettre majuscule
+                            </div>
+                            <div class="requirement" id="reqLower">
+                                <i class="fas fa-circle"></i> Une lettre minuscule
+                            </div>
+                            <div class="requirement" id="reqNumber">
+                                <i class="fas fa-circle"></i> Un chiffre
+                            </div>
+                            <div class="requirement" id="reqSpecial">
+                                <i class="fas fa-circle"></i> Un caractère spécial (@$!%*#?&.)
+                            </div>
+                        </div>
+
                         @error('password')
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i> {{ $message }}
@@ -522,6 +681,7 @@
                         <input class="input-field" type="password" name="password_confirmation" id="password_confirmation" placeholder=" " />
                         <label class="input-label" for="password_confirmation">Confirmation</label>
                         <i class="fas fa-eye password-toggle" id="togglePasswordConfirmation"></i>
+                        <div id="matchIndicator" class="match-indicator"></div>
                     </div>
                 </div>
 
@@ -535,7 +695,7 @@
                 <div class="form-row">
                     <div class="input-group">
                         <div class="phone-group">
-                            <select name="indicatif">
+                            <select name="indicatif" class="@error('indicatif') is-invalid @enderror">
                                 <option value="+225" {{ old('indicatif', '+225') == '+225' ? 'selected' : '' }}>Côte d'Ivoire (+225)</option>
                                 <option value="+33" {{ old('indicatif') == '+33' ? 'selected' : '' }}>France (+33)</option>
                                 <option value="+1" {{ old('indicatif') == '+1' ? 'selected' : '' }}>États-Unis/Canada (+1)</option>
@@ -548,7 +708,7 @@
                                 <option value="+31" {{ old('indicatif') == '+31' ? 'selected' : '' }}>Pays-Bas (+31)</option>
                                 <option value="+351" {{ old('indicatif') == '+351' ? 'selected' : '' }}>Portugal (+351)</option>
                             </select>
-                            <input class="input-field" type="tel" name="contact" placeholder="Numéro de contact" value="{{ old('contact') }}" />
+                            <input class="input-field @error('contact') is-invalid @enderror" type="tel" name="contact" placeholder="Numéro de contact" value="{{ old('contact') }}" />
                         </div>
                         <label class="input-label" for="contact" style="top: -10px; left: 35px; font-size: 0.8rem; color: var(--primary-color); background-color: white; z-index: 3;">Contact</label>
                         @error('contact')
@@ -579,7 +739,7 @@
                 <div class="form-row">
                     <div class="input-group">
                         <i class="fas fa-id-card input-icon"></i>
-                        <input class="input-field" type="text" name="CMU" placeholder=" " value="{{ old('CMU') }}" />
+                        <input class="input-field @error('CMU') is-invalid @enderror" type="text" name="CMU" placeholder=" " value="{{ old('CMU') }}" />
                         <label class="input-label" for="CMU">N° NNI (Optionnel)</label>
                         @error('CMU')
                             <div class="error-message">
@@ -590,7 +750,10 @@
 
                     <div class="input-group">
                         <i class="fas fa-user input-icon"></i>
-                        <input class="input-field" type="file" name="profile_picture" placeholder=" " value="{{ old('profile_picture') }}" accept="image/jpeg, image/png, image/jpg, image/gif" />
+                        <div class="file-input-wrapper">
+                            <input class="input-field @error('profile_picture') is-invalid @enderror" type="file" name="profile_picture" id="profile_picture" accept="image/jpeg, image/png, image/jpg, image/gif" />
+                            <div class="custom-file-btn" id="fileBtnText">Choisir une photo de profil...</div>
+                        </div>
                         <label class="input-label" for="profile_picture">Photo de profil (Optionnel)</label>
                         @error('profile_picture')
                             <div class="error-message">
@@ -615,7 +778,7 @@
                     <div class="form-row">
                         <div class="input-group">
                             <i class="fas fa-globe input-icon"></i>
-                            <select class="input-field searchable-select" name="pays_residence">
+                            <select class="input-field searchable-select @error('pays_residence') is-invalid @enderror" name="pays_residence">
                                 <option value="">Sélectionnez votre pays de résidence</option>
                                 <option value="france" {{ old('pays_residence') == 'france' ? 'selected' : '' }}>France</option>
                                 <option value="usa" {{ old('pays_residence') == 'usa' ? 'selected' : '' }}>États-Unis</option>
@@ -636,7 +799,7 @@
 
                         <div class="input-group">
                             <i class="fas fa-city input-icon"></i>
-                            <input class="input-field" type="text" name="ville_residence" placeholder=" " value="{{ old('ville_residence') }}" />
+                            <input class="input-field @error('ville_residence') is-invalid @enderror" type="text" name="ville_residence" placeholder=" " value="{{ old('ville_residence') }}" />
                             <label class="input-label" for="ville_residence">Ville de résidence</label>
                             @error('ville_residence')
                                 <div class="error-message">
@@ -648,7 +811,7 @@
 
                     <div class="input-group">
                         <i class="fas fa-map-marker-alt input-icon"></i>
-                        <textarea class="input-field" name="adresse_etrangere" placeholder=" " rows="3">{{ old('adresse_etrangere') }}</textarea>
+                        <textarea class="input-field @error('adresse_etrangere') is-invalid @enderror" name="adresse_etrangere" placeholder=" " rows="3">{{ old('adresse_etrangere') }}</textarea>
                         <label class="input-label" for="adresse_etrangere">Adresse à l'étranger</label>
                         @error('adresse_etrangere')
                             <div class="error-message">
@@ -730,16 +893,134 @@
             // Masquer les erreurs quand on modifie le champ
             document.querySelectorAll('input, select, textarea').forEach(input => {
                 input.addEventListener('input', function() {
-                    // Chercher le parent .input-group pour être sûr de trouver le bon message d'erreur
+                    this.classList.remove('is-invalid');
                     const inputGroup = this.closest('.input-group') || this.closest('.phone-group');
                     if (inputGroup) {
-                        const errorElement = inputGroup.parentElement.querySelector('.error-message');
+                        const errorElement = inputGroup.querySelector('.error-message') || inputGroup.parentElement.querySelector('.error-message');
                         if(errorElement) {
                             errorElement.style.display = 'none';
                         }
                     }
                 });
             });
+
+            // Password validation & strength meter
+            const strengthMeter = document.querySelector('#strengthMeter');
+            const strengthBar = document.querySelector('#strengthBar');
+            const passwordRequirements = document.querySelector('#passwordRequirements');
+            
+            const reqs = {
+                length: document.querySelector('#reqLength'),
+                upper: document.querySelector('#reqUpper'),
+                lower: document.querySelector('#reqLower'),
+                number: document.querySelector('#reqNumber'),
+                special: document.querySelector('#reqSpecial')
+            };
+
+            password.addEventListener('focus', function() {
+                passwordRequirements.style.display = 'block';
+                strengthMeter.style.display = 'block';
+            });
+
+            password.addEventListener('input', function() {
+                const val = this.value;
+                
+                // Validate requirements
+                const checks = {
+                    length: val.length >= 8,
+                    upper: /[A-Z]/.test(val),
+                    lower: /[a-z]/.test(val),
+                    number: /[0-9]/.test(val),
+                    special: /[@$!%*#?&.]/.test(val)
+                };
+
+                let score = 0;
+                for (const key in checks) {
+                    if (checks[key]) {
+                        reqs[key].classList.add('valid');
+                        const icon = reqs[key].querySelector('i');
+                        icon.className = 'fas fa-check';
+                        score++;
+                    } else {
+                        reqs[key].classList.remove('valid');
+                        const icon = reqs[key].querySelector('i');
+                        icon.className = 'fas fa-circle';
+                    }
+                }
+
+                // Update strength bar
+                strengthBar.className = 'strength-bar';
+                if (val.length > 0) {
+                    if (score <= 2) strengthBar.classList.add('strength-weak');
+                    else if (score <= 4) strengthBar.classList.add('strength-medium');
+                    else strengthBar.classList.add('strength-strong');
+                } else {
+                    strengthBar.style.width = '0';
+                }
+
+                validateMatch();
+            });
+
+            const matchIndicator = document.querySelector('#matchIndicator');
+            function validateMatch() {
+                if (passwordConfirmation.value.length > 0) {
+                    if (password.value === passwordConfirmation.value) {
+                        matchIndicator.textContent = 'Les mots de passe correspondent';
+                        matchIndicator.className = 'match-indicator valid';
+                    } else {
+                        matchIndicator.textContent = 'Les mots de passe ne correspondent pas';
+                        matchIndicator.className = 'match-indicator invalid';
+                    }
+                } else {
+                    matchIndicator.style.display = 'none';
+                }
+            }
+
+            passwordConfirmation.addEventListener('input', validateMatch);
+
+            // Phone number & Country code logic
+            const indicatifSelect = document.querySelector('select[name="indicatif"]');
+            const contactInput = document.querySelector('input[name="contact"]');
+
+            function applyPhoneLogic() {
+                if (indicatifSelect.value === '+225') {
+                    contactInput.setAttribute('maxlength', '10');
+                    contactInput.setAttribute('placeholder', 'Ex: 0708325027');
+                } else {
+                    contactInput.removeAttribute('maxlength');
+                    contactInput.setAttribute('placeholder', 'Numéro de contact');
+                }
+            }
+
+            indicatifSelect.addEventListener('change', function() {
+                applyPhoneLogic();
+                // If switching to CI, truncate existing value if longer than 10
+                if (this.value === '+225' && contactInput.value.length > 10) {
+                    contactInput.value = contactInput.value.substring(0, 10);
+                }
+            });
+
+            contactInput.addEventListener('input', function(e) {
+                // Only allow numbers
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            // File input logic
+            const profilePictureInput = document.querySelector('#profile_picture');
+            const fileBtnText = document.querySelector('#fileBtnText');
+
+            profilePictureInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    fileBtnText.textContent = this.files[0].name;
+                    fileBtnText.style.color = 'var(--dark-color)';
+                } else {
+                    fileBtnText.textContent = 'Choisir une photo de profil...';
+                    fileBtnText.style.color = '#adb5bd';
+                }
+            });
+
+            // Initial call
+            applyPhoneLogic();
 
             // SweetAlert notifications
             @if (Session::has('success'))
@@ -752,12 +1033,15 @@
                 });
             @endif
 
-            @if (Session::has('error'))
+            @if (Session::has('error') || $errors->any())
+                @php
+                    $errorText = Session::get('error') ?? ($errors->any() ? 'Veuillez vérifier les informations saisies.' : '');
+                @endphp
                 Swal.fire({
                     icon: 'error',
-                    title: 'Erreur',
-                    text: '{{ Session::get('error') }}',
-                    confirmButtonText: 'OK',
+                    title: 'Oups...',
+                    text: '{!! $errorText !!}',
+                    confirmButtonText: 'Compris',
                     background: 'var(--light-color)',
                 });
             @endif

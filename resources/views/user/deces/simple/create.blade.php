@@ -3,8 +3,6 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.cinetpay.com/seamless/main.js"></script>
-    <script src="{{ asset('js/cinetpay_deces_deja.js') }}"></script>
 
     <style>
         :root {
@@ -142,46 +140,82 @@
         }
 
         /* Radio Cards */
-        .radio-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.2rem;
-            margin-top: 1rem;
-        }
+    /* Nouveau style pour les options de retrait cards premium */
+    .delivery-options-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
 
-        .radio-card {
-            position: relative;
-        }
+    .delivery-card {
+        position: relative;
+        cursor: pointer;
+    }
 
-        .radio-card input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-        }
+    .delivery-card input {
+        position: absolute;
+        opacity: 0;
+    }
 
-        .radio-card label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-            background: #fff;
-            border: 2px solid #edf2f7;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: var(--transition);
-            height: 100%;
-        }
+    .delivery-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        transition: all 0.2s;
+        height: 100%;
+        text-align: center;
+    }
 
-        .radio-card label:hover {
-            border-color: var(--primary-soft);
-            background: #fafbff;
-        }
+    .delivery-label .icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #1977cc;
+    }
 
-        .radio-card input[type="radio"]:checked+label {
-            border-color: var(--primary);
-            background: var(--primary-soft);
-            box-shadow: var(--shadow-sm);
-        }
+    .delivery-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+    }
+
+    .delivery-info {
+        font-size: 0.8rem;
+        color: #718096;
+    }
+
+    .delivery-card input:checked + .delivery-label {
+        border-color: #1977cc;
+        background-color: #f0f7ff;
+        box-shadow: 0 0 0 1px #1977cc;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin: 2rem 0 1rem;
+        border-bottom: 1px solid #edf2f7;
+        padding-bottom: 0.5rem;
+    }
+
+    .section-header i {
+        color: #1977cc;
+        margin-right: 0.75rem;
+    }
+
+    .section-header h3 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1977cc;
+        text-transform: uppercase;
+        margin: 0;
+    }
 
         .radio-card i {
             font-size: 1.8rem;
@@ -281,7 +315,7 @@
     <div class="death-certificate-container">
         <h1 class="death-certificate-title">Demande d'acte de décès</h1>
 
-        <form id="declarationForm" method="POST" enctype="multipart/form-data"
+        <form id="deathForm" method="POST" enctype="multipart/form-data"
             action="{{route('user.extrait.deces.store')}}">
             @csrf
 
@@ -426,25 +460,28 @@
             </div>
 
             <!-- Section: Mode de retrait -->
-            <div class="section-card" id="optionsSection">
-                <h3 class="section-title"><i class="fas fa-shipping-fast"></i> Mode de retrait</h3>
-                <div class="radio-grid">
-                    <div class="radio-card">
+            <div class="delivery-options" id="optionsSection">
+                <div class="section-header">
+                    <i class="fas fa-truck text-primary"></i>
+                    <h3 class="section-title">Mode de retrait</h3>
+                </div>
+                <div class="delivery-options-cards">
+                    <label class="delivery-card">
                         <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
-                        <label for="option1">
-                            <i class="fas fa-building"></i>
-                            <span>Retrait sur place</span>
-                            <small>À la mairie (Gratuit)</small>
-                        </label>
-                    </div>
-                    <div class="radio-card">
+                        <div class="delivery-label">
+                            <i class="fas fa-building icon"></i>
+                            <span class="delivery-name">Retrait sur place</span>
+                            <span class="delivery-info">À la mairie (Gratuit)</span>
+                        </div>
+                    </label>
+                    <label class="delivery-card">
                         <input type="radio" id="option2" name="choix_option" value="livraison">
-                        <label for="option2">
-                            <i class="fas fa-truck"></i>
-                            <span>Livraison à domicile</span>
-                            <small>Frais : 1500 FCFA</small>
-                        </label>
-                    </div>
+                        <div class="delivery-label">
+                            <i class="fas fa-truck icon"></i>
+                            <span class="delivery-name">Livraison à domicile</span>
+                            <span class="delivery-info">Frais : 1500 FCFA</span>
+                        </div>
+                    </label>
                 </div>
             </div>
 
@@ -477,7 +514,7 @@
         // Client-side validation function
         function validateFormClient() {
             let isValid = true;
-            const form = $("#declarationForm");
+            const form = $("#deathForm");
 
             // Clear all previous error messages and styles
             form.find('.error-message').remove();
@@ -650,7 +687,7 @@
             // ==============================
             // SOUMISSION FORMULAIRE
             // ==============================
-            $("#declarationForm").submit(function (event) {
+            $("#deathForm").submit(function (event) {
                 if (formSubmitted) {
                     event.preventDefault();
                     return;
@@ -683,131 +720,82 @@
         // POPUP LIVRAISON
         // ==============================
         function showLivraisonPopup() {
-            // Récupérer la quantité depuis le formulaire
             const quantite = parseInt(document.getElementById('quantite').value) || 1;
-            const montantTimbreUnitaire = 50; // 50 FCFA par timbre
+            const montantTimbreUnitaire = 500; 
             const montantTimbreTotal = montantTimbreUnitaire * quantite;
-            const montantLivraison = 50; // 1500 FCFA pour la livraison
+            const montantLivraison = 1500; 
 
             Swal.fire({
-                title: '<i class="fas fa-shipping-fast" style="color: #1977cc;"></i> Informations de Livraison',
-                width: '800px',
+                title: '<div class="flex items-center justify-center p-2"><i class="fas fa-truck text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1977cc;">DÉTAILS DE LIVRAISON</span></div>',
                 html: `
-                                    <div class="swal-custom-container" style="text-align: left; padding: 10px;">
-                                        <!-- Résumé de la commande -->
-                                        <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
-                                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
-                                                <span style="font-weight: 600; color: #64748b;">Quantité demandée</span>
-                                                <span style="font-weight: 800; color: #1e293b; font-size: 1.1rem;">${quantite} Exemplaire(s)</span>
-                                            </div>
-                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                                                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                                    <small style="display: block; color: #94a3b8; font-weight: 600;">TIMBRE (${quantite})</small>
-                                                    <span style="font-weight: 700; color: #1e293b;">${montantTimbreTotal} FCFA</span>
-                                                </div>
-                                                <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                                    <small style="display: block; color: #94a3b8; font-weight: 600;">LIVRAISON</small>
-                                                    <span style="font-weight: 700; color: #1e293b;">${montantLivraison} FCFA</span>
-                                                </div>
-                                            </div>
-                                            <div style="display: flex; justify-content: space-between; align-items: center; background: #1977cc; color: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(25, 119, 204, 0.2);">
-                                                <span style="font-weight: 600;">TOTAL À PAYER</span>
-                                                <span style="font-weight: 800; font-size: 1.3rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
-                                            </div>
-                                        </div>
+                    <div class="text-left" style="max-height: 70vh; overflow-y: auto; padding: 10px;">
+                        <p class="text-center text-muted mb-3" style="font-size: 0.9rem;">Veuillez confirmer vos informations pour la livraison sécurisée de votre acte de décès.</p>
+                        
+                        <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <span style="color: #555; font-size: 0.85rem;">Nombre d'exemplaires:</span>
+                                <span style="font-weight: 700;">${quantite}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <span style="color: #555; font-size: 0.85rem;">Frais de timbre:</span>
+                                <span style="font-weight: 700;">${montantTimbreTotal} FCFA</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="color: #555; font-size: 0.85rem;">Frais de livraison:</span>
+                                <span style="font-weight: 700;">${montantLivraison} FCFA</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #b8d4ed; pt-2; margin-top: 10px;">
+                                <span style="color: #1977cc; font-weight: 800;">TOTAL À PAYER:</span>
+                                <span style="color: #1977cc; font-weight: 800; font-size: 1.2rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
+                            </div>
+                        </div>
 
-                                        <!-- Formulaire Détaillé -->
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                                            <!-- Colonne 1: Destinataire -->
-                                            <div>
-                                                <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #1977cc; padding-left: 10px; border-radius: 2px;">
-                                                    <i class="fas fa-user-check" style="color: #1977cc; margin-right: 8px;"></i>Coordonnées du Destinataire
-                                                </h4>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">NOM DU DESTINATAIRE</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-user" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-nom_destinataire" class="swal2-input" placeholder="Ex: Kouassi" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">PRÉNOM DU DESTINATAIRE</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-user" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-prenom_destinataire" class="swal2-input" placeholder="Ex: Amenan" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">EMAIL</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-envelope" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-email_destinataire" type="email" class="swal2-input" placeholder="Ex: contact@email.com" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">TÉLÉPHONE</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-phone-alt" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-contact_destinataire" type="tel" class="swal2-input" placeholder="Ex: 0708091011" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                            </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div style="text-align: left;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Nom</label>
+                                <input id="swal-nom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="Nom" value="{{ Auth::user()->name }}">
+                            </div>
+                            <div style="text-align: left;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Prénom</label>
+                                <input id="swal-prenom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="Prénom" value="{{ Auth::user()->prenom }}">
+                            </div>
+                        </div>
 
-                                            <!-- Colonne 2: Lieu de livraison -->
-                                            <div>
-                                                <h4 style="margin-bottom: 1.2rem; color: #1e293b; font-size: 1rem; border-left: 4px solid #2c7873; padding-left: 10px; border-radius: 2px;">
-                                                    <i class="fas fa-map-marked-alt" style="color: #2c7873; margin-right: 8px;"></i>Lieu de Livraison
-                                                </h4>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">VILLE</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-city" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-ville" class="swal2-input" placeholder="Ex: Abidjan" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">COMMUNE</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-map-marker-alt" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-commune_livraison" class="swal2-input" placeholder="Ex: Plateau" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">QUARTIER / PRÉCISIONS</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-location-arrow" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-quartier" class="swal2-input" placeholder="Ex: Cité des arts" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                                    <div>
-                                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">DATE DE LIVRAISON *</label>
-                                                        <div style="position: relative;">
-                                                            <i class="fas fa-calendar-day" style="position: absolute; left: 12px; top: 15px; color: #94a3b8; z-index: 10;"></i>
-                                                            <input id="swal-date_livraison" type="date" class="swal2-input" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;" min="${new Date(Date.now() + 86400000).toISOString().split('T')[0]}">
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">HEURE (OPTIONNEL)</label>
-                                                        <div style="position: relative;">
-                                                            <i class="fas fa-clock" style="position: absolute; left: 12px; top: 15px; color: #94a3b8; z-index: 10;"></i>
-                                                            <input id="swal-heure_livraison" type="time" class="swal2-input" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">ADRESSE EXACTE</label>
-                                                    <div style="position: relative;">
-                                                        <i class="fas fa-home" style="position: absolute; left: 12px; top: 38px; color: #94a3b8;"></i>
-                                                        <input id="swal-adresse_livraison" class="swal2-input" placeholder="Ex: Rue 12, Près de l'église" style="width: 100%; margin: 0; padding-left: 35px; height: 45px; font-size: 0.95rem;">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>`,
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                            <div style="text-align: left;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Email</label>
+                                <input id="swal-email_destinataire" type="email" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="mail@exemple.com" value="{{ Auth::user()->email }}">
+                            </div>
+                            <div style="text-align: left;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Téléphone</label>
+                                <input id="swal-contact_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="0123456789" value="{{ Auth::user()->contact }}">
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 15px;">
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Adresse précise</label>
+                            <input id="swal-adresse_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="N° de rue, immuable, appartement...">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px;">
+                            <div style="text-align: left;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Ville</label>
+                                <input id="swal-ville" class="swal2-input" style="width: 100%; margin: 0; padding: 8px; height: 35px; font-size: 0.85rem; border-radius: 8px;" placeholder="Ville" value="Abidjan">
+                            </div>
+                            <div style="text-align: left;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Commune</label>
+                                <input id="swal-commune_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 8px; height: 35px; font-size: 0.85rem; border-radius: 8px;" placeholder="Commune">
+                            </div>
+                            <div style="text-align: left;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Quartier</label>
+                                <input id="swal-quartier" class="swal2-input" style="width: 100%; margin: 0; padding: 8px; height: 35px; font-size: 0.85rem; border-radius: 8px;" placeholder="Quartier">
+                            </div>
+                        </div>
+                    </div>
+                `,
                 icon: 'info',
                 showCancelButton: true,
-                confirmButtonText: `<i class="fas fa-credit-card"></i> Payer ${montantTimbreTotal + montantLivraison} FCFA`,
+                confirmButtonText: `Payer via Wave`,
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#1977cc',
                 focusConfirm: false,
@@ -820,107 +808,29 @@
                     const ville = document.getElementById('swal-ville').value;
                     const commune_livraison = document.getElementById('swal-commune_livraison').value;
                     const quartier = document.getElementById('swal-quartier').value;
-                    const date_livraison = document.getElementById('swal-date_livraison').value;
-                    const heure_livraison = document.getElementById('swal-heure_livraison').value;
 
-                    if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison) {
-                        Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires (incluant la date)");
+                    if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier) {
+                        Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires");
                         return false;
                     }
-                    // Basic email validation
                     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
                         Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
                         return false;
                     }
-                    // Basic phone number validation (8 to 15 digits)
                     if (!/^\d{8,15}$/.test(contact_destinataire)) {
                         Swal.showValidationMessage("Veuillez entrer un numéro de téléphone valide (8 à 15 chiffres).");
                         return false;
                     }
+
                     return {
-                        nom_destinataire: nom_destinataire,
-                        prenom_destinataire: prenom_destinataire,
-                        email_destinataire: email_destinataire,
-                        contact_destinataire: contact_destinataire,
-                        adresse_livraison: adresse_livraison,
-                        ville: ville,
-                        commune_livraison: commune_livraison,
-                        quartier: quartier,
-                        date_livraison: date_livraison,
-                        heure_livraison: heure_livraison,
-                        quantite: quantite,
-                        montant_timbre_unitaire: montantTimbreUnitaire,
-                        montant_timbre: montantTimbreTotal,
-                        montant_livraison: montantLivraison,
+                        nom_destinataire, prenom_destinataire, email_destinataire, contact_destinataire, adresse_livraison, ville, commune_livraison, quartier,
+                        quantite, montantTimbreTotal, montantLivraison
                     };
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
                     const formData = result.value;
-                    initializeCinetPay(formData); // Appel de la fonction CinetPay
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    // Si l'utilisateur clique sur annuler, sélectionner l'option "Retrait sur place"
-                    document.getElementById('option1').checked = true;
-                }
-            });
-        }
-
-        function initializeCinetPay(formData) {
-            // Configuration CinetPay
-            CinetPay.setConfig({
-                apikey: '{{ config("services.cinetpay.api_key") }}',
-                site_id: '{{ config("services.cinetpay.site_id") }}',
-                mode: 'PRODUCTION' // Use 'PRODUCTION' for live, 'TEST' for testing
-            });
-
-            // ID de transaction
-            const transactionId = 'DEC-' + Date.now();
-
-            // Montant total (timbre total + livraison)
-            const totalAmount = formData.montant_timbre + formData.montant_livraison;
-
-            // Chargement SweetAlert
-            Swal.fire({
-                title: 'Redirection en cours',
-                html: `Préparation du paiement de ${totalAmount} FCFA...`,
-                allowOutsideClick: true, // Prevent closing accidentally
-                didOpen: () => Swal.showLoading()
-            });
-
-            // Données client
-            const customer = {
-                name: '{{ Auth::user()->name ?? "Client" }}',
-                email: '{{ Auth::user()->email ?? "contact@client.com" }}',
-                phone: '{{ Auth::user()->telephone ?? "00000000" }}'
-            };
-
-            // Description détaillée avec la quantité
-            const description = `Paiement pour ${formData.quantite} exemplaire(s) d'extrait de décès (Timbre: ${formData.montant_timbre} FCFA + Livraison: ${formData.montant_livraison} FCFA)`;
-
-            // Paiement CinetPay
-            CinetPay.getCheckout({
-                transaction_id: transactionId,
-                amount: totalAmount,
-                currency: 'XOF',
-                channels: 'ALL',
-                description: description,
-                customer_name: customer.name,
-                customer_email: customer.email,
-                customer_phone_number: customer.phone,
-                customer_address: formData.adresse_livraison,
-                customer_city: formData.ville,
-                customer_country: 'CI',
-                customer_state: 'CI',
-                customer_zip_code: '00225'
-            });
-
-            // Gestion réponse CinetPay
-            CinetPay.waitResponse(function (data) {
-                Swal.close(); // Close loading popup
-                if (data.status === "ACCEPTED") {
-                    // Add delivery data to the form as hidden inputs
-                    const form = document.getElementById('declarationForm');
-
+                    const form = document.getElementById('deathForm');
                     const hiddenFields = [
                         { name: 'nom_destinataire', value: formData.nom_destinataire },
                         { name: 'prenom_destinataire', value: formData.prenom_destinataire },
@@ -930,42 +840,29 @@
                         { name: 'ville', value: formData.ville },
                         { name: 'commune_livraison', value: formData.commune_livraison },
                         { name: 'quartier', value: formData.quartier },
-                        { name: 'date_livraison', value: formData.date_livraison },
-                        { name: 'heure_livraison', value: formData.heure_livraison },
-                        { name: 'montant_timbre_unitaire', value: formData.montant_timbre_unitaire },
-                        { name: 'montant_timbre', value: formData.montant_timbre },
-                        { name: 'montant_livraison', value: formData.montant_livraison },
-                        { name: 'transaction_id', value: transactionId }
+                        { name: 'montant_timbre_unitaire', value: 500 },
+                        { name: 'montant_timbre', value: formData.montantTimbreTotal },
+                        { name: 'montant_livraison', value: formData.montantLivraison }
                     ];
 
                     hiddenFields.forEach(field => {
                         const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = field.name;
-                        input.value = field.value;
+                        input.type = 'hidden'; input.name = field.name; input.value = field.value;
                         form.appendChild(input);
                     });
 
-                    // Set flag and submit the form
+                    Swal.fire({
+                        title: 'Redirection vers Wave',
+                        html: `Préparation du paiement de ${formData.montantTimbreTotal + formData.montantLivraison} FCFA...`,
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
                     formSubmitted = true;
                     form.submit();
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Échec du paiement',
-                        text: data.message || 'Une erreur est survenue lors du traitement de votre paiement. Veuillez réessayer.'
-                    });
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    document.getElementById('option1').checked = true;
                 }
-            });
-
-            // Gestion erreurs CinetPay (e.g., connection issues)
-            CinetPay.onError(function (error) {
-                Swal.close(); // Close loading popup
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur de connexion',
-                    html: `Une erreur est survenue lors de la connexion à CinetPay.<br><small>${error.message || 'Veuillez vérifier votre connexion et réessayer.'}</small>`
-                });
             });
         }
     </script>

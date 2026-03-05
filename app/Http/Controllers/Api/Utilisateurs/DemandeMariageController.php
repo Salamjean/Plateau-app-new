@@ -55,7 +55,7 @@ class DemandeMariageController extends Controller
      * Créer une nouvelle demande de mariage
      * POST /api/utilisateurs/demandes/mariage
      */
-    public function store(Request $request, YellikaSmsService $yellikaSmsService): JsonResponse
+    public function store(Request $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService): JsonResponse
     {
         // 1. Validation (Spécifique au Mariage)
         $validator = Validator::make($request->all(), [
@@ -159,10 +159,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Pour "livraison", les notifications SMS & Email seront envoyées
             // dans handlePaymentNotification() après confirmation du paiement
 
-            // --- DEBUT DE LA LOGIQUE DE PAIEMENT (Adaptée) ---
+            // --- DEBUT DE LA LOGIQUE DE PAIEMENT (Wave) ---
 
-            // 6. Générer le lien de paiement
-            $paymentLinkResult = $this->generateCinetPayLink($mariage);
+            // 6. Générer le lien de paiement avec Wave
+            $paymentLinkResult = $this->generateWaveLink($mariage);
 
             // 7. Gérer l'échec de la génération de lien
             if (!$paymentLinkResult['success']) {
@@ -174,16 +174,13 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 8. Succès ! Construire la réponse
-            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $cinetpayResponseData['payment_url'],
-                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'payment_url' => $paymentLinkResult['wave_launch_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
@@ -210,75 +207,44 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
     // --------------------------------------------------------------------
     /**
-     * Génère un nouveau lien de paiement CinetPay pour une demande de mariage existante.
+     * Génère un nouveau lien de paiement Wave pour une demande de mariage existante.
      */
-    private function generateCinetPayLink(Mariage $mariage): array
+    private function generateWaveLink(Mariage $mariage): array
     {
         try {
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$mariage->reference}";
-            $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$mariage->reference}";
-            // ✅ URLs dynamiques pour Mariage
+            $returnUrl = "plateauapps://payment?wave=true&transactionId={$mariage->reference}";
+            $cancelUrl = "plateauapps://payment?wave=false&transactionId={$mariage->reference}";
             $fallbackReturnUrl = $baseUrl . "/mariage/paiement/redirect-to-app?transactionId=" . urlencode($mariage->reference);
             $fallbackCancelUrl = $baseUrl . "/mariage/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($mariage->reference);
-            $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/mariage";
 
             // 2. Calculer le montant
             $cout_total_timbres = (float) $mariage->montant_timbre * (int) $mariage->quantite;
             $totalAmount = $cout_total_timbres + (float) $mariage->montant_livraison;
 
-            // 3. Infos CinetPay
-            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
-            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+            // 3. Appel API Wave
+            $waveService = app(\App\Services\WaveService::class);
+            $checkoutSession = $waveService->createCheckoutSession(
+                $totalAmount,
+                'XOF',
+                $fallbackReturnUrl,
+                $fallbackCancelUrl,
+                $mariage->reference
+            );
 
-            // 4. NOUVEAU TRANSACTION_ID UNIQUE
-            $cinetpayTransactionId = $mariage->reference . '_' . time();
-
-            // 5. Data du paiement
-            $paymentData = [
-                'apikey' => $cinetpayApiKey,
-                'site_id' => $cinetpaySiteId,
-                'transaction_id' => $cinetpayTransactionId,
-                'amount' => $totalAmount,
-                'currency' => 'XOF',
-                // ✅ Description Mariage
-                'description' => "Paiement ({$mariage->quantite}x timbre + livr) Acte Mariage {$mariage->reference}",
-                'notify_url' => $notifyUrl,
-                'return_url' => $fallbackReturnUrl,
-                'cancel_url' => $fallbackCancelUrl,
-                'mode' => 'PRODUCTION',
-                'channels' => 'ALL',
-
-                // Customer info
-                'customer_name' => $mariage->nom_destinataire,
-                'customer_surname' => $mariage->prenom_destinataire,
-                'customer_email' => $mariage->email_destinataire,
-                'customer_phone_number' => $mariage->contact_destinataire,
-                'customer_address' => $mariage->adresse_livraison,
-                'customer_city' => $mariage->ville,
-                'customer_country' => 'CI',
-                'customer_zip_code' => $mariage->code_postal ?? '00225'
-            ];
-
-            // 6. Appel API
-            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
-
-            // 7. Gérer l'échec
-            if ($response->failed() || $response->json('code') !== '201') {
-                Log::error('Erreur CinetPay (Génération lien Mariage): ' . $response->body(), ['transaction_id' => $mariage->reference]);
+            if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
                 return [
                     'success' => false,
-                    'message' => 'Échec de la génération du lien de paiement.',
-                    'error_details' => $response->json() ?? $response->body()
+                    'message' => 'Échec de la génération du lien de paiement Wave.',
+                    'error_details' => $checkoutSession
                 ];
             }
 
-            // 8. Succès
             return [
                 'success' => true,
-                'cinetpay_data' => $response->json('data'),
-                'generated_transaction_id' => $cinetpayTransactionId,
+                'wave_launch_url' => $checkoutSession['wave_launch_url'],
+                'generated_transaction_id' => $mariage->reference,
                 'return_url_deep_link' => $returnUrl,
                 'cancel_url_deep_link' => $cancelUrl,
                 'return_url_web_fallback' => $fallbackReturnUrl,
@@ -286,7 +252,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             ];
 
         } catch (\Exception $e) {
-            Log::error('Exception in generateCinetPayLink (Mariage): ' . $e->getMessage(), ['reference' => $mariage->reference]);
+            Log::error('Exception in generateWaveLink: ' . $e->getMessage(), ['reference' => $mariage->reference]);
             return [
                 'success' => false,
                 'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
@@ -331,29 +297,26 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $mariage->statut_livraison = 'paiement_echoue';
             $mariage->save();
 
-            // 5. Générer le nouveau lien de paiement
-            $paymentLinkResult = $this->generateCinetPayLink($mariage);
+            // 5. Générer le nouveau lien de paiement avec Wave
+            $paymentLinkResult = $this->generateWaveLink($mariage);
 
             // 6. Gérer l'échec de la génération
             if (!$paymentLinkResult['success']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Échec de la génération du nouveau lien de paiement.',
+                    'message' => 'Échec de la génération du nouveau lien de paiement Wave.',
                     'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
 
             // 7. Succès !
-            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-
             return response()->json([
                 'success' => true,
                 'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $cinetpayResponseData['payment_url'],
-                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'payment_url' => $paymentLinkResult['wave_launch_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],

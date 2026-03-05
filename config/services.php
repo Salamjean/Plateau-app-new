@@ -53,4 +53,10 @@ return [
         'ssl_cert_path' => env('SSL_CERT_PATH', storage_path('app/certs/cacert.pem')),
     ],
 
+    'wave' => [
+        'api_key' => env('WAVE_API_KEY'),
+        'webhook_secret' => env('WAVE_WEBHOOK_SECRET'),
+        'base_url' => 'https://api.wave.com/v1/checkout/sessions',
+    ],
+
 ];

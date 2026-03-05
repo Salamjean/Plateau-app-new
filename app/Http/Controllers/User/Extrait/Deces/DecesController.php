@@ -29,10 +29,12 @@ class DecesController extends Controller
 
     public function create()
     {
-        return view('user.deces.simple.create');
+        return view('user.deces.simple.create', [
+            'user' => Auth::user(),
+        ]);
     }
 
-    public function store(Request $request, YellikaSmsService $yellikaSmsService)
+    public function store(Request $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService)
     {
         $request->validate([
             'type' => 'required',
@@ -137,6 +139,34 @@ class DecesController extends Controller
         }
 
         $deces->save();
+
+        if ($request->input('choix_option') === 'livraison') {
+            // Calculer le montant total
+            $cout_total_timbres = (float) $deces->montant_timbre * (int) $deces->quantite;
+            $totalAmount = $cout_total_timbres + (float) $deces->montant_livraison;
+
+            // Préparer les URLs de retour (Wave exige HTTPS)
+            $baseUrl = config('app.url');
+            $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($deces->reference);
+            $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($deces->reference);
+
+            // Créer une session de paiement Wave
+            $checkoutSession = $waveService->createCheckoutSession(
+                $totalAmount,
+                'XOF',
+                $successUrl,
+                $errorUrl,
+                $deces->reference
+            );
+
+            if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                return redirect($checkoutSession['wave_launch_url']);
+            }
+
+            Log::error('Échec de la création de la session Wave pour ' . $deces->reference);
+            return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+        }
+
         $phoneNumber = $user->indicatif . $user->contact;
         $message = "Bonjour {$user->name}, votre demande d'extrait de décès a bien été transmise à la mairie du plateau. Référence: {$deces->reference}
 Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";

@@ -109,16 +109,19 @@ class NaissanceController extends Controller
 
     public function create()
     {
-        $userConnecté = Auth::user();
+        $user = Auth::user();
         return view('user.naissance.simple.create', [
-            'userName' => $userConnecté ? $userConnecté->name : '',
-            'userPrenom' => $userConnecté ? $userConnecté->prenom : '',
-            'userCommune' => $userConnecté ? $userConnecté->commune : '',
-            'userCMU' => $userConnecté ? $userConnecté->CMU : '',
+            'user' => $user,
+            'userName' => $user ? $user->name : '',
+            'userPrenom' => $user ? $user->prenom : '',
+            'userEmail' => $user ? $user->email : '',
+            'userContact' => $user ? $user->contact : '',
+            'userCommune' => $user ? $user->commune : '',
+            'userCMU' => $user ? $user->CMU : '',
         ]);
     }
 
-    public function store(Request $request, YellikaSmsService $yellikaSmsService)
+    public function store(Request $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService)
     {
         $validated = $request->validate([
             'type' => 'required',
@@ -217,6 +220,34 @@ class NaissanceController extends Controller
         }
 
         $naissance->save();
+
+        if ($request->input('choix_option') === 'livraison') {
+            // Calculer le montant total
+            $cout_total_timbres = (float) $naissance->montant_timbre * (int) $naissance->quantite;
+            $totalAmount = $cout_total_timbres + (float) $naissance->montant_livraison;
+
+            // Préparer les URLs de retour (Wave exige HTTPS)
+            $baseUrl = config('app.url');
+            $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($naissance->reference);
+            $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($naissance->reference);
+
+            // Créer une session de paiement Wave
+            $checkoutSession = $waveService->createCheckoutSession(
+                $totalAmount,
+                'XOF',
+                $successUrl,
+                $errorUrl,
+                $naissance->reference
+            );
+
+            if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                return redirect($checkoutSession['wave_launch_url']);
+            }
+
+            Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
+            return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+        }
+
         $phoneNumber = $user->indicatif . $user->contact;
         Log::info('Numéro de téléphone construit : ' . $phoneNumber);
         $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.

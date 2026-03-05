@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Livreur\LivreurAuthenticateController;
 use App\Http\Controllers\Api\Livreur\LivraisonController;
 use App\Http\Controllers\Api\Livreur\ProfilLivreurController;
 use App\Http\Controllers\Api\Livreur\LivreurPasswordForgotController;
+use App\Http\Controllers\Api\WaveWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -40,15 +41,8 @@ Route::prefix('livreur')->group(function () {
 });
 
 Route::prefix('webhooks')->group(function () {
-    Route::post('/cinetpay/notify/deces', [DemandeDecesController::class, 'handlePaymentNotification'])
-        ->name('api.cinetpay.notify.deces');
-    
-    Route::post('/cinetpay/notify/mariage', [DemandeMariageController::class, 'handlePaymentNotification'])
-        ->name('api.cinetpay.notify.mariage');
-
-    // ✅ AJOUTÉ
-    Route::post('/cinetpay/notify/naissance', [DemandeNaissanceController::class, 'handlePaymentNotification'])
-        ->name('api.cinetpay.notify.naissance');
+    Route::post('/wave/notify', [WaveWebhookController::class, 'handleWebhook'])
+        ->name('api.wave.notify');
 });
 
 // Routes de polling de statut (publiques)

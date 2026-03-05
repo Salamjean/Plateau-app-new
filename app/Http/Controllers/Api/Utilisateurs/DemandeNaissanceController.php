@@ -52,7 +52,7 @@ class DemandeNaissanceController extends Controller
     /**
      * Créer une nouvelle demande de naissance
      */
-    public function store(Request $request, YellikaSmsService $yellikaSmsService): JsonResponse
+    public function store(Request $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService): JsonResponse
     {
         // 1. Validation (Spécifique à Naissance)
         $validator = Validator::make($request->all(), [
@@ -173,8 +173,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // --- DEBUT LOGIQUE PAIEMENT (Cas "Livraison") ---
 
-            // 7. Générer le lien de paiement
-            $paymentLinkResult = $this->generateCinetPayLink($naissance);
+            // --- DEBUT LOGIQUE PAIEMENT (Cas "Livraison") ---
+
+            // 7. Générer le lien de paiement avec Wave
+            $paymentLinkResult = $this->generateWaveLink($naissance);
 
             // 8. Gérer l'échec de la génération
             if (!$paymentLinkResult['success']) {
@@ -186,15 +188,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 9. Renvoyer la réponse JSON
-            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
                 'payment_details' => [
-                    'payment_url' => $cinetpayResponseData['payment_url'],
-                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'payment_url' => $paymentLinkResult['wave_launch_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
@@ -220,74 +219,44 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
     // --------------------------------------------------------------------
     /**
-     * Génère un nouveau lien de paiement CinetPay pour une demande de naissance existante.
+     * Génère un nouveau lien de paiement Wave pour une demande de naissance existante.
      */
-    private function generateCinetPayLink(Naissance $naissance): array
+    private function generateWaveLink(Naissance $naissance): array
     {
         try {
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://payment?cinetpay=true&transactionId={$naissance->reference}";
-            $cancelUrl = "plateauapps://payment?cinetpay=false&transactionId={$naissance->reference}";
-            // ✅ URLs de retour Web (Corrigées pour NAISSANCE)
+            $returnUrl = "plateauapps://payment?wave=true&transactionId={$naissance->reference}";
+            $cancelUrl = "plateauapps://payment?wave=false&transactionId={$naissance->reference}";
             $fallbackReturnUrl = $baseUrl . "/naissance/paiement/redirect-to-app?transactionId=" . urlencode($naissance->reference);
             $fallbackCancelUrl = $baseUrl . "/naissance/paiement/redirect-to-app?cancel=1&transactionId=" . urlencode($naissance->reference);
-            $notifyUrl = $baseUrl . "/api/webhooks/cinetpay/notify/naissance";
 
             // 2. Calculer le montant
             $cout_total_timbres = (float) $naissance->montant_timbre * (int) $naissance->quantite;
             $totalAmount = $cout_total_timbres + (float) $naissance->montant_livraison;
 
-            // 3. Infos CinetPay
-            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
-            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+            // 3. Appel API Wave
+            $waveService = app(\App\Services\WaveService::class);
+            $checkoutSession = $waveService->createCheckoutSession(
+                $totalAmount,
+                'XOF',
+                $fallbackReturnUrl,
+                $fallbackCancelUrl,
+                $naissance->reference
+            );
 
-            // 4. NOUVEAU TRANSACTION_ID UNIQUE
-            $cinetpayTransactionId = $naissance->reference . '_' . time();
-
-            // 5. Data du paiement
-            $paymentData = [
-                'apikey' => $cinetpayApiKey,
-                'site_id' => $cinetpaySiteId,
-                'transaction_id' => $cinetpayTransactionId,
-                'amount' => $totalAmount,
-                'currency' => 'XOF',
-                'description' => "Paiement ({$naissance->quantite}x timbre + livr) Acte Naissance {$naissance->reference}", // ✅ Description Naissance
-                'notify_url' => $notifyUrl,
-                'return_url' => $fallbackReturnUrl,
-                'cancel_url' => $fallbackCancelUrl,
-                'mode' => 'PRODUCTION',
-                'channels' => 'ALL',
-
-                // Customer info
-                'customer_name' => $naissance->nom_destinataire,
-                'customer_surname' => $naissance->prenom_destinataire,
-                'customer_email' => $naissance->email_destinataire,
-                'customer_phone_number' => $naissance->contact_destinataire,
-                'customer_address' => $naissance->adresse_livraison,
-                'customer_city' => $naissance->ville,
-                'customer_country' => 'CI',
-                'customer_zip_code' => $naissance->code_postal ?? '00225'
-            ];
-
-            // 6. Appel API
-            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', $paymentData);
-
-            // 7. Gérer l'échec
-            if ($response->failed() || $response->json('code') !== '201') {
-                Log::error('Erreur CinetPay (Génération lien Naissance): ' . $response->body(), ['transaction_id' => $cinetpayTransactionId]);
+            if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
                 return [
                     'success' => false,
-                    'message' => 'Échec de la génération du lien de paiement.',
-                    'error_details' => $response->json() ?? $response->body()
+                    'message' => 'Échec de la génération du lien de paiement Wave.',
+                    'error_details' => $checkoutSession
                 ];
             }
 
-            // 8. Succès
             return [
                 'success' => true,
-                'cinetpay_data' => $response->json('data'),
-                'generated_transaction_id' => $cinetpayTransactionId,
+                'wave_launch_url' => $checkoutSession['wave_launch_url'],
+                'generated_transaction_id' => $naissance->reference,
                 'return_url_deep_link' => $returnUrl,
                 'cancel_url_deep_link' => $cancelUrl,
                 'return_url_web_fallback' => $fallbackReturnUrl,
@@ -295,7 +264,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             ];
 
         } catch (\Exception $e) {
-            Log::error('Exception in generateCinetPayLink (Naissance): ' . $e->getMessage(), ['reference' => $naissance->reference]);
+            Log::error('Exception in generateWaveLink: ' . $e->getMessage(), ['reference' => $naissance->reference]);
             return [
                 'success' => false,
                 'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
@@ -340,29 +309,26 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $naissance->statut_livraison = 'paiement_echoue';
             $naissance->save();
 
-            // 5. Générer le nouveau lien de paiement
-            $paymentLinkResult = $this->generateCinetPayLink($naissance);
+            // 5. Générer le nouveau lien de paiement avec Wave
+            $paymentLinkResult = $this->generateWaveLink($naissance);
 
             // 6. Gérer l'échec de la génération
             if (!$paymentLinkResult['success']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Échec de la génération du nouveau lien de paiement.',
+                    'message' => 'Échec de la génération du nouveau lien de paiement Wave.',
                     'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
 
             // 7. Succès !
-            $cinetpayResponseData = $paymentLinkResult['cinetpay_data'];
-
             return response()->json([
                 'success' => true,
                 'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $cinetpayResponseData['payment_url'],
-                    'payment_token' => $cinetpayResponseData['payment_token'],
+                    'payment_url' => $paymentLinkResult['wave_launch_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
