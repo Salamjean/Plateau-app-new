@@ -24,7 +24,8 @@ class saveMariageRequest extends FormRequest
         return [
             'pieceIdentite' => ' required|mimes:png,jpg,jpeg,pdf|max:1000',
             'extraitMariage' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
-            ];
+            'commune_mariage' => 'required|string|max:255',
+        ];
     }
 
     public function messages() 

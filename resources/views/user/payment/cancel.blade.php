@@ -62,5 +62,13 @@
         </div>
     </div>
 
+    <script>
+        if (window.opener && window.opener !== window) {
+            // Ferme le popup après 3 secondes sur annulation/erreur
+            setTimeout(function() {
+                window.close();
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

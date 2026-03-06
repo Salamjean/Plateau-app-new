@@ -132,6 +132,7 @@ class NaissanceController extends Controller
             'nom_prenoms_pere' => 'nullable|string|max:255',
             'nom_prenoms_mere' => 'nullable|string|max:255',
             'commune' => 'required',
+            'commune_naissance' => 'required|string|max:255',
             'quantite' => 'required|integer|min:1|max:10',
             'CNI' => 'required',
         ], [
@@ -141,6 +142,7 @@ class NaissanceController extends Controller
             'number.required_without_all' => 'Le numéro de registre est obligatoire si les informations parentales ne sont pas fournies',
             'DateR.required_without_all' => 'La date de registre est obligatoire si les informations parentales ne sont pas fournies',
             'commune.required' => 'La commune est obligatoire',
+            'commune_naissance.required' => 'La commune de naissance est obligatoire',
             'CNI.required' => 'Le champ CNI est obligatoire',
             'quantite.required' => 'La quantité est obligatoire',
             'quantite.integer' => 'La quantité doit être un nombre entier',
@@ -194,10 +196,11 @@ class NaissanceController extends Controller
         $naissance->number = $request->number;
         $naissance->DateR = $request->DateR;
         $naissance->commune = $request->commune;
+        $naissance->commune_naissance = $request->commune_naissance;
         $naissance->CNI = $uploadedPaths['CNI'] ?? null;
         $naissance->choix_option = $request->choix_option;
         $naissance->user_id = $user->id;
-        $naissance->etat = 'en attente';
+        $naissance->etat = 'non_paye';
         $naissance->reference = $reference;
 
 
@@ -223,7 +226,7 @@ class NaissanceController extends Controller
 
         if ($request->input('choix_option') === 'livraison') {
             // Calculer le montant total
-            $cout_total_timbres = (float) $naissance->montant_timbre * (int) $naissance->quantite;
+            $cout_total_timbres = (float) $naissance->montant_timbre;
             $totalAmount = $cout_total_timbres + (float) $naissance->montant_livraison;
 
             // Préparer les URLs de retour (Wave exige HTTPS)

@@ -61,19 +61,19 @@ class ComptableDemandeController extends Controller
             ->where(function ($q) {
                 $q->where('choix_option', '!=', 'Livraison')
                     ->orWhere('timbre_recupere', 1);
-            })->count();
+            })->selectRaw("SUM(CAST(COALESCE(NULLIF(quantite, ''), '1') AS UNSIGNED)) as total")->value('total') ?? 0;
 
         $decesDebit = Deces::where('commune', $commune)
             ->where(function ($q) {
                 $q->where('choix_option', '!=', 'Livraison')
                     ->orWhere('timbre_recupere', 1);
-            })->count();
+            })->selectRaw("SUM(CAST(COALESCE(NULLIF(quantite, ''), '1') AS UNSIGNED)) as total")->value('total') ?? 0;
 
         $mariageDebit = Mariage::where('commune', $commune)
             ->where(function ($q) {
                 $q->where('choix_option', '!=', 'Livraison')
                     ->orWhere('timbre_recupere', 1);
-            })->count();
+            })->selectRaw("SUM(CAST(COALESCE(NULLIF(quantite, ''), '1') AS UNSIGNED)) as total")->value('total') ?? 0;
 
         $totalDebiteCount = $naissDebit + $decesDebit + $mariageDebit;
         $montantTotalDebite = $totalDebiteCount * 500;
@@ -108,14 +108,16 @@ class ComptableDemandeController extends Controller
             $saved = $model->save();
 
             if ($saved) {
-                // Débiter le stock physique de timbres
+                // Débiter le stock physique de timbres en fonction de la quantité demandée
+                $quantite = !empty($model->quantite) ? (int)$model->quantite : 1;
+                
                 Timbre::create([
-                    'nombre_timbre' => -1, // Débit de 1 timbre
+                    'nombre_timbre' => -$quantite, // Débit du nombre de timbres correspondant
                     'comptable_id' => Auth::guard('comptable')->id(),
                     // 'finance_id' => null, // Laisser null si c'est le comptable qui agit
                 ]);
 
-                \Illuminate\Support\Facades\Log::info("Stock timbres débité de 1.");
+                \Illuminate\Support\Facades\Log::info("Stock timbres débité de {$quantite}.");
             }
 
             \Illuminate\Support\Facades\Log::info("Modèle sauvegardé? " . ($saved ? 'OUI' : 'NON'));

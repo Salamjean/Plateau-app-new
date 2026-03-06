@@ -29,7 +29,7 @@ class AllRolesSeeder extends Seeder
         $mairie = Mairie::updateOrCreate(
             ['email' => $email],
             [
-                'name' => 'Mairie de Plateau',
+                'name' => 'plateau',
                 'password' => $password,
             ]
         );

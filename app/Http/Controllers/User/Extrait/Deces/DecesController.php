@@ -46,6 +46,8 @@ class DecesController extends Controller
             'CNIdfnt' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
             'CNIdcl' => 'required',
+            'communeD' => 'required',
+            'commune_deces' => 'required|string|max:255',
         ], [
             'name.required' => 'Le nom du défunt est obligatoire.',
             'numberR.required_without_all' => 'Le numéro de registre est obligatoire si les informations parentales ne sont pas fournies.',
@@ -117,7 +119,8 @@ class DecesController extends Controller
         $deces->choix_option = $request->choix_option;
         $deces->quantite = $request->quantite;
         $deces->commune = $request->communeD ?: $user->commune; // Déterminer la commune
-        $deces->etat = 'en attente';
+        $deces->commune_deces = $request->commune_deces;
+        $deces->etat = 'non_paye';
         $deces->user_id = $user->id; // Lier la demande à l'utilisateur connecté
         $deces->reference = $reference; // Assignez la référence générée
 
@@ -142,7 +145,7 @@ class DecesController extends Controller
 
         if ($request->input('choix_option') === 'livraison') {
             // Calculer le montant total
-            $cout_total_timbres = (float) $deces->montant_timbre * (int) $deces->quantite;
+            $cout_total_timbres = (float) $deces->montant_timbre;
             $totalAmount = $cout_total_timbres + (float) $deces->montant_livraison;
 
             // Préparer les URLs de retour (Wave exige HTTPS)

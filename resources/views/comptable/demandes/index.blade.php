@@ -351,7 +351,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-label">Timbre Non Récupéré</span>
-                    <span class="stat-value">{{ $allDemandes->where('timbre_recupere', 0)->count() }}</span>
+                    <span class="stat-value">{{ $allDemandes->where('timbre_recupere', 0)->sum(function($item) { return (int) ($item->quantite ?: 1); }) }}</span>
                 </div>
             </div>
         </div>

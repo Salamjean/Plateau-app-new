@@ -105,8 +105,9 @@ class MariageController extends Controller
         $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
         $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
         $mariage->commune = $commune; // Utilisation de la commune spécifiée
+        $mariage->commune_mariage = $request->commune_mariage;
         $mariage->choix_option = $request->choix_option;
-        $mariage->etat = 'en attente';
+        $mariage->etat = 'non_paye';
         $mariage->user_id = $user->id;  // Lier la demande à l'utilisateur connecté
         $mariage->reference = $reference; // Assignez la référence générée
 
@@ -131,7 +132,7 @@ class MariageController extends Controller
 
         if ($request->input('choix_option') === 'livraison') {
             // Calculer le montant total
-            $cout_total_timbres = (float) $mariage->montant_timbre * (int) $mariage->quantite;
+            $cout_total_timbres = (float) $mariage->montant_timbre;
             $totalAmount = $cout_total_timbres + (float) $mariage->montant_livraison;
 
             // Préparer les URLs de retour (Wave exige HTTPS)
@@ -201,6 +202,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     break;
                 case 'commune':
                     $rules['commune'] = 'required|string';
+                    break;
+                case 'commune_mariage':
+                    $rules['commune_mariage'] = 'required|string|max:255';
                     break;
                 case 'quantite':
                     $rules['quantite'] = 'required|integer|min:1|max:10';

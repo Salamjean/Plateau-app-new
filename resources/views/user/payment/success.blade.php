@@ -84,10 +84,22 @@
     </div>
 
     <script>
-        // Auto-redirect vers la liste après 15 secondes
-        setTimeout(function() {
-            window.location.href = '{{ $listUrl }}';
-        }, 15000);
+        if (window.opener && window.opener !== window) {
+            // Dans un popup, on donne 3 secondes pour lire le message puis on ferme le popup
+            setTimeout(function() {
+                try { 
+                    window.opener.paymentSuccess = true; 
+                    window.opener.paymentSuccessUrl = '{{ $listUrl }}';
+                    window.opener.paymentType = '{{ $type }}';
+                } catch (e) {}
+                window.close();
+            }, 3000);
+        } else {
+            // Auto-redirect vers la liste après 15 secondes (cas classique)
+            setTimeout(function() {
+                window.location.href = '{{ $listUrl }}';
+            }, 15000);
+        }
     </script>
 
 </body>

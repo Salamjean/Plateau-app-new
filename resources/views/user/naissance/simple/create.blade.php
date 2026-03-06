@@ -415,12 +415,21 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-col">
-                        <label for="commune" class="form-label">Commune de naissance :</label>
+                    <div class="form-col" style="display: none;">
+                        <label for="commune" class="form-label">Commune d'enregistrement :</label>
                         <div class="input-icon-wrapper">
                             <i class="fas fa-map-marker-alt"></i>
                             <input type="text" id="commune" name="commune" class="form-control" value="Plateau" readonly>
                         </div>
+                    </div>
+
+                    <div class="form-col">
+                        <label for="commune_naissance" class="form-label">Commune de naissance :</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" id="commune_naissance" name="commune_naissance" class="form-control" value="{{ old('commune_naissance') }}">
+                        </div>
+                        @error('commune_naissance') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-col">
@@ -550,7 +559,7 @@
                 { id: 'type', message: 'Le type d\'extrait est obligatoire.' },
                 { id: 'name', message: 'Le nom est obligatoire.' },
                 { id: 'prenom', message: 'Le prénom est obligatoire.' },
-                { id: 'commune', message: 'La commune est obligatoire.' },
+                { id: 'commune_naissance', message: 'La commune de naissance est obligatoire.' },
                 { id: 'quantite', message: 'La quantité est obligatoire.' },
                 { id: 'CNI', message: 'Une pièce d\'identité (CNI/Passeport) est obligatoire.' }
             ];
@@ -572,6 +581,7 @@
 
             // Retirer les messages d'erreur existants et les styles d'erreur
             form.querySelectorAll('.error-message').forEach(el => el.remove());
+
             form.querySelectorAll('.form-control.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             form.querySelectorAll('.form-control').forEach(el => el.style.animation = 'none');
 
@@ -665,75 +675,115 @@
 
     Swal.fire({
         title: '<div class="flex items-center justify-center p-2"><i class="fas fa-truck text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1977cc;">DÉTAILS DE LIVRAISON</span></div>',
+        width: '800px',
         html: `
-            <div class="text-left" style="max-height: 70vh; overflow-y: auto; padding: 10px;">
-                <p class="text-center text-muted mb-3" style="font-size: 0.9rem;">Veuillez confirmer vos informations pour la livraison sécurisée de votre acte de naissance.</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; text-align: left; max-height: 70vh; overflow-y: auto; padding: 10px;">
                 
-                <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="color: #555; font-size: 0.85rem;">Nombre d'exemplaires:</span>
-                        <span style="font-weight: 700;">${quantite}</span>
+                <!-- Formulaire (Partie gauche) -->
+                <div style="flex: 1 1 400px;">
+                    <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍 Vos coordonnées</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Nom</label>
+                            <input id="swal-nom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Nom" value="{{ Auth::user()->name }}">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Prénom</label>
+                            <input id="swal-prenom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Prénom" value="{{ Auth::user()->prenom }}">
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="color: #555; font-size: 0.85rem;">Frais de timbre:</span>
-                        <span style="font-weight: 700;">${montantTimbreTotal} FCFA</span>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Email</label>
+                            <input id="swal-email_destinataire" type="email" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="mail@exemple.com" value="{{ Auth::user()->email }}">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Téléphone</label>
+                            <input id="swal-contact_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="0123456789" value="{{ Auth::user()->contact }}">
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="color: #555; font-size: 0.85rem;">Frais de livraison:</span>
-                        <span style="font-weight: 700;">${montantLivraison} FCFA</span>
+
+                    <div style="margin-top: 10px;">
+                        <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Adresse précise</label>
+                        <input id="swal-adresse_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="N° de rue, immeuble...">
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #b8d4ed; pt-2; margin-top: 10px;">
-                        <span style="color: #1977cc; font-weight: 800;">TOTAL À PAYER:</span>
-                        <span style="color: #1977cc; font-weight: 800; font-size: 1.2rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Ville</label>
+                            <input id="swal-ville" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Ville" value="Abidjan">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Commune</label>
+                            <input id="swal-commune_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Commune">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Quartier</label>
+                            <input id="swal-quartier" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Quartier">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Date</label>
+                            <input type="date" id="swal-date_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;" min="{{ date('Y-m-d') }}" onclick="this.showPicker()">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Heure</label>
+                            <input type="time" id="swal-heure_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;" onclick="this.showPicker()">
+                        </div>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Nom</label>
-                        <input id="swal-nom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="Nom" value="{{ Auth::user()->name }}">
+                <!-- Résumé et Paiement (Partie droite) -->
+                <div style="flex: 1 1 250px; display: flex; flex-direction: column; gap: 15px;">
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6;">
+                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #cce3f6; padding-bottom: 5px;">🧾 Résumé</h4>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
+                            <span style="color: #555;">Exemplaires:</span>
+                            <span style="font-weight: 700">${quantite}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
+                            <span style="color: #555;">Timbres:</span>
+                            <span style="font-weight: 700">${montantTimbreTotal} FCFA</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem;">
+                            <span style="color: #555;">Livraison:</span>
+                            <span style="font-weight: 700">${montantLivraison} FCFA</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-top: 2px dashed #b8d4ed; padding-top: 8px; margin-top: 8px;">
+                            <span style="color: #1977cc; font-weight: 800; font-size: 0.9rem;">TOTAL:</span>
+                            <span style="color: #1977cc; font-weight: 800; font-size: 1.1rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
+                        </div>
                     </div>
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Prénom</label>
-                        <input id="swal-prenom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="Prénom" value="{{ Auth::user()->prenom }}">
-                    </div>
-                </div>
- 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Email</label>
-                        <input id="swal-email_destinataire" type="email" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="mail@exemple.com" value="{{ Auth::user()->email }}">
-                    </div>
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Téléphone</label>
-                        <input id="swal-contact_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="0123456789" value="{{ Auth::user()->contact }}">
-                    </div>
-                </div>
 
-                <div style="margin-top: 15px;">
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Adresse précise</label>
-                    <input id="swal-adresse_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 10px; height: 40px; font-size: 0.9rem; border-radius: 8px;" placeholder="N° de rue, immuable, appartement...">
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px;">
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Ville</label>
-                        <input id="swal-ville" class="swal2-input" style="width: 100%; margin: 0; padding: 8px; height: 35px; font-size: 0.85rem; border-radius: 8px;" placeholder="Ville" value="Abidjan">
-                    </div>
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Commune</label>
-                        <input id="swal-commune_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 8px; height: 35px; font-size: 0.85rem; border-radius: 8px;" placeholder="Commune">
-                    </div>
-                    <div style="text-align: left;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #555; margin-bottom: 5px; text-transform: uppercase;">Quartier</label>
-                        <input id="swal-quartier" class="swal2-input" style="width: 100%; margin: 0; padding: 8px; height: 35px; font-size: 0.85rem; border-radius: 8px;" placeholder="Quartier">
+                    <div>
+                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <button type="button" id="btn-pay-wave" class="payment-method-btn" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                            </button>
+                            <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
+                            </button>
+                            <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                            </button>
+                            <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
+                            </button>
+                        </div>
+                        <input type="hidden" id="swal-payment_method" value="wave">
                     </div>
                 </div>
             </div>
         `,
         icon: 'info',
         showCancelButton: true,
-        confirmButtonText: `Payer via Wave`,
+        confirmButtonText: `Payer`,
         cancelButtonText: 'Annuler',
         confirmButtonColor: '#1977cc',
         focusConfirm: false,
@@ -746,9 +796,19 @@
             const ville = document.getElementById('swal-ville').value;
             const commune_livraison = document.getElementById('swal-commune_livraison').value;
             const quartier = document.getElementById('swal-quartier').value;
+            const date_livraison = document.getElementById('swal-date_livraison').value;
+            const heure_livraison = document.getElementById('swal-heure_livraison').value;
 
-            if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier) {
-                Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires");
+            if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !heure_livraison) {
+                Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires, y compris la date et l'heure de livraison.");
+                return false;
+            }
+
+            const selectedDate = new Date(date_livraison);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
                 return false;
             }
             // Validation d'email simple
@@ -771,10 +831,13 @@
                 ville: ville,
                 commune_livraison: commune_livraison,
                 quartier: quartier,
+                date_livraison: date_livraison,
+                heure_livraison: heure_livraison,
                 quantite: quantite,
                 montant_timbre_unitaire: montantTimbreUnitaire,
                 montant_timbre: montantTimbreTotal,
                 montant_livraison: montantLivraison,
+                payment_method: document.getElementById('swal-payment_method').value
             };
         }
     }).then((result) => {
@@ -794,9 +857,12 @@
                 { name: 'ville', value: formData.ville },
                 { name: 'commune_livraison', value: formData.commune_livraison },
                 { name: 'quartier', value: formData.quartier },
+                { name: 'date_livraison', value: formData.date_livraison },
+                { name: 'heure_livraison', value: formData.heure_livraison },
                 { name: 'montant_timbre_unitaire', value: formData.montant_timbre_unitaire },
                 { name: 'montant_timbre', value: formData.montant_timbre },
-                { name: 'montant_livraison', value: formData.montant_livraison }
+                { name: 'montant_livraison', value: formData.montant_livraison },
+                { name: 'payment_method', value: formData.payment_method }
             ];
 
             hiddenFields.forEach(field => {
@@ -807,13 +873,46 @@
                 form.appendChild(input);
             });
 
+            window.paymentSuccess = false;
             // Afficher un loader pendant la redirection
-            Swal.fire({
-                title: 'Redirection vers Wave',
-                html: `Préparation du paiement de ${formData.montant_timbre + formData.montant_livraison} FCFA...`,
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
+            const width = 500;
+            const height = 500;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            const popup = window.open('', 'WavePaymentPopup', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`);
+            if (popup) {
+                form.target = 'WavePaymentPopup';
+                
+                Swal.fire({
+                    title: 'Paiement en cours',
+                    html: 'Veuillez finaliser le paiement et scanner le QR code dans <b>la nouvelle fenêtre</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement à la fin de la transaction.</span>',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const timer = setInterval(() => {
+                    if (popup.closed) {
+                        clearInterval(timer);
+                        if (window.paymentSuccess) {
+                            // Utiliser l'URL fournie par le succès ou la route par défaut
+                            window.location.href = window.paymentSuccessUrl || "{{ route('user.extrait.index') }}";
+                        } else {
+                            window.location.reload();
+                        }
+                    }
+                }, 1000);
+            } else {
+                form.target = '_self';
+                Swal.fire({
+                    title: 'Redirection vers ' + (formData.payment_method.charAt(0).toUpperCase() + formData.payment_method.slice(1)),
+                    html: `Le bloqueur de popup est activé. Redirection dans la page actuelle...`,
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+            }
 
             // Soumettre le formulaire
             formSubmitted = true;
@@ -823,5 +922,29 @@
         }
     });
 }
+
+        // Fonction pour sélectionner la méthode de paiement
+        function selectPaymentMethod(method) {
+            // Seul Wave est actif pour le moment
+            if (method !== 'wave') return;
+            
+            // Réinitialiser tous les boutons
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                if(!btn.classList.contains('opacity-50')) { // Reset style only for non-disabled ones
+                    btn.style.border = '2px solid #edf2f7';
+                    btn.style.backgroundColor = 'white';
+                }
+            });
+            
+            // Appliquer le style actif au bouton sélectionné
+            const activeBtn = document.getElementById('btn-pay-' + method);
+            if (method === 'wave') {
+                activeBtn.style.border = '2px solid #1e3a8a';
+                activeBtn.style.backgroundColor = '#eff6ff';
+            }
+            
+            // Mettre à jour la valeur du champ caché
+            document.getElementById('swal-payment_method').value = method;
+        }
     </script>
 @endsection
