@@ -478,8 +478,48 @@
         function showLivraisonPopup() {
             const quantite = parseInt(document.getElementById('quantite').value) || 1;
             const montantTimbreUnitaire = 500; 
-            const montantTimbreTotal = montantTimbreUnitaire * quantite;
             const montantLivraison = 1500; 
+            
+            // Calcul des timbres gratuits
+            let freeTimbres = 0;
+            let freeAmount = 0;
+            const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
+            const freeRequestsRemaining = @json($freeRequestsRemaining ?? 0);
+
+            if (freeRequestsModeActive && freeRequestsRemaining > 0) {
+                freeTimbres = Math.min(quantite, freeRequestsRemaining);
+                freeAmount = freeTimbres * montantTimbreUnitaire;
+            }
+
+            const paidTimbres = quantite - freeTimbres;
+            const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
+            const montantTotal = montantTimbreTotal + montantLivraison;
+
+            // Élément d'affichage pour les timbres gratuits
+            let freeTimbresHtml = '';
+            let originalTimbreHtml = '';
+            
+            if (freeTimbres > 0) {
+                originalTimbreHtml = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 0.85rem; text-decoration: line-through; color: #a0aec0;">
+                        <span>Timbres (x${quantite}):</span>
+                        <span>${quantite * montantTimbreUnitaire} FCFA</span>
+                    </div>
+                `;
+                freeTimbresHtml = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; color: #28a745; font-weight: bold;">
+                        <span><i class="fas fa-gift mr-1"></i> Timbres offerts (x${freeTimbres}):</span>
+                        <span>- ${freeAmount} FCFA</span>
+                    </div>
+                `;
+            }
+
+            let finalTimbreHtml = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
+                    <span style="color: #555;">Timbres payants (x${paidTimbres}):</span>
+                    <span style="font-weight: 700">${montantTimbreTotal} FCFA</span>
+                </div>
+            `;
 
             Swal.fire({
                 title: '<div class="flex items-center justify-center p-2"><i class="fas fa-truck text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1977cc;">DÉTAILS DE LIVRAISON</span></div>',
@@ -554,17 +594,16 @@
                                     <span style="color: #555;">Exemplaires:</span>
                                     <span style="font-weight: 700">${quantite}</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
-                                    <span style="color: #555;">Timbres:</span>
-                                    <span style="font-weight: 700">${montantTimbreTotal} FCFA</span>
-                                </div>
+                                ${originalTimbreHtml}
+                                ${freeTimbresHtml}
+                                ${finalTimbreHtml}
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem;">
                                     <span style="color: #555;">Livraison:</span>
                                     <span style="font-weight: 700">${montantLivraison} FCFA</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; border-top: 2px dashed #b8d4ed; padding-top: 8px; margin-top: 8px;">
                                     <span style="color: #1977cc; font-weight: 800; font-size: 0.9rem;">TOTAL:</span>
-                                    <span style="color: #1977cc; font-weight: 800; font-size: 1.1rem;">${montantTimbreTotal + montantLivraison} FCFA</span>
+                                    <span style="color: #1977cc; font-weight: 800; font-size: 1.1rem;">${montantTotal} FCFA</span>
                                 </div>
                             </div>
 

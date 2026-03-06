@@ -579,6 +579,7 @@
                             <h4>Solde Disponible --> (KKS-TECHNOLOGIES)</h4>
                             <span class="amount">{{ number_format($montantRestant ?? 0, 0, ',', ' ') }} FCFA</span>
                             <span class="finance-sub">Montant actuel</span>
+
                         </div>
                         <div class="finance-icon-bg">
                             <i class="fas fa-wallet"></i>

@@ -18,6 +18,109 @@
                 </div>
             </div>
 
+            {{-- Bannière Demandes Gratuites (Mode Test) --}}
+            @if(isset($showFreeRequestsMessage) && $showFreeRequestsMessage)
+            <div id="free-requests-banner" class="free-requests-banner" style="
+                background: linear-gradient(135deg, #ffffffff 10%, #d0f0ffff 10%);
+                border-radius: 16px;
+                padding: 1.5rem 2rem;
+                margin-bottom: 1.5rem;
+                color: white;
+                position: relative;
+                overflow: hidden;
+                animation: slideDown 0.5s ease-out;
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            ">
+                <div style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                <div style="position: absolute; bottom: -30px; left: 50%; width: 80px; height: 80px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
+                
+                <button onclick="dismissFreeRequestsBanner()" style="
+                    position: absolute; top: 12px; right: 16px;
+                    background: rgba(255,255,255,0.2); border: none;
+                    color: white; width: 30px; height: 30px;
+                    border-radius: 50%; cursor: pointer;
+                    font-size: 1rem; display: flex; align-items: center; justify-content: center;
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div style="display: flex; align-items: center; gap: 1.2rem; position: relative; z-index: 1;">
+                    <div style="
+                        width: 60px; height: 60px;
+                        background: rgba(255,255,255,0.2);
+                        border-radius: 16px;
+                        display: flex; align-items: center; justify-content: center;
+                        font-size: 1.8rem;
+                        animation: pulseGift 2s ease-in-out infinite;
+                    ">
+                        🎁
+                    </div>
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 0.3rem; font-size: 1.2rem; font-weight: 800;">
+                            Bonne nouvelle ! Vos {{ $freeRequestsRemaining }} première{{ $freeRequestsRemaining > 1 ? 's' : '' }} demande{{ $freeRequestsRemaining > 1 ? 's' : '' }} {{ $freeRequestsRemaining > 1 ? 'sont gratuites' : 'est gratuite' }} ! 🎉
+                        </h3>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.95rem; line-height: 1.5;">
+                            Pour célébrer votre inscription, vous bénéficiez de <strong>{{ $freeRequestsRemaining }} demande{{ $freeRequestsRemaining > 1 ? 's' : '' }} gratuite{{ $freeRequestsRemaining > 1 ? 's' : '' }}</strong> 
+                            (timbres offerts, soit {{ $freeRequestsRemaining * 500 }} FCFA d'économie). Profitez-en dès maintenant !
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                @keyframes slideDown {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes pulseGift {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                }
+                @keyframes slideUp {
+                    from { opacity: 1; transform: translateY(0); }
+                    to { opacity: 0; transform: translateY(-20px); height: 0; padding: 0; margin: 0; }
+                }
+            </style>
+
+            <script>
+                function dismissFreeRequestsBanner() {
+                    document.getElementById('free-requests-banner').style.animation = 'slideUp 0.3s ease-in forwards';
+                    setTimeout(function() {
+                        document.getElementById('free-requests-banner').style.display = 'none';
+                    }, 300);
+                    
+                    fetch('{{ route("user.dismiss.free.requests") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+                }
+            </script>
+            @endif
+
+            {{-- Indication demandes gratuites restantes --}}
+            @if(isset($freeRequestsModeActive) && $freeRequestsModeActive && isset($freeRequestsRemaining) && $freeRequestsRemaining > 0)
+            <div style="
+                background: linear-gradient(90deg, #f0fdf4, #dcfce7);
+                border: 1px solid #86efac;
+                border-radius: 12px;
+                padding: 0.8rem 1.2rem;
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+            ">
+                <span style="font-size: 1.3rem;">🎁</span>
+                <span style="color: #166534; font-weight: 600; font-size: 0.9rem;">
+                    Il vous reste <strong>{{ $freeRequestsRemaining }} demande{{ $freeRequestsRemaining > 1 ? 's' : '' }} gratuite{{ $freeRequestsRemaining > 1 ? 's' : '' }}</strong> 
+                    ({{ $freeRequestsRemaining * 500 }} FCFA de timbres offerts)
+                </span>
+            </div>
+            @endif
+
             <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">

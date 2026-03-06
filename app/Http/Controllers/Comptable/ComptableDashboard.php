@@ -163,31 +163,8 @@ class ComptableDashboard extends Controller
             $montantTotalAjoute = $comptable->finance->mairie->solde;
         }
 
-        // Calcul du Solde Restant (Logique : Débit immédiat sauf pour Livraison non récupérée)
-        // On compte les actes qui sont SOIT non-livraison (sur place), SOIT livraison ET timbre récupéré
-
-        $naissDebit = Naissance::where('commune', $commune)
-            ->where(function ($q) {
-                $q->where('choix_option', '!=', 'Livraison')
-                    ->orWhere('timbre_recupere', 1);
-            })->count();
-
-        $decesDebit = Deces::where('commune', $commune)
-            ->where(function ($q) {
-                $q->where('choix_option', '!=', 'Livraison')
-                    ->orWhere('timbre_recupere', 1);
-            })->count();
-
-        $mariageDebit = Mariage::where('commune', $commune)
-            ->where(function ($q) {
-                $q->where('choix_option', '!=', 'Livraison')
-                    ->orWhere('timbre_recupere', 1);
-            })->count();
-
-        $totalDebiteCount = $naissDebit + $decesDebit + $mariageDebit;
-        $montantTotalDebite = $totalDebiteCount * 500;
-
-        $montantRestant = $montantTotalAjoute - $montantTotalDebite;
+        // Le solde affiché correspond exactement au solde ajouté par l'admin sans déduction
+        $montantRestant = $montantTotalAjoute;
 
         return view(
             'comptable.dashboard',

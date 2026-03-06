@@ -5,8 +5,10 @@ namespace App\Http\Controllers\User\Extrait\Mariage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\saveMariageRequest;
 use App\Models\Mariage;
+use App\Models\MaintenanceSetting;
 use App\Notifications\DemandeMariageConfirmationNotification;
 use App\Services\YellikaSmsService;
+use App\Traits\HandlesFreeRequests;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,6 +20,7 @@ use Illuminate\Support\Str;
 
 class MariageController extends Controller
 {
+    use HandlesFreeRequests;
     public function index(Request $request)
     {
         // Récupérer l'admin connecté
@@ -52,8 +55,14 @@ class MariageController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
+        $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+        $freeRequestsRemaining = max(0, 2 - $user->free_requests_used);
+
         return view('user.mariage.create', [
-            'user' => Auth::user(),
+            'user' => $user,
+            'freeRequestsModeActive' => $freeRequestsModeActive,
+            'freeRequestsRemaining' => $freeRequestsRemaining,
         ]);
     }
 
@@ -130,31 +139,61 @@ class MariageController extends Controller
 
         $mariage->save();
 
+        // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
+        $user->refresh();
+        $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
+        
+        if ($freeCalc['free_timbres'] > 0) {
+            $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+            Log::info("Demandes gratuites - Mariage {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
+        }
+
         if ($request->input('choix_option') === 'livraison') {
-            // Calculer le montant total
-            $cout_total_timbres = (float) $mariage->montant_timbre;
-            $totalAmount = $cout_total_timbres + (float) $mariage->montant_livraison;
+            // Recalculer le montant en tenant compte des timbres gratuits
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraison = (float) $mariage->montant_livraison;
+            $totalAmount = $montantTimbreTotal + $montantLivraison;
+            
+            $mariage->montant_timbre = $montantTimbreTotal;
+            $mariage->is_free_request = $freeCalc['free_timbres'] > 0 ? true : false;
+            $mariage->free_timbres_count = $freeCalc['free_timbres'];
+            $mariage->save();
 
-            // Préparer les URLs de retour (Wave exige HTTPS)
-            $baseUrl = config('app.url');
-            $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference);
-            $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($mariage->reference);
+            if ($totalAmount > 0) {
+                $baseUrl = config('app.url');
+                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference);
+                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($mariage->reference);
 
-            // Créer une session de paiement Wave
-            $checkoutSession = $waveService->createCheckoutSession(
-                $totalAmount,
-                'XOF',
-                $successUrl,
-                $errorUrl,
-                $mariage->reference
-            );
+                $checkoutSession = $waveService->createCheckoutSession(
+                    $totalAmount,
+                    'XOF',
+                    $successUrl,
+                    $errorUrl,
+                    $mariage->reference
+                );
 
-            if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
-                return redirect($checkoutSession['wave_launch_url']);
+                if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                    return redirect($checkoutSession['wave_launch_url']);
+                }
+
+                Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
+                return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } else {
+                $mariage->etat = 'en attente';
+                $mariage->save();
             }
-
-            Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
-            return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+        } else {
+            if ($freeCalc['is_free']) {
+                $mariage->etat = 'en attente';
+                $mariage->is_free_request = true;
+                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+                $mariage->save();
+            } elseif ($freeCalc['free_timbres'] > 0 && $freeCalc['paid_timbres'] > 0) {
+                $mariage->etat = 'en attente';
+                $mariage->is_free_request = true;
+                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+                $mariage->save();
+            }
         }
 
         $phoneNumber = $user->indicatif . $user->contact;

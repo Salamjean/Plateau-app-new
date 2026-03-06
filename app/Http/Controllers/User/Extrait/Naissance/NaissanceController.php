@@ -4,8 +4,10 @@ namespace App\Http\Controllers\User\Extrait\Naissance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Naissance;
+use App\Models\MaintenanceSetting;
 use App\Notifications\DemandeNaissanceConfirmationNotification;
 use App\Services\YellikaSmsService;
+use App\Traits\HandlesFreeRequests;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -17,6 +19,7 @@ use Illuminate\Support\Str;
 
 class NaissanceController extends Controller
 {
+    use HandlesFreeRequests;
     public function index()
     {
 
@@ -110,6 +113,9 @@ class NaissanceController extends Controller
     public function create()
     {
         $user = Auth::user();
+        $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+        $freeRequestsRemaining = max(0, 2 - $user->free_requests_used);
+
         return view('user.naissance.simple.create', [
             'user' => $user,
             'userName' => $user ? $user->name : '',
@@ -118,6 +124,8 @@ class NaissanceController extends Controller
             'userContact' => $user ? $user->contact : '',
             'userCommune' => $user ? $user->commune : '',
             'userCMU' => $user ? $user->CMU : '',
+            'freeRequestsModeActive' => $freeRequestsModeActive,
+            'freeRequestsRemaining' => $freeRequestsRemaining,
         ]);
     }
 
@@ -224,31 +232,64 @@ class NaissanceController extends Controller
 
         $naissance->save();
 
+        // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
+        $user->refresh();
+        $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+        
+        if ($freeCalc['free_timbres'] > 0) {
+            $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+            Log::info("Demandes gratuites - Naissance {$naissance->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
+        }
+
         if ($request->input('choix_option') === 'livraison') {
-            // Calculer le montant total
-            $cout_total_timbres = (float) $naissance->montant_timbre;
-            $totalAmount = $cout_total_timbres + (float) $naissance->montant_livraison;
+            // Recalculer le montant en tenant compte des timbres gratuits
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraison = (float) $naissance->montant_livraison;
+            $totalAmount = $montantTimbreTotal + $montantLivraison;
+            
+            $naissance->montant_timbre = $montantTimbreTotal;
+            $naissance->is_free_request = $freeCalc['free_timbres'] > 0 ? true : false;
+            $naissance->free_timbres_count = $freeCalc['free_timbres'];
+            $naissance->save();
 
-            // Préparer les URLs de retour (Wave exige HTTPS)
-            $baseUrl = config('app.url');
-            $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($naissance->reference);
-            $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($naissance->reference);
+            if ($totalAmount > 0) {
+                // Préparer les URLs de retour (Wave exige HTTPS)
+                $baseUrl = config('app.url');
+                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($naissance->reference);
+                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($naissance->reference);
 
-            // Créer une session de paiement Wave
-            $checkoutSession = $waveService->createCheckoutSession(
-                $totalAmount,
-                'XOF',
-                $successUrl,
-                $errorUrl,
-                $naissance->reference
-            );
+                // Créer une session de paiement Wave
+                $checkoutSession = $waveService->createCheckoutSession(
+                    $totalAmount,
+                    'XOF',
+                    $successUrl,
+                    $errorUrl,
+                    $naissance->reference
+                );
 
-            if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
-                return redirect($checkoutSession['wave_launch_url']);
+                if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                    return redirect($checkoutSession['wave_launch_url']);
+                }
+
+                Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
+                return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } else {
+                $naissance->etat = 'en attente';
+                $naissance->save();
             }
-
-            Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
-            return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+        } else {
+            // Retrait sur place
+            if ($freeCalc['is_free']) {
+                $naissance->etat = 'en attente';
+                $naissance->is_free_request = true;
+                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+                $naissance->save();
+            } elseif ($freeCalc['free_timbres'] > 0 && $freeCalc['paid_timbres'] > 0) {
+                $naissance->etat = 'en attente';
+                $naissance->is_free_request = true;
+                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+                $naissance->save();
+            }
         }
 
         $phoneNumber = $user->indicatif . $user->contact;

@@ -122,7 +122,11 @@ Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/', [MaintenanceController::class, 'index'])->name('admin.maintenance.index');
         Route::post('/web/toggle', [MaintenanceController::class, 'toggleWebMaintenance'])->name('admin.maintenance.web.toggle');
         Route::post('/api/toggle', [MaintenanceController::class, 'toggleApiMaintenance'])->name('admin.maintenance.api.toggle');
+        Route::post('/free-requests/toggle', [MaintenanceController::class, 'toggleFreeRequestsMode'])->name('admin.maintenance.free_requests.toggle');
     });
+
+    // Page dédiée Demandes Gratuites
+    Route::get('/free-requests', [MaintenanceController::class, 'freeRequestsIndex'])->name('admin.free_requests.index');
 });
 
 //Les routes de gestion de la @mairie
@@ -388,6 +392,7 @@ Route::prefix('user')->group(function () {
 Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
     Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
+    Route::post('/dismiss-free-requests-message', [UserController::class, 'dismissFreeRequestsMessage'])->name('user.dismiss.free.requests');
 
     // Routes des notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('user.notifications');

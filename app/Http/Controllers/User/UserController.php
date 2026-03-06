@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Deces;
 use App\Models\DecesCertificat;
 use App\Models\DecesSimple;
+use App\Models\MaintenanceSetting;
 use App\Models\Mariage;
 use App\Models\Naissance;
 use App\Models\NaissanceCertificat;
@@ -94,6 +95,11 @@ class UserController extends Controller
             $TotalLivreCount = $naissancesLivreCount + $decesLivreCount + $mariageLivreCount;
     
     
+            // Données des demandes gratuites (mode test)
+            $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+            $freeRequestsRemaining = max(0, 2 - $user->free_requests_used);
+            $showFreeRequestsMessage = $freeRequestsModeActive && !$user->has_seen_free_requests_message && $freeRequestsRemaining > 0;
+
             // Passer les demandes récentes à la vue
             return view('user.dashboard', compact(
                 'user',
@@ -109,6 +115,9 @@ class UserController extends Controller
                 'mariageMonthly',
                 'TotalEtatCount',
                 'TotalLivreCount',
+                'freeRequestsModeActive',
+                'freeRequestsRemaining',
+                'showFreeRequestsMessage',
             ));
         }
     }
@@ -129,6 +138,15 @@ class UserController extends Controller
         }
 
         return $monthlyData;
+    }
+
+    public function dismissFreeRequestsMessage()
+    {
+        $user = Auth::user();
+        $user->has_seen_free_requests_message = true;
+        $user->save();
+
+        return response()->json(['success' => true]);
     }
 
     public function logout(){

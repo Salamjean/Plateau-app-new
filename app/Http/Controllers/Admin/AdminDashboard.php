@@ -49,6 +49,14 @@ class AdminDashboard extends Controller
         })->count();
 
         $soldeDebite = ($naissDebit + $decesDebit + $mariageDebit) * $debit;
+
+        // Calcul du montant des timbres gratuits (mode test)
+        $freeTimbresMontant = 0;
+        $freeTimbresMontant += Naissance::where('is_free_request', true)->sum('free_timbres_count') * $debit;
+        $freeTimbresMontant += Deces::where('is_free_request', true)->sum('free_timbres_count') * $debit;
+        $freeTimbresMontant += Mariage::where('is_free_request', true)->sum('free_timbres_count') * $debit;
+        $soldeDebite += $freeTimbresMontant;
+
         $soldeRestant = $soldeActuel - $soldeDebite; // Calcul du solde restant
 
         $modelMap = [

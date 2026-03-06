@@ -51,33 +51,13 @@ class ComptableDemandeController extends Controller
         // Fusionner et trier
         $allDemandes = $naissances->concat($deces)->concat($mariages)->sortByDesc('created_at');
 
-        // Calcul du Solde Restant pour affichage
+        // Calcul du Solde Restant pour affichage (exactement le solde en BD)
         $montantTotalAjoute = 0;
         if ($comptable->finance && $comptable->finance->mairie) {
             $montantTotalAjoute = $comptable->finance->mairie->solde;
         }
 
-        $naissDebit = Naissance::where('commune', $commune)
-            ->where(function ($q) {
-                $q->where('choix_option', '!=', 'Livraison')
-                    ->orWhere('timbre_recupere', 1);
-            })->selectRaw("SUM(CAST(COALESCE(NULLIF(quantite, ''), '1') AS UNSIGNED)) as total")->value('total') ?? 0;
-
-        $decesDebit = Deces::where('commune', $commune)
-            ->where(function ($q) {
-                $q->where('choix_option', '!=', 'Livraison')
-                    ->orWhere('timbre_recupere', 1);
-            })->selectRaw("SUM(CAST(COALESCE(NULLIF(quantite, ''), '1') AS UNSIGNED)) as total")->value('total') ?? 0;
-
-        $mariageDebit = Mariage::where('commune', $commune)
-            ->where(function ($q) {
-                $q->where('choix_option', '!=', 'Livraison')
-                    ->orWhere('timbre_recupere', 1);
-            })->selectRaw("SUM(CAST(COALESCE(NULLIF(quantite, ''), '1') AS UNSIGNED)) as total")->value('total') ?? 0;
-
-        $totalDebiteCount = $naissDebit + $decesDebit + $mariageDebit;
-        $montantTotalDebite = $totalDebiteCount * 500;
-        $montantRestant = $montantTotalAjoute - $montantTotalDebite;
+        $montantRestant = $montantTotalAjoute;
 
         return view('comptable.demandes.index', compact('allDemandes', 'montantRestant'));
     }
@@ -116,6 +96,19 @@ class ComptableDemandeController extends Controller
                     'comptable_id' => Auth::guard('comptable')->id(),
                     // 'finance_id' => null, // Laisser null si c'est le comptable qui agit
                 ]);
+
+                // Déduire du solde de la mairie dans la base de données
+                $comptable = Auth::guard('comptable')->user();
+                if ($comptable && $comptable->finance && $comptable->finance->mairie) {
+                    $mairie = $comptable->finance->mairie;
+                    $montantADeduire = $quantite * 500;
+                    
+                    // On s'assure de ne pas avoir un solde négatif
+                    $mairie->solde = max(0, $mairie->solde - $montantADeduire);
+                    $mairie->save();
+                    
+                    \Illuminate\Support\Facades\Log::info("Solde de la mairie {$mairie->id} débité de {$montantADeduire}. Nouveau solde: {$mairie->solde}");
+                }
 
                 \Illuminate\Support\Facades\Log::info("Stock timbres débité de {$quantite}.");
             }

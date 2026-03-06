@@ -77,6 +77,14 @@
       <span>Maintenance</span>
     </a>
   </li>
+
+  <!-- Section Demandes Gratuites -->
+  <li class="nav-item">
+    <a class="nav-link" href="{{route('admin.free_requests.index')}}">
+      <i class="fas fa-gift"></i>
+      <span>Demandes Gratuites</span>
+    </a>
+  </li>
   {{-- <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDocteur"
         aria-expanded="true" aria-controls="collapseDocteur">

@@ -33,6 +33,8 @@ class User extends Authenticatable
         'adresse_etrangere', // AJOUTEZ CE CHAMP
         'push_notification',
         'deactivated_at',
+        'free_requests_used',
+        'has_seen_free_requests_message',
     ];
 
     /**
@@ -57,6 +59,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'diaspora' => 'boolean', // AJOUTEZ CE CAST
             'deactivated_at' => 'datetime',
+            'free_requests_used' => 'integer',
+            'has_seen_free_requests_message' => 'boolean',
         ];
     }
 

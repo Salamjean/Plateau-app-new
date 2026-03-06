@@ -42,6 +42,15 @@ class MaintenanceSetting extends Model
     }
 
     /**
+     * Vérifier si le mode demandes gratuites est activé
+     */
+    public static function isFreeRequestsModeActive(): bool
+    {
+        $setting = self::getSetting('free_requests_mode');
+        return $setting ? $setting->value : false;
+    }
+
+    /**
      * Mettre à jour un paramètre et vider le cache
      */
     public static function updateSetting(string $key, bool $value, ?string $message = null, ?int $adminId = null): bool
