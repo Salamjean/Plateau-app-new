@@ -17,9 +17,11 @@ use Illuminate\Support\Facades\Http;
 use App\Services\YellikaSmsService;
 use App\Notifications\DemandeMariageConfirmationNotification;
 use Illuminate\Support\Facades\Notification;
+use App\Traits\HandlesFreeRequests;
 
 class DemandeMariageController extends Controller
 {
+    use HandlesFreeRequests;
     /**
      * Liste des demandes de mariage de l'utilisateur
      * GET /api/utilisateurs/demandes/mariage
@@ -61,6 +63,7 @@ class DemandeMariageController extends Controller
         $validator = Validator::make($request->all(), [
 
             'quantite' => 'required|integer|min:1|max:10',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
             'pieceIdentite' => 'required',
             'extraitMariage' => 'required',
         ]);
@@ -110,12 +113,26 @@ class DemandeMariageController extends Controller
             $mariage->choix_option = $request->choix_option;
             $mariage->user_id = $user->id;
             $mariage->reference = $reference;
-            // $mariage->montant_timbre = $request->montant_timbre; // Prix unitaire
-            // $mariage->montant_livraison = $request->montant_livraison;
+
+            // --- GESTION DES DEMANDES GRATUITES ---
+            $user->refresh();
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
+            
+            if ($freeCalc['free_timbres'] > 0) {
+                $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                Log::info("Demandes gratuites - Mariage (API) {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits");
+            }
 
             if ($request->choix_option === 'livraison') {
-                $mariage->montant_timbre = $request->montant_timbre; // Prix unitaire
-                $mariage->montant_livraison = $request->montant_livraison;
+                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+                $montantLivraison = (float) $request->montant_livraison;
+                $totalAmount = $montantTimbreTotal + $montantLivraison;
+
+                $mariage->montant_timbre = $montantTimbreTotal;
+                $mariage->montant_livraison = $montantLivraison;
+                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
+                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+
                 $mariage->nom_destinataire = $request->nom_destinataire;
                 $mariage->prenom_destinataire = $request->prenom_destinataire;
                 $mariage->email_destinataire = $request->email_destinataire;
@@ -125,18 +142,27 @@ class DemandeMariageController extends Controller
                 $mariage->ville = $request->ville;
                 $mariage->commune_livraison = $request->commune_livraison;
                 $mariage->quartier = $request->quartier;
-                $mariage->etat = 'en attente de paiement';
-                $mariage->statut_livraison = 'en attente de paiement';
+                
+                if ($totalAmount > 0) {
+                    $mariage->etat = 'en attente de paiement';
+                    $mariage->statut_livraison = 'en attente de paiement';
+                } else {
+                    $mariage->etat = 'en attente';
+                    $mariage->statut_livraison = null;
+                }
             } else {
+                $totalAmount = 0;
                 $mariage->etat = 'en attente';
                 $mariage->statut_livraison = null;
+                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
+                $mariage->free_timbres_count = $freeCalc['free_timbres'];
             }
 
             $mariage->save();
 
-            // 5. Réponse conditionnelle (Cas "Retrait")
-            if ($mariage->choix_option === 'retrait') {
-                // Envoi des notifications (SMS & Email) - Seulement pour "retrait" car pas de paiement
+            // 5. Réponse conditionnelle (Cas "Retrait" ou "Gratuit Livraison")
+            if ($totalAmount == 0) {
+                // Envoi des notifications (SMS & Email) 
                 try {
                     $phoneNumber = $user->indicatif . $user->contact;
                     $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie du plateau. Référence : {$mariage->reference}.
@@ -150,19 +176,16 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Demande de mariage (retrait) créée avec succès',
+                    'message' => 'Demande de mariage créée avec succès (gratuite ou retrait)',
                     'requires_payment' => false,
                     'data' => ['demande' => $this->formatDemandeResponse($mariage)]
                 ], 201);
             }
 
-            // Pour "livraison", les notifications SMS & Email seront envoyées
-            // dans handlePaymentNotification() après confirmation du paiement
+            // --- DEBUT DE LA LOGIQUE DE PAIEMENT ---
 
-            // --- DEBUT DE LA LOGIQUE DE PAIEMENT (Wave) ---
-
-            // 6. Générer le lien de paiement avec Wave
-            $paymentLinkResult = $this->generateWaveLink($mariage);
+            $paymentMethod = $request->input('payment_method');
+            $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod);
 
             // 7. Gérer l'échec de la génération de lien
             if (!$paymentLinkResult['success']) {
@@ -180,7 +203,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['wave_launch_url'],
+                    'payment_url' => $paymentLinkResult['payment_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
@@ -207,52 +230,92 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
     // --------------------------------------------------------------------
     /**
-     * Génère un nouveau lien de paiement Wave pour une demande de mariage existante.
+     * Génère un nouveau lien de paiement (Wave ou CinetPay) pour une demande de mariage existante.
      */
-    private function generateWaveLink(Mariage $mariage): array
+    private function generatePaymentLink(Mariage $mariage, $totalAmount, $paymentMethod): array
     {
         try {
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://payment?wave=true&transactionId={$mariage->reference}";
-            $cancelUrl = "plateauapps://payment?wave=false&transactionId={$mariage->reference}";
-            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($mariage->reference);
-            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($mariage->reference);
+            $returnUrl = "plateauapps://payment?method={$paymentMethod}&transactionId={$mariage->reference}";
+            $cancelUrl = "plateauapps://payment?method={$paymentMethod}&transactionId={$mariage->reference}&status=cancel";
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($mariage->reference) . "&type=mariage";
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($mariage->reference) . "&type=mariage";
 
-            // 2. Calculer le montant
-            $cout_total_timbres = (float) $mariage->montant_timbre * (int) $mariage->quantite;
-            $totalAmount = $cout_total_timbres + (float) $mariage->montant_livraison;
+            // Si c'est Wave, utiliser le service Wave
+            if (strtolower($paymentMethod) === 'wave') {
+                $waveService = app(\App\Services\WaveService::class);
+                $checkoutSession = $waveService->createCheckoutSession(
+                    $totalAmount,
+                    'XOF',
+                    $fallbackReturnUrl,
+                    $fallbackCancelUrl,
+                    $mariage->reference
+                );
 
-            // 3. Appel API Wave
-            $waveService = app(\App\Services\WaveService::class);
-            $checkoutSession = $waveService->createCheckoutSession(
-                $totalAmount,
-                'XOF',
-                $fallbackReturnUrl,
-                $fallbackCancelUrl,
-                $mariage->reference
-            );
+                if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
+                    return [
+                        'success' => false,
+                        'message' => 'Échec de la génération du lien de paiement Wave.',
+                        'error_details' => $checkoutSession
+                    ];
+                }
 
-            if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
                 return [
-                    'success' => false,
-                    'message' => 'Échec de la génération du lien de paiement Wave.',
-                    'error_details' => $checkoutSession
+                    'success' => true,
+                    'payment_url' => $checkoutSession['wave_launch_url'],
+                    'generated_transaction_id' => $mariage->reference,
+                    'return_url_deep_link' => $returnUrl,
+                    'cancel_url_deep_link' => $cancelUrl,
+                    'return_url_web_fallback' => $fallbackReturnUrl,
+                    'cancel_url_web_fallback' => $fallbackCancelUrl,
                 ];
             }
 
+            // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, MTN, Moov)
+            $channels = 'ALL';
+            if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
+                $channels = 'MOBILE_MONEY'; 
+            }
+
+            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
+            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+            
+            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
+                'apikey' => $cinetpayApiKey,
+                'site_id' => $cinetpaySiteId,
+                'transaction_id' => $mariage->reference,
+                'amount' => $totalAmount,
+                'currency' => 'XOF',
+                'description' => "Paiement pour " . $mariage->reference,
+                'return_url' => $fallbackReturnUrl,
+                'notify_url' => $baseUrl . '/api/webhook/cinetpay',
+                'channels' => $channels,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['data']['payment_url'])) {
+                    return [
+                        'success' => true,
+                        'payment_url' => $data['data']['payment_url'],
+                        'generated_transaction_id' => $mariage->reference,
+                        'return_url_deep_link' => $returnUrl,
+                        'cancel_url_deep_link' => $cancelUrl,
+                        'return_url_web_fallback' => $fallbackReturnUrl,
+                        'cancel_url_web_fallback' => $fallbackCancelUrl,
+                    ];
+                }
+            }
+
             return [
-                'success' => true,
-                'wave_launch_url' => $checkoutSession['wave_launch_url'],
-                'generated_transaction_id' => $mariage->reference,
-                'return_url_deep_link' => $returnUrl,
-                'cancel_url_deep_link' => $cancelUrl,
-                'return_url_web_fallback' => $fallbackReturnUrl,
-                'cancel_url_web_fallback' => $fallbackCancelUrl,
+                'success' => false,
+                'message' => 'Échec de la génération du lien CinetPay.',
+                'error_details' => $response->body()
             ];
 
         } catch (\Exception $e) {
-            Log::error('Exception in generateWaveLink: ' . $e->getMessage(), ['reference' => $mariage->reference]);
+            Log::error('Exception in generatePaymentLink: ' . $e->getMessage(), ['reference' => $mariage->reference]);
             return [
                 'success' => false,
                 'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
@@ -297,14 +360,16 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $mariage->statut_livraison = 'paiement_echoue';
             $mariage->save();
 
-            // 5. Générer le nouveau lien de paiement avec Wave
-            $paymentLinkResult = $this->generateWaveLink($mariage);
+            // 5. Générer le nouveau lien de paiement 
+            $paymentMethod = $request->input('payment_method', 'wave'); // Par défaut
+            $totalAmount = (float) $mariage->montant_timbre + (float) $mariage->montant_livraison;
+            $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod);
 
             // 6. Gérer l'échec de la génération
             if (!$paymentLinkResult['success']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Échec de la génération du nouveau lien de paiement Wave.',
+                    'message' => 'Échec de la génération du nouveau lien de paiement.',
                     'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
@@ -316,7 +381,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['wave_launch_url'],
+                    'payment_url' => $paymentLinkResult['payment_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],

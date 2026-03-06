@@ -253,27 +253,69 @@ class NaissanceController extends Controller
             $naissance->save();
 
             if ($totalAmount > 0) {
-                // Préparer les URLs de retour (Wave exige HTTPS)
+                $paymentMethod = $request->input('payment_method', 'wave');
+
+                // Préparer les URLs de retour
                 $baseUrl = config('app.url');
-                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($naissance->reference);
-                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($naissance->reference);
+                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($naissance->reference) . "&type=naissance";
+                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($naissance->reference) . "&type=naissance";
 
-                // Créer une session de paiement Wave
-                $checkoutSession = $waveService->createCheckoutSession(
-                    $totalAmount,
-                    'XOF',
-                    $successUrl,
-                    $errorUrl,
-                    $naissance->reference
-                );
+                if (strtolower($paymentMethod) === 'wave') {
+                    // Créer une session de paiement Wave
+                    $checkoutSession = $waveService->createCheckoutSession(
+                        $totalAmount,
+                        'XOF',
+                        $successUrl,
+                        $errorUrl,
+                        $naissance->reference
+                    );
 
-                if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
-                    return redirect($checkoutSession['wave_launch_url']);
+                    if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                        return redirect($checkoutSession['wave_launch_url']);
+                    }
+
+                    Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
+                    return redirect()->route('user.extrait.naissance.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } else {
+                    // Générer la session CinetPay
+                    $channels = 'ALL';
+                    if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
+                        $channels = 'MOBILE_MONEY';
+                    }
+
+                    $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
+                    $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+
+                    try {
+                        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
+                            'apikey' => $cinetpayApiKey,
+                            'site_id' => $cinetpaySiteId,
+                            'transaction_id' => $naissance->reference,
+                            'amount' => $totalAmount,
+                            'currency' => 'XOF',
+                            'description' => "Paiement pour " . $naissance->reference,
+                            'return_url' => $successUrl,
+                            'notify_url' => $baseUrl . '/api/webhook/cinetpay',
+                            'channels' => $channels,
+                        ]);
+
+                        if ($response->successful()) {
+                            $data = $response->json();
+                            if (isset($data['data']['payment_url'])) {
+                                return redirect($data['data']['payment_url']);
+                            }
+                        }
+
+                        Log::error('Échec CinetPay: ' . $response->body());
+                        return redirect()->route('user.extrait.naissance.index')->with('error', 'Erreur de génération du lien CinetPay.');
+
+                    } catch (\Exception $e) {
+                        Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
+                        return redirect()->route('user.extrait.naissance.index')->with('error', 'Erreur interne de paiement.');
+                    }
                 }
-
-                Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
-                return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
             } else {
+                // Tout est gratuit
                 $naissance->etat = 'en attente';
                 $naissance->save();
             }

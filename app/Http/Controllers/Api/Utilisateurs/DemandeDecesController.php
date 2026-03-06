@@ -17,9 +17,11 @@ use Illuminate\Support\Facades\Http;
 use App\Services\YellikaSmsService;
 use App\Notifications\DemandeDecesConfirmationNotification;
 use Illuminate\Support\Facades\Notification;
+use App\Traits\HandlesFreeRequests;
 
 class DemandeDecesController extends Controller
 {
+    use HandlesFreeRequests;
 
     /**
      * Liste des demandes de décès de l'utilisateur
@@ -77,6 +79,8 @@ class DemandeDecesController extends Controller
             'RequisPolice' => 'nullable',
             'choix_option' => 'required|in:retrait,livraison',
             'communeD' => 'nullable|string|max:255',
+            'commune_deces' => 'required|string|max:255',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
 
             // Note : montant_timbre est maintenant le PRIX UNITAIRE
             'montant_timbre' => 'required_if:choix_option,livraison|numeric',
@@ -142,13 +146,29 @@ class DemandeDecesController extends Controller
             $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
             $deces->choix_option = $request->choix_option;
             $deces->commune = $request->communeD ?: $user->commune;
+            $deces->commune_deces = $request->commune_deces;
             $deces->user_id = $user->id;
             $deces->reference = $reference;
-            // $deces->montant_timbre = $request->montant_timbre; // Prix unitaire
-            // $deces->montant_livraison = $request->montant_livraison;
+            
+            // --- GESTION DES DEMANDES GRATUITES ---
+            $user->refresh();
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
+            
+            if ($freeCalc['free_timbres'] > 0) {
+                $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                Log::info("Demandes gratuites - Deces (API) {$deces->reference}: {$freeCalc['free_timbres']} timbres gratuits");
+            }
+
             if ($request->choix_option === 'livraison') {
-                $deces->montant_timbre = $request->montant_timbre; // Prix unitaire
-                $deces->montant_livraison = $request->montant_livraison;
+                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+                $montantLivraison = (float) $request->montant_livraison;
+                $totalAmount = $montantTimbreTotal + $montantLivraison;
+
+                $deces->montant_timbre = $montantTimbreTotal; // Remplacé par le montant total des timbres calculé
+                $deces->montant_livraison = $montantLivraison;
+                $deces->is_free_request = $freeCalc['free_timbres'] > 0;
+                $deces->free_timbres_count = $freeCalc['free_timbres'];
+
                 $deces->nom_destinataire = $request->nom_destinataire;
                 $deces->prenom_destinataire = $request->prenom_destinataire;
                 $deces->email_destinataire = $request->email_destinataire;
@@ -158,18 +178,28 @@ class DemandeDecesController extends Controller
                 $deces->ville = $request->ville;
                 $deces->commune_livraison = $request->commune_livraison;
                 $deces->quartier = $request->quartier;
-                $deces->etat = 'en attente de paiement';
-                $deces->statut_livraison = 'en attente de paiement';
+                
+                if ($totalAmount > 0) {
+                    $deces->etat = 'en attente de paiement';
+                    $deces->statut_livraison = 'en attente de paiement';
+                } else {
+                    $deces->etat = 'en attente';
+                    $deces->statut_livraison = null;
+                }
             } else {
+                // Retrait sur place
+                $totalAmount = 0;
                 $deces->etat = 'en attente';
                 $deces->statut_livraison = null;
+                $deces->is_free_request = $freeCalc['free_timbres'] > 0;
+                $deces->free_timbres_count = $freeCalc['free_timbres'];
             }
 
             $deces->save();
 
-            // 5. Réponse conditionnelle (Cas "Retrait")
-            if ($deces->choix_option === 'retrait') {
-                // Envoi des notifications (SMS & Email) - Seulement pour "retrait" car pas de paiement
+            // 5. Réponse conditionnelle (Cas "Retrait" ou "Gratuit Livraison")
+            if ($totalAmount == 0) {
+                // Envoi des notifications (SMS & Email)
                 try {
                     $phoneNumber = $user->indicatif . $user->contact;
                     $message = "Bonjour {$user->name}, votre demande d'extrait de décès a bien été transmise à la mairie du plateau. Référence : {$deces->reference}.
@@ -183,19 +213,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Demande de décès (retrait) créée avec succès',
+                    'message' => 'Demande de décès créée avec succès (gratuite ou retrait sur place)',
                     'requires_payment' => false,
                     'data' => ['demande' => $this->formatDemandeResponse($deces)]
                 ], 201);
             }
 
-            // Pour "livraison", les notifications SMS & Email seront envoyées
-            // dans handlePaymentNotification() après confirmation du paiement
+            // --- DEBUT DE LA LOGIQUE DE PAIEMENT ---
 
-            // --- DEBUT DE LA LOGIQUE DE PAIEMENT (Wave) ---
-
-            // 6. Générer le lien de paiement avec Wave
-            $paymentLinkResult = $this->generateWaveLink($deces);
+            // 6. Générer le lien de paiement (Wave ou CinetPay)
+            $paymentMethod = $request->input('payment_method');
+            $paymentLinkResult = $this->generatePaymentLink($deces, $totalAmount, $paymentMethod);
 
             // 7. Gérer l'échec de la génération de lien
             if (!$paymentLinkResult['success']) {
@@ -214,8 +242,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['wave_launch_url'],
-                    'transaction_id' => $paymentLinkResult['generated_transaction_id'], // Utiliser l'ID généré
+                    'payment_url' => $paymentLinkResult['payment_url'],
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'], 
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
                     'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
@@ -243,52 +271,92 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     // NOUVELLE MÉTHODE PRIVÉE (Logique extraite de store())
     // --------------------------------------------------------------------
     /**
-     * Génère un nouveau lien de paiement Wave pour une demande de décès existante.
+     * Génère un nouveau lien de paiement (Wave ou CinetPay) pour une demande de décès existante.
      */
-    private function generateWaveLink(Deces $deces): array
+    private function generatePaymentLink(Deces $deces, $totalAmount, $paymentMethod): array
     {
         try {
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://payment?wave=true&transactionId={$deces->reference}";
-            $cancelUrl = "plateauapps://payment?wave=false&transactionId={$deces->reference}";
-            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($deces->reference);
-            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($deces->reference);
+            $returnUrl = "plateauapps://payment?method={$paymentMethod}&transactionId={$deces->reference}";
+            $cancelUrl = "plateauapps://payment?method={$paymentMethod}&transactionId={$deces->reference}&status=cancel";
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($deces->reference) . "&type=deces";
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($deces->reference) . "&type=deces";
 
-            // 2. Calculer le montant
-            $cout_total_timbres = (float) $deces->montant_timbre * (int) $deces->quantite;
-            $totalAmount = $cout_total_timbres + (float) $deces->montant_livraison;
+            // Si c'est Wave, utiliser le service Wave
+            if (strtolower($paymentMethod) === 'wave') {
+                $waveService = app(\App\Services\WaveService::class);
+                $checkoutSession = $waveService->createCheckoutSession(
+                    $totalAmount,
+                    'XOF',
+                    $fallbackReturnUrl,
+                    $fallbackCancelUrl,
+                    $deces->reference
+                );
 
-            // 3. Appel API Wave
-            $waveService = app(\App\Services\WaveService::class);
-            $checkoutSession = $waveService->createCheckoutSession(
-                $totalAmount,
-                'XOF',
-                $fallbackReturnUrl,
-                $fallbackCancelUrl,
-                $deces->reference
-            );
+                if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
+                    return [
+                        'success' => false,
+                        'message' => 'Échec de la génération du lien de paiement Wave.',
+                        'error_details' => $checkoutSession
+                    ];
+                }
 
-            if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
                 return [
-                    'success' => false,
-                    'message' => 'Échec de la génération du lien de paiement Wave.',
-                    'error_details' => $checkoutSession
+                    'success' => true,
+                    'payment_url' => $checkoutSession['wave_launch_url'],
+                    'generated_transaction_id' => $deces->reference,
+                    'return_url_deep_link' => $returnUrl,
+                    'cancel_url_deep_link' => $cancelUrl,
+                    'return_url_web_fallback' => $fallbackReturnUrl,
+                    'cancel_url_web_fallback' => $fallbackCancelUrl,
                 ];
             }
 
+            // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, MTN, Moov)
+            $channels = 'ALL';
+            if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
+                $channels = 'MOBILE_MONEY'; 
+            }
+
+            $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
+            $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+            
+            $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
+                'apikey' => $cinetpayApiKey,
+                'site_id' => $cinetpaySiteId,
+                'transaction_id' => $deces->reference,
+                'amount' => $totalAmount,
+                'currency' => 'XOF',
+                'description' => "Paiement pour " . $deces->reference,
+                'return_url' => $fallbackReturnUrl,
+                'notify_url' => $baseUrl . '/api/webhook/cinetpay',
+                'channels' => $channels,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['data']['payment_url'])) {
+                    return [
+                        'success' => true,
+                        'payment_url' => $data['data']['payment_url'],
+                        'generated_transaction_id' => $deces->reference,
+                        'return_url_deep_link' => $returnUrl,
+                        'cancel_url_deep_link' => $cancelUrl,
+                        'return_url_web_fallback' => $fallbackReturnUrl,
+                        'cancel_url_web_fallback' => $fallbackCancelUrl,
+                    ];
+                }
+            }
+
             return [
-                'success' => true,
-                'wave_launch_url' => $checkoutSession['wave_launch_url'],
-                'generated_transaction_id' => $deces->reference,
-                'return_url_deep_link' => $returnUrl,
-                'cancel_url_deep_link' => $cancelUrl,
-                'return_url_web_fallback' => $fallbackReturnUrl,
-                'cancel_url_web_fallback' => $fallbackCancelUrl,
+                'success' => false,
+                'message' => 'Échec de la génération du lien CinetPay.',
+                'error_details' => $response->body()
             ];
 
         } catch (\Exception $e) {
-            Log::error('Exception in generateWaveLink: ' . $e->getMessage(), ['reference' => $deces->reference]);
+            Log::error('Exception in generatePaymentLink: ' . $e->getMessage(), ['reference' => $deces->reference]);
             return [
                 'success' => false,
                 'message' => 'Erreur interne lors de la génération du lien: ' . $e->getMessage(),
@@ -335,14 +403,16 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $deces->statut_livraison = 'paiement_echoue';
             $deces->save();
 
-            // 5. Générer le nouveau lien de paiement avec Wave
-            $paymentLinkResult = $this->generateWaveLink($deces);
+            // 5. Générer le nouveau lien de paiement (par défaut Wave vu qu'on a pas de paramètre save)
+            $paymentMethod = $request->input('payment_method', 'wave'); // Valeur par défaut si non passée
+            $totalAmount = (float) $deces->montant_timbre + (float) $deces->montant_livraison;
+            $paymentLinkResult = $this->generatePaymentLink($deces, $totalAmount, $paymentMethod);
 
             // 6. Gérer l'échec de la génération de lien
             if (!$paymentLinkResult['success']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Échec de la génération du nouveau lien de paiement Wave.',
+                    'message' => 'Échec de la génération du nouveau lien de paiement.',
                     'error_details' => $paymentLinkResult['error_details']
                 ], 500);
             }
@@ -354,7 +424,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['wave_launch_url'],
+                    'payment_url' => $paymentLinkResult['payment_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],

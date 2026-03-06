@@ -160,24 +160,65 @@ class MariageController extends Controller
             $mariage->save();
 
             if ($totalAmount > 0) {
+                $paymentMethod = $request->input('payment_method', 'wave');
+
                 $baseUrl = config('app.url');
-                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference);
-                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($mariage->reference);
+                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference) . "&type=mariage";
+                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($mariage->reference) . "&type=mariage";
 
-                $checkoutSession = $waveService->createCheckoutSession(
-                    $totalAmount,
-                    'XOF',
-                    $successUrl,
-                    $errorUrl,
-                    $mariage->reference
-                );
+                if (strtolower($paymentMethod) === 'wave') {
+                    $checkoutSession = $waveService->createCheckoutSession(
+                        $totalAmount,
+                        'XOF',
+                        $successUrl,
+                        $errorUrl,
+                        $mariage->reference
+                    );
 
-                if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
-                    return redirect($checkoutSession['wave_launch_url']);
+                    if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                        return redirect($checkoutSession['wave_launch_url']);
+                    }
+
+                    Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } else {
+                    // Générer la session CinetPay
+                    $channels = 'ALL';
+                    if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
+                        $channels = 'MOBILE_MONEY'; 
+                    }
+
+                    $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
+                    $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+                    
+                    try {
+                        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
+                            'apikey' => $cinetpayApiKey,
+                            'site_id' => $cinetpaySiteId,
+                            'transaction_id' => $mariage->reference,
+                            'amount' => $totalAmount,
+                            'currency' => 'XOF',
+                            'description' => "Paiement pour " . $mariage->reference,
+                            'return_url' => $successUrl,
+                            'notify_url' => $baseUrl . '/api/webhook/cinetpay',
+                            'channels' => $channels,
+                        ]);
+
+                        if ($response->successful()) {
+                            $data = $response->json();
+                            if (isset($data['data']['payment_url'])) {
+                                return redirect($data['data']['payment_url']);
+                            }
+                        }
+                        
+                        Log::error('Échec CinetPay: ' . $response->body());
+                        return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur de génération du lien CinetPay.');
+
+                    } catch (\Exception $e) {
+                        Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
+                        return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur interne de paiement.');
+                    }
                 }
-
-                Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
-                return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
             } else {
                 $mariage->etat = 'en attente';
                 $mariage->save();
