@@ -184,7 +184,7 @@
 
             .grid-finance {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
                 gap: 1.5rem;
                 margin-bottom: 2rem;
             }
@@ -477,22 +477,6 @@
             </div>
 
             <div class="grid-finance">
-                <!-- Ajouté -->
-                <div class="finance-card add">
-                    <div class="finance-header">
-                        <div class="finance-info">
-                            <h4>Fonds Alloués (KKS-Technologies)</h4>
-                            <span class="amount">{{ number_format($montantTotalAjoute, 0, ',', ' ') }} FCFA</span>
-                        </div>
-                        <div class="finance-icon-bg">
-                            <i class="fas fa-arrow-up" style="color: #2ecc71;"></i>
-                        </div>
-                    </div>
-                    <div class="finance-detail">
-                        <i class="fas fa-plus-circle"></i> Ajouts cumulés
-                    </div>
-                </div>
-
                 <!-- Débité -->
                 <div class="finance-card debit">
                     <div class="finance-header">
