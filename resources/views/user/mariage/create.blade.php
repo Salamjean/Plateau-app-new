@@ -623,8 +623,8 @@
                             </button>
                         </div>
                         <input type="hidden" id="swal-payment_method" value="wave">
-                        <div id="mtn-phone-container" style="display: none; margin-top: 10px;">
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN Money</label>
+                        <div id="payment-phone-container" style="display: block; margin-top: 10px;">
+                            <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
                             <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Ex: 05... (sans indicatif)" value="{{ Auth::user()->contact }}">
                         </div>
                     </div>
@@ -665,13 +665,20 @@
                         Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
                         return false;
                     }
-                    if (!/^\d{8,15}$/.test(contact_destinataire)) {
-                        Swal.showValidationMessage("Veuillez entrer un numéro de téléphone valide (8 à 15 chiffres).");
+                    const cleanContact = contact_destinataire.replace(/\s+/g, '');
+                    if (!/^\d{8,15}$/.test(cleanContact)) {
+                        Swal.showValidationMessage("Veuillez entrer un numéro de téléphone de contact valide (8 à 15 chiffres).");
                         return false;
                     }
-                    if (payment_method === 'mtn' && !/^\d{8,15}$/.test(mtn_number)) {
-                        Swal.showValidationMessage("Veuillez entrer un numéro MTN Money valide (8 à 15 chiffres).");
-                        return false;
+                    
+                    const payment_number = document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
+                    const payment_method = document.getElementById('swal-payment_method').value;
+
+                    if (payment_method === 'mtn' || payment_method === 'wave') {
+                        if (!/^\d{10}$/.test(payment_number)) {
+                            Swal.showValidationMessage('Veuillez entrer un numéro ' + (payment_method === 'mtn' ? 'MTN Money' : 'Wave') + ' valide à 10 chiffres.');
+                            return false;
+                        }
                     }
 
                     return {
@@ -680,8 +687,8 @@
                            montant_timbre_unitaire: montantTimbreUnitaire,
                         montant_timbre: montantTimbreTotal,
                         montant_livraison: montantLivraison,
-                        payment_method: document.getElementById('swal-payment_method').value,
-                        mtn_number: document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value : contact_destinataire
+                        payment_method: payment_method,
+                        mtn_number: payment_number
                     };
                 }
             }).then((result) => {
@@ -808,11 +815,13 @@
             if (method === 'wave') {
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';
-                document.getElementById('mtn-phone-container').style.display = 'none';
+                document.getElementById('payment-phone-container').style.display = 'block';
+                document.getElementById('payment-phone-label').innerText = 'Numéro Wave';
             } else if (method === 'mtn') {
                 activeBtn.style.border = '2px solid #fcb711'; // MTN Yellow
                 activeBtn.style.backgroundColor = '#fffbed';
-                document.getElementById('mtn-phone-container').style.display = 'block';
+                document.getElementById('payment-phone-container').style.display = 'block';
+                document.getElementById('payment-phone-label').innerText = 'Numéro MTN Money';
             }
             
             // Mettre à jour la valeur du champ caché

@@ -493,7 +493,7 @@
       <i class="fas fa-archive stat-icon"></i>
       <div class="stat-title">Livreurs archivés</div>
       {{-- <div class="stat-value">0</div> --}}
-      <div class="stat-value">{{ $livreursArchives, 0 }}</div>
+      <div class="stat-value">{{ $livreursArchives ?? 0 }}</div>
   </div>
 {{-- 
     <div class="stat-card success">
