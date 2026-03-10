@@ -181,6 +181,35 @@ class MariageController extends Controller
 
                     Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
                     return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'mtn') {
+                    $mtnPhoneNumber = $request->input('mtn_number');
+                    // Format number to international format (starting with 225)
+                    $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
+                    if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
+                        $mtnPhoneNumber = '225' . $mtnPhoneNumber;
+                    }
+
+                    $mtnService = new \App\Services\MtnService();
+                    $response = $mtnService->requestToPay(
+                        $totalAmount,
+                        $mtnPhoneNumber,
+                        $mariage->reference,
+                        'Extrait Mariage',
+                        'Mairie Plateau'
+                    );
+
+                    if ($response && $response['status'] === 'PENDING') {
+                        // Stocker le ReferenceId en session pour la vérification
+                        session(['mtn_ref_' . $mariage->reference => $response['referenceId']]);
+                        
+                        return redirect()->route('user.payment.mtn.waiting', [
+                            'reference' => $mariage->reference, 
+                            'type' => 'mariage'
+                        ]);
+                    }
+
+                    Log::error('Échec de la création de la session MTN pour ' . $mariage->reference);
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
                 } else {
                     // Générer la session CinetPay
                     $channels = 'ALL';

@@ -59,4 +59,13 @@ return [
         'base_url' => 'https://api.wave.com/v1/checkout/sessions',
     ],
 
+    'mtn' => [
+        'api_user_id' => env('MTN_API_USER_ID'),
+        'api_key' => env('MTN_API_KEY'),
+        'subscription_key' => env('MTN_SUBSCRIPTION_KEY'),
+        'target_environment' => env('MTN_TARGET_ENVIRONMENT', 'sandbox'),
+        'base_url' => env('MTN_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),
+        'currency' => env('MTN_CURRENCY', 'EUR'), // Use EUR for sandbox normally, XOF over production
+    ],
+
 ];

@@ -43,6 +43,8 @@ Route::prefix('livreur')->group(function () {
 Route::prefix('webhooks')->group(function () {
     Route::post('/wave/notify', [WaveWebhookController::class, 'handleWebhook'])
         ->name('api.wave.notify');
+    Route::match(['get', 'post', 'put'], '/mtn/notify', [\App\Http\Controllers\Api\Webhook\MtnWebhookController::class, 'handle'])
+        ->name('api.mtn.notify');
 });
 
 // Routes de polling de statut (publiques)

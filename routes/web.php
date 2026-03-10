@@ -443,6 +443,8 @@ Route::middleware('auth')->prefix('user')->group(function () {
 // Routes de paiement (en dehors du middleware auth car la session peut être perdue après redirection Wave/ngrok)
 Route::get('/user/payment/success', [\App\Http\Controllers\User\PaymentController::class, 'success'])->name('payment.success');
 Route::get('/user/payment/cancel', [\App\Http\Controllers\User\PaymentController::class, 'cancel'])->name('payment.cancel');
+Route::get('/user/payment/mtn-waiting', [\App\Http\Controllers\User\PaymentController::class, 'mtnWaiting'])->name('user.payment.mtn.waiting');
+Route::post('/user/payment/mtn-check', [\App\Http\Controllers\User\PaymentController::class, 'mtnCheck'])->name('user.payment.mtn.check');
 
 //Les routes definition du accès 
 Route::get('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'defineAccess']);

@@ -275,7 +275,36 @@ class NaissanceController extends Controller
                     }
 
                     Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
-                    return redirect()->route('user.extrait.naissance.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'mtn') {
+                    $mtnPhoneNumber = $request->input('mtn_number');
+                    // Format number to international format (starting with 225)
+                    $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
+                    if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
+                        $mtnPhoneNumber = '225' . $mtnPhoneNumber;
+                    }
+
+                    $mtnService = new \App\Services\MtnService();
+                    $response = $mtnService->requestToPay(
+                        $totalAmount,
+                        $mtnPhoneNumber,
+                        $naissance->reference,
+                        'Extrait Naissance',
+                        'Mairie Plateau'
+                    );
+
+                    if ($response && $response['status'] === 'PENDING') {
+                        // Stocker le ReferenceId en session pour la vérification
+                        session(['mtn_ref_' . $naissance->reference => $response['referenceId']]);
+                        
+                        return redirect()->route('user.payment.mtn.waiting', [
+                            'reference' => $naissance->reference, 
+                            'type' => 'naissance'
+                        ]);
+                    }
+
+                    Log::error('Échec de la création de la session MTN pour ' . $naissance->reference);
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
                 } else {
                     // Générer la session CinetPay
                     $channels = 'ALL';
@@ -307,11 +336,11 @@ class NaissanceController extends Controller
                         }
 
                         Log::error('Échec CinetPay: ' . $response->body());
-                        return redirect()->route('user.extrait.naissance.index')->with('error', 'Erreur de génération du lien CinetPay.');
+                        return redirect()->route('user.extrait.index')->with('error', 'Erreur de génération du lien CinetPay.');
 
                     } catch (\Exception $e) {
                         Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
-                        return redirect()->route('user.extrait.naissance.index')->with('error', 'Erreur interne de paiement.');
+                        return redirect()->route('user.extrait.index')->with('error', 'Erreur interne de paiement.');
                     }
                 }
             } else {
