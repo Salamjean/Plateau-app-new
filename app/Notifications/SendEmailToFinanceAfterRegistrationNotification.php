@@ -41,7 +41,7 @@ class SendEmailToFinanceAfterRegistrationNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Plateau-Apps : Service financier enregistré') // Sujet mis à jour
+            ->subject('Plateau-Apps : la regie a été enregistrée') // Sujet mis à jour
             ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.finance_registration', [
                 'code' => $this->code,
