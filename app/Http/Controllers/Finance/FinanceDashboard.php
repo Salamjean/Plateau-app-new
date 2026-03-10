@@ -88,13 +88,21 @@ class FinanceDashboard extends Controller
         // Calculs financiers alignés sur le tableau de bord Admin
         $mairie = $finance->mairie;
 
-        // 1. Montant Total Ajouté par l'Admin (champ solde de la table mairies)
-        $montantTotalAjoute = $mairie->solde ?? 0;
+        // Le solde de la mairie est directement géré dans la DB par markRecovered()
+        // Il est déjà débité à chaque "Valider Sortie" (quantite * 500 FCFA)
+        // Donc on l'utilise directement comme solde restant
 
-        // 2. Montant Total Débité (500 FCFA par demande terminée & timbre récupéré)
-        // Correction : On ne débité que si 'timbre_recupere' est true pour les livraisons
+        // Montant restant = solde actuel de la mairie (déjà à jour)
+        $montantRestant = $mairie->solde ?? 0;
+
+        // 2. Montant Total Débité (500 FCFA par TIMBRE) - pour affichage informatif uniquement
+        // On utilise sum('quantite') pour compter le vrai nombre de timbres utilisés
 
         $naissDebit = Naissance::where('commune', $finance->communeM)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->sum('quantite') ?: Naissance::where('commune', $finance->communeM)
             ->where(function ($q) {
                 $q->where('choix_option', '!=', 'Livraison')
                     ->orWhere('timbre_recupere', 1);
@@ -104,9 +112,17 @@ class FinanceDashboard extends Controller
             ->where(function ($q) {
                 $q->where('choix_option', '!=', 'Livraison')
                     ->orWhere('timbre_recupere', 1);
+            })->sum('quantite') ?: Deces::where('commune', $finance->communeM)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
             })->count();
 
         $mariageDebit = Mariage::where('commune', $finance->communeM)
+            ->where(function ($q) {
+                $q->where('choix_option', '!=', 'Livraison')
+                    ->orWhere('timbre_recupere', 1);
+            })->sum('quantite') ?: Mariage::where('commune', $finance->communeM)
             ->where(function ($q) {
                 $q->where('choix_option', '!=', 'Livraison')
                     ->orWhere('timbre_recupere', 1);
@@ -115,11 +131,11 @@ class FinanceDashboard extends Controller
         $totalDebiteCount = $naissDebit + $decesDebit + $mariageDebit;
         $montantTotalDebite = $totalDebiteCount * 500;
 
-        // Solde et Montant restant pour la mairie
-        $soldeTimbres = ($montantTotalAjoute - $montantTotalDebite) / 500;
-        $montantRestant = $montantTotalAjoute - $montantTotalDebite;
+        // Montant total ajouté (pour affichage informatif : solde actuel + ce qui a été débité)
+        $montantTotalAjoute = $montantRestant + $montantTotalDebite;
 
-        // On garde ces variables pour l'affichage
+        // Solde en nombre de timbres
+        $soldeTimbres = $montantRestant / 500;
         $totalTimbresAjoutes = $montantTotalAjoute / 500;
         $totalTimbresDebites = $total;
 

@@ -158,12 +158,14 @@ class ComptableDashboard extends Controller
             ->get();
 
         // Montant ajouté par l'admin (Solde Mairie)
+        // Le solde affiché correspond exactement au solde de la mairie, qui est déjà débité 
+        // par ComptableDemandeController lors de la validation des sorties
         $montantTotalAjoute = 0;
         if ($comptable->finance && $comptable->finance->mairie) {
             $montantTotalAjoute = $comptable->finance->mairie->solde;
         }
 
-        // Le solde affiché correspond exactement au solde ajouté par l'admin sans déduction
+        // Le solde restant est directement le solde actuel de la mairie
         $montantRestant = $montantTotalAjoute;
 
         return view(
