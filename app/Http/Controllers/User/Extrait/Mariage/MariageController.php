@@ -253,17 +253,14 @@ class MariageController extends Controller
                 $mariage->save();
             }
         } else {
-            if ($freeCalc['is_free']) {
-                $mariage->etat = 'en attente';
+            // Retrait sur place
+            $mariage->etat = 'en attente';
+            $mariage->montant_timbre = $freeCalc['montant_timbre_total'];
+            if ($freeCalc['free_timbres'] > 0) {
                 $mariage->is_free_request = true;
                 $mariage->free_timbres_count = $freeCalc['free_timbres'];
-                $mariage->save();
-            } elseif ($freeCalc['free_timbres'] > 0 && $freeCalc['paid_timbres'] > 0) {
-                $mariage->etat = 'en attente';
-                $mariage->is_free_request = true;
-                $mariage->free_timbres_count = $freeCalc['free_timbres'];
-                $mariage->save();
             }
+            $mariage->save();
         }
 
         $phoneNumber = $user->indicatif . $user->contact;

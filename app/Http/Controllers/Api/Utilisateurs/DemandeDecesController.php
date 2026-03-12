@@ -191,6 +191,7 @@ class DemandeDecesController extends Controller
                 $totalAmount = 0;
                 $deces->etat = 'en attente';
                 $deces->statut_livraison = null;
+                $deces->montant_timbre = $freeCalc['montant_timbre_total'];
                 $deces->is_free_request = $freeCalc['free_timbres'] > 0;
                 $deces->free_timbres_count = $freeCalc['free_timbres'];
             }

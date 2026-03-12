@@ -172,6 +172,7 @@ class DemandeNaissanceController extends Controller
                 $totalAmount = 0;
                 $naissance->etat = 'en attente';
                 $naissance->statut_livraison = null;
+                $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
                 $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
                 $naissance->free_timbres_count = $freeCalc['free_timbres'];
             }

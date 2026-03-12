@@ -273,19 +273,13 @@ class DecesController extends Controller
             }
         } else {
             // Retrait sur place
-            if ($freeCalc['is_free']) {
-                // Toute la demande est gratuite
-                $deces->etat = 'en attente';
+            $deces->etat = 'en attente';
+            $deces->montant_timbre = $freeCalc['montant_timbre_total'];
+            if ($freeCalc['free_timbres'] > 0) {
                 $deces->is_free_request = true;
                 $deces->free_timbres_count = $freeCalc['free_timbres'];
-                $deces->save();
-            } elseif ($freeCalc['free_timbres'] > 0 && $freeCalc['paid_timbres'] > 0) {
-                // Partiellement gratuit - les timbres restants doivent être payés à la mairie
-                $deces->etat = 'en attente';
-                $deces->is_free_request = true;
-                $deces->free_timbres_count = $freeCalc['free_timbres'];
-                $deces->save();
             }
+            $deces->save();
         }
 
         $phoneNumber = $user->indicatif . $user->contact;

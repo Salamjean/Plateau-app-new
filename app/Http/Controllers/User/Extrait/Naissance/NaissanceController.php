@@ -350,17 +350,13 @@ class NaissanceController extends Controller
             }
         } else {
             // Retrait sur place
-            if ($freeCalc['is_free']) {
-                $naissance->etat = 'en attente';
+            $naissance->etat = 'en attente';
+            $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
+            if ($freeCalc['free_timbres'] > 0) {
                 $naissance->is_free_request = true;
                 $naissance->free_timbres_count = $freeCalc['free_timbres'];
-                $naissance->save();
-            } elseif ($freeCalc['free_timbres'] > 0 && $freeCalc['paid_timbres'] > 0) {
-                $naissance->etat = 'en attente';
-                $naissance->is_free_request = true;
-                $naissance->free_timbres_count = $freeCalc['free_timbres'];
-                $naissance->save();
             }
+            $naissance->save();
         }
 
         $phoneNumber = $user->indicatif . $user->contact;

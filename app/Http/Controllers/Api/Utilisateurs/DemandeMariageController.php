@@ -154,6 +154,7 @@ class DemandeMariageController extends Controller
                 $totalAmount = 0;
                 $mariage->etat = 'en attente';
                 $mariage->statut_livraison = null;
+                $mariage->montant_timbre = $freeCalc['montant_timbre_total'];
                 $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
                 $mariage->free_timbres_count = $freeCalc['free_timbres'];
             }
