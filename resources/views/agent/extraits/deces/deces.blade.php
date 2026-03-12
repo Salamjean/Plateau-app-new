@@ -21,7 +21,91 @@
       --box-shadow: 0 8px 20px rgba(0, 126, 0, 0.1);
       --transition: all 0.3s ease;
     }
+    /* Fix pagination - alignement horizontal */
+.pagination {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: center;
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0 !important;
+  gap: 4px;
+}
 
+.pagination .page-item {
+  list-style: none !important;
+  display: inline-block;
+}
+
+.pagination .page-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 50% !important;
+  border: 1px solid #dee2e6;
+  color: var(--secondary-color);
+  background-color: white;
+  font-size: 0.85rem;
+  transition: var(--transition);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #adb5bd;
+  pointer-events: none;
+  background-color: #f8f9fa;
+}
+
+.pagination .page-link:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: white;
+}
+/* Ajoute ceci dans le bloc <style> de chaque page */
+.pagination .page-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 20px !important;
+  margin: 0 3px;
+  border: 1px solid #dee2e6;
+  color: var(--secondary-color);
+  background-color: white;
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #adb5bd;
+  pointer-events: none;
+  background-color: #f8f9fa;
+}
+
+.pagination .page-link:hover:not(.disabled) {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: white;
+}
     body {
       background-color: var(--light-gray);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -907,7 +991,7 @@
 
       // Adaptation pour mobile
       function adaptForMobile() {
-        if (window.innerWidth <= 768px) {
+        if (window.innerWidth <= 768) {
       // Ajout des data-labels pour l'affichage mobile
       $('table thead th').each(function () {
         const headerText = $(this).text();

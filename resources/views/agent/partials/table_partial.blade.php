@@ -1,4 +1,4 @@
-<div class="table-responsive">
+<div class="table-responsive" data-total="{{ $allRequests->total() }}">
     <table class="table">
         <thead>
             <tr class="text-center">
@@ -77,3 +77,48 @@
         </tbody>
     </table>
 </div>
+
+@if ($allRequests->hasPages())
+    <div class="mt-4 d-flex justify-content-between align-items-center px-2">
+        <small class="text-muted">
+            Affichage {{ $allRequests->firstItem() }} à {{ $allRequests->lastItem() }} 
+            sur {{ $allRequests->total() }} résultats
+        </small>
+        <ul class="pagination mb-0" style="gap: 4px; display: flex; list-style: none; padding: 0;">
+            {{-- Bouton Previous --}}
+            <li class="{{ $allRequests->onFirstPage() ? 'disabled' : '' }}">
+                <a href="{{ $allRequests->previousPageUrl() ?? '#' }}"
+                   style="display:inline-block; padding: 6px 14px; border-radius: 6px; 
+                          background: {{ $allRequests->onFirstPage() ? '#e9ecef' : '#1976d2' }}; 
+                          color: {{ $allRequests->onFirstPage() ? '#aaa' : 'white' }};
+                          text-decoration: none; font-size: 14px; pointer-events: {{ $allRequests->onFirstPage() ? 'none' : 'auto' }};">
+                    &laquo; Précédent
+                </a>
+            </li>
+
+            {{-- Numéros de pages --}}
+            @for ($i = 1; $i <= $allRequests->lastPage(); $i++)
+                <li>
+                    <a href="{{ $allRequests->url($i) }}"
+                       style="display:inline-block; padding: 6px 12px; border-radius: 6px;
+                              background: {{ $allRequests->currentPage() == $i ? '#1976d2' : '#f0f0f0' }};
+                              color: {{ $allRequests->currentPage() == $i ? 'white' : '#333' }};
+                              text-decoration: none; font-size: 14px;">
+                        {{ $i }}
+                    </a>
+                </li>
+            @endfor
+
+            {{-- Bouton Next --}}
+            <li class="{{ !$allRequests->hasMorePages() ? 'disabled' : '' }}">
+                <a href="{{ $allRequests->nextPageUrl() ?? '#' }}"
+                   style="display:inline-block; padding: 6px 14px; border-radius: 6px;
+                          background: {{ !$allRequests->hasMorePages() ? '#e9ecef' : '#1976d2' }};
+                          color: {{ !$allRequests->hasMorePages() ? '#aaa' : 'white' }};
+                          text-decoration: none; font-size: 14px; pointer-events: {{ !$allRequests->hasMorePages() ? 'none' : 'auto' }};">
+                    Suivant &raquo;
+                </a>
+            </li>
+        </ul>
+    </div>
+@endif

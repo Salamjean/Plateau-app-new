@@ -39,7 +39,9 @@ class Mariage extends Model
         'quartier',
         'date_livraison',
         'heure_livraison',
-        'timbre_recupere'
+        'timbre_recupere',
+        'is_free_request',
+        'free_timbres_count'
     ];
 
     public function user()

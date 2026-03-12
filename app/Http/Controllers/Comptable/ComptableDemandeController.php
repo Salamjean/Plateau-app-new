@@ -17,104 +17,109 @@ class ComptableDemandeController extends Controller
         $comptable = Auth::guard('comptable')->user();
         $commune = $comptable->communeM;
 
-        // Récupérer les demandes en "Livraison" pour la commune
+        $mapNaissance = function ($item) {
+            $item->type_demande  = 'naissance';
+            $item->demandeur_nom = $item->name . ' ' . $item->prenom;
+            $item->contact       = $item->user->contact;
+            return $item;
+        };
+
+        $mapDeces = function ($item) {
+            $item->type_demande  = 'deces';
+            $item->demandeur_nom = $item->name . ' ' . $item->prenom;
+            $item->contact       = $item->user->contact;
+            return $item;
+        };
+
+        $mapMariage = function ($item) {
+            $item->type_demande  = 'mariage';
+            $item->demandeur_nom = $item->nomEpoux . ' ' . $item->prenomEpoux;
+            $item->contact       = $item->user->contact;
+            return $item;
+        };
+
+        // Filtre : Livraison OU (Retrait sur place + is_free_request)
+        $filterRequests = function ($query) {
+            $query->where('choix_option', 'Livraison')
+                  ->orWhere(function ($q) {
+                      $q->where('choix_option', 'Retrait sur place')
+                        ->where('is_free_request', 1);
+                  });
+        };
+
         $naissances = Naissance::where('commune', $commune)
-            ->where('choix_option', 'Livraison')
-            ->get()->map(function ($item) {
-                $item->type_demande = 'naissance';
-                $item->type_label = 'Naissance';
-                $item->demandeur_nom = $item->name . ' ' . $item->prenom;
-                $item->contact = $item->user->contact;
-                return $item;
-            });
+            ->where($filterRequests)
+            ->where('etat', 'terminé')
+            ->get()->map($mapNaissance);
 
         $deces = Deces::where('commune', $commune)
-            ->where('choix_option', 'Livraison')
-            ->get()->map(function ($item) {
-                $item->type_demande = 'deces';
-                $item->type_label = 'Décès';
-                $item->demandeur_nom = $item->name . ' ' . $item->prenom; // Adapter si champs différents
-                $item->contact = $item->user->contact;
-                return $item;
-            });
+            ->where($filterRequests)
+            ->where('etat', 'terminé')
+            ->get()->map($mapDeces);
 
         $mariages = Mariage::where('commune', $commune)
-            ->where('choix_option', 'Livraison')
-            ->get()->map(function ($item) {
-                $item->type_demande = 'mariage';
-                $item->type_label = 'Mariage';
-                $item->demandeur_nom = $item->nomEpoux . ' ' . $item->prenomEpoux; // Adapter champs
-                $item->contact = $item->user->contact;
-                return $item;
-            });
+            ->where($filterRequests)
+            ->where('etat', 'terminé')
+            ->get()->map($mapMariage);
 
-        // Fusionner et trier
-        $allDemandes = $naissances->concat($deces)->concat($mariages)->sortByDesc('created_at');
+        $all = $naissances->concat($deces)->concat($mariages);
 
-        // Calcul du Solde Restant pour affichage (exactement le solde en BD)
-        $montantTotalAjoute = 0;
+        // Toggle : séparation par timbre_recupere
+        $demandesEnAttente = $all->where('timbre_recupere', 0)->sortByDesc('created_at')->values();
+        $demandesTraitees  = $all->where('timbre_recupere', 1)->sortByDesc('created_at')->values();
+        $allDemandes       = $demandesEnAttente->concat($demandesTraitees);
+
+        // Solde Argent
+        $montantRestant = 0;
         if ($comptable->finance && $comptable->finance->mairie) {
-            $montantTotalAjoute = $comptable->finance->mairie->solde;
+            $montantRestant = $comptable->finance->mairie->solde;
         }
 
-        $montantRestant = $montantTotalAjoute;
+        // Solde Timbres
+        $soldeTimbres = Timbre::sum('nombre_timbre');
 
-        return view('comptable.demandes.index', compact('allDemandes', 'montantRestant'));
+        return view('comptable.demandes.index', compact(
+            'allDemandes',
+            'demandesEnAttente',
+            'demandesTraitees',
+            'montantRestant',
+            'soldeTimbres'
+        ));
     }
 
     public function markRecovered($type, $id)
     {
-        \Illuminate\Support\Facades\Log::info("Tentative de récupération de timbre. Type: $type, ID: $id");
-
-        $model = null;
+        \Illuminate\Support\Facades\Log::info("Récupération timbre. Type: $type, ID: $id");
 
         switch ($type) {
-            case 'naissance':
-                $model = Naissance::findOrFail($id);
-                break;
-            case 'deces':
-                $model = Deces::findOrFail($id);
-                break;
-            case 'mariage':
-                $model = Mariage::findOrFail($id);
-                break;
+            case 'naissance': $model = Naissance::findOrFail($id); break;
+            case 'deces':     $model = Deces::findOrFail($id);     break;
+            case 'mariage':   $model = Mariage::findOrFail($id);   break;
             default:
-                \Illuminate\Support\Facades\Log::error("Type invalide: $type");
                 return redirect()->back()->with('error', 'Type de demande invalide');
         }
 
-        if ($model) {
-            $model->timbre_recupere = 1; // Force 1 integer
-            $saved = $model->save();
+        $model->timbre_recupere = 1;
+        $saved = $model->save();
 
-            if ($saved) {
-                // Débiter le stock physique de timbres en fonction de la quantité demandée
-                $quantite = !empty($model->quantite) ? (int)$model->quantite : 1;
-                
+        if ($saved) {
+            // Le user spécifie que seuls les timbres GRATUITS doivent être déduits du stock/solde du comptable
+            // (les payants étant gérés différemment ou déjà encaissés)
+            $freeQty = (int)($model->free_timbres_count ?? 0);
+
+            if ($freeQty > 0) {
                 Timbre::create([
-                    'nombre_timbre' => -$quantite, // Débit du nombre de timbres correspondant
-                    'comptable_id' => Auth::guard('comptable')->id(),
-                    // 'finance_id' => null, // Laisser null si c'est le comptable qui agit
+                    'nombre_timbre' => -$freeQty,
+                    'comptable_id'  => Auth::guard('comptable')->id(),
                 ]);
 
-                // Déduire du solde de la mairie dans la base de données
                 $comptable = Auth::guard('comptable')->user();
                 if ($comptable && $comptable->finance && $comptable->finance->mairie) {
                     $mairie = $comptable->finance->mairie;
-                    $montantADeduire = $quantite * 500;
-                    
-                    // On s'assure de ne pas avoir un solde négatif
-                    $mairie->solde = max(0, $mairie->solde - $montantADeduire);
+                    $mairie->solde = max(0, $mairie->solde - ($freeQty * 500));
                     $mairie->save();
-                    
-                    \Illuminate\Support\Facades\Log::info("Solde de la mairie {$mairie->id} débité de {$montantADeduire}. Nouveau solde: {$mairie->solde}");
                 }
-
-                \Illuminate\Support\Facades\Log::info("Stock timbres débité de {$quantite}.");
             }
-
-            \Illuminate\Support\Facades\Log::info("Modèle sauvegardé? " . ($saved ? 'OUI' : 'NON'));
-            \Illuminate\Support\Facades\Log::info("Nouvel état timbre_recupere: " . $model->timbre_recupere);
 
             return redirect()->back()->with('success', 'Timbre validé et stock débité.');
         }
