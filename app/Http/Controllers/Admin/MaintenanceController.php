@@ -118,4 +118,21 @@ class MaintenanceController extends Controller
         
         return redirect()->back()->with('success', "Mode demandes gratuites {$statusText} avec succès.");
     }
+    /**
+     * Activer le bypass de maintenance pour la session actuelle
+     */
+    public function bypass()
+    {
+        session(['maintenance_bypass' => true]);
+        return redirect()->to('/')->with('success', "Accès bypass activé. Vous pouvez maintenant naviguer sur le site normalement.");
+    }
+
+    /**
+     * Désactiver le bypass de maintenance
+     */
+    public function clearBypass()
+    {
+        session()->forget('maintenance_bypass');
+        return redirect()->back()->with('success', "Accès bypass désactivé.");
+    }
 }

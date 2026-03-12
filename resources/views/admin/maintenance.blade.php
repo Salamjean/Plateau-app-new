@@ -127,6 +127,46 @@
         </div>
     </div>
 
+    <!-- Section Bypass / Test -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-info">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-vial mr-2"></i>Mode Test & Bypass (Développeur / Admin)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <p class="mb-0">
+                                <strong>Le bypass permet d'accéder au site web même si le mode maintenance est activé.</strong><br>
+                                <span class="text-sm text-muted">
+                                    Cela vous permet de tester le site en tant qu'utilisateur standard pendant que le public est bloqué.
+                                    <br>Note: Les administrateurs connectés ont accès par défaut. Ce bouton est utile si vous voulez tester avec un compte utilisateur standard.
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            @if(session('maintenance_bypass'))
+                                <div class="alert alert-info py-2 mb-2 text-center">
+                                    <i class="fas fa-check-circle mr-1"></i> Bypass actif pour votre session
+                                </div>
+                                <a href="{{ route('admin.maintenance.bypass.clear') }}" class="btn btn-warning btn-block">
+                                    <i class="fas fa-times-circle mr-2"></i>Désactiver le Bypass
+                                </a>
+                            @else
+                                <a href="{{ route('admin.maintenance.bypass') }}" class="btn btn-info btn-block">
+                                    <i class="fas fa-unlock-alt mr-2"></i>Activer l'accès Test (Bypass)
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Information complémentaire -->
     <div class="row">
         <div class="col-12">
@@ -138,20 +178,27 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <h6><i class="fas fa-globe text-primary mr-2"></i>Maintenance Web</h6>
                             <ul class="text-muted mb-3">
                                 <li>Bloque l'accès à toutes les pages publiques</li>
                                 <li>Une page de maintenance sera affichée</li>
+                                <li><strong>Exceptions:</strong> Admins et mode Bypass</li>
                             </ul>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <h6><i class="fas fa-mobile-alt text-primary mr-2"></i>Maintenance API</h6>
                             <ul class="text-muted mb-0">
                                 <li>Bloque toutes les requêtes API mobiles</li>
                                 <li>Retourne une erreur 503 avec le message</li>
                                 <li>Utilisé pour les mises à jour de l'application</li>
                             </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-user-shield text-info mr-2"></i>Accès Administrateurs</h6>
+                            <p class="text-muted small">
+                                Les administrateurs connectés au panel ont <strong>toujours accès</strong> au site web (frontend), même sans activer le bypass.
+                            </p>
                         </div>
                     </div>
                 </div>

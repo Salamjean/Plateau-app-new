@@ -123,6 +123,10 @@ Route::middleware('admin')->prefix('admin')->group(function () {
         Route::post('/web/toggle', [MaintenanceController::class, 'toggleWebMaintenance'])->name('admin.maintenance.web.toggle');
         Route::post('/api/toggle', [MaintenanceController::class, 'toggleApiMaintenance'])->name('admin.maintenance.api.toggle');
         Route::post('/free-requests/toggle', [MaintenanceController::class, 'toggleFreeRequestsMode'])->name('admin.maintenance.free_requests.toggle');
+        
+        // Bypass maintenance
+        Route::get('/bypass', [MaintenanceController::class, 'bypass'])->name('admin.maintenance.bypass');
+        Route::get('/bypass/clear', [MaintenanceController::class, 'clearBypass'])->name('admin.maintenance.bypass.clear');
     });
 
     // Page dédiée Demandes Gratuites

@@ -28,11 +28,21 @@ class WebMaintenanceMiddleware
         // Vérifier si le mode maintenance web est activé
         if (MaintenanceSetting::isWebMaintenanceActive()) {
             
-            // Toujours autoriser les routes admin
+            // 1. Toujours autoriser les routes admin
             foreach ($this->excludedPaths as $path) {
                 if ($request->is($path)) {
                     return $next($request);
                 }
+            }
+
+            // 2. Autoriser si l'utilisateur est un administrateur connecté (même s'il est sur le frontend)
+            if (Auth::guard('admin')->check()) {
+                return $next($request);
+            }
+
+            // 3. Autoriser si une session de bypass est active (permet de tester en tant qu'utilisateur standard)
+            if ($request->session()->has('maintenance_bypass')) {
+                return $next($request);
             }
 
             // Bloquer TOUS les autres utilisateurs, même s'ils sont connectés
