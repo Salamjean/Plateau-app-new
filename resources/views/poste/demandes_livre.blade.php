@@ -292,10 +292,7 @@
                         </div>
                     @endif
                     
-                    <div class="small-card-row">
-                        <span class="small-card-label">Montant:</span>
-                        <span>{{ $demande->montant_livraison }} FCFA</span>
-                    </div>
+
                     
                     <span class="small-card-status status-{{ Str::slug($demande->statut_livraison) }}" style="margin-left: 73%;">
                         {{ $demande->statut_livraison }}

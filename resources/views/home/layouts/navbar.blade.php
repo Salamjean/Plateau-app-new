@@ -47,7 +47,7 @@
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
 
-        <a class="cta-btn d-none d-sm-block" href="{{route('login')}}">Se connecter</a>
+        <a class="cta-btn" href="{{route('login')}}">Se connecter</a>
 
       </div>
 

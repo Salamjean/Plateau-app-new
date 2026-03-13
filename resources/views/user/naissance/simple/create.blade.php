@@ -816,7 +816,7 @@
                             </button>
                         </div>
                         <input type="hidden" id="swal-payment_method" value="wave">
-                        <div id="payment-phone-container" style="display: block; margin-top: 10px;">
+                        <div id="payment-phone-container" style="display: none; margin-top: 10px;">
                             <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
                             <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                         </div>
@@ -869,9 +869,9 @@
             const payment_number = document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
             const payment_method = document.getElementById('swal-payment_method').value;
 
-            if (payment_method === 'mtn' || payment_method === 'wave') {
+            if (payment_method === 'mtn') {
                 if (!/^\d{10}$/.test(payment_number)) {
-                    Swal.showValidationMessage('Veuillez entrer un numéro ' + (payment_method === 'mtn' ? 'MTN Money' : 'Wave') + ' valide à 10 chiffres.');
+                    Swal.showValidationMessage('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
                     return false;
                 }
             }
@@ -932,18 +932,14 @@
             window.paymentSuccess = false;
             
             if (formData.payment_method === 'wave') {
-                // Afficher un loader pendant la redirection Wave
-                const width = 500;
-                const height = 500;
-                const left = (screen.width - width) / 2;
-                const top = (screen.height - height) / 2;
-                const popup = window.open('', 'WavePaymentPopup', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`);
+                // Ouvrir Wave dans un nouvel onglet (en grand)
+                const popup = window.open('', 'WavePaymentPopup');
                 if (popup) {
                     form.target = 'WavePaymentPopup';
                     
                     Swal.fire({
                         title: 'Paiement en cours',
-                        html: 'Veuillez finaliser le paiement et scanner le QR code dans <b>la nouvelle fenêtre</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement à la fin de la transaction.</span>',
+                        html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
                         allowOutsideClick: false,
                         showConfirmButton: false,
                         didOpen: () => {
@@ -1007,8 +1003,7 @@
             if (method === 'wave') {
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';
-                document.getElementById('payment-phone-container').style.display = 'block';
-                document.getElementById('payment-phone-label').innerText = 'Numéro Wave';
+                document.getElementById('payment-phone-container').style.display = 'none';
             } else if (method === 'mtn') {
                 activeBtn.style.border = '2px solid #fcb711'; // MTN Yellow
                 activeBtn.style.backgroundColor = '#fffbed';

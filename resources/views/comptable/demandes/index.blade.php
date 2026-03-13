@@ -659,7 +659,7 @@
                     e.preventDefault();
                     Swal.fire({
                         title: 'Confirmer la sortie ?',
-                        text: 'Le timbre sera marqué comme récupéré et le solde sera débité.',
+                        text: 'Le timbre sera marqué comme récupéré et le stock sera mis à jour.',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#2563eb',

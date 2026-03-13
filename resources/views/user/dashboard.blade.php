@@ -691,6 +691,12 @@
                 }
 
                 /* Responsive Design */
+                @media (max-width: 1200px) {
+                    .stats-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+
                 @media (max-width: 992px) {
                     .charts-container {
                         grid-template-columns: 1fr;
@@ -699,35 +705,53 @@
                     .dashboard-header {
                         flex-direction: column;
                         align-items: flex-start;
+                        text-align: left;
+                    }
+
+                    .quick-actions {
+                        width: 100%;
+                    }
+
+                    .quick-actions .action-btn {
+                        width: 100%;
+                        justify-content: center;
                     }
                 }
 
                 @media (max-width: 768px) {
                     .modern-dashboard {
-                        padding: 20px;
+                        padding: 15px;
                     }
 
                     .stats-grid {
                         grid-template-columns: 1fr;
+                        gap: 15px;
                     }
 
                     .stat-card {
-                        flex-direction: column;
-                        text-align: center;
+                        padding: 15px;
                     }
 
-                    .activity-item {
-                        flex-direction: column;
-                        text-align: center;
+                    .welcome-section h1 {
+                        font-size: 22px;
                     }
-
-                    .activity-icon {
-                        margin-right: 0;
-                        margin-bottom: 12px;
+                    
+                    .stat-number {
+                        font-size: 24px;
                     }
+                }
 
-                    .activity-status {
-                        margin-top: 12px;
+                @media (max-width: 480px) {
+                    .stat-card {
+                        flex-direction: row;
+                        text-align: left;
+                        align-items: center;
+                    }
+                    
+                    .stat-icon {
+                        width: 50px;
+                        height: 50px;
+                        font-size: 20px;
                     }
                 }
             </style>

@@ -39,7 +39,7 @@
                                                 ? asset('storage/' . Auth::user()->profile_picture) 
                                                 : asset('assets/images/profiles/useriii.jpeg') }}" 
                                         alt="Profile Picture">
-                                        <span class="name_user" >{{ Auth::user()->name }} {{ Auth::user()->prenom }}</span>
+                                        <span class="name_user d-none d-md-inline" >{{ Auth::user()->name }} {{ Auth::user()->prenom }}</span>
                                     </a>
                                     <div class="dropdown-menu">
                                        <a class="dropdown-item" href="{{route('user.profile.show')}}"><i class="fa fa-user"></i> Profil</a>

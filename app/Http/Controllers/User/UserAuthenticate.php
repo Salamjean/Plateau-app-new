@@ -107,46 +107,55 @@ class UserAuthenticate extends Controller
         $userId = Auth::user()->id;
         
         $historique = DB::table('naissances')
+            ->leftJoin('agents', 'naissances.agent_id', '=', 'agents.id')
             ->select(
-                'id',
-                'reference',
-                'type as demande_type',
-                'etat',
-                'statut_livraison',
-                'created_at',
-                DB::raw("'naissance' as table_name")
+                'naissances.id',
+                'naissances.reference',
+                'naissances.type as demande_type',
+                'naissances.etat',
+                'naissances.statut_livraison',
+                'naissances.created_at',
+                DB::raw("'naissance' as table_name"),
+                'agents.name as agent_nom',
+                'agents.prenom as agent_prenom'
             )
-            ->where('user_id', $userId)
-            ->where('etat','terminé')
+            ->where('naissances.user_id', $userId)
+            ->where('naissances.etat','terminé')
             
             ->unionAll(
                 DB::table('deces')
+                    ->leftJoin('agents', 'deces.agent_id', '=', 'agents.id')
                     ->select(
-                        'id',
-                        'reference',
+                        'deces.id',
+                        'deces.reference',
                         DB::raw("'Décès' as demande_type"),
-                        'etat',
-                        'statut_livraison',
-                        'created_at',
-                        DB::raw("'deces' as table_name")
+                        'deces.etat',
+                        'deces.statut_livraison',
+                        'deces.created_at',
+                        DB::raw("'deces' as table_name"),
+                        'agents.name as agent_nom',
+                        'agents.prenom as agent_prenom'
                     )
-                    ->where('user_id', $userId)
-                    ->where('etat','terminé')
+                    ->where('deces.user_id', $userId)
+                    ->where('deces.etat','terminé')
             )
 
             ->unionAll(
                 DB::table('mariages')
+                    ->leftJoin('agents', 'mariages.agent_id', '=', 'agents.id')
                     ->select(
-                        'id',
-                        'reference',
+                        'mariages.id',
+                        'mariages.reference',
                         DB::raw("'Mariage' as demande_type"),
-                        'etat',
-                        'statut_livraison',
-                        'created_at',
-                        DB::raw("'mariage' as table_name")
+                        'mariages.etat',
+                        'mariages.statut_livraison',
+                        'mariages.created_at',
+                        DB::raw("'mariage' as table_name"),
+                        'agents.name as agent_nom',
+                        'agents.prenom as agent_prenom'
                     )
-                    ->where('user_id', $userId)
-                    ->where('etat','terminé')
+                    ->where('mariages.user_id', $userId)
+                    ->where('mariages.etat','terminé')
             )
             
             ->orderBy('created_at', 'desc')
@@ -162,13 +171,13 @@ class UserAuthenticate extends Controller
         try {
             switch($type) {
                 case 'naissance':
-                    $demande = Naissance::where('user_id', $userId)->findOrFail($id);
+                    $demande = Naissance::with('agent')->where('user_id', $userId)->findOrFail($id);
                     break;
                 case 'deces':
-                    $demande = Deces::where('user_id', $userId)->findOrFail($id);
+                    $demande = Deces::with('agent')->where('user_id', $userId)->findOrFail($id);
                     break;
                 case 'mariage':
-                    $demande = Mariage::where('user_id', $userId)->findOrFail($id);
+                    $demande = Mariage::with('agent')->where('user_id', $userId)->findOrFail($id);
                     break;
                 default:
                     return response()->json(['error' => 'Type de demande non trouvé'], 404);

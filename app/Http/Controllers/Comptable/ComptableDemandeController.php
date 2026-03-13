@@ -103,16 +103,17 @@ class ComptableDemandeController extends Controller
         $saved = $model->save();
 
         if ($saved) {
-            // Le user spécifie que seuls les timbres GRATUITS doivent être déduits du stock/solde du comptable
-            // (les payants étant gérés différemment ou déjà encaissés)
+            $totalQty = (int)($model->quantite ?? 1);
             $freeQty = (int)($model->free_timbres_count ?? 0);
 
-            if ($freeQty > 0) {
-                Timbre::create([
-                    'nombre_timbre' => -$freeQty,
-                    'comptable_id'  => Auth::guard('comptable')->id(),
-                ]);
+            // Décrémenter le stock physique par la quantité totale de la demande
+            Timbre::create([
+                'nombre_timbre' => -$totalQty,
+                'comptable_id'  => Auth::guard('comptable')->id(),
+            ]);
 
+            // Décrémenter le solde de la mairie uniquement pour les timbres qui étaient gratuits
+            if ($freeQty > 0) {
                 $comptable = Auth::guard('comptable')->user();
                 if ($comptable && $comptable->finance && $comptable->finance->mairie) {
                     $mairie = $comptable->finance->mairie;

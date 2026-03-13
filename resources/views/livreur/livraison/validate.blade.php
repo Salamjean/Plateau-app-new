@@ -293,21 +293,17 @@
                     <div class="info-label">Destinataire</div>
                     <div class="info-value" id="destinataire"></div>
                 </div>
-
-                <div class="info-item">
-                    <div class="info-label">Email</div>
-                    <div class="info-value" id="typeDemande"></div>
-                </div>
-                
                 <div class="info-item">
                     <div class="info-label">Contact</div>
                     <div class="info-value" id="contact"></div>
                 </div>
-                
                 <div class="info-item">
-                    <div class="info-label">Montant</div>
-                    <div class="info-value" id="montant"></div>
+                    <div class="info-label">Email</div>
+                    <div class="info-value" id="typeDemande"></div>
                 </div>
+            
+                
+
                 
                 <div class="info-item">
                     <div class="info-label">Adresse</div>
@@ -404,7 +400,7 @@ $(document).ready(function() {
                     $('#contact').text(response.data.contact);
                     $('#adresse').text(response.data.adresse);
                     $('#villeCommune').text(response.data.ville + ' / ' + response.data.commune + ' / ' + response.data.quartier);
-                    $('#montant').text(formatCurrency(response.data.montant));
+
                     
                     // Remplir les champs cachés
                     $('#referenceHidden').val(reference);

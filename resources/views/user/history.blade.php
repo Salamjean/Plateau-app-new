@@ -266,6 +266,7 @@
                                 <th>Type de demande</th>
                                 <th>Statut</th>
                                 <th>Livraison</th>
+                                <th>Agent</th>
                                 <th>Date et Heure</th>
                                 <th>Actions</th>
                             </tr>
@@ -276,11 +277,10 @@
                                     <td>{{ $demande->reference }}</td>
                                     <td>
                                         @switch($demande->table_name)
-                                            @case('naissance_simple') Naissance @break
-                                            @case('naissance_certificat') Naissance @break
-                                            @case('deces_simple') Décès @break
-                                            @case('deces_certificat') Décès @break
+                                            @case('naissance') Naissance @break
+                                            @case('deces') Décès @break
                                             @case('mariage') Mariage @break
+                                            @default {{ ucfirst($demande->table_name) }}
                                         @endswitch
                                     </td>
                                     <td>
@@ -300,7 +300,14 @@
                                             <span class="text-muted">Non applicable</span>
                                         @endif
                                     </td>
-                                    <td>{{ $demande->created_at }}</td>
+                                    <td>
+                                        @if($demande->agent_nom)
+                                            <span class="fw-bold text-primary">{{ $demande->agent_nom }} {{ $demande->agent_prenom }}</span>
+                                        @else
+                                            <span class="text-muted italic">Non assigné</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ \Carbon\Carbon::parse($demande->created_at)->format('d/m/Y H:i') }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-primary view-details" 
                                                 data-type="{{ $demande->table_name }}" 
@@ -332,12 +339,12 @@
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
-            order: [[4, 'desc']],
+            order: [[5, 'desc']],
             columnDefs: [
                 { responsivePriority: 1, targets: 0 },
                 { responsivePriority: 2, targets: 2 },
                 { responsivePriority: 3, targets: 3 },
-                { responsivePriority: 4, targets: 5 }
+                { responsivePriority: 4, targets: 6 }
             ]
         });
     });
@@ -346,6 +353,7 @@
     function formatDetailsAdvanced(data, type) {
         const getStatusColor = (status) => {
             switch(status) {
+                case 'terminé': return 'danger';
                 case 'traité': return 'success';
                 case 'en attente': return 'warning';
                 case 'rejeté': return 'danger';
@@ -355,27 +363,30 @@
 
         const getTypeLabel = (tableName) => {
             switch(tableName) {
-                case 'naissance_simple': return 'Naissance';
-                case 'naissance_certificat': return 'Naissance';
-                case 'deces_simple': return 'Décès';
-                case 'deces_certificat': return 'Décès';
+                case 'naissance': return 'Naissance';
+                case 'deces': return 'Décès';
                 case 'mariage': return 'Mariage';
                 default: return tableName;
             }
         };
 
+        const agentInfo = data.agent_id ? 
+            `<p><strong>Agent traitant:</strong> <span class="text-primary fw-bold">${data.agent ? (data.agent.name + ' ' + data.agent.prenom) : 'Agent assigné'}</span></p>` : 
+            `<p><strong>Agent traitant:</strong> <span class="text-muted italic">Non assigné</span></p>`;
+
         return `
-            <div class="demande-details">
+            <div class="demande-details text-start">
                 <div class="row">
                     <div class="col-md-6">
-                        <h6><i class="fas fa-info-circle me-2"></i>Informations Générales</h6>
+                        <h6 class="border-bottom pb-2 mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Informations Générales</h6>
                         <p><strong>Référence:</strong> ${data.reference}</p>
                         <p><strong>Type:</strong> ${getTypeLabel(type)}</p>
                         <p><strong>Statut:</strong> <span class="badge bg-${getStatusColor(data.etat)}">${data.etat}</span></p>
                         <p><strong>Créé le:</strong> ${new Date(data.created_at).toLocaleString('fr-FR')}</p>
+                        ${agentInfo}
                     </div>
                     <div class="col-md-6">
-                        <h6><i class="fas fa-file-alt me-2"></i>Détails Spécifiques</h6>
+                        <h6 class="border-bottom pb-2 mb-3"><i class="fas fa-file-alt me-2 text-primary"></i>Détails Spécifiques</h6>
                         ${getSpecificDetails(data, type)}
                     </div>
                 </div>
