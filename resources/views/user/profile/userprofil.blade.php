@@ -125,9 +125,15 @@
                 <hr>
 
                 {{-- BOUTON UNIQUE DE MISE À JOUR --}}
-                <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#passwordConfirmationModal">
-                    Mettre à jour le profil
-                </button>
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#passwordConfirmationModal">
+                        Mettre à jour le profil
+                    </button>
+                    
+                    <a href="{{ route('user.profile.delete-request') }}" class="text-danger font-weight-bold">
+                        <i class="fas fa-trash-alt me-1"></i> Supprimer mon compte
+                    </a>
+                </div>
             </form> {{-- Fin du formulaire unique --}}
 
             {{-- Formulaire dédié à la suppression de la photo --}}

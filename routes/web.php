@@ -440,7 +440,6 @@ Route::middleware('auth')->prefix('user')->group(function () {
     // Routes pour la gestion du profil utilisateur
     Route::get('/profile', [ProfiluserController::class, 'show'])->name('user.profile.show');
     Route::put('/profile', [ProfiluserController::class, 'update'])->name('user.profile.update');
-    // Route::put('/profile/password', [ProfiluserController::class, 'updatePassword'])->name('user.profile.password.update'); // <-- SUPPRIMEZ CETTE LIGNE
     Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
 });
 
@@ -488,5 +487,9 @@ Route::match(['GET', 'POST'], '/mariage/paiement/redirect-to-app', [DemandeMaria
 
 Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app', [DemandeNaissanceController::class, 'showRedirectPage'])
     ->name('naissance.redirect_to_app');
+
+// Routes de demande de suppression de compte (Publiques)
+Route::get('/delete-account-request', [ProfiluserController::class, 'showDeletionForm'])->name('user.profile.delete-request');
+Route::post('/delete-account-request', [ProfiluserController::class, 'sendDeletionRequest'])->name('user.profile.send-delete-request');
 
 Route::get('/privacy-policy', [HomeController::class, 'privacy'])->name('plateau.privacy');

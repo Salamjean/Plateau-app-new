@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DeletionRequestMail;
+
 class ProfiluserController extends Controller
 {
     /**
@@ -89,5 +92,37 @@ class ProfiluserController extends Controller
         }
 
         return back()->with('error', 'Aucune photo de profil à supprimer.');
+    }
+
+    /**
+     * Affiche la page publique de demande de suppression de compte.
+     */
+    public function showDeletionForm()
+    {
+        return view('user.profile.delete');
+    }
+
+    /**
+     * Envoie une demande de suppression de compte par e-mail.
+     */
+    public function sendDeletionRequest(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            Mail::to('infos@plateau-apps.com')->send(new DeletionRequestMail(
+                $request->name,
+                $request->email,
+                $request->reason
+            ));
+
+            return back()->with('success', 'Votre demande de suppression de compte a été envoyée avec succès. Notre équipe traitera votre demande prochainement.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Une erreur s\'est produite lors de l\'envoi de votre demande. Veuillez réessayer plus tard.')->withInput();
+        }
     }
 }
