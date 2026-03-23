@@ -11,7 +11,7 @@ class HomeController extends Controller
 {
     public function home()
     {
-        return view('home.home');
+        return view('maintenance');
     }
 
     public function recherche(Request $request)
