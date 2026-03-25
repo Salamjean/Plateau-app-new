@@ -42,7 +42,7 @@ class SendEmailToComptableAfterRegistrationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Agent financier enregistré') // Sujet mis à jour
-            ->from('infos@plateau-apps.com', 'Plateau-Apps')
+            ->from('contact@maelysimo.com', 'Plateau-Apps')
             ->view('emails.comptable_registration', [
                 'code' => $this->code,
                 'email' => $this->email,

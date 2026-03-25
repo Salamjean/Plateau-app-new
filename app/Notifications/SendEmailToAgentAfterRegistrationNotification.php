@@ -42,7 +42,7 @@ class SendEmailToAgentAfterRegistrationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Agent enregistré auprès de votre mairie') // Sujet mis à jour
-            ->from('infos@plateau-apps.com', 'Plateau-Apps')
+            ->from('contact@maelysimo.com', 'Plateau-Apps')
             ->view('emails.agent_registration', [
                 'code' => $this->code,
                 'email' => $this->email,

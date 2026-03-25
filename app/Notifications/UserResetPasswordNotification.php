@@ -44,7 +44,7 @@ class UserResetPasswordNotification extends Notification
         // On appelle la nouvelle vue Blade et on lui passe toutes les données nécessaires
         return (new MailMessage)
             ->subject('Plateau-Apps : Réinitialisation de votre mot de passe')
-            ->from('infos@plateau-apps.com', 'Plateau-Apps')
+            ->from('contact@maelysimo.com', 'Plateau-Apps')
             ->view('emails.web_password_reset', [
                 'userName' => $notifiable->name,
                 'resetUrl' => $resetUrl,
