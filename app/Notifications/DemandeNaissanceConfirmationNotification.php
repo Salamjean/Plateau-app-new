@@ -31,7 +31,7 @@ class DemandeNaissanceConfirmationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Confirmation de votre demande d\'extrait de naissance')
-            ->from('contact@maelysimo.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.demande_naissance_confirmation', [
                 'user' => $this->user,
                 'naissance' => $this->naissance,

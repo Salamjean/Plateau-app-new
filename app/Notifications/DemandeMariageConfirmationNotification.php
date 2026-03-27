@@ -31,7 +31,7 @@ class DemandeMariageConfirmationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Confirmation de votre demande d\'extrait de mariage')
-            ->from('contact@maelysimo.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.demande_mariage_confirmation', [
                 'user' => $this->user,
                 'mariage' => $this->mariage,

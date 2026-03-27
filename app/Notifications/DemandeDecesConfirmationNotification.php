@@ -31,7 +31,7 @@ class DemandeDecesConfirmationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Confirmation de votre demande d\'extrait de décès')
-            ->from('contact@maelysimo.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.demande_deces_confirmation', [
                 'user' => $this->user,
                 'deces' => $this->deces,

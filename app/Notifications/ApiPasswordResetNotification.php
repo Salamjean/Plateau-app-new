@@ -38,7 +38,7 @@ class ApiPasswordResetNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Votre code de réinitialisation')
-            ->from('contact@maelysimo.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.api_password_reset', [
                 'userName' => $notifiable->name,
                 'code' => $this->token,

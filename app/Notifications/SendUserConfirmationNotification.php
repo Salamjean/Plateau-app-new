@@ -37,7 +37,7 @@ class SendUserConfirmationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Confirmation de votre inscription')
-            ->from('contact@maelysimo.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.user_confirmation', [
                 'user' => $this->user,
                 'logoUrl' => $this->logoUrl,

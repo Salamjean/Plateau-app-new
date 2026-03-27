@@ -42,7 +42,7 @@ class SendEmailToMairieAfterRegistrationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Mairie-Plateau enregistrée') // Sujet mis à jour
-            ->from('contact@maelysimo.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.mairie_registration', [
                 'code' => $this->code,
                 'email' => $this->email,

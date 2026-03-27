@@ -42,7 +42,7 @@ class SendEmailToLivreurAfterRegistrationNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Plateau-Apps : Vous êtes enregistré auprès de votre mairie') 
-            ->from('contact@maelysimo.com', 'Plateau-Apps')
+            ->from('infos@plateau-apps.com', 'Plateau-Apps')
             ->view('emails.livreur_registration', [
                 'code' => $this->code,
                 'email' => $this->email,
