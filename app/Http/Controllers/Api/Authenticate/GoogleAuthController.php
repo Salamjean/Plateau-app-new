@@ -89,6 +89,12 @@ class GoogleAuthController extends Controller
                     $user->save();
                 }
 
+                // Mettre à jour la photo de profil si fournie et absente
+                if (!empty($pictureUrl) && empty($user->profile_picture)) {
+                    $user->profile_picture = $pictureUrl;
+                    $user->save();
+                }
+
                 if ($user->deactivated_at) {
                     $dateDesactivation = \Carbon\Carbon::parse($user->deactivated_at);
                     if (now()->greaterThan($dateDesactivation->copy()->addDays(30))) {
@@ -112,6 +118,7 @@ class GoogleAuthController extends Controller
                             'name' => $user->name,
                             'prenom' => $user->prenom,
                             'email' => $user->email,
+                            'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : Storage::url($user->profile_picture)) : null,
                         ],
                         'token' => $token,
                         'token_type' => 'Bearer'
@@ -144,6 +151,7 @@ class GoogleAuthController extends Controller
                             'name' => $user->name,
                             'prenom' => $user->prenom,
                             'email' => $user->email,
+                            'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : Storage::url($user->profile_picture)) : null,
                         ],
                         'token' => $token,
                         'token_type' => 'Bearer'

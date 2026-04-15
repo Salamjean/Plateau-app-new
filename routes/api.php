@@ -69,7 +69,8 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
         Route::post('/logout', [UserLoginController::class, 'logout']);
         Route::post('/deactivate', [UserLoginController::class, 'deactivateAccount']);
         Route::post('/toggle-push-notification', [UserLoginController::class, 'togglePushnotification']);
-        Route::post('/finalize-profile', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfile']);
+        Route::post('/finalize-profile/google', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfileGoogle']);
+        Route::post('/finalize-profile/phone', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfilePhone']);
 
         Route::get('/user', function (Request $request) {
             return $request->user();

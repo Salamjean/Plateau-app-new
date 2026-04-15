@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class RegisterController extends Controller
 {
@@ -67,7 +68,8 @@ class RegisterController extends Controller
                 \Illuminate\Support\Facades\Cache::forget('otp_verified_' . $phone);
             }
 
-            $token = $user->createToken('user-api-token')->plainTextToken;
+            // Génération du token (valide 10 minutes)
+            $token = $user->createToken('user-api-token', ['*'], now()->addMinutes(10))->plainTextToken;
 
             return response()->json([
                 'success' => true,
@@ -104,7 +106,7 @@ class RegisterController extends Controller
             'password' => 'required|string|min:8|confirmed',
             // 'commune' => 'required|string|max:255', // Retiré de la validation
             'indicatif' => 'required|string|max:10',
-            'contact' => 'required|string|max:20',
+            'contact' => 'required|string|max:20|unique:users,contact',
             'CMU' => 'nullable|string|max:50',
             'profile_picture' => 'nullable',
             'diaspora' => 'nullable|boolean',
@@ -178,7 +180,7 @@ class RegisterController extends Controller
                         'email' => $user->email,
                         'commune' => $user->commune,
                         'contact' => $user->contact,
-                        'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
+                        'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : Storage::url($user->profile_picture)) : null,
                         'diaspora' => $user->diaspora,
                         'pays_residence' => $user->pays_residence,
                         'ville_residence' => $user->ville_residence,

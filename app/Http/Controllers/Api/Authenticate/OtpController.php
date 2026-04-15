@@ -35,6 +35,20 @@ class OtpController extends Controller
             $contact = preg_replace('/[^0-9]/', '', $request->contact);
             $phone = $indicatif . $contact;
 
+            // Vérifier si le numéro de téléphone est déjà associé à un compte complet (avec mot de passe)
+            $existingUser = \App\Models\User::where(function ($query) use ($contact, $request) {
+                $query->where('contact', $contact)
+                      ->orWhere('contact', $request->contact);
+            })->first();
+            
+            // Si l'utilisateur a un mot de passe, c'est que son compte est finalisé
+            if ($existingUser && $existingUser->password !== null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce numéro de téléphone est déjà associé à un compte existant.',
+                ], 403);
+            }
+
             // Générer un code à 6 chiffres
             $otp = rand(100000, 999999);
 
@@ -104,9 +118,46 @@ class OtpController extends Controller
         Cache::forget('otp_' . $phone);
         Cache::put('otp_verified_' . $phone, true, now()->addMinutes(30));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Numéro de téléphone vérifié avec succès.',
-        ]);
+        try {
+            // Cherche si l'utilisateur existe déjà
+            $user = \App\Models\User::where('contact', $contact)
+                        ->where('indicatif', $request->indicatif)
+                        ->first();
+
+            if (!$user) {
+                // Création d'un utilisateur "vide" pour finaliser le profil plus tard
+                $user = \App\Models\User::create([
+                    'indicatif' => $request->indicatif,
+                    'contact' => $request->contact,
+                    'commune' => 'plateau',
+                    'phone_verified_at' => now(),
+                ]);
+            }
+
+            // Génération du token (valide pour 10 minutes) pour l'étape de finalisation du profil
+            $token = $user->createToken('user-api-token', ['*'], now()->addMinutes(10))->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Numéro de téléphone vérifié avec succès.',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'contact' => $user->contact,
+                        'indicatif' => $user->indicatif,
+                    ],
+                    'token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erreur verifyOtp : ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la vérification.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 }

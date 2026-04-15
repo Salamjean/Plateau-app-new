@@ -155,7 +155,7 @@
       loadingIcon.style.display = 'none';
       successIcon.style.display = 'inline-flex';
       
-      finalDeepLink = `plateauapps://payment?cinetpay=true&transactionId=${encodeURIComponent(transactionId)}`;
+      finalDeepLink = `plateauapps://app/payment-result?status=success&transactionId=${encodeURIComponent(transactionId)}`;
       tryOpenApp();
       setupFallback(true);
     }
@@ -167,7 +167,7 @@
       loadingIcon.style.display = 'none';
       dangerIcon.style.display = 'inline-flex';
       
-      finalDeepLink = `plateauapps://payment?cinetpay=false&transactionId=${encodeURIComponent(transactionId)}`;
+      finalDeepLink = `plateauapps://app/payment-result?status=cancel&transactionId=${encodeURIComponent(transactionId)}`;
       tryOpenApp();
       setupFallback(false);
     }
@@ -262,13 +262,7 @@
     function tryOpenApp() {
       if (!finalDeepLink) return;
   
-      const androidIntent = `plateauapps://payment?cinetpay=${finalDeepLink.includes('true') ? 'true' : 'false'}&transactionId=${encodeURIComponent(transactionId)}`;
-  
-      if (isAndroid) {
-        window.location = androidIntent;
-      } else {
-        window.location = finalDeepLink;
-      }
+      window.location = finalDeepLink;
     }
   
     // 7. Configurer les boutons de fallback

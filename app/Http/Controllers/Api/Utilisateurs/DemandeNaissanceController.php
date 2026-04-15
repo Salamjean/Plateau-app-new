@@ -257,8 +257,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         try {
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://payment?method={$paymentMethod}&transactionId={$naissance->reference}";
-            $cancelUrl = "plateauapps://payment?method={$paymentMethod}&transactionId={$naissance->reference}&status=cancel";
+            $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$naissance->reference}";
+            $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$naissance->reference}";
             $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($naissance->reference) . "&type=naissance";
             $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($naissance->reference) . "&type=naissance";
 

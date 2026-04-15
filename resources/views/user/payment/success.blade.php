@@ -70,10 +70,10 @@
                     default => url('/user/dashboard')
                 };
             @endphp
-            <a href="{{ $listUrl }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-200">
+            <a href="{{ $listUrl }}" onclick="if(isMobile) { window.location.href=deepLink; return false; }" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-200">
                 <i class="fas fa-list mr-2"></i> Consulter mes demandes
             </a>
-            <a href="{{ url('/user/dashboard') }}" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition duration-200">
+            <a href="{{ url('/user/dashboard') }}" onclick="if(isMobile) { window.location.href=deepLink; return false; }" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition duration-200">
                 <i class="fas fa-home mr-2"></i> Retour au tableau de bord
             </a>
         </div>
@@ -84,6 +84,9 @@
     </div>
 
     <script>
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        var deepLink = "plateauapps://app/payment-result?status=success&transactionId={{ $reference }}";
+
         if (window.opener && window.opener !== window) {
             // Dans un popup, on donne 3 secondes pour lire le message puis on ferme le popup
             setTimeout(function() {
@@ -95,9 +98,16 @@
                 window.close();
             }, 3000);
         } else {
+            // Tentative automatique d'ouverture de l'application sur mobile
+            if (isMobile) {
+                setTimeout(function() {
+                    window.location.href = deepLink;
+                }, 1000);
+            }
+            
             // Auto-redirect vers la liste après 15 secondes (cas classique)
             setTimeout(function() {
-                window.location.href = '{{ $listUrl }}';
+                if(!isMobile) { window.location.href = '{{ $listUrl }}'; }
             }, 15000);
         }
     </script>

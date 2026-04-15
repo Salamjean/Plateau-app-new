@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log; 
 use Illuminate\Support\Facades\Storage; 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 class UserLoginController extends Controller
 {
@@ -95,7 +96,7 @@ class UserLoginController extends Controller
                         'email' => $user->email,
                         'commune' => $user->commune,
                         'contact' => $user->contact,
-                        'profile_picture' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
+                        'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : Storage::url($user->profile_picture)) : null,
                         'diaspora' => $user->diaspora,
                         'push_notification' => $user->push_notification, 
                     ],

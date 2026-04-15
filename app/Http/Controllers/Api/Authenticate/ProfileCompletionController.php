@@ -13,19 +13,17 @@ use Illuminate\Support\Facades\Validator;
 class ProfileCompletionController extends Controller
 {
     /**
-     * Finalise le profil d'un utilisateur (Google ou Téléphone).
+     * Finalise le profil d'un utilisateur inscrit via Google.
      */
-    public function finalizeProfile(Request $request): JsonResponse
+    public function finalizeProfileGoogle(Request $request): JsonResponse
     {
         $user = $request->user();
 
         $validator = Validator::make($request->all(), [
-            'name' => 'nullable|string|max:255',
-            'prenom' => 'nullable|string|max:255',
             'NNI' => 'nullable|string|max:50',
-            'password' => 'nullable|string|min:8|confirmed',
-            'indicatif' => 'nullable|string|max:10',
-            'contact' => 'nullable|string|max:20',
+            'password' => 'required|string|min:8|confirmed',
+            'indicatif' => 'required|string|max:10',
+            'contact' => 'required|string|max:20|unique:users,contact,' . $user->id,
             'diaspora' => 'nullable|boolean',
             'pays_residence' => 'nullable|string|max:255',
         ]);
@@ -40,15 +38,11 @@ class ProfileCompletionController extends Controller
 
         try {
             $data = $request->only([
-                'name', 'prenom', 'NNI', 'indicatif', 'contact', 'diaspora', 'pays_residence'
+                'NNI', 'indicatif', 'contact', 'diaspora', 'pays_residence'
             ]);
 
-            // Mise à jour du mot de passe si fourni
-            if ($request->filled('password')) {
-                $data['password'] = Hash::make($request->password);
-            }
+            $data['password'] = Hash::make($request->password);
 
-            // Gestion particulière pour diaspora/pays_residence
             if ($request->has('diaspora')) {
                 $data['diaspora'] = $request->boolean('diaspora');
             }
@@ -57,7 +51,7 @@ class ProfileCompletionController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Profil finalisé avec succès.',
+                'message' => 'Profil finalisé avec succès (Google).',
                 'data' => [
                     'user' => [
                         'id' => $user->id,
@@ -74,10 +68,79 @@ class ProfileCompletionController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
-            Log::error('Erreur finalizeProfile: ' . $e->getMessage());
+            Log::error('Erreur finalizeProfileGoogle: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Une erreur est survenue lors de la finalisation du profil.',
+                'message' => 'Une erreur est survenue lors de la finalisation du profil par Google.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    /**
+     * Finalise le profil d'un utilisateur inscrit via Téléphone (OTP).
+     */
+    public function finalizeProfilePhone(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'NNI' => 'nullable|string|max:50',
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'password' => 'required|string|min:8|confirmed',
+            'indicatif' => 'nullable|string|max:10',
+            'diaspora' => 'nullable|boolean',
+            'pays_residence' => 'nullable|string|max:255',
+        ], [
+            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $data = $request->only([
+                'name', 'prenom', 'email', 'NNI', 'indicatif', 'diaspora', 'pays_residence'
+            ]);
+
+            $data['password'] = Hash::make($request->password);
+
+            if ($request->has('diaspora')) {
+                $data['diaspora'] = $request->boolean('diaspora');
+            }
+
+            $user->update($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil finalisé avec succès (Téléphone).',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'prenom' => $user->prenom,
+                        'email' => $user->email,
+                        'contact' => $user->contact,
+                        'indicatif' => $user->indicatif,
+                        'NNI' => $user->NNI,
+                        'diaspora' => $user->diaspora,
+                        'pays_residence' => $user->pays_residence,
+                    ]
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur finalizeProfilePhone: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la finalisation du profil par téléphone.',
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }

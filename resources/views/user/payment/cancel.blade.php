@@ -53,7 +53,7 @@
         @endif
 
         <div class="space-y-3">
-            <a href="{{ route('user.dashboard') }}" class="block w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-4 rounded-xl transition duration-200">
+            <a href="{{ route('user.dashboard') }}" onclick="if(isMobile) { window.location.href=deepLink; return false; }" class="block w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-4 rounded-xl transition duration-200">
                 Retour au tableau de bord
             </a>
             <p class="text-slate-500 text-sm pt-4">
@@ -63,11 +63,20 @@
     </div>
 
     <script>
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        var deepLink = "plateauapps://app/payment-result?status=cancel&transactionId={{ $reference ?? '' }}";
+
         if (window.opener && window.opener !== window) {
             // Ferme le popup après 3 secondes sur annulation/erreur
             setTimeout(function() {
                 window.close();
             }, 3000);
+        } else {
+            if (isMobile) {
+                setTimeout(function() {
+                    window.location.href = deepLink;
+                }, 1000);
+            }
         }
     </script>
 </body>
