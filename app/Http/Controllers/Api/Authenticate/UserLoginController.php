@@ -20,7 +20,7 @@ class UserLoginController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => 'required|email',
+                'login_identifier' => 'required|string', // Peut être un email ou un numéro de téléphone
                 'password' => 'required|string',
                 'push_notification' => 'nullable|string|max:255', 
             ]);
@@ -29,10 +29,23 @@ class UserLoginController extends Controller
                 return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
             }
 
-            $user = User::where('email', $request->email)->first();
+            $loginIdentifier = $request->login_identifier;
+
+            // Déterminer si l'identifiant est un email ou un téléphone (s'il ne contient que des chiffres et des +, espaces, etc.)
+            $cleanPhone = preg_replace('/[^0-9]/', '', $loginIdentifier);
+            
+            if (filter_var($loginIdentifier, FILTER_VALIDATE_EMAIL)) {
+                $user = User::where('email', $loginIdentifier)->first();
+            } else {
+                // Si c'est un numéro de téléphone, vérifier s'il correspond au 'contact' ou à la concaténation 'indicatif'+'contact'
+                $user = User::where('contact', $cleanPhone)
+                            ->orWhereRaw("CONCAT(indicatif, contact) = ?", [$cleanPhone])
+                            ->orWhereRaw("CONCAT(REPLACE(indicatif,'+',''), contact) = ?", [$cleanPhone])
+                            ->first();
+            }
 
             if (!$user || !Hash::check($request->password, $user->password)) {
-                return response()->json(['success' => false, 'message' => 'Email ou mot de passe incorrect.'], 401);
+                return response()->json(['success' => false, 'message' => 'Identifiant ou mot de passe incorrect.'], 401);
             }
 
             // =================================================================

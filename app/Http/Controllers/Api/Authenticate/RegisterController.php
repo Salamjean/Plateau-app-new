@@ -13,13 +13,94 @@ use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
+    /**
+     * Inscription minimale (Etape 2 après l'OTP)
+     * Enregistre l'utilisateur avec son numéro uniquement.
+     */
+    public function registerMinimal(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'indicatif' => 'required|string|max:10',
+            'contact' => 'required|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Vérification OTP
+        $indicatif = preg_replace('/[^0-9]/', '', $request->indicatif);
+        $contact = preg_replace('/[^0-9]/', '', $request->contact);
+        $phone = $indicatif . $contact;
+        
+        $isPhoneVerified = \Illuminate\Support\Facades\Cache::get('otp_verified_' . $phone);
+        
+        if (!$isPhoneVerified && !config('app.debug')) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Le numéro de téléphone n\'a pas été vérifié par OTP.'
+            ], 403);
+        }
+
+        try {
+            // Cherche si l'utilisateur existe déjà
+            $user = User::where('contact', $contact)
+                        ->where('indicatif', $request->indicatif)
+                        ->first();
+
+            if (!$user) {
+                // Création d'un utilisateur "vide" (nom/prénom nullables)
+                $user = User::create([
+                    'indicatif' => $request->indicatif,
+                    'contact' => $request->contact,
+                    'commune' => 'plateau',
+                    'phone_verified_at' => now(),
+                    // Pas de mot de passe encore
+                ]);
+            }
+
+            if ($isPhoneVerified) {
+                \Illuminate\Support\Facades\Cache::forget('otp_verified_' . $phone);
+            }
+
+            $token = $user->createToken('user-api-token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Inscription initiale réussie. Veuillez compléter votre profil.',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'contact' => $user->contact,
+                        'indicatif' => $user->indicatif,
+                    ],
+                    'token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur registerMinimal: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'inscription initiale.',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
     public function register(Request $request): JsonResponse
     {
         // Validation manuelle (champ 'commune' retiré)
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'nullable|email|unique:users,email',
+            'NNI' => 'nullable|string|max:50',
             'password' => 'required|string|min:8|confirmed',
             // 'commune' => 'required|string|max:255', // Retiré de la validation
             'indicatif' => 'required|string|max:10',
@@ -40,6 +121,17 @@ class RegisterController extends Controller
             ], 422);
         }
 
+        // Vérification que le numéro a été vérifié (Optionnel mais sécurisé)
+        $indicatif = preg_replace('/[^0-9]/', '', $request->indicatif);
+        $contact = preg_replace('/[^0-9]/', '', $request->contact);
+        $phone = $indicatif . $contact;
+        
+        $isPhoneVerified = \Illuminate\Support\Facades\Cache::get('otp_verified_' . $phone);
+        // Si vous voulez forcer la vérification OTP dans tous les cas, décommentez ceci :
+        // if (!$isPhoneVerified) {
+        //     return response()->json(['success' => false, 'message' => 'Le numéro de téléphone na pas été vérifié par OTP.'], 403);
+        // }
+
         try {
             $profilePicturePath = null;
             
@@ -54,9 +146,11 @@ class RegisterController extends Controller
                 'name' => $request->name,
                 'prenom' => $request->prenom,
                 'email' => $request->email,
+                'NNI' => $request->NNI,
                 'commune' => 'plateau', // <-- Valeur définie automatiquement
                 'indicatif' => $request->indicatif,
                 'contact' => $request->contact,
+                'phone_verified_at' => $isPhoneVerified ? now() : null,
                 'CMU' => $request->CMU,
                 'password' => Hash::make($request->password),
                 'profile_picture' => $profilePicturePath,
@@ -65,6 +159,10 @@ class RegisterController extends Controller
                 'ville_residence' => $request->boolean('diaspora') ? $request->ville_residence : null,
                 'adresse_etrangere' => $request->boolean('diaspora') ? $request->adresse_etrangere : null,
             ]);
+
+            if ($isPhoneVerified) {
+                \Illuminate\Support\Facades\Cache::forget('otp_verified_' . $phone);
+            }
 
             // Création du token Sanctum
             $token = $user->createToken('user-api-token')->plainTextToken;

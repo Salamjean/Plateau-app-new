@@ -35,6 +35,9 @@ class User extends Authenticatable
         'deactivated_at',
         'free_requests_used',
         'has_seen_free_requests_message',
+        'NNI',
+        'google_id',
+        'phone_verified_at',
     ];
 
     /**

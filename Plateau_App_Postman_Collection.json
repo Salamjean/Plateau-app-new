@@ -1,630 +1,1525 @@
 {
-	"info": {
-		"_postman_id": "plateau-app-wave-tests",
-		"name": "Plateau App - API Tests (Wave Payment)",
-		"description": "Collection complète pour tester les API de demandes d'extraits (Naissance, Décès, Mariage) avec paiement Wave.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "https://plateau-apps.com/api",
-			"type": "string"
-		},
-		{
-			"key": "token",
-			"value": "",
-			"type": "string"
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{token}}",
-				"type": "string"
-			}
-		]
-	},
-	"item": [
-		{
-			"name": "🔐 Authentification",
-			"item": [
-				{
-					"name": "Login Utilisateur",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.token) {",
-									"    pm.collectionVariables.set('token', jsonData.token);",
-									"    console.log('Token sauvegardé: ' + jsonData.token);",
-									"}",
-									"if (jsonData.data && jsonData.data.token) {",
-									"    pm.collectionVariables.set('token', jsonData.data.token);",
-									"    console.log('Token sauvegardé: ' + jsonData.data.token);",
-									"}",
-									"pm.test('Login réussi', function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"redfieldluise@gmail.com\",\n    \"password\": \"12345678\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/login",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "login"]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "📝 Naissance",
-			"item": [
-				{
-					"name": "Liste des demandes",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/naissance",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "naissance"]
-						}
-					}
-				},
-				{
-					"name": "Créer - RETRAIT (sans paiement)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{"key": "type", "value": "Extrait de naissance", "type": "text"},
-								{"key": "pour", "value": "Moi", "type": "text"},
-								{"key": "name", "value": "Bakayoko", "type": "text"},
-								{"key": "prenom", "value": "Moussa", "type": "text"},
-								{"key": "number", "value": "12345", "type": "text"},
-								{"key": "DateR", "value": "2000-05-15", "type": "text"},
-								{"key": "commune", "value": "plateau", "type": "text"},
-								{"key": "quantite", "value": "2", "type": "text"},
-								{"key": "choix_option", "value": "retrait", "type": "text"},
-								{"key": "nom_prenoms_pere", "value": "Bakayoko Ibrahim", "type": "text"},
-								{"key": "nom_prenoms_mere", "value": "Coulibaly Fatoumata", "type": "text"},
-								{"key": "CNI", "type": "file", "src": "", "description": "⚠️ Sélectionner un fichier image/pdf"}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/naissance",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "naissance"]
-						}
-					}
-				},
-				{
-					"name": "Créer - LIVRAISON (avec paiement Wave)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{"key": "type", "value": "Extrait de naissance", "type": "text"},
-								{"key": "pour", "value": "Moi", "type": "text"},
-								{"key": "name", "value": "Bakayoko", "type": "text"},
-								{"key": "prenom", "value": "Moussa", "type": "text"},
-								{"key": "number", "value": "12345", "type": "text"},
-								{"key": "DateR", "value": "2000-05-15", "type": "text"},
-								{"key": "commune", "value": "plateau", "type": "text"},
-								{"key": "quantite", "value": "2", "type": "text"},
-								{"key": "choix_option", "value": "livraison", "type": "text"},
-								{"key": "nom_prenoms_pere", "value": "Bakayoko Ibrahim", "type": "text"},
-								{"key": "nom_prenoms_mere", "value": "Coulibaly Fatoumata", "type": "text"},
-								{"key": "montant_timbre", "value": "500", "type": "text"},
-								{"key": "montant_livraison", "value": "1000", "type": "text"},
-								{"key": "nom_destinataire", "value": "Bakayoko", "type": "text"},
-								{"key": "prenom_destinataire", "value": "Moussa", "type": "text"},
-								{"key": "email_destinataire", "value": "moussa.10@live.fr", "type": "text"},
-								{"key": "contact_destinataire", "value": "0200154588", "type": "text"},
-								{"key": "adresse_livraison", "value": "Cocody, Angré 8ème tranche", "type": "text"},
-								{"key": "code_postal", "value": "01BP", "type": "text"},
-								{"key": "ville", "value": "Abidjan", "type": "text"},
-								{"key": "commune_livraison", "value": "Cocody", "type": "text"},
-								{"key": "quartier", "value": "Angré", "type": "text"},
-								{"key": "CNI", "type": "file", "src": "", "description": "⚠️ Sélectionner un fichier image/pdf"}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/naissance",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "naissance"]
-						}
-					}
-				},
-				{
-					"name": "Retry Payment",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/naissance/1/retry-payment",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "naissance", "1", "retry-payment"]
-						},
-						"description": "⚠️ Remplacer '1' par l'ID réel de la demande"
-					}
-				},
-				{
-					"name": "Statut Paiement (public)",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/naissance/payment-status/AN12341P2026",
-							"host": ["{{base_url}}"],
-							"path": ["naissance", "payment-status", "AN12341P2026"]
-						},
-						"description": "⚠️ Remplacer 'AN12341P2026' par la référence réelle"
-					}
-				},
-				{
-					"name": "Supprimer demande",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/naissance/1",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "naissance", "1"]
-						},
-						"description": "⚠️ Remplacer '1' par l'ID réel de la demande"
-					}
-				}
-			]
-		},
-		{
-			"name": "⚰️ Décès",
-			"item": [
-				{
-					"name": "Liste des demandes",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/deces",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "deces"]
-						}
-					}
-				},
-				{
-					"name": "Créer - RETRAIT (sans paiement)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{"key": "name", "value": "Kouassi Jean", "type": "text"},
-								{"key": "numberR", "value": "D-2024-001", "type": "text"},
-								{"key": "dateR", "value": "2024-01-15", "type": "text"},
-								{"key": "quantite", "value": "1", "type": "text"},
-								{"key": "choix_option", "value": "retrait", "type": "text"},
-								{"key": "communeD", "value": "plateau", "type": "text"},
-								{"key": "CNIdfnt", "type": "file", "src": "", "description": "⚠️ CNI/Extrait naissance du défunt"},
-								{"key": "CNIdcl", "type": "file", "src": "", "description": "⚠️ Certificat médical de décès"}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/deces",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "deces"]
-						}
-					}
-				},
-				{
-					"name": "Créer - LIVRAISON (avec paiement Wave)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{"key": "name", "value": "Kouassi Jean", "type": "text"},
-								{"key": "numberR", "value": "D-2024-001", "type": "text"},
-								{"key": "dateR", "value": "2024-01-15", "type": "text"},
-								{"key": "quantite", "value": "1", "type": "text"},
-								{"key": "choix_option", "value": "livraison", "type": "text"},
-								{"key": "communeD", "value": "plateau", "type": "text"},
-								{"key": "montant_timbre", "value": "500", "type": "text"},
-								{"key": "montant_livraison", "value": "1000", "type": "text"},
-								{"key": "nom_destinataire", "value": "Bakayoko", "type": "text"},
-								{"key": "prenom_destinataire", "value": "Moussa", "type": "text"},
-								{"key": "email_destinataire", "value": "moussa.10@live.fr", "type": "text"},
-								{"key": "contact_destinataire", "value": "0200154588", "type": "text"},
-								{"key": "adresse_livraison", "value": "Cocody, Angré 8ème tranche", "type": "text"},
-								{"key": "code_postal", "value": "01BP", "type": "text"},
-								{"key": "ville", "value": "Abidjan", "type": "text"},
-								{"key": "commune_livraison", "value": "Cocody", "type": "text"},
-								{"key": "quartier", "value": "Angré", "type": "text"},
-								{"key": "CNIdfnt", "type": "file", "src": "", "description": "⚠️ CNI/Extrait naissance du défunt"},
-								{"key": "CNIdcl", "type": "file", "src": "", "description": "⚠️ Certificat médical de décès"}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/deces",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "deces"]
-						}
-					}
-				},
-				{
-					"name": "Retry Payment",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/deces/1/retry-payment",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "deces", "1", "retry-payment"]
-						},
-						"description": "⚠️ Remplacer '1' par l'ID réel"
-					}
-				},
-				{
-					"name": "Statut Paiement (public)",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/deces/payment-status/AD12341P2026",
-							"host": ["{{base_url}}"],
-							"path": ["deces", "payment-status", "AD12341P2026"]
-						},
-						"description": "⚠️ Remplacer par la référence réelle"
-					}
-				},
-				{
-					"name": "Supprimer demande",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/deces/1",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "deces", "1"]
-						},
-						"description": "⚠️ Remplacer '1' par l'ID réel"
-					}
-				}
-			]
-		},
-		{
-			"name": "💒 Mariage",
-			"item": [
-				{
-					"name": "Liste des demandes",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/mariage",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "mariage"]
-						}
-					}
-				},
-				{
-					"name": "Créer - RETRAIT (sans paiement)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{"key": "nomEpoux", "value": "Bakayoko", "type": "text"},
-								{"key": "prenomEpoux", "value": "Moussa", "type": "text"},
-								{"key": "dateNaissanceEpoux", "value": "1990-03-20", "type": "text"},
-								{"key": "lieuNaissanceEpoux", "value": "Abidjan", "type": "text"},
-								{"key": "quantite", "value": "2", "type": "text"},
-								{"key": "choix_option", "value": "retrait", "type": "text"},
-								{"key": "commune", "value": "plateau", "type": "text"},
-								{"key": "pieceIdentite", "type": "file", "src": "", "description": "⚠️ Pièce d'identité"},
-								{"key": "extraitMariage", "type": "file", "src": "", "description": "⚠️ Extrait de mariage"}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/mariage",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "mariage"]
-						}
-					}
-				},
-				{
-					"name": "Créer - LIVRAISON (avec paiement Wave)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{"key": "nomEpoux", "value": "Bakayoko", "type": "text"},
-								{"key": "prenomEpoux", "value": "Moussa", "type": "text"},
-								{"key": "dateNaissanceEpoux", "value": "1990-03-20", "type": "text"},
-								{"key": "lieuNaissanceEpoux", "value": "Abidjan", "type": "text"},
-								{"key": "quantite", "value": "2", "type": "text"},
-								{"key": "choix_option", "value": "livraison", "type": "text"},
-								{"key": "commune", "value": "plateau", "type": "text"},
-								{"key": "montant_timbre", "value": "500", "type": "text"},
-								{"key": "montant_livraison", "value": "1000", "type": "text"},
-								{"key": "nom_destinataire", "value": "Bakayoko", "type": "text"},
-								{"key": "prenom_destinataire", "value": "Moussa", "type": "text"},
-								{"key": "email_destinataire", "value": "moussa.10@live.fr", "type": "text"},
-								{"key": "contact_destinataire", "value": "0200154588", "type": "text"},
-								{"key": "adresse_livraison", "value": "Cocody, Angré 8ème tranche", "type": "text"},
-								{"key": "code_postal", "value": "01BP", "type": "text"},
-								{"key": "ville", "value": "Abidjan", "type": "text"},
-								{"key": "commune_livraison", "value": "Cocody", "type": "text"},
-								{"key": "quartier", "value": "Angré", "type": "text"},
-								{"key": "pieceIdentite", "type": "file", "src": "", "description": "⚠️ Pièce d'identité"},
-								{"key": "extraitMariage", "type": "file", "src": "", "description": "⚠️ Extrait de mariage"}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/mariage",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "mariage"]
-						}
-					}
-				},
-				{
-					"name": "Retry Payment",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/mariage/1/retry-payment",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "mariage", "1", "retry-payment"]
-						},
-						"description": "⚠️ Remplacer '1' par l'ID réel"
-					}
-				},
-				{
-					"name": "Statut Paiement (public)",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/mariage/payment-status/AM12341P2026",
-							"host": ["{{base_url}}"],
-							"path": ["mariage", "payment-status", "AM12341P2026"]
-						},
-						"description": "⚠️ Remplacer par la référence réelle"
-					}
-				},
-				{
-					"name": "Supprimer demande",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/mariage/1",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "mariage", "1"]
-						},
-						"description": "⚠️ Remplacer '1' par l'ID réel"
-					}
-				}
-			]
-		},
-		{
-			"name": "📊 Statistiques & Suivi",
-			"item": [
-				{
-					"name": "Statistiques par statut",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/statistiques",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "statistiques"]
-						}
-					}
-				},
-				{
-					"name": "Toutes les demandes",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/toutes",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "toutes"]
-						}
-					}
-				},
-				{
-					"name": "Historique paiements",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/utilisateurs/demandes/paiements",
-							"host": ["{{base_url}}"],
-							"path": ["utilisateurs", "demandes", "paiements"]
-						}
-					}
-				},
-				{
-					"name": "Recherche par référence (public)",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/demandes/recherche?reference=AN12341P2026",
-							"host": ["{{base_url}}"],
-							"path": ["demandes", "recherche"],
-							"query": [
-								{
-									"key": "reference",
-									"value": "AN12341P2026"
-								}
-							]
-						},
-						"description": "⚠️ Remplacer par la référence réelle"
-					}
-				}
-			]
-		}
-	]
+    "info": {
+        "_postman_id": "plateau-app-wave-tests",
+        "name": "Plateau App - API Tests (Wave Payment)",
+        "description": "Collection complète pour tester les API de demandes d'extraits (Naissance, Décès, Mariage) avec paiement Wave.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "https://plateau-apps.com/api",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "🔐 Authentification",
+            "item": [
+                {
+                    "name": "Login Utilisateur",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.token) {",
+                                    "    pm.collectionVariables.set('token', jsonData.token);",
+                                    "    console.log('Token sauvegardé: ' + jsonData.token);",
+                                    "}",
+                                    "if (jsonData.data && jsonData.data.token) {",
+                                    "    pm.collectionVariables.set('token', jsonData.data.token);",
+                                    "    console.log('Token sauvegardé: ' + jsonData.data.token);",
+                                    "}",
+                                    "pm.test('Login réussi', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"redfieldluise@gmail.com\",\n    \"password\": \"12345678\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Envoyer OTP SMS",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/send-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "send-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Vérifier OTP SMS",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"otp\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/verify-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "verify-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Inscription Téléphone",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Kone\",\n    \"prenom\": \"Arouna\",\n    \"email\": \"\",\n    \"NNI\": \"1234567890\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"diaspora\": false,\n    \"pays_residence\": \"C\\u00f4te dIvoire\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login Mobile (Téléphone)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"login_identifier\": \"0102030405\",\n    \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Google Connexion / Inscription",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"google_id\": \"1039485903901920\",\n    \"email\": \"ali.abibu@gmail.com\",\n    \"name\": \"Abibu\",\n    \"prenom\": \"Ali\",\n    \"NNI\": \"\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0505050505\",\n    \"diaspora\": false,\n    \"pays_residence\": \"C\\u00f4te dIvoire\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/google",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "google"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📝 Naissance",
+            "item": [
+                {
+                    "name": "Liste des demandes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - RETRAIT (sans paiement)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "type",
+                                    "value": "Extrait de naissance",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pour",
+                                    "value": "Moi",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Bakayoko",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenom",
+                                    "value": "Moussa",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "number",
+                                    "value": "12345",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "DateR",
+                                    "value": "2000-05-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "commune",
+                                    "value": "plateau",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantite",
+                                    "value": "2",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "choix_option",
+                                    "value": "retrait",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nom_prenoms_pere",
+                                    "value": "Bakayoko Ibrahim",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nom_prenoms_mere",
+                                    "value": "Coulibaly Fatoumata",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "CNI",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Sélectionner un fichier image/pdf"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - LIVRAISON (avec paiement Wave)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "type",
+                                    "value": "Extrait de naissance",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pour",
+                                    "value": "Moi",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Bakayoko",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenom",
+                                    "value": "Moussa",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "number",
+                                    "value": "12345",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "DateR",
+                                    "value": "2000-05-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "commune",
+                                    "value": "plateau",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantite",
+                                    "value": "2",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "choix_option",
+                                    "value": "livraison",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nom_prenoms_pere",
+                                    "value": "Bakayoko Ibrahim",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nom_prenoms_mere",
+                                    "value": "Coulibaly Fatoumata",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "montant_timbre",
+                                    "value": "500",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "montant_livraison",
+                                    "value": "1000",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nom_destinataire",
+                                    "value": "Bakayoko",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenom_destinataire",
+                                    "value": "Moussa",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email_destinataire",
+                                    "value": "moussa.10@live.fr",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "contact_destinataire",
+                                    "value": "0200154588",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "adresse_livraison",
+                                    "value": "Cocody, Angré 8ème tranche",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "code_postal",
+                                    "value": "01BP",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "ville",
+                                    "value": "Abidjan",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "commune_livraison",
+                                    "value": "Cocody",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quartier",
+                                    "value": "Angré",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "CNI",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Sélectionner un fichier image/pdf"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Retry Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance/1/retry-payment",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance",
+                                "1",
+                                "retry-payment"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel de la demande"
+                    }
+                },
+                {
+                    "name": "Statut Paiement (public)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/naissance/payment-status/AN12341P2026",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "naissance",
+                                "payment-status",
+                                "AN12341P2026"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer 'AN12341P2026' par la référence réelle"
+                    }
+                },
+                {
+                    "name": "Supprimer demande",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance",
+                                "1"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel de la demande"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "⚰️ Décès",
+            "item": [
+                {
+                    "name": "Liste des demandes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - RETRAIT (sans paiement)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Kouassi Jean",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "numberR",
+                                    "value": "D-2024-001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dateR",
+                                    "value": "2024-01-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantite",
+                                    "value": "1",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "choix_option",
+                                    "value": "retrait",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "communeD",
+                                    "value": "plateau",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "CNIdfnt",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ CNI/Extrait naissance du défunt"
+                                },
+                                {
+                                    "key": "CNIdcl",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Certificat médical de décès"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - LIVRAISON (avec paiement Wave)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Kouassi Jean",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "numberR",
+                                    "value": "D-2024-001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dateR",
+                                    "value": "2024-01-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantite",
+                                    "value": "1",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "choix_option",
+                                    "value": "livraison",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "communeD",
+                                    "value": "plateau",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "montant_timbre",
+                                    "value": "500",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "montant_livraison",
+                                    "value": "1000",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nom_destinataire",
+                                    "value": "Bakayoko",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenom_destinataire",
+                                    "value": "Moussa",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email_destinataire",
+                                    "value": "moussa.10@live.fr",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "contact_destinataire",
+                                    "value": "0200154588",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "adresse_livraison",
+                                    "value": "Cocody, Angré 8ème tranche",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "code_postal",
+                                    "value": "01BP",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "ville",
+                                    "value": "Abidjan",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "commune_livraison",
+                                    "value": "Cocody",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quartier",
+                                    "value": "Angré",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "CNIdfnt",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ CNI/Extrait naissance du défunt"
+                                },
+                                {
+                                    "key": "CNIdcl",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Certificat médical de décès"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Retry Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces/1/retry-payment",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces",
+                                "1",
+                                "retry-payment"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
+                    "name": "Statut Paiement (public)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/deces/payment-status/AD12341P2026",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "deces",
+                                "payment-status",
+                                "AD12341P2026"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer par la référence réelle"
+                    }
+                },
+                {
+                    "name": "Supprimer demande",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces",
+                                "1"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "💒 Mariage",
+            "item": [
+                {
+                    "name": "Liste des demandes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - RETRAIT (sans paiement)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "nomEpoux",
+                                    "value": "Bakayoko",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenomEpoux",
+                                    "value": "Moussa",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dateNaissanceEpoux",
+                                    "value": "1990-03-20",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "lieuNaissanceEpoux",
+                                    "value": "Abidjan",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantite",
+                                    "value": "2",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "choix_option",
+                                    "value": "retrait",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "commune",
+                                    "value": "plateau",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pieceIdentite",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Pièce d'identité"
+                                },
+                                {
+                                    "key": "extraitMariage",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Extrait de mariage"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - LIVRAISON (avec paiement Wave)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "nomEpoux",
+                                    "value": "Bakayoko",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenomEpoux",
+                                    "value": "Moussa",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dateNaissanceEpoux",
+                                    "value": "1990-03-20",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "lieuNaissanceEpoux",
+                                    "value": "Abidjan",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantite",
+                                    "value": "2",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "choix_option",
+                                    "value": "livraison",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "commune",
+                                    "value": "plateau",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "montant_timbre",
+                                    "value": "500",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "montant_livraison",
+                                    "value": "1000",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nom_destinataire",
+                                    "value": "Bakayoko",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenom_destinataire",
+                                    "value": "Moussa",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email_destinataire",
+                                    "value": "moussa.10@live.fr",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "contact_destinataire",
+                                    "value": "0200154588",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "adresse_livraison",
+                                    "value": "Cocody, Angré 8ème tranche",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "code_postal",
+                                    "value": "01BP",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "ville",
+                                    "value": "Abidjan",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "commune_livraison",
+                                    "value": "Cocody",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quartier",
+                                    "value": "Angré",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "pieceIdentite",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Pièce d'identité"
+                                },
+                                {
+                                    "key": "extraitMariage",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Extrait de mariage"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Retry Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage/1/retry-payment",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage",
+                                "1",
+                                "retry-payment"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
+                    "name": "Statut Paiement (public)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/mariage/payment-status/AM12341P2026",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "mariage",
+                                "payment-status",
+                                "AM12341P2026"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer par la référence réelle"
+                    }
+                },
+                {
+                    "name": "Supprimer demande",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage",
+                                "1"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📊 Statistiques & Suivi",
+            "item": [
+                {
+                    "name": "Statistiques par statut",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/statistiques",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "statistiques"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Toutes les demandes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/toutes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "toutes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Historique paiements",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/paiements",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "paiements"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Recherche par référence (public)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/demandes/recherche?reference=AN12341P2026",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "demandes",
+                                "recherche"
+                            ],
+                            "query": [
+                                {
+                                    "key": "reference",
+                                    "value": "AN12341P2026"
+                                }
+                            ]
+                        },
+                        "description": "⚠️ Remplacer par la référence réelle"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📱 Auth Mobile",
+            "item": [
+                {
+                    "name": "1. Envoyer OTP SMS",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('OTP envoyé avec succès', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "var json = pm.response.json();",
+                                    "pm.test('success = true', function () {",
+                                    "    pm.expect(json.success).to.be.true;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {"type": "noauth"},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+                        "body": {"mode": "raw", "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"},
+                        "url": {"raw": "{{base_url}}/utilisateurs/send-otp", "host": ["{{base_url}}"], "path": ["utilisateurs", "send-otp"]}
+                    }
+                },
+                {
+                    "name": "2. Vérifier OTP SMS",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('OTP vérifié avec succès', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "var json = pm.response.json();",
+                                    "pm.test('success = true', function () {",
+                                    "    pm.expect(json.success).to.be.true;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {"type": "noauth"},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+                        "body": {"mode": "raw", "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"otp\": \"123456\"\n}"},
+                        "url": {"raw": "{{base_url}}/utilisateurs/verify-otp", "host": ["{{base_url}}"], "path": ["utilisateurs", "verify-otp"]}
+                    }
+                },
+                {
+                    "name": "3. Inscription Téléphone (Minimal)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Inscription minimale réussie (201)', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "var json = pm.response.json();",
+                                    "if (json.data && json.data.token) {",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "    console.log('✅ Token sauvegardé: ' + json.data.token);",
+                                    "}",
+                                    "pm.test('Token présent dans la réponse', function () {",
+                                    "    pm.expect(json.data).to.have.property('token');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {"type": "noauth"},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+                        "body": {"mode": "raw", "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"},
+                        "url": {"raw": "{{base_url}}/utilisateurs/register-minimal", "host": ["{{base_url}}"], "path": ["utilisateurs", "register-minimal"]}
+                    }
+                },
+                {
+                    "name": "4. Google Connexion / Inscription (Minimal)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.data && json.data.token) {",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "    console.log('✅ Token Google sauvegardé: ' + json.data.token);",
+                                    "}",
+                                    "pm.test('Auth Google OK (200 ou 201)', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                                    "});",
+                                    "pm.test('Token présent dans la réponse', function () {",
+                                    "    pm.expect(json.data).to.have.property('token');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {"type": "noauth"},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+                        "body": {"mode": "raw", "raw": "{\n    \"id_token\": \"VOTRE_FIREBASE_ID_TOKEN_ICI\"\n}"},
+                        "description": "📲 L'application mobile (après auth Firebase) génère un `id_token` et l'envoie ici. Le backend se charge de le vérifier et d'extraire name, email, et uid (google_id). (L'ancienne méthode avec google_id manuel est conservée pour les tests Postman si besoin sans id_token).",
+                        "url": {"raw": "{{base_url}}/utilisateurs/google", "host": ["{{base_url}}"], "path": ["utilisateurs", "google"]}
+                    }
+                },
+                {
+                    "name": "5a. Finaliser profil Google (complete_profile)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Profil Google finalisé (200)', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "var json = pm.response.json();",
+                                    "pm.test('success = true', function () {",
+                                    "    pm.expect(json.success).to.be.true;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+                        "body": {"mode": "raw", "raw": "{\n    \"NNI\": \"\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0505050505\",\n    \"diaspora\": false,\n    \"pays_residence\": \"Côte d'Ivoire\"\n}"},
+                        "description": "🔐 Nécessite le Bearer token reçu après /google. Complète le profil Google (téléphone + résidence).",
+                        "url": {"raw": "{{base_url}}/utilisateurs/finalize-profile", "host": ["{{base_url}}"], "path": ["utilisateurs", "finalize-profile"]}
+                    }
+                },
+                {
+                    "name": "5b. Finaliser profil Téléphone (complete_profile)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Profil Téléphone finalisé (200)', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "var json = pm.response.json();",
+                                    "pm.test('success = true', function () {",
+                                    "    pm.expect(json.success).to.be.true;",
+                                    "});",
+                                    "pm.test('Nom et prénom présents', function () {",
+                                    "    pm.expect(json.data.user).to.have.property('name');",
+                                    "    pm.expect(json.data.user).to.have.property('prenom');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+                        "body": {"mode": "raw", "raw": "{\n    \"name\": \"Kone\",\n    \"prenom\": \"Arouna\",\n    \"NNI\": \"1234567890\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"diaspora\": false,\n    \"pays_residence\": \"Côte d'Ivoire\"\n}"},
+                        "description": "🔐 Nécessite le Bearer token reçu après /register-minimal. Complète le profil (nom, prénom, mot de passe, résidence).",
+                        "url": {"raw": "{{base_url}}/utilisateurs/finalize-profile", "host": ["{{base_url}}"], "path": ["utilisateurs", "finalize-profile"]}
+                    }
+                },
+                {
+                    "name": "Login Mobile (Téléphone ou Email)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Connexion réussie (200)', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "var json = pm.response.json();",
+                                    "if (json.data && json.data.token) {",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "    console.log('✅ Token connexion sauvegardé: ' + json.data.token);",
+                                    "}",
+                                    "pm.test('Token présent dans la réponse', function () {",
+                                    "    pm.expect(json.data).to.have.property('token');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {"type": "noauth"},
+                        "method": "POST",
+                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+                        "body": {"mode": "raw", "raw": "{\n    \"login_identifier\": \"0102030405\",\n    \"password\": \"password123\"\n}"},
+                        "url": {"raw": "{{base_url}}/utilisateurs/login", "host": ["{{base_url}}"], "path": ["utilisateurs", "login"]}
+                    }
+                }
+            ]
+        }
+    ]
 }

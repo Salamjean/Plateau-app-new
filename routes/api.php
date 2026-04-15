@@ -28,6 +28,12 @@ Route::prefix('utilisateurs')->group(function () {
     Route::post('/forgot-password', [PasswordforgotController::class, 'forgotPassword']);
     Route::post('/verify-reset-code', [PasswordforgotController::class, 'verifyResetCode']);
     Route::post('/reset-password', [PasswordforgotController::class, 'resetPassword']);
+    
+    // Auth Mobile
+    Route::post('/send-otp', [\App\Http\Controllers\Api\Authenticate\OtpController::class, 'sendOtp']);
+    Route::post('/verify-otp', [\App\Http\Controllers\Api\Authenticate\OtpController::class, 'verifyOtp']);
+    Route::post('/register-minimal', [\App\Http\Controllers\Api\Authenticate\RegisterController::class, 'registerMinimal']);
+    Route::post('/google', [\App\Http\Controllers\Api\Authenticate\GoogleAuthController::class, 'handleGoogleAuth']);
 });
 
 // LIVREURS - Routes publiques
@@ -63,6 +69,7 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
         Route::post('/logout', [UserLoginController::class, 'logout']);
         Route::post('/deactivate', [UserLoginController::class, 'deactivateAccount']);
         Route::post('/toggle-push-notification', [UserLoginController::class, 'togglePushnotification']);
+        Route::post('/finalize-profile', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfile']);
 
         Route::get('/user', function (Request $request) {
             return $request->user();
