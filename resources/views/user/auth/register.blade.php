@@ -562,6 +562,127 @@
         
         .match-indicator.valid { color: #2ec4b6; display: block; }
         .match-indicator.invalid { color: #ff4d4d; display: block; }
+
+        /* Nouveaux styles pour le Toggle et Google */
+        .auth-toggle {
+            display: flex;
+            background: #f8f9fa;
+            padding: 4px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .auth-section {
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .auth-section.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .google-btn {
+            width: 100%;
+            height: 55px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .google-btn:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 55px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 8px 20px rgba(25, 119, 204, 0.2);
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(25, 119, 204, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .otp-box {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .btn-send-otp {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 10px;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(25, 119, 204, 0.2);
+        }
+
+        .btn-send-otp:hover {
+            background: var(--accent-color);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -580,25 +701,19 @@
 
         <!-- Contenu du formulaire -->
         <div class="form-content">
-            <form method="POST" action="{{route('user.handleRegister')}}" enctype="multipart/form-data">
-                @csrf
+            <!-- Toggle Selection -->
+            <div class="auth-toggle">
+                <button type="button" class="toggle-btn active" data-target="email-section">
+                    <i class="fas fa-envelope"></i> Par Email
+                </button>
+                <button type="button" class="toggle-btn" data-target="phone-section">
+                    <i class="fas fa-phone"></i> Par Téléphone
+                </button>
+            </div>
 
-                @if (Session::get('success'))
-                    <div class="success-message animate__animated animate__bounceIn">
-                        <i class="fas fa-check-circle"></i> {{ Session::get('success') }}
-                    </div>
-                @endif
-
-                @if (Session::get('error'))
-                    <div class="error-message animate__animated animate__shakeX">
-                        <i class="fas fa-exclamation-circle"></i> {{ Session::get('error') }}
-                    </div>
-                @endif
-
-                <!-- Informations personnelles -->
-                <h3 class="section-title">
-                    <i class="fas fa-user-circle"></i> Informations personnelles
-                </h3>
+            <div id="email-section" class="auth-section active">
+                <form method="POST" action="{{route('user.handleRegister')}}" enctype="multipart/form-data">
+                    @csrf
                 
                 <div class="form-row">
                     <div class="input-group">
@@ -821,14 +936,74 @@
                     </div>
                 </div>
 
-                <button type="submit" class="submit-btn animate__animated animate__pulse animate__infinite animate__slower">
-                    <i class="fas fa-user-plus"></i> S'inscrire
+                    <button type="submit" class="submit-btn animate__animated animate__pulse animate__infinite animate__slower">
+                        <i class="fas fa-user-plus"></i> S'inscrire
+                    </button>
+
+                    <div class="separator" style="display: flex; align-items: center; text-align: center; margin: 25px 0; color: #adb5bd;">
+                        <span style="flex: 1; border-bottom: 1px solid #e9ecef;"></span>
+                        <span style="padding: 0 10px; font-size: 0.85rem;">OU</span>
+                        <span style="flex: 1; border-bottom: 1px solid #e9ecef;"></span>
+                    </div>
+
+                    <button type="button" class="google-btn" id="googleRegisterBtn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20">
+                        S'inscrire avec Google
+                    </button>
+
+                    <div class="login-link">
+                        Vous avez déjà un compte ? <a href="{{route('login')}}">Se connecter</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Phone Section -->
+            <div id="phone-section" class="auth-section">
+                <div class="input-group">
+                    <div class="phone-group">
+                        <select id="otp_indicatif">
+                            <option value="+225">Côte d'Ivoire (+225)</option>
+                            <option value="+33">France (+33)</option>
+                            <option value="+1">USA (+1)</option>
+                        </select>
+                        <input id="otp_contact" class="input-field" type="tel" placeholder="Ex: 0708325027">
+                    </div>
+                    <label class="input-label" style="top: -10px; left: 35px; font-size: 0.8rem; color: var(--primary-color); background-color: white; z-index: 3;">Votre numéro de téléphone</label>
+                </div>
+
+                <button type="button" class="btn-send-otp" id="btnSendOtp">
+                    <i class="fas fa-paper-plane"></i> Recevoir le code par SMS
+                </button>
+
+                <div class="otp-box" id="otpBox">
+                    <div class="input-group">
+                        <i class="fas fa-shield-alt input-icon"></i>
+                        <input class="input-field" type="text" id="otp_code" placeholder="Code à 6 chiffres" maxlength="6">
+                        <label class="input-label">Code de vérification</label>
+                    </div>
+                    <button type="button" class="submit-btn" id="btnVerifyOtp">
+                        Valider et continuer <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <p style="text-align: center; margin-top: 15px; font-size: 0.85rem; color: #6c757d;">
+                        Pas reçu ? <a href="javascript:void(0)" id="resendOtp" style="color: var(--primary-color); text-decoration: none;">Renvoyer</a>
+                    </p>
+                </div>
+
+                <div class="separator" style="display: flex; align-items: center; text-align: center; margin: 25px 0; color: #adb5bd;">
+                    <span style="flex: 1; border-bottom: 1px solid #e9ecef;"></span>
+                    <span style="padding: 0 10px; font-size: 0.85rem;">OU</span>
+                    <span style="flex: 1; border-bottom: 1px solid #e9ecef;"></span>
+                </div>
+
+                <button type="button" class="google-btn" id="googlePhoneBtn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20">
+                    S'inscrire avec Google
                 </button>
 
                 <div class="login-link">
                     Vous avez déjà un compte ? <a href="{{route('login')}}">Se connecter</a>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -1041,11 +1216,168 @@
                     icon: 'error',
                     title: 'Oups...',
                     text: '{!! $errorText !!}',
-                    confirmButtonText: 'Compris',
-                    background: 'var(--light-color)',
-                });
             @endif
         });
+
+        // Script de Toggle
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.auth-section').forEach(s => s.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(this.dataset.target).classList.add('active');
+            });
+        });
+    </script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const firebaseConfig = {
+                    apiKey: "{{ config('services.firebase.api_key') }}",
+                    authDomain: "{{ config('services.firebase.auth_domain') }}",
+                    projectId: "{{ config('services.firebase.project_id') }}",
+                    storageBucket: "{{ config('services.firebase.storage_bucket') }}",
+                    messagingSenderId: "{{ config('services.firebase.messaging_sender_id') }}",
+                    appId: "{{ config('services.firebase.app_id') }}"
+                };
+
+                let auth = null;
+                if (firebaseConfig.apiKey) {
+                    firebase.initializeApp(firebaseConfig);
+                    auth = firebase.auth();
+                }
+
+                // Google Handler
+                function handleGoogle(btnId) {
+                    const btn = document.getElementById(btnId);
+                    if (!btn) return;
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (!auth) {
+                            Swal.fire('Erreur système', 'La configuration Google. Veuillez contacter l\'administrateur.', 'error');
+                            return;
+                        }
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        Swal.fire({ title: 'Connexion Google...', allowOutsideClick: false, willOpen: () => { Swal.showLoading(); }});
+
+                        auth.signInWithPopup(provider).then((result) => {
+                            return result.user.getIdToken();
+                        }).then((idToken) => {
+                            return fetch("{{ route('user.auth.google') }}", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                                body: JSON.stringify({ id_token: idToken })
+                            });
+                        }).then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = data.redirect;
+                            } else {
+                                Swal.fire('Erreur', data.message, 'error');
+                            }
+                        }).catch(e => {
+                            console.error(e);
+                            Swal.fire('Erreur', 'Authentification Google échouée.', 'error');
+                        });
+                    });
+                }
+
+                handleGoogle('googleRegisterBtn');
+                handleGoogle('googlePhoneBtn');
+            } catch (e) {
+                console.error("Firebase Auth initialization error", e);
+            }
+
+            // OTP Handler
+            const btnSendOtp = document.getElementById('btnSendOtp');
+            const btnVerifyOtp = document.getElementById('btnVerifyOtp');
+            const otpBox = document.getElementById('otpBox');
+
+            if (btnSendOtp) {
+                btnSendOtp.addEventListener('click', function() {
+                    const indicatif = document.getElementById('otp_indicatif').value;
+                    const contact = document.getElementById('otp_contact').value;
+
+                    if(!contact) return Swal.fire('Oups', 'Veuillez saisir votre numéro', 'warning');
+
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+
+                    fetch("{{ route('user.auth.otp.send') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                        body: JSON.stringify({ indicatif, contact })
+                    }).then(r => {
+                        // Throw error if HTTP response is not OK (e.g., 500 Error server)
+                        if (!r.ok) {
+                            return r.json().then(errData => { throw errData; });
+                        }
+                        return r.json();
+                    })
+                    .then(data => {
+                        if(data.success) {
+                            Swal.fire('Succès', data.message, 'success');
+                            otpBox.style.display = 'block';
+                            btnSendOtp.style.display = 'none';
+                        } else {
+                            Swal.fire('Erreur', data.message || 'Erreur inconnue', 'error');
+                            this.disabled = false;
+                            this.innerHTML = '<i class="fas fa-paper-plane"></i> Recevoir le code par SMS';
+                        }
+                    }).catch(error => {
+                        console.error('Fetch OTP Error:', error);
+                        Swal.fire('Erreur', error.message || 'Une erreur est survenue lors de l\'envoi du SMS.', 'error');
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-paper-plane"></i> Recevoir le code par SMS';
+                    });
+                });
+            }
+
+            if (btnVerifyOtp) {
+                btnVerifyOtp.addEventListener('click', function() {
+                    const indicatif = document.getElementById('otp_indicatif').value;
+                    const contact = document.getElementById('otp_contact').value;
+                    const otp = document.getElementById('otp_code').value;
+
+                    if(!otp) return Swal.fire('Oups', 'Veuillez saisir le code reçu', 'warning');
+
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
+
+                    fetch("{{ route('user.auth.otp.verify') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                        body: JSON.stringify({ indicatif, contact, otp })
+                    }).then(r => {
+                        if (!r.ok) {
+                            return r.json().then(errData => { throw errData; });
+                        }
+                        return r.json();
+                    })
+                    .then(data => {
+                        if(data.success) {
+                            window.location.href = data.redirect;
+                        } else {
+                            Swal.fire('Erreur', data.message, 'error');
+                            this.disabled = false;
+                            this.innerHTML = 'Valider et continuer <i class="fas fa-arrow-right"></i>';
+                        }
+                    }).catch(error => {
+                        console.error('Verify OTP Error:', error);
+                        Swal.fire('Erreur', error.message || 'Une erreur est survenue.', 'error');
+                        this.disabled = false;
+                        this.innerHTML = 'Valider et continuer <i class="fas fa-arrow-right"></i>';
+                    });
+                });
+            }
+        });
+
     </script>
 </body>
 </html>

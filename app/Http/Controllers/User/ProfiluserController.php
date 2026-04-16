@@ -20,7 +20,7 @@ class ProfiluserController extends Controller
      */
     public function show()
     {
-        return view('user.profile.userprofil');
+        return view('user.auth.profil');
     }
 
     /**
@@ -33,7 +33,7 @@ class ProfiluserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
-            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'indicatif' => 'nullable|string|max:10',
             'contact' => 'nullable|string|max:20',
             'CMU' => 'nullable|string|max:255',
@@ -124,5 +124,21 @@ class ProfiluserController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Une erreur s\'est produite lors de l\'envoi de votre demande. Veuillez réessayer plus tard.')->withInput();
         }
+    }
+
+    /**
+     * Vérifie le mot de passe actuel de l'utilisateur pour les requêtes AJAX.
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        if (Hash::check($request->password, Auth::user()->password)) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 422);
     }
 }

@@ -36,7 +36,7 @@ class UserProfilController extends Controller
                         'contact' => $user->contact,
                         'commune' => $user->commune,
                         'CMU' => $user->CMU,
-                        'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : Storage::url($user->profile_picture)) : null,
+                        'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : '/storage/' . $user->profile_picture) : null,
                         'diaspora' => (bool) $user->diaspora,
                         'pays_residence' => $user->pays_residence,
                         'ville_residence' => $user->ville_residence,
@@ -105,7 +105,7 @@ class UserProfilController extends Controller
                 'success' => true,
                 'message' => 'Photo mise à jour avec succès',
                 'data' => [
-                    'profile_picture' => Storage::url($path),
+                    'profile_picture' => '/storage/' . $path,
                     'profile_picture_path' => $path
                 ]
             ]);
@@ -235,7 +235,7 @@ class UserProfilController extends Controller
                         'pays_residence' => $user->pays_residence,
                         'ville_residence' => $user->ville_residence,
                         'adresse_etrangere' => $user->adresse_etrangere,
-                        'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : Storage::url($user->profile_picture)) : null,
+                        'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : '/storage/' . $user->profile_picture) : null,
                     ]
                 ]
             ]);

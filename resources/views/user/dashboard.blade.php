@@ -267,7 +267,57 @@
                     cutout: '80%'
                 }
             });
-        }
+        // Message pour les demandes gratuites
+        @if(isset($showFreeRequestsMessage) && $showFreeRequestsMessage)
+            setTimeout(() => {
+                Swal.fire({
+                    title: '<span style="color: #1977cc; font-size: 1.5rem; font-weight: 800;">FÉLICITATIONS ! 🎊</span>',
+                    html: `
+                        <div style="padding: 10px;">
+                            <div style="background: linear-gradient(135deg, #1977cc, #4895ef); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(25, 119, 204, 0.3);">
+                                <i class="fas fa-gift" style="color: white; font-size: 2.5rem;"></i>
+                            </div>
+                            <h4 style="color: #2b3674; font-weight: 700; margin-bottom: 15px;">Vos premiers actes sont offerts !</h4>
+                            <p style="color: #707ebe; font-size: 1rem; line-height: 1.6; margin-bottom: 25px;">
+                                Pour célébrer votre arrivée sur <b>Plateau App</b>, nous avons le plaisir de vous offrir vos 
+                                <span style="color: #1977cc; font-weight: 800; font-size: 1.1rem;">{{ $freeRequestsRemaining }} prochaines demandes</span> 
+                                d'extraits d'état civil entièrement gratuitement.
+                            </p>
+                            <div style="background: #f4f7fe; border-radius: 15px; padding: 15px; border: 1px dashed #1977cc;">
+                                <p style="margin-bottom: 0; color: #1977cc; font-weight: 600; font-size: 0.9rem;">
+                                    <i class="fas fa-info-circle mr-2"></i> Valable sur les extraits de Naissance, Mariage et Décès.
+                                </p>
+                            </div>
+                        </div>
+                    `,
+                    showCloseButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Profiter de mes cadeaux 🚀',
+                    confirmButtonColor: '#1977cc',
+                    padding: '2rem',
+                    background: '#ffffff',
+                    borderRadius: '24px',
+                    showClass: {
+                        popup: 'animate__animated animate__fadeInUp'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOutDown'
+                    },
+                    allowOutsideClick: false,
+                    backdrop: `rgba(43, 54, 116, 0.6)`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("{{ route('user.dismiss.free.requests') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        });
+                    }
+                });
+            }, 800);
+        @endif
     });
 </script>
 @endpush

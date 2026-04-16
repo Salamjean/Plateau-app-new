@@ -1,8 +1,8 @@
 {
     "info": {
-        "_postman_id": "plateau-app-wave-tests",
-        "name": "Plateau App - API Tests (Wave Payment)",
-        "description": "Collection complète pour tester les API de demandes d'extraits (Naissance, Décès, Mariage) avec paiement Wave.",
+        "_postman_id": "plateau-app-complete-tests",
+        "name": "Plateau App - API Tests Complet",
+        "description": "Collection complète pour tester toutes les API de Plateau App.\nMise à jour: 2026-04-16 08:21:57",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
@@ -13,6 +13,11 @@
         },
         {
             "key": "token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "livreur_token",
             "value": "",
             "type": "string"
         }
@@ -32,33 +37,8 @@
             "name": "🔐 Authentification",
             "item": [
                 {
-                    "name": "Login Utilisateur",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "var jsonData = pm.response.json();",
-                                    "if (jsonData.token) {",
-                                    "    pm.collectionVariables.set('token', jsonData.token);",
-                                    "    console.log('Token sauvegardé: ' + jsonData.token);",
-                                    "}",
-                                    "if (jsonData.data && jsonData.data.token) {",
-                                    "    pm.collectionVariables.set('token', jsonData.data.token);",
-                                    "    console.log('Token sauvegardé: ' + jsonData.data.token);",
-                                    "}",
-                                    "pm.test('Login réussi', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
+                    "name": "Login Utilisateur (Email)",
                     "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
                         "method": "POST",
                         "header": [
                             {
@@ -70,10 +50,6 @@
                                 "value": "application/json"
                             }
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"email\": \"redfieldluise@gmail.com\",\n    \"password\": \"12345678\"\n}"
-                        },
                         "url": {
                             "raw": "{{base_url}}/utilisateurs/login",
                             "host": [
@@ -83,15 +59,33 @@
                                 "utilisateurs",
                                 "login"
                             ]
-                        }
-                    }
-                },
-                {
-                    "name": "Envoyer OTP SMS",
-                    "request": {
+                        },
                         "auth": {
                             "type": "noauth"
                         },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"redfieldluise@gmail.com\",\n    \"password\": \"12345678\"\n}"
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                                    "if (json.data && json.data.token) { pm.collectionVariables.set('token', json.data.token); }",
+                                    "pm.test('Requête réussie', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Login Mobile (Téléphone ou Email)",
+                    "request": {
                         "method": "POST",
                         "header": [
                             {
@@ -103,28 +97,42 @@
                                 "value": "application/json"
                             }
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"
-                        },
                         "url": {
-                            "raw": "{{base_url}}/utilisateurs/send-otp",
+                            "raw": "{{base_url}}/utilisateurs/login",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "utilisateurs",
-                                "send-otp"
+                                "login"
                             ]
-                        }
-                    }
-                },
-                {
-                    "name": "Vérifier OTP SMS",
-                    "request": {
+                        },
                         "auth": {
                             "type": "noauth"
                         },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"login_identifier\": \"0102030405\",\n    \"password\": \"password123\"\n}"
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                                    "if (json.data && json.data.token) { pm.collectionVariables.set('token', json.data.token); }",
+                                    "pm.test('Requête réussie', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Inscription Complète",
+                    "request": {
                         "method": "POST",
                         "header": [
                             {
@@ -136,43 +144,6 @@
                                 "value": "application/json"
                             }
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"otp\": \"123456\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/utilisateurs/verify-otp",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "utilisateurs",
-                                "verify-otp"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Inscription Téléphone",
-                    "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"name\": \"Kone\",\n    \"prenom\": \"Arouna\",\n    \"email\": \"\",\n    \"NNI\": \"1234567890\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"diaspora\": false,\n    \"pays_residence\": \"C\\u00f4te dIvoire\"\n}"
-                        },
                         "url": {
                             "raw": "{{base_url}}/utilisateurs/register",
                             "host": [
@@ -182,15 +153,33 @@
                                 "utilisateurs",
                                 "register"
                             ]
-                        }
-                    }
-                },
-                {
-                    "name": "Login Mobile (Téléphone)",
-                    "request": {
+                        },
                         "auth": {
                             "type": "noauth"
                         },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Kone\",\n    \"prenom\": \"Arouna\",\n    \"email\": \"arouna@test.com\",\n    \"NNI\": \"1234567890\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"diaspora\": false,\n    \"pays_residence\": \"Côte d'Ivoire\"\n}"
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                                    "if (json.data && json.data.token) { pm.collectionVariables.set('token', json.data.token); }",
+                                    "pm.test('Requête réussie', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Mot de passe oublié",
+                    "request": {
                         "method": "POST",
                         "header": [
                             {
@@ -202,28 +191,28 @@
                                 "value": "application/json"
                             }
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"login_identifier\": \"0102030405\",\n    \"password\": \"password123\"\n}"
-                        },
                         "url": {
-                            "raw": "{{base_url}}/utilisateurs/login",
+                            "raw": "{{base_url}}/utilisateurs/forgot-password",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "utilisateurs",
-                                "login"
+                                "forgot-password"
                             ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"redfieldluise@gmail.com\"\n}"
                         }
                     }
                 },
                 {
-                    "name": "Google Connexion / Inscription",
+                    "name": "Vérifier code reset",
                     "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
                         "method": "POST",
                         "header": [
                             {
@@ -235,10 +224,304 @@
                                 "value": "application/json"
                             }
                         ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/verify-reset-code",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "verify-reset-code"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"google_id\": \"1039485903901920\",\n    \"email\": \"ali.abibu@gmail.com\",\n    \"name\": \"Abibu\",\n    \"prenom\": \"Ali\",\n    \"NNI\": \"\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0505050505\",\n    \"diaspora\": false,\n    \"pays_residence\": \"C\\u00f4te dIvoire\"\n}"
+                            "raw": "{\n    \"email\": \"redfieldluise@gmail.com\",\n    \"token\": \"123456\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Réinitialiser mot de passe",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "reset-password"
+                            ]
                         },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"redfieldluise@gmail.com\",\n    \"token\": \"SECURE_TOKEN_ICI\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "logout"
+                            ]
+                        },
+                        "description": "🔐 Nécessite Bearer token"
+                    }
+                },
+                {
+                    "name": "Désactiver compte",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/deactivate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "deactivate"
+                            ]
+                        },
+                        "description": "🔐 Nécessite Bearer token"
+                    }
+                },
+                {
+                    "name": "Toggle Push Notification",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/toggle-push-notification",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "toggle-push-notification"
+                            ]
+                        },
+                        "description": "🔐 Nécessite Bearer token"
+                    }
+                },
+                {
+                    "name": "Obtenir utilisateur connecté",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/user",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "user"
+                            ]
+                        },
+                        "description": "🔐 Renvoie les données de l'utilisateur authentifié"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📱 Auth Mobile",
+            "item": [
+                {
+                    "name": "1. Envoyer OTP SMS",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/send-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "send-otp"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('OTP envoyé', function () { pm.response.to.have.status(200); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "2. Vérifier OTP SMS",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/verify-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "verify-otp"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"otp\": \"123456\"\n}"
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('OTP vérifié', function () { pm.response.to.have.status(200); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "3. Inscription Téléphone (Minimal)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/register-minimal",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "register-minimal"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                                    "if (json.data && json.data.token) { pm.collectionVariables.set('token', json.data.token); }",
+                                    "pm.test('Requête réussie', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "4. Google Connexion / Inscription",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "url": {
                             "raw": "{{base_url}}/utilisateurs/google",
                             "host": [
@@ -248,6 +531,271 @@
                                 "utilisateurs",
                                 "google"
                             ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "description": "📲 L'application mobile envoie un id_token Firebase. Le backend vérifie et extrait name, email, uid.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"id_token\": \"VOTRE_FIREBASE_ID_TOKEN_ICI\"\n}"
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var json = pm.response.json();",
+                                    "if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                                    "if (json.data && json.data.token) { pm.collectionVariables.set('token', json.data.token); }",
+                                    "pm.test('Requête réussie', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "5a. Finaliser profil Google",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/finalize-profile/google",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "finalize-profile",
+                                "google"
+                            ]
+                        },
+                        "description": "🔐 Nécessite le Bearer token reçu après /google. Complète le profil Google.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"NNI\": \"\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0505050505\",\n    \"diaspora\": false,\n    \"pays_residence\": \"Côte d'Ivoire\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "5b. Finaliser profil Téléphone",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/finalize-profile/phone",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "finalize-profile",
+                                "phone"
+                            ]
+                        },
+                        "description": "🔐 Nécessite le Bearer token reçu après /register-minimal.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Kone\",\n    \"prenom\": \"Arouna\",\n    \"NNI\": \"1234567890\",\n    \"email\": \"kone@test.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"diaspora\": false,\n    \"pays_residence\": \"Côte d'Ivoire\"\n}"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "👤 Profil Utilisateur",
+            "item": [
+                {
+                    "name": "Voir mon profil",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/profil",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "profil"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Mettre à jour photo (fichier)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/profil/photo",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "profil",
+                                "photo"
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "profile_picture",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Image JPG/PNG/GIF (max 5MB)"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Mettre à jour photo (base64)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/profil/photo",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "profil",
+                                "photo"
+                            ]
+                        },
+                        "description": "📲 Mode caméra mobile : envoyer l'image en base64",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"profile_picture\": \"data:image\\/jpeg;base64,\\/9j\\/VOTRE_BASE64_ICI...\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Supprimer photo de profil",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/profil/photo",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "profil",
+                                "photo"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Modifier informations",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/profil/informations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "profil",
+                                "informations"
+                            ]
+                        },
+                        "description": "⚠️ Le champ current_password est obligatoire pour confirmer les modifications.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"12345678\",\n    \"name\": \"Bakayoko\",\n    \"prenom\": \"Moussa\",\n    \"email\": \"moussa@test.com\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0100000000\",\n    \"commune\": \"Plateau\",\n    \"CMU\": \"\",\n    \"diaspora\": false,\n    \"pays_residence\": null,\n    \"ville_residence\": null,\n    \"adresse_etrangere\": null\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Changer mot de passe",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/profil/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "profil",
+                                "password"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"12345678\",\n    \"new_password\": \"newpassword123\",\n    \"new_password_confirmation\": \"newpassword123\"\n}"
                         }
                     }
                 }
@@ -280,7 +828,7 @@
                     }
                 },
                 {
-                    "name": "Créer - RETRAIT (sans paiement)",
+                    "name": "Créer - RETRAIT",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -289,6 +837,17 @@
                                 "value": "application/json"
                             }
                         ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance"
+                            ]
+                        },
                         "body": {
                             "mode": "formdata",
                             "formdata": [
@@ -354,7 +913,19 @@
                                     "description": "⚠️ Sélectionner un fichier image/pdf"
                                 }
                             ]
-                        },
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - LIVRAISON",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
                         "url": {
                             "raw": "{{base_url}}/utilisateurs/demandes/naissance",
                             "host": [
@@ -365,19 +936,7 @@
                                 "demandes",
                                 "naissance"
                             ]
-                        }
-                    }
-                },
-                {
-                    "name": "Créer - LIVRAISON (avec paiement Wave)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            }
-                        ],
+                        },
                         "body": {
                             "mode": "formdata",
                             "formdata": [
@@ -437,6 +996,12 @@
                                     "type": "text"
                                 },
                                 {
+                                    "key": "CNI",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Sélectionner un fichier image/pdf"
+                                },
+                                {
                                     "key": "montant_timbre",
                                     "value": "500",
                                     "type": "text"
@@ -490,24 +1055,7 @@
                                     "key": "quartier",
                                     "value": "Angré",
                                     "type": "text"
-                                },
-                                {
-                                    "key": "CNI",
-                                    "type": "file",
-                                    "src": "",
-                                    "description": "⚠️ Sélectionner un fichier image/pdf"
                                 }
-                            ]
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/utilisateurs/demandes/naissance",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "utilisateurs",
-                                "demandes",
-                                "naissance"
                             ]
                         }
                     }
@@ -535,15 +1083,105 @@
                                 "retry-payment"
                             ]
                         },
-                        "description": "⚠️ Remplacer '1' par l'ID réel de la demande"
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
+                    "name": "Relancer demande",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance/1/relancer",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance",
+                                "1",
+                                "relancer"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
+                    "name": "Modifier demande",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance/1/modifier",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance",
+                                "1",
+                                "modifier"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel. Envoyer uniquement les champs à modifier.",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Nouveau Nom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "prenom",
+                                    "value": "Nouveau Prénom",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Champs à modifier",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance/1/champs-a-modifier",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance",
+                                "1",
+                                "champs-a-modifier"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
                     }
                 },
                 {
                     "name": "Statut Paiement (public)",
                     "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
                         "method": "GET",
                         "header": [
                             {
@@ -562,7 +1200,10 @@
                                 "AN12341P2026"
                             ]
                         },
-                        "description": "⚠️ Remplacer 'AN12341P2026' par la référence réelle"
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "description": "⚠️ Remplacer par la référence réelle"
                     }
                 },
                 {
@@ -587,7 +1228,7 @@
                                 "1"
                             ]
                         },
-                        "description": "⚠️ Remplacer '1' par l'ID réel de la demande"
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
                     }
                 }
             ]
@@ -619,7 +1260,7 @@
                     }
                 },
                 {
-                    "name": "Créer - RETRAIT (sans paiement)",
+                    "name": "Créer - RETRAIT",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -628,6 +1269,17 @@
                                 "value": "application/json"
                             }
                         ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces"
+                            ]
+                        },
                         "body": {
                             "mode": "formdata",
                             "formdata": [
@@ -674,7 +1326,19 @@
                                     "description": "⚠️ Certificat médical de décès"
                                 }
                             ]
-                        },
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - LIVRAISON",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
                         "url": {
                             "raw": "{{base_url}}/utilisateurs/demandes/deces",
                             "host": [
@@ -685,19 +1349,7 @@
                                 "demandes",
                                 "deces"
                             ]
-                        }
-                    }
-                },
-                {
-                    "name": "Créer - LIVRAISON (avec paiement Wave)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            }
-                        ],
+                        },
                         "body": {
                             "mode": "formdata",
                             "formdata": [
@@ -730,6 +1382,18 @@
                                     "key": "communeD",
                                     "value": "plateau",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "CNIdfnt",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ CNI/Extrait naissance du défunt"
+                                },
+                                {
+                                    "key": "CNIdcl",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Certificat médical de décès"
                                 },
                                 {
                                     "key": "montant_timbre",
@@ -785,30 +1449,7 @@
                                     "key": "quartier",
                                     "value": "Angré",
                                     "type": "text"
-                                },
-                                {
-                                    "key": "CNIdfnt",
-                                    "type": "file",
-                                    "src": "",
-                                    "description": "⚠️ CNI/Extrait naissance du défunt"
-                                },
-                                {
-                                    "key": "CNIdcl",
-                                    "type": "file",
-                                    "src": "",
-                                    "description": "⚠️ Certificat médical de décès"
                                 }
-                            ]
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/utilisateurs/demandes/deces",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "utilisateurs",
-                                "demandes",
-                                "deces"
                             ]
                         }
                     }
@@ -840,11 +1481,96 @@
                     }
                 },
                 {
+                    "name": "Relancer demande",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces/1/relancer",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces",
+                                "1",
+                                "relancer"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
+                    "name": "Modifier demande",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces/1/modifier",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces",
+                                "1",
+                                "modifier"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Nouveau Nom",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Champs à modifier",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/deces/1/champs-a-modifier",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "deces",
+                                "1",
+                                "champs-a-modifier"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
                     "name": "Statut Paiement (public)",
                     "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
                         "method": "GET",
                         "header": [
                             {
@@ -862,6 +1588,9 @@
                                 "payment-status",
                                 "AD12341P2026"
                             ]
+                        },
+                        "auth": {
+                            "type": "noauth"
                         },
                         "description": "⚠️ Remplacer par la référence réelle"
                     }
@@ -920,7 +1649,7 @@
                     }
                 },
                 {
-                    "name": "Créer - RETRAIT (sans paiement)",
+                    "name": "Créer - RETRAIT",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -929,6 +1658,17 @@
                                 "value": "application/json"
                             }
                         ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage"
+                            ]
+                        },
                         "body": {
                             "mode": "formdata",
                             "formdata": [
@@ -980,7 +1720,19 @@
                                     "description": "⚠️ Extrait de mariage"
                                 }
                             ]
-                        },
+                        }
+                    }
+                },
+                {
+                    "name": "Créer - LIVRAISON",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
                         "url": {
                             "raw": "{{base_url}}/utilisateurs/demandes/mariage",
                             "host": [
@@ -991,19 +1743,7 @@
                                 "demandes",
                                 "mariage"
                             ]
-                        }
-                    }
-                },
-                {
-                    "name": "Créer - LIVRAISON (avec paiement Wave)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            }
-                        ],
+                        },
                         "body": {
                             "mode": "formdata",
                             "formdata": [
@@ -1041,6 +1781,18 @@
                                     "key": "commune",
                                     "value": "plateau",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "pieceIdentite",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Pièce d'identité"
+                                },
+                                {
+                                    "key": "extraitMariage",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Extrait de mariage"
                                 },
                                 {
                                     "key": "montant_timbre",
@@ -1096,30 +1848,7 @@
                                     "key": "quartier",
                                     "value": "Angré",
                                     "type": "text"
-                                },
-                                {
-                                    "key": "pieceIdentite",
-                                    "type": "file",
-                                    "src": "",
-                                    "description": "⚠️ Pièce d'identité"
-                                },
-                                {
-                                    "key": "extraitMariage",
-                                    "type": "file",
-                                    "src": "",
-                                    "description": "⚠️ Extrait de mariage"
                                 }
-                            ]
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/utilisateurs/demandes/mariage",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "utilisateurs",
-                                "demandes",
-                                "mariage"
                             ]
                         }
                     }
@@ -1151,11 +1880,96 @@
                     }
                 },
                 {
+                    "name": "Relancer demande",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage/1/relancer",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage",
+                                "1",
+                                "relancer"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
+                    "name": "Modifier demande",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage/1/modifier",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage",
+                                "1",
+                                "modifier"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "nomEpoux",
+                                    "value": "Nouveau Nom",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Champs à modifier",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/mariage/1/champs-a-modifier",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "mariage",
+                                "1",
+                                "champs-a-modifier"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID réel"
+                    }
+                },
+                {
                     "name": "Statut Paiement (public)",
                     "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
                         "method": "GET",
                         "header": [
                             {
@@ -1173,6 +1987,9 @@
                                 "payment-status",
                                 "AM12341P2026"
                             ]
+                        },
+                        "auth": {
+                            "type": "noauth"
                         },
                         "description": "⚠️ Remplacer par la référence réelle"
                     }
@@ -1254,6 +2071,36 @@
                     }
                 },
                 {
+                    "name": "Toutes les demandes (filtré par statut)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/toutes?statut=en+attente",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "toutes"
+                            ],
+                            "query": [
+                                {
+                                    "key": "statut",
+                                    "value": "en attente"
+                                }
+                            ]
+                        },
+                        "description": "⚠️ Valeurs possibles: en attente, en cours, terminé, rejetée"
+                    }
+                },
+                {
                     "name": "Historique paiements",
                     "request": {
                         "method": "GET",
@@ -1277,11 +2124,66 @@
                     }
                 },
                 {
+                    "name": "Détail paiement par transaction",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/paiements/detail/TXN123456",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "paiements",
+                                "detail",
+                                "TXN123456"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer 'TXN123456' par le transaction_id réel"
+                    }
+                },
+                {
+                    "name": "Suivi par référence (authentifié)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/suivi-reference",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "suivi-reference"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer par la référence réelle",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reference\": \"AN12341P2026\"\n}"
+                        }
+                    }
+                },
+                {
                     "name": "Recherche par référence (public)",
                     "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
                         "method": "GET",
                         "header": [
                             {
@@ -1305,218 +2207,1005 @@
                                 }
                             ]
                         },
+                        "auth": {
+                            "type": "noauth"
+                        },
                         "description": "⚠️ Remplacer par la référence réelle"
+                    }
+                },
+                {
+                    "name": "Détail demande spécifique",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance",
+                                "1"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer 'naissance' par le type (naissance/mariage/deces) et '1' par l'ID"
+                    }
+                },
+                {
+                    "name": "Suivi demande spécifique",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/naissance/1/suivi",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "naissance",
+                                "1",
+                                "suivi"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer 'naissance' par le type et '1' par l'ID"
                     }
                 }
             ]
         },
         {
-            "name": "📱 Auth Mobile",
+            "name": "📅 Rendez-vous",
             "item": [
                 {
-                    "name": "1. Envoyer OTP SMS",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('OTP envoyé avec succès', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "var json = pm.response.json();",
-                                    "pm.test('success = true', function () {",
-                                    "    pm.expect(json.success).to.be.true;",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
+                    "name": "Liste mes rendez-vous",
                     "request": {
-                        "auth": {"type": "noauth"},
-                        "method": "POST",
-                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
-                        "body": {"mode": "raw", "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"},
-                        "url": {"raw": "{{base_url}}/utilisateurs/send-otp", "host": ["{{base_url}}"], "path": ["utilisateurs", "send-otp"]}
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/rendezvous",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "rendezvous"
+                            ]
+                        }
                     }
                 },
                 {
-                    "name": "2. Vérifier OTP SMS",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('OTP vérifié avec succès', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "var json = pm.response.json();",
-                                    "pm.test('success = true', function () {",
-                                    "    pm.expect(json.success).to.be.true;",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
+                    "name": "Créer un rendez-vous",
                     "request": {
-                        "auth": {"type": "noauth"},
                         "method": "POST",
-                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
-                        "body": {"mode": "raw", "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\",\n    \"otp\": \"123456\"\n}"},
-                        "url": {"raw": "{{base_url}}/utilisateurs/verify-otp", "host": ["{{base_url}}"], "path": ["utilisateurs", "verify-otp"]}
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/rendezvous",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "rendezvous"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nom_epoux\": \"Bakayoko\",\n    \"prenom_epoux\": \"Moussa\",\n    \"date_naissance_epoux\": \"1990-03-20\",\n    \"lieu_naissance_epoux\": \"Abidjan\",\n    \"nom_epouse\": \"Coulibaly\",\n    \"prenom_epouse\": \"Fatoumata\",\n    \"date_naissance_epouse\": \"1992-06-10\",\n    \"lieu_naissance_epouse\": \"Bouaké\",\n    \"adresse\": \"Cocody, Angré\",\n    \"telephone\": \"0102030405\",\n    \"email\": \"test@test.com\",\n    \"date_mariage_souhaitee\": \"2026-12-25\",\n    \"heure_souhaitee\": \"10:00\",\n    \"motif\": \"Célébration de mariage\"\n}"
+                        }
                     }
                 },
                 {
-                    "name": "3. Inscription Téléphone (Minimal)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Inscription minimale réussie (201)', function () {",
-                                    "    pm.response.to.have.status(201);",
-                                    "});",
-                                    "var json = pm.response.json();",
-                                    "if (json.data && json.data.token) {",
-                                    "    pm.collectionVariables.set('token', json.data.token);",
-                                    "    console.log('✅ Token sauvegardé: ' + json.data.token);",
-                                    "}",
-                                    "pm.test('Token présent dans la réponse', function () {",
-                                    "    pm.expect(json.data).to.have.property('token');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
+                    "name": "Annuler un rendez-vous",
                     "request": {
-                        "auth": {"type": "noauth"},
-                        "method": "POST",
-                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
-                        "body": {"mode": "raw", "raw": "{\n    \"indicatif\": \"+225\",\n    \"contact\": \"0102030405\"\n}"},
-                        "url": {"raw": "{{base_url}}/utilisateurs/register-minimal", "host": ["{{base_url}}"], "path": ["utilisateurs", "register-minimal"]}
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/rendezvous/1/cancel",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "rendezvous",
+                                "1",
+                                "cancel"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID du rendez-vous"
                     }
                 },
                 {
-                    "name": "4. Google Connexion / Inscription (Minimal)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "var json = pm.response.json();",
-                                    "if (json.data && json.data.token) {",
-                                    "    pm.collectionVariables.set('token', json.data.token);",
-                                    "    console.log('✅ Token Google sauvegardé: ' + json.data.token);",
-                                    "}",
-                                    "pm.test('Auth Google OK (200 ou 201)', function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-                                    "});",
-                                    "pm.test('Token présent dans la réponse', function () {",
-                                    "    pm.expect(json.data).to.have.property('token');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
+                    "name": "Statistiques RDV par ID",
                     "request": {
-                        "auth": {"type": "noauth"},
-                        "method": "POST",
-                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
-                        "body": {"mode": "raw", "raw": "{\n    \"id_token\": \"VOTRE_FIREBASE_ID_TOKEN_ICI\"\n}"},
-                        "description": "📲 L'application mobile (après auth Firebase) génère un `id_token` et l'envoie ici. Le backend se charge de le vérifier et d'extraire name, email, et uid (google_id). (L'ancienne méthode avec google_id manuel est conservée pour les tests Postman si besoin sans id_token).",
-                        "url": {"raw": "{{base_url}}/utilisateurs/google", "host": ["{{base_url}}"], "path": ["utilisateurs", "google"]}
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/rendezvous/statistiques/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "rendezvous",
+                                "statistiques",
+                                "1"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID du rendez-vous"
                     }
                 },
                 {
-                    "name": "5a. Finaliser profil Google (complete_profile)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Profil Google finalisé (200)', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "var json = pm.response.json();",
-                                    "pm.test('success = true', function () {",
-                                    "    pm.expect(json.success).to.be.true;",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
+                    "name": "Statistiques RDV complet",
                     "request": {
-                        "method": "POST",
-                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
-                        "body": {"mode": "raw", "raw": "{\n    \"NNI\": \"\",\n    \"indicatif\": \"+225\",\n    \"contact\": \"0505050505\",\n    \"diaspora\": false,\n    \"pays_residence\": \"Côte d'Ivoire\"\n}"},
-                        "description": "🔐 Nécessite le Bearer token reçu après /google. Complète le profil Google (téléphone + résidence).",
-                        "url": {"raw": "{{base_url}}/utilisateurs/finalize-profile", "host": ["{{base_url}}"], "path": ["utilisateurs", "finalize-profile"]}
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/rendezvous/statistiques",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "rendezvous",
+                                "statistiques"
+                            ]
+                        }
                     }
                 },
                 {
-                    "name": "5b. Finaliser profil Téléphone (complete_profile)",
+                    "name": "Détails rendez-vous",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/utilisateurs/demandes/rendezvous/1/details",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "utilisateurs",
+                                "demandes",
+                                "rendezvous",
+                                "1",
+                                "details"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer '1' par l'ID du rendez-vous"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🚚 Livreur - Auth",
+            "item": [
+                {
+                    "name": "Login Livreur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "login"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"livreur@test.com\",\n    \"password\": \"password123\"\n}"
+                        }
+                    },
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Profil Téléphone finalisé (200)', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
                                     "var json = pm.response.json();",
-                                    "pm.test('success = true', function () {",
-                                    "    pm.expect(json.success).to.be.true;",
-                                    "});",
-                                    "pm.test('Nom et prénom présents', function () {",
-                                    "    pm.expect(json.data.user).to.have.property('name');",
-                                    "    pm.expect(json.data.user).to.have.property('prenom');",
-                                    "});"
+                                    "if (json.token) { pm.collectionVariables.set('livreur_token', json.token); }",
+                                    "if (json.data && json.data.token) { pm.collectionVariables.set('livreur_token', json.data.token); }",
+                                    "pm.test('Requête réussie', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });"
                                 ]
                             }
                         }
-                    ],
+                    ]
+                },
+                {
+                    "name": "Définir accès livreur",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
-                        "body": {"mode": "raw", "raw": "{\n    \"name\": \"Kone\",\n    \"prenom\": \"Arouna\",\n    \"NNI\": \"1234567890\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"diaspora\": false,\n    \"pays_residence\": \"Côte d'Ivoire\"\n}"},
-                        "description": "🔐 Nécessite le Bearer token reçu après /register-minimal. Complète le profil (nom, prénom, mot de passe, résidence).",
-                        "url": {"raw": "{{base_url}}/utilisateurs/finalize-profile", "host": ["{{base_url}}"], "path": ["utilisateurs", "finalize-profile"]}
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/define-access",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "define-access"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"livreur@test.com\"\n}"
+                        }
                     }
                 },
                 {
-                    "name": "Login Mobile (Téléphone ou Email)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Connexion réussie (200)', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "var json = pm.response.json();",
-                                    "if (json.data && json.data.token) {",
-                                    "    pm.collectionVariables.set('token', json.data.token);",
-                                    "    console.log('✅ Token connexion sauvegardé: ' + json.data.token);",
-                                    "}",
-                                    "pm.test('Token présent dans la réponse', function () {",
-                                    "    pm.expect(json.data).to.have.property('token');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
+                    "name": "Valider définition accès",
                     "request": {
-                        "auth": {"type": "noauth"},
                         "method": "POST",
-                        "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
-                        "body": {"mode": "raw", "raw": "{\n    \"login_identifier\": \"0102030405\",\n    \"password\": \"password123\"\n}"},
-                        "url": {"raw": "{{base_url}}/utilisateurs/login", "host": ["{{base_url}}"], "path": ["utilisateurs", "login"]}
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/submit-define-access",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "submit-define-access"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"livreur@test.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Mot de passe oublié livreur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "forgot-password"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"livreur@test.com\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Vérifier code reset livreur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/verify-reset-code",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "verify-reset-code"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"livreur@test.com\",\n    \"token\": \"123456\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Reset password livreur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "reset-password"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"livreur@test.com\",\n    \"token\": \"SECURE_TOKEN\",\n    \"password\": \"newpass123\",\n    \"password_confirmation\": \"newpass123\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Logout Livreur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "logout"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🚚 Livreur - Livraisons",
+            "item": [
+                {
+                    "name": "Liste livraisons",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/livraisons",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "livraisons"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Historique livraisons",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/livraisons/historique",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "livraisons",
+                                "historique"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Statistiques livraisons",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/livraisons/statistiques/general",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "livraisons",
+                                "statistiques",
+                                "general"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Détail livraison",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/livraisons/naissance/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "livraisons",
+                                "naissance",
+                                "1"
+                            ]
+                        },
+                        "description": "⚠️ Remplacer 'naissance' par le type et '1' par l'ID",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Valider livraison",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/livraisons/valider",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "livraisons",
+                                "valider"
+                            ]
+                        },
+                        "description": "⚠️ Adapter type et id",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"naissance\",\n    \"id\": 1\n}"
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Vérifier référence",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/livraisons/verifier-reference",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "livraisons",
+                                "verifier-reference"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reference\": \"AN12341P2026\"\n}"
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🚚 Livreur - Profil",
+            "item": [
+                {
+                    "name": "Voir profil livreur",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/profil",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "profil"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Mettre à jour photo livreur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/profil/photo",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "profil",
+                                "photo"
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "profile_picture",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "⚠️ Image JPG/PNG/GIF (max 5MB)"
+                                }
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Supprimer photo livreur",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/profil/photo",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "profil",
+                                "photo"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Modifier informations livreur",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/profil/informations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "profil",
+                                "informations"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Koné\",\n    \"prenom\": \"Ali\",\n    \"contact\": \"0100000000\",\n    \"commune\": \"Plateau\",\n    \"communeM\": \"Plateau\",\n    \"cas_urgence\": \"0200000000\"\n}"
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Changer mot de passe livreur",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/profil/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "profil",
+                                "password"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"password123\",\n    \"new_password\": \"newpass123\",\n    \"confirm_password\": \"newpass123\"\n}"
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Toggle disponibilité livreur",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/livreur/profil/disponibilite",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "livreur",
+                                "profil",
+                                "disponibilite"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"disponible\": true\n}"
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{livreur_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🔔 Webhooks",
+            "item": [
+                {
+                    "name": "Wave Webhook",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/webhooks/wave/notify",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "webhooks",
+                                "wave",
+                                "notify"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "description": "⚠️ Endpoint appelé par Wave, pas pour test manuel",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"checkout.session.completed\",\n    \"data\": {\n        \"id\": \"test\",\n        \"amount\": \"1500\",\n        \"currency\": \"XOF\"\n    }\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "MTN Webhook",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/webhooks/mtn/notify",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "webhooks",
+                                "mtn",
+                                "notify"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "description": "⚠️ Endpoint appelé par MTN, pas pour test manuel",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"referenceId\": \"test-ref\",\n    \"status\": \"SUCCESSFUL\"\n}"
+                        }
                     }
                 }
             ]

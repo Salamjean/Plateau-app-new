@@ -87,28 +87,43 @@
         var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         var deepLink = "plateauapps://app/payment-result?status=success&transactionId={{ $reference }}";
 
+        // Stocker le résultat dans localStorage (résiste aux ruptures COOP de Wave)
+        try {
+            localStorage.setItem('plateauPaymentResult', JSON.stringify({
+                status: 'success',
+                reference: '{{ $reference }}',
+                listUrl: '{{ $listUrl }}',
+                timestamp: Date.now()
+            }));
+        } catch (e) {}
+
+        // Notifier l'opener si accessible (sans COOP)
         if (window.opener && window.opener !== window) {
-            // Dans un popup, on donne 3 secondes pour lire le message puis on ferme le popup
+            try {
+                window.opener.paymentSuccess = true;
+                window.opener.paymentSuccessUrl = '{{ $listUrl }}';
+                window.opener.paymentType = '{{ $type }}';
+            } catch (e) {}
+        }
+
+        // Détecter si on est dans un popup (via window.opener OU window.name)
+        var isPopup = (window.opener && window.opener !== window) || window.name === 'WavePaymentPopup';
+
+        if (isPopup) {
+            // Toujours fermer le popup après 3 secondes (même si opener est null à cause du COOP)
             setTimeout(function() {
-                try { 
-                    window.opener.paymentSuccess = true; 
-                    window.opener.paymentSuccessUrl = '{{ $listUrl }}';
-                    window.opener.paymentType = '{{ $type }}';
-                } catch (e) {}
                 window.close();
             }, 3000);
         } else {
-            // Tentative automatique d'ouverture de l'application sur mobile
             if (isMobile) {
                 setTimeout(function() {
                     window.location.href = deepLink;
                 }, 1000);
             }
-            
-            // Auto-redirect vers la liste après 15 secondes (cas classique)
+            // Rediriger vers la liste après 5 secondes (cas fenêtre principale)
             setTimeout(function() {
-                if(!isMobile) { window.location.href = '{{ $listUrl }}'; }
-            }, 15000);
+                if (!isMobile) { window.location.href = '{{ $listUrl }}'; }
+            }, 5000);
         }
     </script>
 

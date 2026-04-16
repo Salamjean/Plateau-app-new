@@ -30,17 +30,26 @@ class UserAuthenticate extends Controller
 
     public function handleLogin(UserLoginRequest $request): RedirectResponse
     {
-        if (!Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+        $credentials = $request->only('password');
+        
+        if ($request->filled('email')) {
+            $credentials['email'] = $request->email;
+        } else {
+            $credentials['contact'] = $request->contact;
+            $credentials['indicatif'] = $request->indicatif;
+        }
+
+        if (!Auth::attempt($credentials, $request->filled('remember'))) {
             return redirect()->route('login')->withErrors([
-                'password' => 'Le mot de passe incorrect.',
-            ]);
+                'password' => 'Identifiants ou mot de passe incorrects.',
+            ])->withInput($request->except('password'));
         }
 
         // Si l'authentification réussit, régénérer la session
         $request->session()->regenerate();
 
         // Rediriger vers la page de tableau de bord avec un message de succès
-        return redirect()->intended(route('user.dashboard', absolute: false))->with('success', 'Bienvenue sur votre page!');
+        return redirect()->intended(route('user.dashboard', false))->with('success', 'Bienvenue sur votre page!');
     }
 
     

@@ -5,7 +5,7 @@
 
     <div class="card mb-4">
         <div class="card-header">
-            <h4 class="card-title">Profil de l'utilisateur</h4>
+            <h4 class="card-title">Profile de l'utilisateur</h4>
         </div>
         <div class="card-body">
             @if (session('success'))
@@ -43,7 +43,7 @@
                         <label for="profile_picture" class="btn btn-sm btn-info">Changer la photo</label>
                         {{-- L'attribut 'accept' est un plus pour n'autoriser que les images --}}
                         <input type="file" id="profile_picture" name="profile_picture" class="d-none" accept="image/*">
-                        
+
                         @if(auth()->user()->profile_picture)
                             <button type="submit" form="delete-picture-form" class="btn btn-sm btn-danger">Supprimer la photo</button>
                         @endif
@@ -62,7 +62,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Adresse Email</label>
+                    <label for="email">Adresse Email (Optionnelle)</label>
                     <input type="email" class="form-control" id="email" name="email" value="{{ old('email', auth()->user()->email) }}">
                 </div>
                 

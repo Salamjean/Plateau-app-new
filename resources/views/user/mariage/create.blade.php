@@ -747,11 +747,24 @@
                             const timer = setInterval(() => {
                                 if (popup.closed) {
                                     clearInterval(timer);
+                                    Swal.close();
+                                    // Vérifier d'abord window.paymentSuccess (opener accessible)
                                     if (window.paymentSuccess) {
                                         window.location.href = window.paymentSuccessUrl || "{{ route('user.extrait.mariage.index') }}";
-                                    } else {
-                                        window.location.reload();
+                                        return;
                                     }
+                                    // Fallback : lire localStorage (cas où COOP a rompu window.opener)
+                                    try {
+                                        var result = JSON.parse(localStorage.getItem('plateauPaymentResult') || '{}');
+                                        var age = Date.now() - (result.timestamp || 0);
+                                        if (result.status === 'success' && age < 120000) {
+                                            localStorage.removeItem('plateauPaymentResult');
+                                            window.location.href = result.listUrl || "{{ route('user.extrait.mariage.index') }}";
+                                            return;
+                                        }
+                                    } catch (e) {}
+                                    // Paiement annulé ou inconnu : recharger le formulaire
+                                    window.location.reload();
                                 }
                             }, 1000);
                         } else {

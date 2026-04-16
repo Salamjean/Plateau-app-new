@@ -24,6 +24,7 @@ Route::post('/admin/login', [ConnexionController::class, 'handleLogin']);
 // UTILISATEURS - Routes publiques
 Route::prefix('utilisateurs')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
+    Route::post('/register-email', [RegisterController::class, 'registerEmail']);
     Route::post('/login', [UserLoginController::class, 'login']);
     Route::post('/forgot-password', [PasswordforgotController::class, 'forgotPassword']);
     Route::post('/verify-reset-code', [PasswordforgotController::class, 'verifyResetCode']);

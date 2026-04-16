@@ -391,9 +391,16 @@ Route::prefix('user')->group(function () {
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('user.password.email');
     Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('user.password.reset');
     Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('user.password.update');
+
+    // Nouvelles routes d'authentification avancée
+    Route::post('/auth/google', [\App\Http\Controllers\User\UserAuthFlowController::class, 'handleGoogleAuth'])->name('user.auth.google');
+    Route::post('/auth/otp/send', [\App\Http\Controllers\User\UserAuthFlowController::class, 'sendOtp'])->name('user.auth.otp.send');
+    Route::post('/auth/otp/verify', [\App\Http\Controllers\User\UserAuthFlowController::class, 'verifyOtp'])->name('user.auth.otp.verify');
 });
 
 Route::middleware('auth')->prefix('user')->group(function () {
+    Route::get('/auth/complete-profile', [\App\Http\Controllers\User\UserAuthFlowController::class, 'showFinalizeProfile'])->name('user.auth.profile.complete');
+    Route::post('/auth/complete-profile', [\App\Http\Controllers\User\UserAuthFlowController::class, 'submitFinalizeProfile'])->name('user.auth.profile.submit');
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
     Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
     Route::post('/dismiss-free-requests-message', [UserController::class, 'dismissFreeRequestsMessage'])->name('user.dismiss.free.requests');
@@ -440,6 +447,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     // Routes pour la gestion du profil utilisateur
     Route::get('/profile', [ProfiluserController::class, 'show'])->name('user.profile.show');
     Route::put('/profile', [ProfiluserController::class, 'update'])->name('user.profile.update');
+    Route::post('/profile/verify-password', [ProfiluserController::class, 'verifyPassword'])->name('user.verify.password');
     Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
 });
 

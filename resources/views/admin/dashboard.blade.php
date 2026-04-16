@@ -248,7 +248,7 @@
                                         <tr>
                                             <td class="text-center">{{ $activite->type }}</td>
                                             <td class="text-center">{{ $activite->created_at->format('d/m/Y H:i') }}</td>
-                                            <td class="text-center">{{ $activite->user->name.' '.$activite->user->prenom ?? 'N/A' }}</td>
+                                            <td class="text-center">{{ $activite->user ? ($activite->user->name.' '.$activite->user->prenom) : 'N/A' }}</td>
                                             <td class="text-center">
                                                 @if(isset($activite->etat ))
                                                     <span class="badge 

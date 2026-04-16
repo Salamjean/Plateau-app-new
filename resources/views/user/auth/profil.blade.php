@@ -8,19 +8,23 @@
     /* Votre CSS existant reste le même */
     :root {
         --primary: #1977cc;
-        --primary-dark: #1977cc;
+        --primary-dark: #125ea3;
+        --navy: #2b3674;
+        --navy-light: #3a478c;
         --secondary: #10B981;
         --accent: #F59E0B;
-        --danger: #EF4444;
+        --danger: #EE5D50;
         --warning: #F59E0B;
         --info: #06B6D4;
-        --light: #F8FAFC;
-        --dark: #1E293B;
-        --gray: #64748B;
-        --gray-light: #E2E8F0;
-        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --radius: 12px;
+        --light: #f4f7fe;
+        --dark: #2b3674;
+        --grey: #a3aed0;
+        --gray: #a3aed0;
+        --gray-light: #e0e5f2;
+        --shadow: 0 5px 14px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08);
+        --radius: 20px;
+        --radius-sm: 12px;
         --transition: all 0.3s ease;
     }
 
@@ -31,8 +35,8 @@
 
     .cards-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 25px;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 30px;
         max-width: 1400px;
         margin: 0 auto;
     }
@@ -41,7 +45,7 @@
         background: white;
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        border: 1px solid var(--gray-light);
+        border: none;
         transition: var(--transition);
         overflow: hidden;
     }
@@ -52,92 +56,111 @@
     }
 
     .card-header {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white;
-        padding: 20px 25px;
-        border-bottom: 1px solid var(--gray-light);
+        background: transparent;
+        color: var(--navy);
+        padding: 25px 30px 15px;
+        border-bottom: none;
     }
 
     .card-title {
-        font-size: 1.3rem;
-        font-weight: 600;
+        font-size: 1.25rem;
+        font-weight: 700;
         margin: 0;
         display: flex;
         align-items: center;
-        gap: 10px;
-        color: white;
+        gap: 12px;
+        color: var(--navy);
     }
 
     .card-title i {
-        font-size: 1.1rem;
+        color: var(--primary);
+        font-size: 1.4rem;
+        background: rgba(25, 119, 204, 0.1);
+        padding: 10px;
+        border-radius: var(--radius-sm);
     }
 
     .card-body {
-        padding: 25px;
+        padding: 15px 30px 30px;
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 22px;
+        position: relative;
     }
 
     .form-label {
         display: block;
         margin-bottom: 8px;
-        font-weight: 500;
-        color: var(--dark);
+        font-weight: 600;
+        color: var(--navy);
         font-size: 0.9rem;
     }
 
     .form-control1 {
         width: 100%;
-        padding: 12px 15px;
+        padding: 14px 18px;
         border: 2px solid var(--gray-light);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         font-size: 0.95rem;
+        color: var(--navy);
         transition: var(--transition);
-        background: white;
+        background: var(--light);
     }
 
     .form-control1:focus {
         outline: none;
         border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(25, 119, 204, 0.1);
     }
 
     .form-control1.has-icon {
-        padding-left: 45px;
+        padding-left: 50px;
     }
 
     .input-icon {
         position: absolute;
-        left: 15px;
-        top: 38px;
-        color: var(--gray);
+        left: 18px;
+        top: 42px;
+        color: var(--grey);
         transition: var(--transition);
+    }
+
+    .form-control1:focus ~ .input-icon {
+        color: var(--primary);
     }
 
     .phone-group {
         display: flex;
-        gap: 10px;
+        gap: 12px;
     }
 
     .phone-select {
-        flex: 0 0 100px;
+        flex: 0 0 110px;
         border: 2px solid var(--gray-light);
-        border-radius: 8px;
-        padding: 12px;
+        border-radius: var(--radius-sm);
+        padding: 14px;
+        background: var(--light);
+        color: var(--navy);
+        font-weight: 600;
+    }
+
+    .phone-select:focus {
+        border-color: var(--primary);
         background: white;
+        outline: none;
     }
 
     .checkbox-card {
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 15px;
+        padding: 18px;
         background: var(--light);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         border-left: 4px solid var(--primary);
-        margin-bottom: 20px;
+        margin-bottom: 25px;
     }
 
     .checkbox {
@@ -182,20 +205,23 @@
     }
 
     .avatar-container {
-        width: 120px;
-        height: 120px;
+        width: 140px;
+        height: 140px;
         border-radius: 50%;
         margin: 0 auto 20px;
         overflow: hidden;
-        border: 4px solid var(--gray-light);
+        border: 4px solid var(--light);
+        box-shadow: 0 8px 16px rgba(43, 54, 116, 0.1);
         position: relative;
         cursor: pointer;
         transition: var(--transition);
+        background: white;
     }
 
     .avatar-container:hover {
         border-color: var(--primary);
         transform: scale(1.05);
+        box-shadow: 0 12px 20px rgba(25, 119, 204, 0.2);
     }
 
     .avatar-container img {
@@ -207,49 +233,53 @@
     .avatar-placeholder {
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, var(--gray-light), #CBD5E1);
+        background: linear-gradient(135deg, var(--light), #e0e5f2);
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .avatar-placeholder i {
-        font-size: 3rem;
-        color: var(--gray);
+        font-size: 3.5rem;
+        color: var(--grey);
     }
 
     .avatar-preview {
-        width: 100px;
-        height: 100px;
+        width: 120px;
+        height: 120px;
         border-radius: 50%;
         object-fit: cover;
         margin: 10px auto;
-        border: 3px solid var(--primary);
+        border: 4px solid var(--primary);
+        box-shadow: 0 8px 16px rgba(25, 119, 204, 0.2);
         display: none;
     }
 
     .btn {
-        padding: 12px 24px;
+        padding: 14px 28px;
         border: none;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        font-weight: 500;
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        font-weight: 700;
         cursor: pointer;
         transition: var(--transition);
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        gap: 10px;
         text-decoration: none;
     }
 
     .btn-primary {
         background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         color: white;
+        box-shadow: 0 4px 12px rgba(25, 119, 204, 0.3);
     }
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 8px 20px rgba(25, 119, 204, 0.4);
+        color: white;
     }
 
     .btn-block {
@@ -299,12 +329,19 @@
         gap: 5px;
     }
 
-    .bouton{
-        margin-top:50px;
-        width: 250px;
-        align-items: center;
+    .bouton {
+        margin-top: 50px;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
+    }
+
+    .bouton .btn-primary {
+        width: 100%;
+        max-width: 400px;
+        padding: 16px;
+        font-size: 1.1rem;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     }
 
     @keyframes slideDown {
@@ -434,9 +471,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="email">Adresse Email</label>
+                        <label class="form-label" for="email">Adresse Email (Optionnelle)</label>
                         <input type="email" class="form-control1 has-icon" name="email" 
-                               value="{{ old('email', auth()->user()->email) }}" placeholder="votre@email.com" required>
+                               value="{{ old('email', auth()->user()->email) }}" placeholder="votre@email.com">
                         <i class="fas fa-envelope input-icon"></i>
                         @error('email')
                             <div class="error-message">
@@ -663,6 +700,13 @@
                 })
                 .then(data => {
                     if (data.success) {
+                        // Créer un champ caché pour le mot de passe
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'password';
+                        hiddenInput.value = result.value.password;
+                        document.getElementById('profileForm').appendChild(hiddenInput);
+                        
                         // Soumettre le formulaire après vérification réussie
                         document.getElementById('profileForm').submit();
                     } else {

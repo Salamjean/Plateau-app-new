@@ -22,7 +22,9 @@ class UserLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email','exists:users,email'],
+            'email' => ['required_without:contact', 'nullable', 'string', 'email'],
+            'contact' => ['required_without:email', 'nullable', 'string'],
+            'indicatif' => ['required_with:contact', 'nullable', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -30,10 +32,9 @@ class UserLoginRequest extends FormRequest
     public function messages()
     {
         return [
-            'email.required' => 'Le mail est obligatoire',
-            'email.email' => 'Le mail doit être de type email',
-            'email.exists' => 'Cette adresse email n\'existe pas',
-            'password.required' => 'Le mot de passe est obligatoire',
+            'email.required_without' => 'L\'adresse email est obligatoire si le contact n\'est pas fourni.',
+            'contact.required_without' => 'Le contact est obligatoire si l\'email n\'est pas fourni.',
+            'password.required' => 'Le mot de passe est obligatoire.',
         ];
     }
 }

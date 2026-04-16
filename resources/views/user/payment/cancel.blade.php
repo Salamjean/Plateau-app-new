@@ -66,8 +66,20 @@
         var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         var deepLink = "plateauapps://app/payment-result?status=cancel&transactionId={{ $reference ?? '' }}";
 
-        if (window.opener && window.opener !== window) {
-            // Ferme le popup après 3 secondes sur annulation/erreur
+        // Stocker le résultat annulation dans localStorage
+        try {
+            localStorage.setItem('plateauPaymentResult', JSON.stringify({
+                status: 'cancel',
+                reference: '{{ $reference ?? '' }}',
+                timestamp: Date.now()
+            }));
+        } catch (e) {}
+
+        // Détecter si on est dans un popup (via window.opener OU window.name)
+        var isPopup = (window.opener && window.opener !== window) || window.name === 'WavePaymentPopup';
+
+        if (isPopup) {
+            // Toujours fermer le popup après 3 secondes (même si opener est null à cause du COOP)
             setTimeout(function() {
                 window.close();
             }, 3000);

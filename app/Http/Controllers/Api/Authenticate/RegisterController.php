@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 
 class RegisterController extends Controller
 {
+   
     /**
      * Inscription minimale (Etape 2 après l'OTP)
      * Enregistre l'utilisateur avec son numéro uniquement.
