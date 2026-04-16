@@ -842,7 +842,7 @@
             const date_livraison = document.getElementById('swal-date_livraison').value;
             const heure_livraison = document.getElementById('swal-heure_livraison').value;
 
-            if (!nom_destinataire || !prenom_destinataire || !email_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !heure_livraison) {
+            if (!nom_destinataire || !prenom_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !heure_livraison) {
                 Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires, y compris la date et l'heure de livraison.");
                 return false;
             }
@@ -854,8 +854,8 @@
                 Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
                 return false;
             }
-            // Validation d'email simple
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
+            // Validation d'email simple (si renseigné)
+            if (email_destinataire && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
                 Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
                 return false;
             }

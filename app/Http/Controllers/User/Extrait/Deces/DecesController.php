@@ -25,7 +25,7 @@ class DecesController extends Controller
         // Récupérer les utilisateurs connecté
         $user = Auth::user();
 
-        $deces = Deces::where('user_id', $user->id)->where('etat', '!=', 'terminé')->paginate(10);
+        $deces = Deces::where('user_id', $user->id)->paye()->where('etat', '!=', 'terminé')->paginate(10);
 
         return view('user.deces.index', compact('deces'));
     }

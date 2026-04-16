@@ -57,28 +57,28 @@ private function getStatsDetaillees($months)
 {
     return [
         'naissances' => [
-            'total' => Naissance::count(),
-            'termine' => Naissance::where('etat', 'terminé')->count(),
-            'en_cours' => Naissance::where('etat', 'en cours')->count(),
-            'en_attente' => Naissance::where('etat', 'en attente')->count(),
-            'taux_completion' => Naissance::count() > 0 ? 
-                round((Naissance::where('etat', 'terminé')->count() / Naissance::count()) * 100, 1) : 0
+            'total' => Naissance::paye()->count(),
+            'termine' => Naissance::paye()->where('etat', 'terminé')->count(),
+            'en_cours' => Naissance::paye()->where('etat', 'en cours')->count(),
+            'en_attente' => Naissance::paye()->where('etat', 'en attente')->count(),
+            'taux_completion' => Naissance::paye()->count() > 0 ? 
+                round((Naissance::paye()->where('etat', 'terminé')->count() / Naissance::paye()->count()) * 100, 1) : 0
         ],
         'deces' => [
-            'total' => Deces::count(),
-            'termine' => Deces::where('etat', 'terminé')->count(),
-            'en_cours' => Deces::where('etat', 'en cours')->count(),
-            'en_attente' => Deces::where('etat', 'en attente')->count(),
-            'taux_completion' => Deces::count() > 0 ? 
-                round((Deces::where('etat', 'terminé')->count() / Deces::count()) * 100, 1) : 0
+            'total' => Deces::paye()->count(),
+            'termine' => Deces::paye()->where('etat', 'terminé')->count(),
+            'en_cours' => Deces::paye()->where('etat', 'en cours')->count(),
+            'en_attente' => Deces::paye()->where('etat', 'en attente')->count(),
+            'taux_completion' => Deces::paye()->count() > 0 ? 
+                round((Deces::paye()->where('etat', 'terminé')->count() / Deces::paye()->count()) * 100, 1) : 0
         ],
         'mariages' => [
-            'total' => Mariage::count(),
-            'termine' => Mariage::where('etat', 'terminé')->count(),
-            'en_cours' => Mariage::where('etat', 'en cours')->count(),
-            'en_attente' => Mariage::where('etat', 'en attente')->count(),
-            'taux_completion' => Mariage::count() > 0 ? 
-                round((Mariage::where('etat', 'terminé')->count() / Mariage::count()) * 100, 1) : 0
+            'total' => Mariage::paye()->count(),
+            'termine' => Mariage::paye()->where('etat', 'terminé')->count(),
+            'en_cours' => Mariage::paye()->where('etat', 'en cours')->count(),
+            'en_attente' => Mariage::paye()->where('etat', 'en attente')->count(),
+            'taux_completion' => Mariage::paye()->count() > 0 ? 
+                round((Mariage::paye()->where('etat', 'terminé')->count() / Mariage::paye()->count()) * 100, 1) : 0
         ]
     ];
 }
@@ -217,15 +217,15 @@ public function previewPdf(Request $request)
             $date = Carbon::now()->subMonths($i);
             $mois[] = $date->format('M Y');
 
-            $naissances[] = Naissance::whereYear('created_at', $date->year)
+            $naissances[] = Naissance::paye()->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month)
                 ->count();
 
-            $deces[] = Deces::whereYear('created_at', $date->year)
+            $deces[] = Deces::paye()->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month)
                 ->count();
 
-            $mariages[] = Mariage::whereYear('created_at', $date->year)
+            $mariages[] = Mariage::paye()->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month)
                 ->count();
         }

@@ -63,6 +63,15 @@ class Naissance extends Model
     }
 
 
+    /**
+     * Scope pour exclure les demandes non payées.
+     * À utiliser dans toutes les vues de liste.
+     */
+    public function scopePaye($query)
+    {
+        return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente']);
+    }
+
     public static function getNextId()
     {
         $lastNaissance = self::orderBy('id', 'desc')->first();

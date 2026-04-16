@@ -44,7 +44,7 @@ class MariageController extends Controller
         }
 
         // Récupérer tous les mariages correspondant aux critères de filtrage
-        $mariages = $query->where('etat', '!=', 'terminé')->get();
+        $mariages = $query->paye()->where('etat', '!=', 'terminé')->get();
 
         // Fusionner les deux collections en une seule
         $allMariages = $mariages;

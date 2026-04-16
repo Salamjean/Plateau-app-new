@@ -128,6 +128,7 @@ class AgentDashboard extends Controller
 
         if (!$type || $type == 'naissance') {
             $naissancesQuery = Naissance::where('commune', $admin->communeM)
+                ->paye()
                 ->where('etat', 'en attente');
             if ($month) $naissancesQuery->whereMonth('created_at', $month);
             if ($year) $naissancesQuery->whereYear('created_at', $year);
@@ -136,6 +137,7 @@ class AgentDashboard extends Controller
 
         if (!$type || $type == 'deces') {
             $decesQuery = Deces::where('commune', $admin->communeM)
+                ->paye()
                 ->where('etat', 'en attente');
             if ($month) $decesQuery->whereMonth('created_at', $month);
             if ($year) $decesQuery->whereYear('created_at', $year);
@@ -144,6 +146,7 @@ class AgentDashboard extends Controller
 
         if (!$type || $type == 'mariage') {
             $mariagesQuery = Mariage::where('commune', $admin->communeM)
+                ->paye()
                 ->where('etat', 'en attente');
             if ($month) $mariagesQuery->whereMonth('created_at', $month);
             if ($year) $mariagesQuery->whereYear('created_at', $year);

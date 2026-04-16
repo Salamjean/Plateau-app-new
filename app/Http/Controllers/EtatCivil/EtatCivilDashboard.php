@@ -18,10 +18,10 @@ class EtatCivilDashboard extends Controller
 {
     public function dashboard()
     {
-        // Statistiques des demandes
-        $totalNaissances = Naissance::count();
-        $totalDeces = Deces::count();
-        $totalMariages = Mariage::count();
+        // Statistiques des demandes (on exclut les non payées)
+        $totalNaissances = Naissance::paye()->count();
+        $totalDeces = Deces::paye()->count();
+        $totalMariages = Mariage::paye()->count();
         $totalAgents = Agent::count();
 
         // Évolution des demandes des 6 derniers mois

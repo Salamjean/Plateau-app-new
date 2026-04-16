@@ -22,6 +22,8 @@ class MairieNaissanceController extends Controller
         
         if ($etat) {
             $query->where('etat', $etat);
+        } else {
+            $query->paye();
         }
         
         if ($type) {

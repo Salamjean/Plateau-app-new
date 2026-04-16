@@ -28,6 +28,13 @@ class WaveService
      */
     public function createCheckoutSession($amount, $currency, $successUrl, $errorUrl, $clientReference)
     {
+        // Force HTTPS unconditionally — Wave API only accepts https:// URLs
+        // Skip only for localhost/127.0.0.1 to allow local dev with http
+        if (!str_contains(strtolower($successUrl), 'localhost') && !str_contains($successUrl, '127.0.0.1')) {
+            $successUrl = str_replace('http://', 'https://', $successUrl);
+            $errorUrl = str_replace('http://', 'https://', $errorUrl);
+        }
+        
         try {
             $response = Http::withHeaders([
                 'Authorization' => "Bearer " . $this->apiKey,

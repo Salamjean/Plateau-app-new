@@ -22,6 +22,9 @@ class EtatNaissanceController extends Controller
         
         if ($etat) {
             $query->where('etat', $etat);
+        } else {
+            // Par défaut, exclure les demandes non payées
+            $query->paye();
         }
         
         if ($type) {

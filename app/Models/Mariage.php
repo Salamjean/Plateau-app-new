@@ -61,6 +61,14 @@ class Mariage extends Model
         return $this->belongsTo(Agent::class, 'agent_id');
     }
 
+    /**
+     * Scope pour exclure les demandes non payées.
+     */
+    public function scopePaye($query)
+    {
+        return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente']);
+    }
+
     public static function getNextId()
     {
         $lastMariage = self::orderBy('id', 'desc')->first();

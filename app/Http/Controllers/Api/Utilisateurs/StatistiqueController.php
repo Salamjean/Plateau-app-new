@@ -52,8 +52,8 @@ class StatistiqueController extends Controller
             // --- Définir explicitement les états considérés comme "en cours" ---
             $statutsEnCours = ['en traitement', 'en cours', 'validé', 'en cours de traitement', 'réçu'];
 
-            // --- MODIFICATION : Ajouter 'en attente de paiement' dans les états exclus ---
-            $etatsExclus = ['paiement_echoue', 'rejetée', 'en attente de paiement'];
+            // --- MODIFICATION : Ajouter 'en attente de paiement' et 'non_paye' dans les états exclus ---
+            $etatsExclus = ['paiement_echoue', 'rejetée', 'en attente de paiement', 'non_paye'];
 
             // --- Formatage des statistiques par ÉTAT ---
             $statsNaissance = [
@@ -62,7 +62,7 @@ class StatistiqueController extends Controller
                 'en attente' => $statsNaissanceRaw->get('en attente', 0),
                 'paiement_echoue' => $statsNaissanceRaw->get('paiement_echoue', 0),
                 'rejetée' => $statsNaissanceRaw->get('rejetée', 0),
-                'en attente de paiement' => $statsNaissanceRaw->get('en attente de paiement', 0), // Pour information seulement
+                'en attente de paiement' => $statsNaissanceRaw->get('en attente de paiement', 0) + $statsNaissanceRaw->get('non_paye', 0), // Pour information seulement
                 'total'    => $statsNaissanceRaw->except($etatsExclus)->sum()
             ];
 
@@ -72,7 +72,7 @@ class StatistiqueController extends Controller
                 'en attente' => $statsMariageRaw->get('en attente', 0),
                 'paiement_echoue' => $statsMariageRaw->get('paiement_echoue', 0),
                 'rejetée' => $statsMariageRaw->get('rejetée', 0),
-                'en attente de paiement' => $statsMariageRaw->get('en attente de paiement', 0), // Pour information seulement
+                'en attente de paiement' => $statsMariageRaw->get('en attente de paiement', 0) + $statsMariageRaw->get('non_paye', 0), // Pour information seulement
                 'total'    => $statsMariageRaw->except($etatsExclus)->sum()
             ];
 
@@ -82,7 +82,7 @@ class StatistiqueController extends Controller
                 'en attente' => $statsDecesRaw->get('en attente', 0),
                 'paiement_echoue' => $statsDecesRaw->get('paiement_echoue', 0),
                 'rejetée' => $statsDecesRaw->get('rejetée', 0),
-                'en attente de paiement' => $statsDecesRaw->get('en attente de paiement', 0), // Pour information seulement
+                'en attente de paiement' => $statsDecesRaw->get('en attente de paiement', 0) + $statsDecesRaw->get('non_paye', 0), // Pour information seulement
                 'total'    => $statsDecesRaw->except($etatsExclus)->sum()
             ];
 
@@ -330,15 +330,10 @@ class StatistiqueController extends Controller
             // --- MODIFICATION (1) : Récupérer le filtre de statut depuis l'URL ---
             $statutFiltre = $request->input('statut');
 
-            // --- MODIFICATION (2) : Préparer les requêtes de base avec exclusion de 'en attente de paiement' ---
-            $queryNaissances = Naissance::where('user_id', $user->id)
-                ->where('etat', '!=', 'en attente de paiement');
-
-            $queryMariages = Mariage::where('user_id', $user->id)
-                ->where('etat', '!=', 'en attente de paiement');
-
-            $queryDeces = Deces::where('user_id', $user->id)
-                ->where('etat', '!=', 'en attente de paiement');
+            // --- MODIFICATION (2) : Préparer les requêtes de base avec exclusion de 'en attente de paiement' et 'non_paye' ---
+            $queryNaissances = Naissance::where('user_id', $user->id)->paye();
+            $queryMariages = Mariage::where('user_id', $user->id)->paye();
+            $queryDeces = Deces::where('user_id', $user->id)->paye();
 
             // --- MODIFICATION (3) : Appliquer le filtre si il est fourni ---
             if ($statutFiltre) {

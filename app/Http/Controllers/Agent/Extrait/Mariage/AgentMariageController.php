@@ -26,6 +26,7 @@ class AgentMariageController extends Controller
 
         // Initialiser la requête pour Mariage et filtrer par commune de l'admin
         $query = Mariage::where('commune', $admin->communeM)
+            ->paye()
             ->where(function ($query) {
                 $query->whereNull('statut_livraison')
                     ->orWhere('statut_livraison', '!=', 'livré');

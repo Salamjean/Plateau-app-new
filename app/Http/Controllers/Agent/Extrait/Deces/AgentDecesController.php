@@ -27,6 +27,7 @@ class AgentDecesController extends Controller
 
         $decesQuery = Deces::where('commune', $admin->communeM)
             ->where('agent_id', $admin->id)
+            ->paye()
             ->where(function ($query) {
                 $query->whereNull('statut_livraison')
                     ->orWhere('statut_livraison', '!=', 'livré');

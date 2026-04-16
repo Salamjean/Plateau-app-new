@@ -25,7 +25,7 @@ class NaissanceController extends Controller
 
         // Récupérer l'utilisateur connecté
         $user = Auth::user();
-        $naissances = Naissance::where('user_id', $user->id)->where('etat', '!=', 'terminé')->paginate(20);
+        $naissances = Naissance::where('user_id', $user->id)->paye()->where('etat', '!=', 'terminé')->paginate(20);
 
         return view('user.naissance.index', compact('naissances'));
     }
