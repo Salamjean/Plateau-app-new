@@ -27,9 +27,9 @@ class MairieDashboard extends Controller
         $selectedYearHops = $request->input('year_hops', date('Y'));
 
         // Requêtes de base
-        $naissancesQuery = Naissance::where('commune', $mairie->name);
-        $decesQuery = Deces::where('commune', $mairie->name);
-        $mariagesQuery = Mariage::where('commune', $mairie->name);
+        $naissancesQuery = Naissance::where('commune', $mairie->name)->paye();
+        $decesQuery = Deces::where('commune', $mairie->name)->paye();
+        $mariagesQuery = Mariage::where('commune', $mairie->name)->paye();
 
         // Appliquer les filtres si présents
         if ($selectedMonth) {

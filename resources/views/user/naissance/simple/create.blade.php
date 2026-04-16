@@ -869,31 +869,34 @@
             const payment_number = document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
             const payment_method = document.getElementById('swal-payment_method').value;
 
-            if (payment_method === 'mtn') {
-                if (!/^\d{10}$/.test(payment_number)) {
-                    Swal.showValidationMessage('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
-                    return false;
-                }
-            }
+                    if (payment_method === 'mtn') {
+                        if (!/^\d{10}$/.test(payment_number)) {
+                            Swal.showValidationMessage('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
+                            return false;
+                        }
+                    }
 
-            return {
-                nom_destinataire: nom_destinataire,
-                prenom_destinataire: prenom_destinataire,
-                email_destinataire: email_destinataire,
-                contact_destinataire: contact_destinataire,
-                adresse_livraison: adresse_livraison,
-                ville: ville,
-                commune_livraison: commune_livraison,
-                quartier: quartier,
-                date_livraison: date_livraison,
-                heure_livraison: heure_livraison,
-                quantite: quantite,
-                montant_timbre_unitaire: montantTimbreUnitaire,
-                montant_timbre: montantTimbreTotal,
-                montant_livraison: montantLivraison,
-                payment_method: payment_method,
-                mtn_number: payment_number
-            };
+                    // Ouvrir la fenêtre de paiement de manière synchrone pour contourner le bloqueur
+                    window.PaymentPopup = window.open('', 'PaymentPopup');
+
+                    return {
+                        nom_destinataire: nom_destinataire,
+                        prenom_destinataire: prenom_destinataire,
+                        email_destinataire: email_destinataire,
+                        contact_destinataire: contact_destinataire,
+                        adresse_livraison: adresse_livraison,
+                        ville: ville,
+                        commune_livraison: commune_livraison,
+                        quartier: quartier,
+                        date_livraison: date_livraison,
+                        heure_livraison: heure_livraison,
+                        quantite: quantite,
+                        montant_timbre_unitaire: montantTimbreUnitaire,
+                        montant_timbre: montantTimbreTotal,
+                        montant_livraison: montantLivraison,
+                        payment_method: payment_method,
+                        mtn_number: payment_number
+                    };
         }
     }).then((result) => {
         if (result.isConfirmed) {
@@ -931,62 +934,57 @@
 
             window.paymentSuccess = false;
             
+            if (window.PaymentPopup) {
+                form.target = 'PaymentPopup';
+            } else {
+                form.target = '_blank';
+            }
+            
             if (formData.payment_method === 'wave') {
-                // Ouvrir Wave dans un nouvel onglet (en grand)
-                const popup = window.open('', 'WavePaymentPopup');
-                if (popup) {
-                    form.target = 'WavePaymentPopup';
-                    
-                    Swal.fire({
-                        title: 'Paiement en cours',
-                        html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
-                        allowOutsideClick: false,
-                        showConfirmButton: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+                Swal.fire({
+                    title: 'Paiement en cours',
+                    html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
 
-                    const timer = setInterval(() => {
-                        if (popup.closed) {
-                            clearInterval(timer);
-                            Swal.close();
-                            // Vérifier d'abord window.paymentSuccess (opener accessible)
-                            if (window.paymentSuccess) {
-                                window.location.href = window.paymentSuccessUrl || "{{ route('user.extrait.index') }}";
+                const timer = setInterval(() => {
+                    if (window.PaymentPopup && window.PaymentPopup.closed) {
+                        clearInterval(timer);
+                        Swal.close();
+                        // Vérifier d'abord window.paymentSuccess (opener accessible)
+                        if (window.paymentSuccess) {
+                            window.location.href = window.paymentSuccessUrl || "{{ route('user.extrait.index') }}";
+                            return;
+                        }
+                        // Fallback : lire localStorage (cas où COOP a rompu window.opener)
+                        try {
+                            var result = JSON.parse(localStorage.getItem('plateauPaymentResult') || '{}');
+                            var age = Date.now() - (result.timestamp || 0);
+                            if (result.status === 'success' && age < 120000) {
+                                localStorage.removeItem('plateauPaymentResult');
+                                window.location.href = result.listUrl || "{{ route('user.extrait.index') }}";
                                 return;
                             }
-                            // Fallback : lire localStorage (cas où COOP a rompu window.opener)
-                            try {
-                                var result = JSON.parse(localStorage.getItem('plateauPaymentResult') || '{}');
-                                var age = Date.now() - (result.timestamp || 0);
-                                if (result.status === 'success' && age < 120000) {
-                                    localStorage.removeItem('plateauPaymentResult');
-                                    window.location.href = result.listUrl || "{{ route('user.extrait.index') }}";
-                                    return;
-                                }
-                            } catch (e) {}
-                            // Paiement annulé ou inconnu : recharger le formulaire
-                            window.location.reload();
-                        }
-                    }, 1000);
-                } else {
-                    form.target = '_self';
-                    Swal.fire({
-                        title: 'Redirection vers Wave',
-                        html: `Le bloqueur de popup est activé. Redirection dans la page actuelle...`,
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading()
-                    });
-                }
+                        } catch (e) {}
+                        // Paiement annulé ou inconnu : recharger le formulaire
+                        window.location.reload();
+                    }
+                }, 1000);
             } else {
-                // Paiement MTN MoMo (Push)
-                form.target = '_self';
+                // Pour les autres paiements (MTN, etc.)
                 Swal.fire({
-                    title: 'Initiation du paiement MTN',
-                    html: `Veuillez patienter... Un message push apparaîtra sur le téléphone <b>${formData.mtn_number}</b> pour confirmer le paiement.`,
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
+                    title: 'Redirection en cours',
+                    html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
+                    icon: 'info',
+                    confirmButtonText: 'Fermer',
+                    confirmButtonColor: '#1977cc',
+                    allowOutsideClick: false
+                }).then(() => {
+                    window.location.href = "{{ route('user.extrait.index') }}";
                 });
             }
 
