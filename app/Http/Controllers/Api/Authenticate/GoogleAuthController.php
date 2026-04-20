@@ -28,6 +28,7 @@ class GoogleAuthController extends Controller
             'name' => 'nullable|string|max:255',
             'prenom' => 'nullable|string|max:255',
             'profile_picture' => 'nullable|string',
+            'action' => 'nullable|string|in:login,register', // Optionnel, pour différencier les clics 'Se connecter' et 'S\'inscrire'
         ]);
 
         if ($validator->fails()) {
@@ -82,7 +83,17 @@ class GoogleAuthController extends Controller
                         ->orWhere('email', $email)
                         ->first();
 
+            $action = $request->input('action'); // 'login' ou 'register'
+
             if ($user) {
+                // Si l'utilisateur clique explicitement sur "S'inscrire" (register) mais que le compte existe déjà
+                if ($action === 'register') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Ce compte existe déjà. Veuillez plutôt vous connecter.'
+                    ], 409); // 409 Conflict
+                }
+
                 // CONNEXION
                 if (empty($user->google_id)) {
                     $user->google_id = $googleId;
