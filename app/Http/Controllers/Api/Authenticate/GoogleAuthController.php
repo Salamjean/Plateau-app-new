@@ -29,6 +29,7 @@ class GoogleAuthController extends Controller
             'prenom' => 'nullable|string|max:255',
             'profile_picture' => 'nullable|string',
             'action' => 'nullable|string|in:login,register', // Optionnel, pour différencier les clics 'Se connecter' et 'S\'inscrire'
+            'push_notification' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -45,6 +46,7 @@ class GoogleAuthController extends Controller
             $nameStr = $request->name;
             $prenomStr = $request->prenom;
             $pictureUrl = $request->profile_picture;
+            $pushNotificationStr = $request->push_notification;
 
             // 1. Vérification sécurisée si un id_token Firebase est fourni
             if ($request->filled('id_token')) {
@@ -106,6 +108,12 @@ class GoogleAuthController extends Controller
                     $user->save();
                 }
 
+                // Mettre à jour le token push notification
+                if (!empty($pushNotificationStr) && $user->push_notification !== $pushNotificationStr) {
+                    $user->push_notification = $pushNotificationStr;
+                    $user->save();
+                }
+
                 if ($user->deactivated_at) {
                     $dateDesactivation = \Carbon\Carbon::parse($user->deactivated_at);
                     if (now()->greaterThan($dateDesactivation->copy()->addDays(30))) {
@@ -124,6 +132,7 @@ class GoogleAuthController extends Controller
                     'success' => true,
                     'message' => 'Connexion de compte existant réussie.',
                     'data' => [
+                        'is_new_user' => false,
                         'user' => [
                             'id' => $user->id,
                             'name' => $user->name,
@@ -144,6 +153,7 @@ class GoogleAuthController extends Controller
                     'google_id' => $googleId,
                     'commune' => 'plateau', 
                     'password' => Hash::make(Str::random(24)),
+                    'push_notification' => $pushNotificationStr,
                 ]);
 
                 if (!empty($pictureUrl)) {
@@ -157,6 +167,7 @@ class GoogleAuthController extends Controller
                     'success' => true,
                     'message' => 'Compte Google créé. Veuillez finaliser votre profil.',
                     'data' => [
+                        'is_new_user' => true,
                         'user' => [
                             'id' => $user->id,
                             'name' => $user->name,

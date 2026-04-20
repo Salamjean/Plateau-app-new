@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Utilisateurs\DemandeDecesController;
 use App\Http\Controllers\Api\Utilisateurs\StatistiqueController;
 use App\Http\Controllers\Api\Utilisateurs\RdvApiController;
 use App\Http\Controllers\Api\Utilisateurs\Profil\UserProfilController;
+use App\Http\Controllers\Api\Utilisateurs\NotificationController;
 use App\Http\Controllers\Api\Livreur\LivreurAuthenticateController;
 use App\Http\Controllers\Api\Livreur\LivraisonController;
 use App\Http\Controllers\Api\Livreur\ProfilLivreurController;
@@ -75,6 +76,14 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
 
         Route::get('/user', function (Request $request) {
             return $request->user();
+        });
+
+        // Routes pour les notifications
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+            Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead']);
+            Route::post('/test-push', [NotificationController::class, 'testPushNotification']); // Endpoint de test
         });
 
         // Routes pour les demandes de Naissance

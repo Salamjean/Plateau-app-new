@@ -24,6 +24,7 @@ class RegisterController extends Controller
         $validator = Validator::make($request->all(), [
             'indicatif' => 'required|string|max:10',
             'contact' => 'required|string|max:20',
+            'push_notification' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -61,6 +62,7 @@ class RegisterController extends Controller
                     'contact' => $request->contact,
                     'commune' => 'plateau',
                     'phone_verified_at' => now(),
+                    'push_notification' => $request->push_notification,
                     // Pas de mot de passe encore
                 ]);
             }
@@ -114,6 +116,7 @@ class RegisterController extends Controller
             'pays_residence' => 'required_if:diaspora,true|string|max:255',
             'ville_residence' => 'required_if:diaspora,true|string|max:255',
             'adresse_etrangere' => 'required_if:diaspora,true|string|max:500',
+            'push_notification' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -161,6 +164,7 @@ class RegisterController extends Controller
                 'pays_residence' => $request->boolean('diaspora') ? $request->pays_residence : null,
                 'ville_residence' => $request->boolean('diaspora') ? $request->ville_residence : null,
                 'adresse_etrangere' => $request->boolean('diaspora') ? $request->adresse_etrangere : null,
+                'push_notification' => $request->push_notification,
             ]);
 
             if ($isPhoneVerified) {
