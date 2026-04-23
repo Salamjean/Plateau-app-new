@@ -14,7 +14,7 @@ use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use PDF;
-use Illuminate\Support\Facades\Http;
+use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -153,44 +153,36 @@ class AgentDecesController extends Controller
             null
         );
 
-        // =================================================================
-        // ENVOI DE NOTIFICATION PUSH
-        // =================================================================
+        // Notification push + DB
         $user = $deces->user;
+        $pushTitle = '';
+        $pushBody  = '';
 
-        if ($user && !empty($user->push_notification)) {
-            $title = '';
-            $body = '';
-            $data = [];
-
-            switch ($deces->etat) {
-                case 'réçu':
-                    $title = 'Demande reçue';
-                    $body = 'Votre demande d’extrait de décès a été reçue et sera traitée dans les plus brefs délais.';
-                    $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
-                    break;
-
-                case 'terminé':
-                    $title = 'Demande Traitée';
-                    $body = 'Votre demande d\'extrait de décès a été traitée.';
-                    if ($deces->livraison_code) {
-                        $body .= ' Votre code de livraison est : ' . $deces->livraison_code;
-                    }
-                    $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
-                    break;
-
-                case 'rejetée':
-                    $title = 'Demande Rejetée - Modification requise';
-                    $body = 'Votre demande d’extrait de décès n’a pas pu être traitée. Veuillez vérifier et corriger les informations fournies.';
-                    $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
-                    break;
-            }
-
-            if (!empty($title) && !empty($body)) {
-                $this->sendPushNotification($user->push_notification, $title, $body, $data);
-            }
+        switch ($deces->etat) {
+            case 'réçu':
+                $pushTitle = 'Demande reçue';
+                $pushBody  = "Votre demande d’extrait de décès a été reçue et sera traitée dans les plus brefs délais.";
+                break;
+            case 'terminé':
+                $pushTitle = 'Demande traitée ✔';
+                $pushBody  = "Votre demande d’extrait de décès a été traitée.";
+                if ($deces->livraison_code) {
+                    $pushBody .= ' Code de livraison : ' . $deces->livraison_code;
+                }
+                break;
+            case 'rejetée':
+                $pushTitle = 'Demande rejetée — Modification requise';
+                $pushBody  = "Votre demande d’extrait de décès n’a pas pu être traitée. Veuillez corriger les informations.";
+                break;
         }
-        // =================================================================
+
+        if ($user && !empty($pushTitle)) {
+            $user->notify(new GeneralPushNotification(
+                $pushTitle,
+                $pushBody,
+                ['type' => 'statut_demande', 'reference' => $deces->reference, 'url' => 'plateauapps://demande?reference=' . $deces->reference]
+            ));
+        }
 
         // Redirection en fonction de l'état
         if ($deces->etat === 'terminé') {
@@ -292,21 +284,14 @@ class AgentDecesController extends Controller
             );
         }
 
-        // =================================================================
-        // <-- NOTIFICATION PUSH POUR MOBILE
-        // =================================================================
-        $user = $deces->user;
-
-        if ($user && !empty($user->push_notification)) {
-            $title = 'Retrait d’extrait de décès';
-            $body = 'La récupération de votre extrait de décès a été effectuée avec succès.';
-            $data = ['url' => 'plateauapps://demande?reference=' . $deces->reference];
-
-            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+        // Notification push + DB
+        if ($user) {
+            $user->notify(new GeneralPushNotification(
+                "Retrait d’extrait de décès",
+                'La récupération de votre extrait de décès a été effectuée avec succès.',
+                ['type' => 'livraison', 'reference' => $deces->reference, 'url' => 'plateauapps://demande?reference=' . $deces->reference]
+            ));
         }
-        // =================================================================
-        // FIN DU BLOC DE NOTIFICATION
-        // =================================================================
 
         return response()->json(['success' => 'La demande a été marquée comme livrée.']);
     }
@@ -327,39 +312,4 @@ class AgentDecesController extends Controller
     }
 
 
-    // =================================================================
-    // FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION (INCHANGÉE)
-    // =================================================================
-    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
-    {
-        if (empty($userToken)) {
-            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
-            return;
-        }
-
-        $payload = [
-            'to' => $userToken,
-            'sound' => 'default',
-            'title' => $title,
-            'body' => $body,
-            'data' => (object) $data, // Ceci enverra la bonne URL en fonction de l'état
-        ];
-
-        try {
-            $response = Http::withoutVerifying()
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                    'Accept-Encoding' => 'gzip, deflate',
-                ])->post('https://exp.host/--/api/v2/push/send', $payload);
-
-            if ($response->failed()) {
-                Log::error('Échec envoi notification Expo: ' . $response->body());
-            } else {
-                Log::info('Notification Expo envoyée: ' . $response->body());
-            }
-        } catch (\Exception $e) {
-            Log::error('Exception lors de l\'envoi de notification Expo: ' . $e->getMessage());
-        }
-    }
 }

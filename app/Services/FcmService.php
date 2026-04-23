@@ -13,10 +13,10 @@ class FcmService
 
     public function __construct()
     {
-        // Chemin vers le fichier de credentials Firebase (dans storage/)
-        $this->credentialsPath = storage_path('plateau-apps-user-firebase-adminsdk-fbsvc-7ec6f5846b.json');
-        
-        // Récupérer le project_id depuis le fichier de credentials
+        $this->credentialsPath = storage_path(
+            env('FIREBASE_CREDENTIALS', 'plateau-apps-user-firebase-adminsdk-fbsvc-7ec6f5846b.json')
+        );
+
         if (file_exists($this->credentialsPath)) {
             $credentials = json_decode(file_get_contents($this->credentialsPath), true);
             $this->projectId = $credentials['project_id'] ?? null;
@@ -87,7 +87,7 @@ class FcmService
 
         Log::info('FCM Debug Token', ['length' => strlen($accessToken), 'starts_with' => substr($accessToken, 0, 15)]);
 
-        // Construire le payload pour FCM v1 API
+        // Construire le payload pour FCM v1 API (Android + iOS)
         $payload = [
             'message' => [
                 'token' => $fcmToken,
@@ -95,8 +95,30 @@ class FcmService
                     'title' => $title,
                     'body'  => $body,
                 ],
+                // Config Android
                 'android' => [
                     'priority' => 'high',
+                    'notification' => [
+                        'sound'        => 'default',
+                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                    ],
+                ],
+                // Config iOS (APNs via FCM)
+                'apns' => [
+                    'headers' => [
+                        'apns-priority' => '10', // 10 = immédiat, 5 = économie batterie
+                    ],
+                    'payload' => [
+                        'aps' => [
+                            'alert' => [
+                                'title' => $title,
+                                'body'  => $body,
+                            ],
+                            'sound'             => 'default',
+                            'badge'             => 1,
+                            'content-available' => 1,
+                        ],
+                    ],
                 ],
             ],
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Channels\FcmChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -24,7 +25,11 @@ class DemandeNaissanceConfirmationNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        $channels = ['mail', 'database'];
+        if ($notifiable->push_notification) {
+            $channels[] = FcmChannel::class;
+        }
+        return $channels;
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -39,10 +44,25 @@ class DemandeNaissanceConfirmationNotification extends Notification
             ]);
     }
 
+    public function toFcm(object $notifiable): array
+    {
+        return [
+            'title' => 'Demande reçue ✔',
+            'body'  => 'Votre demande d\'extrait de naissance a bien été enregistrée. Réf : ' . ($this->naissance->reference ?? ''),
+            'data'  => [
+                'type' => 'demande_naissance',
+                'id'   => (string) ($this->naissance->id ?? ''),
+            ],
+        ];
+    }
+
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'title'     => 'Demande reçue ✔',
+            'body'      => 'Votre demande d\'extrait de naissance a bien été enregistrée. Réf : ' . ($this->naissance->reference ?? ''),
+            'type'      => 'demande_naissance',
+            'demande_id'=> $this->naissance->id ?? null,
         ];
     }
 }

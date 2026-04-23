@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Utilisateurs;
 
 use App\Http\Controllers\Controller;
+use App\Notifications\GeneralPushNotification;
 use App\Services\FcmService;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -74,24 +75,33 @@ class NotificationController extends Controller
 
         $user = $request->filled('user_id') ? User::find($request->user_id) : $request->user();
 
-        if (!$user || empty($user->push_notification)) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'L\'utilisateur cible ne possède pas de token FCM configuré (push_notification).'
+                'message' => 'Utilisateur introuvable.',
             ], 404);
         }
 
-        $fcmService = new FcmService();
+        if (empty($user->push_notification)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'L\'utilisateur cible ne possède pas de token FCM configuré (push_notification).',
+                'hint'    => 'Envoyez le token FCM depuis l\'app mobile lors du login (champ push_notification), ou via POST /api/utilisateurs/toggle-push-notification.',
+            ], 422);
+        }
 
-        $result = $fcmService->sendNotification(
-            $user->push_notification,
+        // Envoi du push via le canal FCM
+        $user->notify(new GeneralPushNotification(
             $request->title,
             $request->body,
-            ['type' => 'test_push', 'timestamp' => now()->toDateTimeString()]
-        );
+            ['type' => 'tracking', 'reference' => '1234567890', 'timestamp' => now()->toDateTimeString()]
+        ));
 
-        return response()->json(array_merge($result, [
-            'token_used' => $user->push_notification
-        ]), $result['success'] ? 200 : 500);
+        return response()->json([
+            'success'     => true,
+            'message'     => 'Notification push envoyée avec succès.',
+            'token_used'  => $user->push_notification,
+            'destination' => 'user_id=' . $user->id . ' (' . ($user->email ?? $user->contact) . ')',
+        ]);
     }
 }

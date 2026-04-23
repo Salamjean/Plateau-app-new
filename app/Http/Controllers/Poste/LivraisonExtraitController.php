@@ -8,9 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Livreur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Http; // <-- AJOUT
 
 class LivraisonExtraitController extends Controller
 {
@@ -208,23 +208,18 @@ class LivraisonExtraitController extends Controller
                         $item->statut_livraison = 'en cours'; // Le statut est mis à jour ici
                         $item->save();
 
-                        // =================================================================
-                        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
-                        // =================================================================
+                        // Notification push + DB
                         $item->load('user');
                         $user = $item->user;
+                        $modelName = strtolower($this->getTypeDemande($demande['type']));
 
-                        if ($user && !empty($user->push_notification)) {
-                            $title = 'Documents en cours de livraison';
-                            $modelName = strtolower($this->getTypeDemande($demande['type'])); // "naissance", "décès"...
-                            $body = "Votre acte de {$modelName} a été confiée à un livreur et est en cours de livraison.";
-                            $data = ['url' => 'plateauapps://demande?reference=' . $item->reference];
-                            
-                            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+                        if ($user) {
+                            $user->notify(new GeneralPushNotification(
+                                'Documents en cours de livraison',
+                                "Votre acte de {$modelName} a été confié à un livreur et est en cours de livraison.",
+                                ['type' => 'livraison_en_cours', 'reference' => $item->reference, 'url' => 'plateauapps://demande?reference=' . $item->reference]
+                            ));
                         }
-                        // =================================================================
-                        // FIN DU BLOC DE NOTIFICATION
-                        // =================================================================
                     }
                 }
             }
@@ -242,40 +237,4 @@ class LivraisonExtraitController extends Controller
         }
     }
 
-    // =================================================================
-    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
-    // =================================================================
-    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
-    {
-        if (empty($userToken)) {
-            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
-            return;
-        }
-
-        $payload = [
-            'to' => $userToken,
-            'sound' => 'default',
-            'title' => $title,
-            'body' => $body,
-            'data' => (object) $data,
-        ];
-
-        try {
-            $response = Http::withoutVerifying() // Utilise la solution pour localhost
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Accept-Encoding' => 'gzip, deflate',
-            ])->post('https://exp.host/--/api/v2/push/send', $payload);
-
-            if ($response->failed()) {
-                Log::error('Échec envoi notification Expo: ' . $response->body());
-            } else {
-                Log::info('Notification Expo envoyée: ' . $response->body());
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
-        }
-    }
 }

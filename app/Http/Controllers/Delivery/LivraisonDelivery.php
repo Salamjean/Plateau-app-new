@@ -7,8 +7,8 @@ use App\Models\Livreur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Http; // <-- AJOUT
-use Illuminate\Support\Facades\Log;  // <-- AJOUT
+use App\Notifications\GeneralPushNotification;
+use Illuminate\Support\Facades\Log;
 
 class LivraisonDelivery extends Controller
 {
@@ -126,23 +126,18 @@ class LivraisonDelivery extends Controller
             $demande->livreur_id = Auth::guard('livreur')->user()->id;
             $demande->save(); // On utilise save() au lieu de update() pour garder l'objet
 
-            // =================================================================
-            // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
-            // =================================================================
+            // Notification push + DB
             $demande->load('user');
             $user = $demande->user;
+            $modelName = strtolower($this->getTypeDemande(Str::studly($request->demande_type)));
 
-            if ($user && !empty($user->push_notification)) {
-                $title = 'Demande Livrée';
-                $modelName = strtolower($this->getTypeDemande(Str::studly($request->demande_type)));
-                $body = "Votre acte de {$modelName} ({$demande->reference}) a été livré avec succès.";
-                $data = ['url' => 'plateauapps://demande?reference=' . $demande->reference];
-                
-                $this->sendPushNotification($user->push_notification, $title, $body, $data);
+            if ($user) {
+                $user->notify(new GeneralPushNotification(
+                    'Demande livrée ✔',
+                    "Votre acte de {$modelName} ({$demande->reference}) a été livré avec succès.",
+                    ['type' => 'livraison', 'reference' => $demande->reference, 'url' => 'plateauapps://demande?reference=' . $demande->reference]
+                ));
             }
-            // =================================================================
-            // FIN DU BLOC DE NOTIFICATION
-            // =================================================================
 
             return response()->json([
                 'success' => true,
@@ -201,40 +196,4 @@ class LivraisonDelivery extends Controller
         ], 404);
     }
 
-    // =================================================================
-    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
-    // =================================================================
-    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
-    {
-        if (empty($userToken)) {
-            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
-            return;
-        }
-
-        $payload = [
-            'to' => $userToken,
-            'sound' => 'default',
-            'title' => $title,
-            'body' => $body,
-            'data' => (object) $data,
-        ];
-
-        try {
-            $response = Http::withoutVerifying() // Utilise la solution pour localhost
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Accept-Encoding' => 'gzip, deflate',
-            ])->post('https://exp.host/--/api/v2/push/send', $payload);
-
-            if ($response->failed()) {
-                Log::error('Échec envoi notification Expo: ' . $response->body());
-            } else {
-                Log::info('Notification Expo envoyée: ' . $response->body());
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
-        }
-    }
 }

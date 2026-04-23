@@ -9,8 +9,8 @@ use App\Models\Naissance;
 use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http; // <-- AJOUT
-use Illuminate\Support\Facades\Log;  // <-- AJOUT
+use App\Notifications\GeneralPushNotification;
+use Illuminate\Support\Facades\Log;
 
 class RecuperationController extends Controller
 {
@@ -83,19 +83,14 @@ class RecuperationController extends Controller
             );
         }
 
-        // =================================================================
-        // <-- NOUVEAU : BLOC D'ENVOI DE NOTIFICATION PUSH
-        // =================================================================
-        if ($user && !empty($user->push_notification)) {
-            $title = 'Demande reçue';
-            $body = "Votre demande de {$modelName} est bien reçue par la mairie et est en cours de traitement.";
-            $data = ['url' => 'plateauapps://demande?reference=' . $demande->reference];
-            
-            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+        // Notification push + DB
+        if ($user) {
+            $user->notify(new GeneralPushNotification(
+                'Demande reçue',
+                "Votre demande de {$modelName} est bien reçue par la mairie et est en cours de traitement.",
+                ['type' => 'statut_demande', 'reference' => $demande->reference, 'url' => 'plateauapps://demande?reference=' . $demande->reference]
+            ));
         }
-        // =================================================================
-        // FIN DU BLOC DE NOTIFICATION
-        // =================================================================
 
         return redirect()->route($successRoute)->with('success', "Demande de {$modelName} récupérée avec succès.");
     }
@@ -115,40 +110,4 @@ class RecuperationController extends Controller
         return $this->traiterDemandeGenerique(Mariage::class, $id,'agent.demandes.wedding.index' , 'mariage');
     }
 
-    // =================================================================
-    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
-    // =================================================================
-    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
-    {
-        if (empty($userToken)) {
-            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
-            return;
-        }
-
-        $payload = [
-            'to' => $userToken,
-            'sound' => 'default',
-            'title' => $title,
-            'body' => $body,
-            'data' => (object) $data,
-        ];
-
-        try {
-            $response = Http::withoutVerifying() // Utilise la solution pour localhost
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Accept-Encoding' => 'gzip, deflate',
-            ])->post('https://exp.host/--/api/v2/push/send', $payload);
-
-            if ($response->failed()) {
-                Log::error('Échec envoi notification Expo: ' . $response->body());
-            } else {
-                Log::info('Notification Expo envoyée: ' . $response->body());
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
-        }
-    }
 }

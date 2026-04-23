@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Rendezvous;
 use App\Models\UserNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http; // <-- AJOUT IMPORTANT
-use Illuminate\Support\Facades\Log;  // <-- AJOUT IMPORTANT
+use App\Notifications\GeneralPushNotification;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 class MairieRendezVousController extends Controller
 {
@@ -158,60 +158,23 @@ class MairieRendezVousController extends Controller
     }
 
     /**
-     * Helper pour préparer et envoyer la notification
+     * Helper pour préparer et envoyer la notification push + DB
      */
-    private function triggerNotification($rendezvous, $title, $body)
+    private function triggerNotification($rendezvous, string $title, string $body): void
     {
         try {
-            // Charger la relation user si elle n'est pas déjà chargée
             $rendezvous->load('user');
             $user = $rendezvous->user;
 
-            if ($user && !empty($user->push_notification)) {
-                // Adapter les data selon vos besoins (ici lien vers mes RDV)
-                $data = ['url' => 'plateauapps://rendez-vous-details?id=' . $rendezvous->id]; 
-                
-                $this->sendPushNotification($user->push_notification, $title, $body, $data);
+            if ($user) {
+                $user->notify(new GeneralPushNotification(
+                    $title,
+                    $body,
+                    ['type' => 'rendezvous', 'id' => (string) $rendezvous->id, 'url' => 'plateauapps://rendez-vous-details?id=' . $rendezvous->id]
+                ));
             }
         } catch (\Exception $e) {
-            Log::error("Erreur préparation notif pour RDV #{$rendezvous->id}: " . $e->getMessage());
-        }
-    }
-
-    // =================================================================
-    // <-- FONCTION D'ENVOI (RECUPERATION CONTROLLER)
-    // =================================================================
-    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
-    {
-        if (empty($userToken)) {
-            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
-            return;
-        }
-
-        $payload = [
-            'to' => $userToken,
-            'sound' => 'default',
-            'title' => $title,
-            'body' => $body,
-            'data' => (object) $data,
-        ];
-
-        try {
-            $response = Http::withoutVerifying()
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Accept-Encoding' => 'gzip, deflate',
-            ])->post('https://exp.host/--/api/v2/push/send', $payload);
-
-            if ($response->failed()) {
-                Log::error('Échec envoi notification Expo: ' . $response->body());
-            } else {
-                Log::info('Notification Expo envoyée: ' . $response->body());
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
+            Log::error("Erreur notification RDV #{$rendezvous->id}: " . $e->getMessage());
         }
     }
 }

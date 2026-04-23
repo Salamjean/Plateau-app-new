@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs cat *)",
+      "Bash(xargs grep *)",
+      "Bash(php artisan *)",
+      "Bash(find \"C:\\\\Users\\\\THEWAYNE\\\\Plateau-app-new\" -type f \\\\\\( -name \"*.js\" -o -name \"*.php\" -o -name \"*.blade.php\" \\\\\\) -not -path \"*/node_modules/*\" -exec grep -l \"médias trouvé\\\\|medias trouvé\\\\|10 médias\\\\|10 medias\" {} \\\\;)"
+    ]
+  }
+}

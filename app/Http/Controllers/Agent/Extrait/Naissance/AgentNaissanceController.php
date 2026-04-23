@@ -14,8 +14,8 @@ use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Illuminate\Support\Facades\Storage;
 use PDF;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log; 
+use App\Notifications\GeneralPushNotification;
+use Illuminate\Support\Facades\Log;
 
 class AgentNaissanceController extends Controller
 {
@@ -151,44 +151,36 @@ class AgentNaissanceController extends Controller
             null
         );
 
-        // =================================================================
-        // ENVOI DE NOTIFICATION PUSH
-        // =================================================================
+        // Notification push + DB
         $user = $naissance->user;
+        $pushTitle = '';
+        $pushBody  = '';
 
-        if ($user && !empty($user->push_notification)) {
-            $title = '';
-            $body = '';
-            $data = [];
-
-            switch ($naissance->etat) {
-                case 'réçu':
-                    $title = 'Demande reçue';
-                    $body = 'Votre demande d’extrait de naissance a été reçue et sera traitée dans les plus brefs délais.';
-                    $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
-                    break;
-
-                case 'terminé':
-                    $title = 'Demande Traitée';
-                    $body = 'Votre demande d\'extrait de mariage a été traitée.';
-                    if ($naissance->livraison_code) {
-                        $body .= ' Votre code de livraison est : ' . $naissance->livraison_code;
-                    }
-                    $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
-                    break;
-
-                case 'rejetée':
-                    $title = 'Demande Rejetée - Modification requise';
-                    $body = 'Votre demande d’extrait de naissance n’a pas pu être traitée. Veuillez vérifier et corriger les informations fournies.';
-                    $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
-                    break;
-            }
-
-            if (!empty($title) && !empty($body)) {
-                $this->sendPushNotification($user->push_notification, $title, $body, $data);
-            }
+        switch ($naissance->etat) {
+            case 'réçu':
+                $pushTitle = 'Demande reçue';
+                $pushBody  = "Votre demande d’extrait de naissance a été reçue et sera traitée dans les plus brefs délais.";
+                break;
+            case 'terminé':
+                $pushTitle = 'Demande traitée ✔';
+                $pushBody  = "Votre demande d’extrait de naissance a été traitée.";
+                if ($naissance->livraison_code) {
+                    $pushBody .= ' Code de livraison : ' . $naissance->livraison_code;
+                }
+                break;
+            case 'rejetée':
+                $pushTitle = 'Demande rejetée — Modification requise';
+                $pushBody  = "Votre demande d’extrait de naissance n’a pas pu être traitée. Veuillez corriger les informations.";
+                break;
         }
-        // =================================================================
+
+        if ($user && !empty($pushTitle)) {
+            $user->notify(new GeneralPushNotification(
+                $pushTitle,
+                $pushBody,
+                ['type' => 'statut_demande', 'reference' => $naissance->reference, 'url' => 'plateauapps://demande?reference=' . $naissance->reference]
+            ));
+        }
 
         // Redirection en fonction de l'état
         if ($naissance->etat === 'terminé') {
@@ -378,20 +370,14 @@ class AgentNaissanceController extends Controller
             );
         }
 
-        // =================================================================
-        // <-- NOTIFICATION PUSH POUR MOBILE
-        // =================================================================
-
-        if ($user && !empty($user->push_notification)) {
-            $title = 'Retrait d’extrait de naissance';
-            $body = 'La récupération de votre extrait de naissance a été effectuée avec succès.';
-            $data = ['url' => 'plateauapps://demande?reference=' . $naissance->reference];
-
-            $this->sendPushNotification($user->push_notification, $title, $body, $data);
+        // Notification push + DB
+        if ($user) {
+            $user->notify(new GeneralPushNotification(
+                "Retrait d’extrait de naissance",
+                'La récupération de votre extrait de naissance a été effectuée avec succès.',
+                ['type' => 'livraison', 'reference' => $naissance->reference, 'url' => 'plateauapps://demande?reference=' . $naissance->reference]
+            ));
         }
-        // =================================================================
-        // FIN DU BLOC DE NOTIFICATION
-        // =================================================================
 
         return response()->json(['success' => 'La demande a été marquée comme livrée.']);
     }
@@ -413,39 +399,4 @@ class AgentNaissanceController extends Controller
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }
 
-    // =================================================================
-    // <-- NOUVEAU : FONCTION PRIVÉE POUR ENVOYER LA NOTIFICATION
-    // =================================================================
-    private function sendPushNotification(string $userToken, string $title, string $body, array $data = [])
-    {
-        if (empty($userToken)) {
-            Log::warning('Tentative d\'envoi de notif push sans token utilisateur.');
-            return;
-        }
-
-        $payload = [
-            'to' => $userToken,
-            'sound' => 'default',
-            'title' => $title,
-            'body' => $body,
-            'data' => (object) $data,
-        ];
-
-        try {
-            $response = Http::withoutVerifying()
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                    'Accept-Encoding' => 'gzip, deflate',
-                ])->post('https://exp.host/--/api/v2/push/send', $payload);
-
-            if ($response->failed()) {
-                Log::error('Échec envoi notification Expo: ' . $response->body());
-            } else {
-                Log::info('Notification Expo envoyée: ' . $response->body());
-            }
-        } catch (\Exception $e) {
-            Log::error('Exception lors de lenvoi de notification Expo: ' . $e->getMessage());
-        }
-    }
 }
