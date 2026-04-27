@@ -398,6 +398,84 @@ Route::prefix('user')->group(function () {
     Route::post('/auth/otp/verify', [\App\Http\Controllers\User\UserAuthFlowController::class, 'verifyOtp'])->name('user.auth.otp.verify');
 });
 
+// ============================================================
+// ROUTE DIAGNOSTIC TEMPORAIRE - À SUPPRIMER APRÈS UTILISATION
+// Accès : https://plateau-apps.com/user/diag-google-auth?key=plateau2024diag
+// ============================================================
+Route::get('/user/diag-google-auth', function (\Illuminate\Http\Request $request) {
+    if ($request->get('key') !== 'plateau2024diag') {
+        abort(403);
+    }
+
+    $results = [];
+
+    // 1. Variables d'environnement Firebase
+    $results['env'] = [
+        'APP_ENV'              => config('app.env'),
+        'APP_URL'              => config('app.url'),
+        'FIREBASE_PROJECT_ID'  => config('services.firebase.project_id') ?? env('FIREBASE_PROJECT_ID') ?? '❌ MANQUANT',
+        'FIREBASE_API_KEY'     => config('services.firebase.api_key') ? '✅ Présent' : '❌ MANQUANT',
+        'FIREBASE_AUTH_DOMAIN' => config('services.firebase.auth_domain') ?? '❌ MANQUANT',
+        'FIREBASE_CREDENTIALS' => env('FIREBASE_CREDENTIALS') ?? '❌ MANQUANT',
+        'CACHE_STORE'          => config('cache.default'),
+        'SESSION_DRIVER'       => config('session.driver'),
+    ];
+
+    // 2. Existence du fichier credentials Firebase
+    $credPath = base_path(env('FIREBASE_CREDENTIALS', 'storage/plateau-apps-user-firebase-adminsdk-fbsvc-7ec6f5846b.json'));
+    $results['credentials_file'] = [
+        'path'   => $credPath,
+        'exists' => file_exists($credPath) ? '✅ Existe' : '❌ FICHIER INTROUVABLE',
+    ];
+
+    // 3. Extensions PHP
+    $results['php_extensions'] = [
+        'openssl'   => extension_loaded('openssl') ? '✅' : '❌',
+        'json'      => extension_loaded('json') ? '✅' : '❌',
+        'curl'      => extension_loaded('curl') ? '✅' : '❌',
+        'mbstring'  => extension_loaded('mbstring') ? '✅' : '❌',
+        'sodium'    => extension_loaded('sodium') ? '✅' : '❌',
+        'php_version' => PHP_VERSION,
+    ];
+
+    // 4. Connexion réseau vers Google
+    try {
+        $client = new \GuzzleHttp\Client(['timeout' => 5]);
+        $response = $client->get('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
+        $results['google_network'] = '✅ Connexion Google OK (status: ' . $response->getStatusCode() . ')';
+    } catch (\Exception $e) {
+        $results['google_network'] = '❌ ERREUR: ' . $e->getMessage();
+    }
+
+    // 5. Test Firebase IdTokenVerifier (sans token)
+    try {
+        $projectId = config('firebase.projects.app.project_id', env('FIREBASE_PROJECT_ID', 'plateau-apps-user'));
+        \Kreait\Firebase\JWT\IdTokenVerifier::createWithProjectId($projectId);
+        $results['firebase_verifier'] = '✅ IdTokenVerifier instancié avec project_id: ' . $projectId;
+    } catch (\Exception $e) {
+        $results['firebase_verifier'] = '❌ ERREUR [' . get_class($e) . ']: ' . $e->getMessage();
+    }
+
+    // 6. Test Cache
+    try {
+        \Illuminate\Support\Facades\Cache::put('diag_test', 'ok', 10);
+        $val = \Illuminate\Support\Facades\Cache::get('diag_test');
+        $results['cache'] = $val === 'ok' ? '✅ Cache fonctionne' : '❌ Cache en lecture';
+    } catch (\Exception $e) {
+        $results['cache'] = '❌ ERREUR Cache: ' . $e->getMessage();
+    }
+
+    // 7. Test DB Session
+    try {
+        \Illuminate\Support\Facades\DB::table('sessions')->limit(1)->get();
+        $results['sessions_table'] = '✅ Table sessions accessible';
+    } catch (\Exception $e) {
+        $results['sessions_table'] = '❌ ERREUR: ' . $e->getMessage();
+    }
+
+    return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+});
+
 Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/auth/complete-profile', [\App\Http\Controllers\User\UserAuthFlowController::class, 'showFinalizeProfile'])->name('user.auth.profile.complete');
     Route::post('/auth/complete-profile', [\App\Http\Controllers\User\UserAuthFlowController::class, 'submitFinalizeProfile'])->name('user.auth.profile.submit');

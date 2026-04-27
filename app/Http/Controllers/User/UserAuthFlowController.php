@@ -90,10 +90,25 @@ class UserAuthFlowController extends Controller
             }
 
         } catch (IdTokenVerificationFailed $e) {
-            return response()->json(['success' => false, 'message' => 'Jeton Google invalide.'], 401);
+            Log::warning('Google Auth - Jeton invalide: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Jeton Google invalide ou expiré. Veuillez réessayer.'], 401);
+        } catch (\Kreait\Firebase\Exception\InvalidArgumentException $e) {
+            Log::error('Google Auth - Config Firebase invalide: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Configuration Firebase incorrecte.'], 500);
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            Log::error('Google Auth - Impossible de joindre les serveurs Google: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Impossible de vérifier votre identité Google. Problème réseau serveur.'], 503);
         } catch (\Exception $e) {
-            Log::error('Google Auth Web Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Erreur serveur.'], 500);
+            Log::error('Google Auth Web Error [' . get_class($e) . ']: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur lors de l\'authentification Google.',
+                'debug' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
     }
 
