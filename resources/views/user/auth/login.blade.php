@@ -721,11 +721,18 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                        'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({ id_token: idToken })
                 });
-            }).then(response => response.json())
+            }).then(response => {
+                const contentType = response.headers.get('content-type');
+                if (!response.ok || !contentType || !contentType.includes('application/json')) {
+                    throw { message: 'Le serveur a renvoyé une réponse inattendue (code ' + response.status + '). Vérifiez votre connexion ou rechargez la page.' };
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({

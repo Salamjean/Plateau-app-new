@@ -31,7 +31,7 @@ class DhlAgenceController extends Controller
            'email' => 'required|email|unique:d_h_l_agences,email',
            'contact' => 'required|string|min:10',
            'commune' => 'required|string|max:255',
-           'profile_picture' => 'nullable|image|max:2048',
+           'profile_picture' => 'nullable|image|max:25600',
 
         ],[
             'name.required' => 'Le nom est obligatoire.',

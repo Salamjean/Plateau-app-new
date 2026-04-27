@@ -39,7 +39,7 @@ class ComptableController extends Controller
            'contact' => 'required|string|min:10|unique:comptables,contact',
            'commune' => 'required|string|max:255',
            'cas_urgence' => 'required|string|max:255',
-           'profile_picture' => 'nullable|image|max:2048',
+           'profile_picture' => 'nullable|image|max:25600',
 
         ],[
             'name.required' => 'Le nom est obligatoire.',

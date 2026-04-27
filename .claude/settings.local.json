@@ -4,7 +4,10 @@
       "Bash(xargs cat *)",
       "Bash(xargs grep *)",
       "Bash(php artisan *)",
-      "Bash(find \"C:\\\\Users\\\\THEWAYNE\\\\Plateau-app-new\" -type f \\\\\\( -name \"*.js\" -o -name \"*.php\" -o -name \"*.blade.php\" \\\\\\) -not -path \"*/node_modules/*\" -exec grep -l \"médias trouvé\\\\|medias trouvé\\\\|10 médias\\\\|10 medias\" {} \\\\;)"
+      "Bash(find \"C:\\\\Users\\\\THEWAYNE\\\\Plateau-app-new\" -type f \\\\\\( -name \"*.js\" -o -name \"*.php\" -o -name \"*.blade.php\" \\\\\\) -not -path \"*/node_modules/*\" -exec grep -l \"médias trouvé\\\\|medias trouvé\\\\|10 médias\\\\|10 medias\" {} \\\\;)",
+      "Bash(php -r \"echo php_ini_loaded_file\\(\\);\")",
+      "Bash(php -r \"echo ini_get\\('upload_max_filesize'\\);\")",
+      "Bash(php -r \"echo ini_get\\('post_max_size'\\);\")"
     ]
   }
 }

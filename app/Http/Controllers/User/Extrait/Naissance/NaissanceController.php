@@ -69,7 +69,7 @@ class NaissanceController extends Controller
                     $rules['quantite'] = 'required|integer|min:1|max:10';
                     break;
                 case 'CNI':
-                    $rules['CNI'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    $rules['CNI'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
                     break;
             }
         }

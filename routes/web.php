@@ -447,6 +447,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     // Routes pour la gestion du profil utilisateur
     Route::get('/profile', [ProfiluserController::class, 'show'])->name('user.profile.show');
     Route::put('/profile', [ProfiluserController::class, 'update'])->name('user.profile.update');
+    Route::post('/profile/update-contact', [ProfiluserController::class, 'updateContact'])->name('user.profile.update.contact');
     Route::post('/profile/verify-password', [ProfiluserController::class, 'verifyPassword'])->name('user.verify.password');
     Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
 });

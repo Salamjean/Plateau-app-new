@@ -220,12 +220,13 @@
             </div>
 
             <div class="input-group">
-                <input type="email" name="email" class="input-field" placeholder=" " value="{{ old('email', $user->email) }}">
-                <label class="label">Adresse Email (Optionnelle)</label>
+                <input type="email" name="email" class="input-field" placeholder=" " value="{{ old('email', $user->email) }}" {{ $user->google_id ? 'readonly style=background-color:#f0f0f0;color:#888;cursor:not-allowed;' : '' }}>
+                <label class="label">Adresse Email {{ $user->google_id ? '' : '(Optionnelle)' }}</label>
                 <i class="fas fa-envelope input-icon"></i>
                 @error('email') <span class="error-msg">{{ $message }}</span> @enderror
             </div>
 
+            @if(!$user->google_id)
             <div class="section-title">Sécurité</div>
 
             <div class="input-group">
@@ -240,6 +241,7 @@
                 <label class="label">Confirmer le mot de passe</label>
                 <i class="fas fa-lock input-icon"></i>
             </div>
+            @endif
 
             <div class="input-group">
                 <input type="text" name="NNI" class="input-field" placeholder=" " value="{{ old('NNI', $user->NNI) }}">

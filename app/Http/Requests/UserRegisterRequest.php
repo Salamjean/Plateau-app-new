@@ -36,7 +36,7 @@ class UserRegisterRequest extends FormRequest
                 'regex:/[0-9]/',
                 'regex:/[@$!%*#?&.]/',
             ],
-            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:25600'],
             'diaspora' => 'nullable|boolean',
             'pays_residence' => 'required_if:diaspora,1',
             'ville_residence' => 'required_if:diaspora,1',

@@ -16,6 +16,9 @@ class VerifyCsrfToken extends Middleware
         'mariage/paiement/redirect-to-app',
         'naissance/paiement/redirect-to-app', // ✅ AJOUTÉ
         
+        // --- Route d'authentification Google (token Firebase vérifié côté serveur) ---
+        'user/auth/google',
+        
         // --- Routes de Webhook API ---
         'api/webhooks/cinetpay/notify/deces',
         'api/webhooks/cinetpay/notify/mariage',

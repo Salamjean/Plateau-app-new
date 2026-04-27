@@ -28,7 +28,7 @@ class agentRequest extends FormRequest
            'contact' => 'required|string|min:10',
            'commune' => 'required|string|max:255',
            'cas_urgence' => 'required|string|max:255',
-           'profile_picture' => 'nullable|image|max:2048',
+           'profile_picture' => 'nullable|image|max:25600',
         ];
     }
 

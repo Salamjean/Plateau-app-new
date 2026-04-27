@@ -22,8 +22,8 @@ class saveMariageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pieceIdentite' => ' required|mimes:png,jpg,jpeg,pdf|max:1000',
-            'extraitMariage' => 'required|mimes:png,jpg,jpeg,pdf|max:1000',
+            'pieceIdentite' => ' required|mimes:png,jpg,jpeg,pdf|max:25600',
+            'extraitMariage' => 'required|mimes:png,jpg,jpeg,pdf|max:25600',
             'commune_mariage' => 'required|string|max:255',
         ];
     }

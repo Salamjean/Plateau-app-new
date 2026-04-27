@@ -26,7 +26,7 @@ class FinanceRequest extends FormRequest
            'email' => 'required|email|unique:finances,email',
            'contact' => 'required|string|min:10',
            'commune' => 'required|string|max:255',
-           'profile_picture' => 'nullable|image|max:2048',
+           'profile_picture' => 'nullable|image|max:25600',
         ];
     }
 

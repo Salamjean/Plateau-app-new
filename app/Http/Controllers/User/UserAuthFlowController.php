@@ -207,7 +207,14 @@ class UserAuthFlowController extends Controller
         if (!$user) return redirect()->route('login');
         
         // Si le profil est déjà complet, rediriger vers le dashboard
-        if (!empty($user->name) && !empty($user->prenom) && !empty($user->contact) && $user->password !== null) {
+        // Pour les utilisateurs Google : nom + prénom suffisent
+        // Pour les utilisateurs téléphone : nom + prénom + mot de passe requis
+        $isComplete = !empty($user->name) && !empty($user->prenom);
+        if (empty($user->google_id)) {
+            $isComplete = $isComplete && !empty($user->contact) && $user->password !== null;
+        }
+        
+        if ($isComplete) {
             return redirect()->route('user.dashboard');
         }
 
@@ -221,28 +228,45 @@ class UserAuthFlowController extends Controller
     {
         $user = Auth::user();
         
-        $request->validate([
+        // Règles de validation de base
+        $rules = [
             'name' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
-            'password' => 'required|string|min:8|confirmed',
             'NNI' => 'nullable|string|max:50',
             'diaspora' => 'nullable|boolean',
             'pays_residence' => 'required_if:diaspora,1',
-        ]);
+        ];
+
+        // Le mot de passe n'est requis que pour les utilisateurs non-Google (inscription par téléphone)
+        if (empty($user->google_id)) {
+            $rules['password'] = 'required|string|min:8|confirmed';
+            $rules['email'] = 'nullable|email|unique:users,email,' . $user->id;
+        }
+
+        $request->validate($rules);
 
         try {
-            $user->update([
+            $data = [
                 'name' => $request->name,
                 'prenom' => $request->prenom,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
                 'NNI' => $request->NNI,
                 'diaspora' => $request->has('diaspora'),
                 'pays_residence' => $request->pays_residence,
                 'ville_residence' => $request->ville_residence,
                 'adresse_etrangere' => $request->adresse_etrangere,
-            ]);
+            ];
+
+            // Définir le mot de passe uniquement pour les utilisateurs non-Google
+            if (empty($user->google_id) && $request->password) {
+                $data['password'] = Hash::make($request->password);
+            }
+
+            // Permettre la modification de l'email uniquement pour les utilisateurs non-Google
+            if (empty($user->google_id)) {
+                $data['email'] = $request->email;
+            }
+
+            $user->update($data);
 
             return redirect()->route('user.dashboard')->with('success', 'Inscription finalisée avec succès !');
 

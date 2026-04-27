@@ -39,7 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
              'mariage/paiement/redirect-to-app',
              'api/webhooks/cinetpay/notify/mariage',
             'naissance/paiement/redirect-to-app',
-            'api/webhooks/cinetpay/notify/naissance'
+            'api/webhooks/cinetpay/notify/naissance',
+            'user/auth/google' // Exception pour l'authentification Firebase
         ]);
         // --- FIN DE L'AJOUT ---
 

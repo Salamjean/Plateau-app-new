@@ -1271,10 +1271,16 @@
                         }).then((idToken) => {
                             return fetch("/user/auth/google", {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'ngrok-skip-browser-warning': 'true' },
                                 body: JSON.stringify({ id_token: idToken })
                             });
-                        }).then(r => r.json())
+                        }).then(response => {
+                            const contentType = response.headers.get('content-type');
+                            if (!response.ok || !contentType || !contentType.includes('application/json')) {
+                                throw { message: 'Le serveur a renvoyé une réponse inattendue (code ' + response.status + '). Rechargez la page et réessayez.' };
+                            }
+                            return response.json();
+                        })
                         .then(data => {
                             if (data.success) {
                                 window.location.href = data.redirect;

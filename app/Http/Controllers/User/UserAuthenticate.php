@@ -248,7 +248,7 @@ class UserAuthenticate extends Controller
                 'indicatif' => 'required|string|max:10',
                 'contact' => 'required|string|max:20',
                 'CMU' => 'nullable|string|max:50',
-                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:25600',
                 'diaspora' => 'nullable|boolean',
                 'pays_residence' => 'nullable|string|max:255',
                 'ville_residence' => 'nullable|string|max:255',

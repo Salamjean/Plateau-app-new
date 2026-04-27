@@ -33,7 +33,7 @@ class PosteController extends Controller
            'email' => 'required|email|unique:postes,email',
            'contact' => 'required|string|min:10',
            'commune' => 'required|string|max:255',
-           'profile_picture' => 'nullable|image|max:2048',
+           'profile_picture' => 'nullable|image|max:25600',
 
         ],[
             'name.required' => 'Le nom est obligatoire.',
@@ -107,7 +107,7 @@ class PosteController extends Controller
                 'email' => 'required|email|max:255',
                 'contact' => 'required|string|max:20',
                 'commune' => 'required|string|max:255',
-                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:25600'
             ]);
 
             // Recherche de l'enregistrement

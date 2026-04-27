@@ -29,7 +29,7 @@ class Dhlcontroller extends Controller
            'email' => 'required|email|unique:dhls,email',
            'contact' => 'required|string|min:10',
            'commune' => 'required|string|max:255',
-           'profile_picture' => 'nullable|image|max:2048',
+           'profile_picture' => 'nullable|image|max:25600',
 
         ],[
             'name.required' => 'Le nom est obligatoire.',

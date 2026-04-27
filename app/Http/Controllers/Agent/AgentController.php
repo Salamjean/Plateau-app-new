@@ -52,7 +52,7 @@ class AgentController extends Controller
             
             if ($request->hasFile('profile_picture')) {
                 $request->validate([
-                    'profile_picture' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+                    'profile_picture' => 'image|mimes:jpeg,png,jpg,gif|max:25600'
                 ]);
                 
                 $agent->profile_picture = $request->file('profile_picture')->store('profile_pictures', 'public');
@@ -106,7 +106,7 @@ public function update(Request $request, Agent $agent)
             'contact' => 'required|string|max:20',
             'cas_urgence' => 'required|string|max:20',
             'commune' => 'required|string|max:255',
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:25600'
         ]);
 
         // Gérer l'upload de l'image

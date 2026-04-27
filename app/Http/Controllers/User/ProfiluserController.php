@@ -41,7 +41,7 @@ class ProfiluserController extends Controller
             'pays_residence' => 'nullable|string|max:255',
             'ville_residence' => 'nullable|string|max:255',
             'adresse_etrangere' => 'nullable|string|max:255',
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:25600',
             'password' => 'required|current_password', // 'current_password' vérifie que c'est bien le mot de passe actuel
             'new_password' => [ // Le nouveau mot de passe est optionnel
                 'nullable', 
@@ -140,5 +140,23 @@ class ProfiluserController extends Controller
         }
 
         return response()->json(['success' => false], 422);
+    }
+
+    /**
+     * Met à jour uniquement le contact (téléphone) via AJAX.
+     */
+    public function updateContact(Request $request)
+    {
+        $request->validate([
+            'indicatif' => 'required|string|max:10',
+            'contact' => 'required|string|max:20',
+        ]);
+
+        $user = Auth::user();
+        $user->indicatif = $request->indicatif;
+        $user->contact = $request->contact;
+        $user->save();
+
+        return response()->json(['success' => true, 'message' => 'Numéro de téléphone enregistré avec succès.']);
     }
 }

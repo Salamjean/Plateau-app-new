@@ -26,7 +26,7 @@ class etatCivilRequest extends FormRequest
            'email' => 'required|email|unique:etat_civils,email',
            'contact' => 'required|string|min:10',
            'commune' => 'required|string|max:255',
-           'profile_picture' => 'nullable|image|max:2048',
+           'profile_picture' => 'nullable|image|max:25600',
         ];
     }
 

@@ -326,16 +326,16 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $rules['quantite'] = 'required|integer|min:1|max:10';
                     break;
                 case 'CNIdfnt':
-                    $rules['CNIdfnt'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    $rules['CNIdfnt'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
                     break;
                 case 'CNIdcl':
-                    $rules['CNIdcl'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    $rules['CNIdcl'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
                     break;
                 case 'documentMariage':
-                    $rules['documentMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    $rules['documentMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
                     break;
                 case 'RequisPolice':
-                    $rules['RequisPolice'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    $rules['RequisPolice'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
                     break;
             }
         }

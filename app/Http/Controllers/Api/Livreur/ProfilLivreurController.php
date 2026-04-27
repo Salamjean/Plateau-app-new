@@ -79,7 +79,7 @@ class ProfilLivreurController extends Controller
             $livreur = $request->user();
            
             $validator = Validator::make($request->all(), [
-                'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+                'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:25600', // 25MB max
             ], [
                 'profile_picture.required' => 'La photo de profil est obligatoire',
                 'profile_picture.image' => 'Le fichier doit être une image',

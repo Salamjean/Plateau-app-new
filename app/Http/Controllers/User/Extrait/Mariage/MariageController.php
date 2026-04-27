@@ -316,10 +316,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $rules['quantite'] = 'required|integer|min:1|max:10';
                     break;
                 case 'pieceIdentite':
-                    $rules['pieceIdentite'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    $rules['pieceIdentite'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
                     break;
                 case 'extraitMariage':
-                    $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:1024';
+                    $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
                     break;
                 case 'CMU':
                     $rules['CMU'] = 'required|string|max:50';
