@@ -703,20 +703,22 @@
             }
             const provider = new firebase.auth.GoogleAuthProvider();
             
-            Swal.fire({
-                title: 'Connexion Google...',
-                text: 'Veuillez patienter',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                willOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
+            // On ouvre directement le popup SANS Swal.fire avant, 
+            // sinon le navigateur peut bloquer le popup ou annuler le contexte utilisateur
             auth.signInWithPopup(provider).then((result) => {
+                // Le popup a réussi, on affiche le chargement pendant qu'on contacte le backend
+                Swal.fire({
+                    title: 'Vérification...',
+                    text: 'Veuillez patienter',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 return result.user.getIdToken();
             }).then((idToken) => {
-                // Envoyer le jeton au Laravel (URL relative pour compatibilité local/prod)
+                // Envoyer le jeton au Laravel
                 return fetch("/user/auth/google", {
                     method: 'POST',
                     headers: {
@@ -728,12 +730,17 @@
                 });
             }).then(response => {
                 const contentType = response.headers.get('content-type');
-                if (!response.ok || !contentType || !contentType.includes('application/json')) {
-                    throw { message: 'Le serveur a renvoyé une réponse inattendue (code ' + response.status + '). Vérifiez votre connexion ou rechargez la page.' };
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json().then(data => ({ ok: response.ok, status: response.status, data }));
                 }
-                return response.json();
+                throw { message: 'Le serveur a renvoyé une réponse non-JSON (code ' + response.status + ').' };
             })
-            .then(data => {
+            .then(({ ok, status, data }) => {
+                if (!ok) {
+                    console.error('DIAGNOSTIC SERVEUR 500:', JSON.stringify(data, null, 2));
+                    Swal.fire('Erreur serveur', (data.debug_error || data.message || 'Erreur inconnue') + '\n\nClasse: ' + (data.debug_class || '?') + '\nLigne: ' + (data.debug_line || '?'), 'error');
+                    return;
+                }
                 if (data.success) {
                     Swal.fire({
                         icon: 'success',
@@ -749,11 +756,16 @@
                 }
             }).catch((error) => {
                 console.error('Google Auth Error:', error);
+                
+                // Si l'utilisateur a fermé lui-même, on ne met pas une grosse alerte rouge
+                if (error.code === 'auth/popup-closed-by-user') {
+                    // On peut l'ignorer ou juste mettre un petit toast/warning
+                    return; 
+                }
+                
                 let errorMsg = 'Impossible de se connecter avec Google.';
                 if (error.code === 'auth/unauthorized-domain') {
                     errorMsg = 'Ce domaine n\'est pas autorisé dans Firebase. Ajoutez-le dans la console Firebase > Authentication > Settings > Authorized domains.';
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    errorMsg = 'La fenêtre de connexion a été fermée.';
                 } else if (error.code === 'auth/popup-blocked') {
                     errorMsg = 'La fenêtre popup a été bloquée par le navigateur. Autorisez les popups.';
                 } else if (error.message) {

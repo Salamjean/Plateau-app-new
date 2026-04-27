@@ -390,6 +390,8 @@
     }
 </style>
 
+@php use Illuminate\Support\Str; @endphp
+
 <div class="profile-cards-container">
     <!-- Le formulaire DOIT englober toutes les cartes -->
     <form method="POST" action="{{ route('user.profile.update') }}" enctype="multipart/form-data" id="profileForm">
@@ -410,7 +412,13 @@
                 <div class="card-body">
                     <div class="avatar-container" onclick="document.getElementById('profile_picture').click()">
                         @if(auth()->user()->profile_picture)
-                            <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}" alt="Photo de profil" id="currentAvatar">
+                            @php
+                                $pic = auth()->user()->profile_picture;
+                                $picUrl = Str::startsWith($pic, ['http://', 'https://'])
+                                    ? $pic
+                                    : asset('storage/' . $pic);
+                            @endphp
+                            <img src="{{ $picUrl }}" alt="Photo de profil" id="currentAvatar">
                         @else
                             <div class="avatar-placeholder">
                                 <i class="fas fa-user"></i>
@@ -649,7 +657,16 @@
         });
     });
 
+    // Détecter si l'utilisateur est connecté via Google (pas de vrai mot de passe)
+    const isGoogleUser = {{ auth()->user()->google_id ? 'true' : 'false' }};
+
     function confirmPassword() {
+        // Les utilisateurs Google n'ont pas de mot de passe → soumettre directement
+        if (isGoogleUser) {
+            document.getElementById('profileForm').submit();
+            return;
+        }
+
         Swal.fire({
             title: '🔒 Confirmation de sécurité',
             html: `
@@ -681,7 +698,7 @@
             if (result.isConfirmed) {
                 // Afficher un indicateur de chargement
                 Swal.showLoading();
-                
+
                 // Vérification du mot de passe via AJAX
                 fetch('{{ route("user.verify.password") }}', {
                     method: 'POST',
@@ -706,7 +723,7 @@
                         hiddenInput.name = 'password';
                         hiddenInput.value = result.value.password;
                         document.getElementById('profileForm').appendChild(hiddenInput);
-                        
+
                         // Soumettre le formulaire après vérification réussie
                         document.getElementById('profileForm').submit();
                     } else {

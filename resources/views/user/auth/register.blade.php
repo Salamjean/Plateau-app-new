@@ -1264,9 +1264,10 @@
                             return;
                         }
                         const provider = new firebase.auth.GoogleAuthProvider();
-                        Swal.fire({ title: 'Connexion Google...', allowOutsideClick: false, willOpen: () => { Swal.showLoading(); }});
-
+                        
+                        // On ouvre directement le popup
                         auth.signInWithPopup(provider).then((result) => {
+                            Swal.fire({ title: 'Vérification...', allowOutsideClick: false, willOpen: () => { Swal.showLoading(); }});
                             return result.user.getIdToken();
                         }).then((idToken) => {
                             return fetch("/user/auth/google", {
@@ -1276,12 +1277,16 @@
                             });
                         }).then(response => {
                             const contentType = response.headers.get('content-type');
-                            if (!response.ok || !contentType || !contentType.includes('application/json')) {
-                                throw { message: 'Le serveur a renvoyé une réponse inattendue (code ' + response.status + '). Rechargez la page et réessayez.' };
+                            if (contentType && contentType.includes('application/json')) {
+                                return response.json().then(data => ({ ok: response.ok, status: response.status, data }));
                             }
-                            return response.json();
-                        })
-                        .then(data => {
+                            throw { message: 'Le serveur a renvoyé une réponse non-JSON (code ' + response.status + ').' };
+                        }).then(({ ok, status, data }) => {
+                            if (!ok) {
+                                console.error('DIAGNOSTIC SERVEUR 500:', JSON.stringify(data, null, 2));
+                                Swal.fire('Erreur serveur', (data.debug_error || data.message || 'Erreur inconnue') + '\n\nClasse: ' + (data.debug_class || '?') + '\nLigne: ' + (data.debug_line || '?'), 'error');
+                                return;
+                            }
                             if (data.success) {
                                 window.location.href = data.redirect;
                             } else {
@@ -1289,11 +1294,14 @@
                             }
                         }).catch(error => {
                             console.error('Google Auth Error:', error);
+                            
+                            if (error.code === 'auth/popup-closed-by-user') {
+                                return; 
+                            }
+                            
                             let errorMsg = 'Authentification Google échouée.';
                             if (error.code === 'auth/unauthorized-domain') {
                                 errorMsg = 'Ce domaine n\'est pas autorisé dans Firebase. Ajoutez-le dans la console Firebase > Authentication > Settings > Authorized domains.';
-                            } else if (error.code === 'auth/popup-closed-by-user') {
-                                errorMsg = 'La fenêtre de connexion a été fermée.';
                             } else if (error.code === 'auth/popup-blocked') {
                                 errorMsg = 'La fenêtre popup a été bloquée par le navigateur. Autorisez les popups.';
                             } else if (error.message) {

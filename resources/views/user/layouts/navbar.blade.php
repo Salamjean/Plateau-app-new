@@ -16,9 +16,13 @@
       
       <div class="dropdown">
          <a class="dropdown-toggle d-flex align-items-center" data-toggle="dropdown" style="cursor:pointer;"> 
-            <img src="{{ optional(Auth::user())->profile_picture 
-                  ? asset('storage/' . Auth::user()->profile_picture) 
-                  : asset('assets/images/profiles/useriii.jpeg') }}" 
+            @php
+                $navPic = optional(Auth::user())->profile_picture;
+                $navPicUrl = $navPic
+                    ? (\Illuminate\Support\Str::startsWith($navPic, ['http://', 'https://']) ? $navPic : asset('storage/' . $navPic))
+                    : asset('assets/images/profiles/useriii.jpeg');
+            @endphp
+            <img src="{{ $navPicUrl }}"
             style="width:40px; height:40px; border-radius:50%;" alt="Profile">
             <span class="name_user ml-2 d-none d-md-inline">{{ Auth::user()->name.' '.Auth::user()->prenom }}</span>
          </a>

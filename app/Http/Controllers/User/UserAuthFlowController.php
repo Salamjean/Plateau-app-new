@@ -104,10 +104,14 @@ class UserAuthFlowController extends Controller
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
+            // ⚠️ DEBUG TEMPORAIRE - À RETIRER APRÈS DIAGNOSTIC
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur serveur lors de l\'authentification Google.',
-                'debug' => config('app.debug') ? $e->getMessage() : null,
+                'debug_error'   => $e->getMessage(),
+                'debug_class'   => get_class($e),
+                'debug_file'    => $e->getFile(),
+                'debug_line'    => $e->getLine(),
             ], 500);
         }
     }

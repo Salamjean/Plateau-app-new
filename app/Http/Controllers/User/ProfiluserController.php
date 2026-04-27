@@ -29,29 +29,31 @@ class ProfiluserController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
+        $isGoogleUser = !empty($user->google_id);
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'indicatif' => 'nullable|string|max:10',
-            'contact' => 'nullable|string|max:20',
-            'CMU' => 'nullable|string|max:255',
-            'diaspora' => 'sometimes|boolean',
-            'pays_residence' => 'nullable|string|max:255',
-            'ville_residence' => 'nullable|string|max:255',
+        $rules = [
+            'name'              => 'required|string|max:255',
+            'prenom'            => 'required|string|max:255',
+            'email'             => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'indicatif'         => 'nullable|string|max:10',
+            'contact'           => 'nullable|string|max:20',
+            'CMU'               => 'nullable|string|max:255',
+            'diaspora'          => 'sometimes|boolean',
+            'pays_residence'    => 'nullable|string|max:255',
+            'ville_residence'   => 'nullable|string|max:255',
             'adresse_etrangere' => 'nullable|string|max:255',
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:25600',
-            'password' => 'required|current_password', // 'current_password' vérifie que c'est bien le mot de passe actuel
-            'new_password' => [ // Le nouveau mot de passe est optionnel
-                'nullable', 
-                'confirmed', 
-                'different:password',
-                Password::min(8)
-            ],
-        ], [
+            'profile_picture'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:25600',
+        ];
+
+        // Les utilisateurs Google n'ont pas de mot de passe → pas de confirmation requise
+        if (!$isGoogleUser) {
+            $rules['password']     = 'required|current_password';
+            $rules['new_password'] = ['nullable', 'confirmed', 'different:password', Password::min(8)];
+        }
+
+        $request->validate($rules, [
             'password.current_password' => 'Le mot de passe actuel de confirmation est incorrect.',
-            'new_password.different' => 'Le nouveau mot de passe doit être différent du mot de passe actuel.',
+            'new_password.different'    => 'Le nouveau mot de passe doit être différent du mot de passe actuel.',
         ]);
         
         // Mettre à jour les informations du profil

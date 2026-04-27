@@ -37,7 +37,13 @@
                 {{-- Section Informations générales --}}
                 <div class="text-center mb-4">
                     {{-- MODIFICATION 1 : Ajout de l'ID ici --}}
-                    <img id="profile-image-preview" src="{{ optional(auth()->user())->profile_picture ? asset('storage/' . auth()->user()->profile_picture) : asset('assets/images/profiles/useriii.jpeg') }}"
+                    @php
+                        $upPic = optional(auth()->user())->profile_picture;
+                        $upPicUrl = $upPic
+                            ? (\Illuminate\Support\Str::startsWith($upPic, ['http://', 'https://']) ? $upPic : asset('storage/' . $upPic))
+                            : asset('assets/images/profiles/useriii.jpeg');
+                    @endphp
+                    <img id="profile-image-preview" src="{{ $upPicUrl }}"
                          alt="Photo de profil" class="rounded-circle" width="150" height="150">
                     <div class="mt-3">
                         <label for="profile_picture" class="btn btn-sm btn-info">Changer la photo</label>
