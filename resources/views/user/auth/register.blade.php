@@ -1269,7 +1269,7 @@
                         auth.signInWithPopup(provider).then((result) => {
                             return result.user.getIdToken();
                         }).then((idToken) => {
-                            return fetch("{{ route('user.auth.google') }}", {
+                            return fetch("/user/auth/google", {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
                                 body: JSON.stringify({ id_token: idToken })
@@ -1281,9 +1281,19 @@
                             } else {
                                 Swal.fire('Erreur', data.message, 'error');
                             }
-                        }).catch(e => {
-                            console.error(e);
-                            Swal.fire('Erreur', 'Authentification Google échouée.', 'error');
+                        }).catch(error => {
+                            console.error('Google Auth Error:', error);
+                            let errorMsg = 'Authentification Google échouée.';
+                            if (error.code === 'auth/unauthorized-domain') {
+                                errorMsg = 'Ce domaine n\'est pas autorisé dans Firebase. Ajoutez-le dans la console Firebase > Authentication > Settings > Authorized domains.';
+                            } else if (error.code === 'auth/popup-closed-by-user') {
+                                errorMsg = 'La fenêtre de connexion a été fermée.';
+                            } else if (error.code === 'auth/popup-blocked') {
+                                errorMsg = 'La fenêtre popup a été bloquée par le navigateur. Autorisez les popups.';
+                            } else if (error.message) {
+                                errorMsg = error.message;
+                            }
+                            Swal.fire('Erreur', errorMsg, 'error');
                         });
                     });
                 }

@@ -716,8 +716,8 @@
             auth.signInWithPopup(provider).then((result) => {
                 return result.user.getIdToken();
             }).then((idToken) => {
-                // Envoyer le jeton au Laravel
-                return fetch("{{ route('user.auth.google') }}", {
+                // Envoyer le jeton au Laravel (URL relative pour compatibilité local/prod)
+                return fetch("/user/auth/google", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -741,8 +741,18 @@
                     Swal.fire('Erreur', data.message || 'Authentification échouée', 'error');
                 }
             }).catch((error) => {
-                console.error(error);
-                Swal.fire('Erreur', 'Impossible de se connecter avec Google.', 'error');
+                console.error('Google Auth Error:', error);
+                let errorMsg = 'Impossible de se connecter avec Google.';
+                if (error.code === 'auth/unauthorized-domain') {
+                    errorMsg = 'Ce domaine n\'est pas autorisé dans Firebase. Ajoutez-le dans la console Firebase > Authentication > Settings > Authorized domains.';
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    errorMsg = 'La fenêtre de connexion a été fermée.';
+                } else if (error.code === 'auth/popup-blocked') {
+                    errorMsg = 'La fenêtre popup a été bloquée par le navigateur. Autorisez les popups.';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+                Swal.fire('Erreur', errorMsg, 'error');
             });
         });
     </script>
