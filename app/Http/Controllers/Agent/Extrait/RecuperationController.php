@@ -88,7 +88,7 @@ class RecuperationController extends Controller
             $user->notify(new GeneralPushNotification(
                 'Demande reçue',
                 "Votre demande de {$modelName} est bien reçue par la mairie et est en cours de traitement.",
-                ['type' => 'statut_demande', 'reference' => $demande->reference, 'url' => 'plateauapps://demande?reference=' . $demande->reference]
+                ['type' => 'tracking', 'reference' => $demande->reference, 'url' => 'plateauapps://demande?reference=' . $demande->reference]
             ));
         }
 

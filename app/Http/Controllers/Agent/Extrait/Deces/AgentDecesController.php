@@ -180,7 +180,7 @@ class AgentDecesController extends Controller
             $user->notify(new GeneralPushNotification(
                 $pushTitle,
                 $pushBody,
-                ['type' => 'statut_demande', 'reference' => $deces->reference, 'url' => 'plateauapps://demande?reference=' . $deces->reference]
+                ['type' => 'tracking', 'reference' => $deces->reference, 'url' => 'plateauapps://demande?reference=' . $deces->reference]
             ));
         }
 
@@ -289,7 +289,7 @@ class AgentDecesController extends Controller
             $user->notify(new GeneralPushNotification(
                 "Retrait d’extrait de décès",
                 'La récupération de votre extrait de décès a été effectuée avec succès.',
-                ['type' => 'livraison', 'reference' => $deces->reference, 'url' => 'plateauapps://demande?reference=' . $deces->reference]
+                ['type' => 'tracking', 'reference' => $deces->reference, 'url' => 'plateauapps://demande?reference=' . $deces->reference]
             ));
         }
 

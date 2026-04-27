@@ -44,7 +44,6 @@ class LivraisonController extends Controller
                 $classeModele = "App\\Models\\$modele";
                 $demandesModele = $classeModele::where('livreur_id', $livreur->id)
                     ->with('user', 'livreur')
-                    ->where('statut_livraison', '!=', 'livré')
                     ->get()
                     ->map(function($item) use ($modele) {
                         $item->type_demande = $this->getTypeDemande($modele);

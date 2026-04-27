@@ -50,9 +50,11 @@ class DemandeNaissanceConfirmationNotification extends Notification
             'title' => 'Demande reçue ✔',
             'body'  => 'Votre demande d\'extrait de naissance a bien été enregistrée. Réf : ' . ($this->naissance->reference ?? ''),
             'data'  => [
-                'type' => 'demande_naissance',
+                'type' => 'tracking',
                 'id'   => (string) ($this->naissance->id ?? ''),
+                'reference'=> $this->naissance->reference ?? null,
             ],
+           
         ];
     }
 
@@ -61,8 +63,8 @@ class DemandeNaissanceConfirmationNotification extends Notification
         return [
             'title'     => 'Demande reçue ✔',
             'body'      => 'Votre demande d\'extrait de naissance a bien été enregistrée. Réf : ' . ($this->naissance->reference ?? ''),
-            'type'      => 'demande_naissance',
-            'demande_id'=> $this->naissance->id ?? null,
+            'type'      => 'tracking',
+            'reference'=> $this->naissance->reference ?? null,
         ];
     }
 }

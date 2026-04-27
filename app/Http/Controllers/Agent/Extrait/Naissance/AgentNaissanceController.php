@@ -178,7 +178,7 @@ class AgentNaissanceController extends Controller
             $user->notify(new GeneralPushNotification(
                 $pushTitle,
                 $pushBody,
-                ['type' => 'statut_demande', 'reference' => $naissance->reference, 'url' => 'plateauapps://demande?reference=' . $naissance->reference]
+                ['type' => 'tracking', 'reference' => $naissance->reference, 'url' => 'plateauapps://demande?reference=' . $naissance->reference]
             ));
         }
 
@@ -375,7 +375,7 @@ class AgentNaissanceController extends Controller
             $user->notify(new GeneralPushNotification(
                 "Retrait d’extrait de naissance",
                 'La récupération de votre extrait de naissance a été effectuée avec succès.',
-                ['type' => 'livraison', 'reference' => $naissance->reference, 'url' => 'plateauapps://demande?reference=' . $naissance->reference]
+                ['type' => 'tracking', 'reference' => $naissance->reference, 'url' => 'plateauapps://demande?reference=' . $naissance->reference]
             ));
         }
 

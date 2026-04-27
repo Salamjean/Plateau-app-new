@@ -29,7 +29,6 @@ class LivraisonDelivery extends Controller
             $classeModele = "App\\Models\\$modele";
             $demandesModele = $classeModele::where('livreur_id', $livreur->id)
                 ->with('user','livreur') // Si vous avez une relation avec l'utilisateur
-                ->where('statut_livraison', '!=','livré')
                 ->get()
                 ->map(function($item) use ($modele) {
                     $item->type_demande = $this->getTypeDemande($modele);
@@ -135,7 +134,7 @@ class LivraisonDelivery extends Controller
                 $user->notify(new GeneralPushNotification(
                     'Demande livrée ✔',
                     "Votre acte de {$modelName} ({$demande->reference}) a été livré avec succès.",
-                    ['type' => 'livraison', 'reference' => $demande->reference, 'url' => 'plateauapps://demande?reference=' . $demande->reference]
+                    ['type' => 'tracking', 'reference' => $demande->reference, 'url' => 'plateauapps://demande?reference=' . $demande->reference]
                 ));
             }
 

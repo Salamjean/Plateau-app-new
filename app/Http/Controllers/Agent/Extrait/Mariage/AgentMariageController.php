@@ -201,7 +201,7 @@ class AgentMariageController extends Controller
             $user->notify(new GeneralPushNotification(
                 $pushTitle,
                 $pushBody,
-                ['type' => 'statut_demande', 'reference' => $mariage->reference, 'url' => 'plateauapps://demande?reference=' . $mariage->reference]
+                ['type' => 'tracking', 'reference' => $mariage->reference, 'url' => 'plateauapps://demande?reference=' . $mariage->reference]
             ));
         }
 
@@ -315,7 +315,7 @@ class AgentMariageController extends Controller
             $user->notify(new GeneralPushNotification(
                 "Retrait d’extrait de mariage",
                 'La récupération de votre extrait de mariage a été effectuée avec succès.',
-                ['type' => 'livraison', 'reference' => $mariage->reference, 'url' => 'plateauapps://demande?reference=' . $mariage->reference]
+                ['type' => 'tracking', 'reference' => $mariage->reference, 'url' => 'plateauapps://demande?reference=' . $mariage->reference]
             ));
         }
 

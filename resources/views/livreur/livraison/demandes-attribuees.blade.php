@@ -221,7 +221,7 @@
             <div>
                 <span class="badge badge-pill mr-2"
                     style="background-color: var(--secondary-color); color: white;padding:5px; border:2px solid var(--primary-color)">
-                    {{ $demandes->count() }} colis pas encore livré(s)
+                    {{ $demandes->count() }} colis au total
                 </span>
             </div>
 
@@ -240,7 +240,7 @@
                 </div>
             @else
                 @foreach($demandes as $demande)
-                    <div class="small-demand-card @if($demande->statut_livraison === 'en cours') card-disabled @endif">
+                    <div class="small-demand-card @if($demande->statut_livraison === 'livré') card-disabled @endif">
                         <div class="small-card-header">
                             <span class="small-card-ref">{{ $demande->livraison_code }}</span>
                             <span class="small-card-type text-white">{{ Str::limit($demande->type_demande) }}</span>

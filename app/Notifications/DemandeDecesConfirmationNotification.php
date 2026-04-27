@@ -50,8 +50,9 @@ class DemandeDecesConfirmationNotification extends Notification
             'title' => 'Demande reçue ✔',
             'body'  => 'Votre demande d\'extrait de décès a bien été enregistrée. Réf : ' . ($this->deces->reference ?? ''),
             'data'  => [
-                'type' => 'demande_deces',
+                'type' => 'tracking',
                 'id'   => (string) ($this->deces->id ?? ''),
+                'reference'=> $this->deces->reference ?? null,
             ],
         ];
     }
@@ -61,8 +62,8 @@ class DemandeDecesConfirmationNotification extends Notification
         return [
             'title'     => 'Demande reçue ✔',
             'body'      => 'Votre demande d\'extrait de décès a bien été enregistrée. Réf : ' . ($this->deces->reference ?? ''),
-            'type'      => 'demande_deces',
-            'demande_id'=> $this->deces->id ?? null,
+            'type'      => 'tracking',
+            'reference'=> $this->deces->reference ?? null,
         ];
     }
 }

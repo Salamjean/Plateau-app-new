@@ -50,8 +50,9 @@ class DemandeMariageConfirmationNotification extends Notification
             'title' => 'Demande reçue ✔',
             'body'  => 'Votre demande d\'extrait de mariage a bien été enregistrée. Réf : ' . ($this->mariage->reference ?? ''),
             'data'  => [
-                'type' => 'demande_mariage',
+                'type' => 'tracking',
                 'id'   => (string) ($this->mariage->id ?? ''),
+                'reference'=> $this->mariage->reference ?? null,
             ],
         ];
     }
@@ -61,8 +62,8 @@ class DemandeMariageConfirmationNotification extends Notification
         return [
             'title'     => 'Demande reçue ✔',
             'body'      => 'Votre demande d\'extrait de mariage a bien été enregistrée. Réf : ' . ($this->mariage->reference ?? ''),
-            'type'      => 'demande_mariage',
-            'demande_id'=> $this->mariage->id ?? null,
+            'type'      => 'tracking',
+            'reference'=> $this->mariage->reference ?? null,
         ];
     }
 }
