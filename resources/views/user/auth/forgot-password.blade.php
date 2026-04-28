@@ -296,7 +296,7 @@
     </style>
 </head>
 <body>
-    <form class="form-container animate__animated animate__fadeIn" method="POST" action="{{ route('user.password.email') }}">
+    <form id="resetForm" class="form-container animate__animated animate__fadeIn">
         <!-- Bouton Retour -->
         <a href="{{ route('login') }}" class="back-btn animate__animated animate__fadeInLeft">
             <i class="fas fa-arrow-left"></i>
@@ -304,7 +304,7 @@
 
         <div class="form-header">
             <h1 class="title">Mot de passe oublié</h1>
-            <p class="subtitle">Entrez votre adresse email pour recevoir un lien de réinitialisation</p>
+            <p class="subtitle">Entrez votre email ou numéro de téléphone pour recevoir un code OTP</p>
         </div>
 
         @csrf
@@ -312,38 +312,18 @@
         <!-- Message d'information -->
         <div class="info-box">
             <i class="fas fa-info-circle"></i>
-            Un lien de réinitialisation vous sera envoyé par email. Ce lien expirera dans 60 minutes.
+            Un code OTP (6 chiffres) vous sera envoyé par email ou par SMS. Ce code expirera dans 60 minutes.
         </div>
 
-        @if (session('status'))
-            <div class="success-message animate__animated animate__bounceIn">
-                <i class="fas fa-check-circle"></i> {{ session('status') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="error-message animate__animated animate__shakeX">
-                <i class="fas fa-exclamation-circle"></i> 
-                @foreach ($errors->all() as $error)
-                    {{ $error }}
-                @endforeach
-            </div>
-        @endif
-
-        <!-- Email Field -->
+        <!-- Identifier Field -->
         <div class="input-group">
-            <i class="fas fa-envelope input-icon"></i>
-            <input class="input-field" type="email" name="email" placeholder=" " value="{{ old('email') }}" required />
-            <label class="input-label" for="email">Adresse Email</label>
-            @error('email')
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
-                </div>
-            @enderror
+            <i class="fas fa-user input-icon"></i>
+            <input class="input-field" type="text" id="login_identifier" name="login_identifier" placeholder=" " required />
+            <label class="input-label" for="login_identifier">Email ou Numéro de téléphone</label>
         </div>
 
         <button type="submit" class="submit-btn animate__animated animate__pulse">
-            <i class="fas fa-paper-plane"></i> Envoyer le lien de réinitialisation
+            <i class="fas fa-paper-plane"></i> Obtenir mon code de réinitialisation
         </button>
 
         <div class="form-footer">
@@ -353,26 +333,138 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // SweetAlert notifications
-            @if (session('status'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Email envoyé !',
-                    text: '{{ session('status') }}',
-                    confirmButtonText: 'OK',
-                    background: 'var(--light-color)',
-                });
-            @endif
+            document.getElementById('resetForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const identifier = document.getElementById('login_identifier').value;
+                const submitBtn = this.querySelector('.submit-btn');
+                
+                // Loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement en cours...';
 
-            @if ($errors->any())
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    html: `@foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach`,
-                    confirmButtonText: 'OK',
-                    background: 'var(--light-color)',
-                });
-            @endif
+                try {
+                    // Etape 1: Envoyer la demande
+                    const response = await fetch('/api/utilisateurs/forgot-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ login_identifier: identifier })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Une erreur est survenue lors de la demande.');
+                    }
+
+                    // Etape 2: Demander le code OTP
+                    const { value: otpCode } = await Swal.fire({
+                        title: 'Code de vérification',
+                        text: data.message, 
+                        input: 'text',
+                        inputPlaceholder: 'Entrez le code à 6 chiffres',
+                        showCancelButton: true,
+                        confirmButtonText: 'Vérifier',
+                        cancelButtonText: 'Annuler',
+                        inputValidator: (value) => {
+                            if (!value) return 'Vous devez entrer le code !';
+                        }
+                    });
+
+                    if (otpCode) {
+                        // Vérifier le code
+                        Swal.showLoading();
+                        const verifyResponse = await fetch('/api/utilisateurs/verify-reset-code', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ login_identifier: identifier, token: otpCode })
+                        });
+                        
+                        const verifyData = await verifyResponse.json();
+                        
+                        if (!verifyResponse.ok) {
+                            throw new Error(verifyData.message || 'Code invalide ou expiré');
+                        }
+
+                        const secureToken = verifyData.reset_token;
+
+                        // Etape 3: Nouveau mot de passe
+                        const { value: formValues } = await Swal.fire({
+                            title: 'Nouveau mot de passe',
+                            html:
+                                '<input id="swal-input1" type="password" class="swal2-input" placeholder="Nouveau mot de passe">' +
+                                '<input id="swal-input2" type="password" class="swal2-input" placeholder="Confirmer le mot de passe">',
+                            focusConfirm: false,
+                            showCancelButton: true,
+                            confirmButtonText: 'Réinitialiser',
+                            preConfirm: () => {
+                                const pwd1 = document.getElementById('swal-input1').value;
+                                const pwd2 = document.getElementById('swal-input2').value;
+                                if (!pwd1 || !pwd2) {
+                                    Swal.showValidationMessage('Veuillez remplir les deux champs');
+                                    return false;
+                                }
+                                if (pwd1 !== pwd2) {
+                                    Swal.showValidationMessage('Les mots de passe ne correspondent pas');
+                                    return false;
+                                }
+                                if (pwd1.length < 8) {
+                                    Swal.showValidationMessage('Le mot de passe doit faire au moins 8 caractères');
+                                    return false;
+                                }
+                                return [pwd1, pwd2];
+                            }
+                        });
+
+                        if (formValues) {
+                            Swal.showLoading();
+                            const resetResponse = await fetch('/api/utilisateurs/reset-password', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({ 
+                                    login_identifier: identifier, 
+                                    token: secureToken,
+                                    password: formValues[0],
+                                    password_confirmation: formValues[1]
+                                })
+                            });
+
+                            const resetData = await resetResponse.json();
+
+                            if (!resetResponse.ok) {
+                                throw new Error(resetData.message || 'Erreur lors de la réinitialisation');
+                            }
+
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Succès !',
+                                text: 'Votre mot de passe a été réinitialisé avec succès.',
+                                confirmButtonText: 'Se connecter'
+                            });
+                            window.location.href = "{{ route('login') }}";
+                        }
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Action impossible',
+                        text: error.message,
+                        confirmButtonText: 'OK',
+                        background: 'var(--light-color)'
+                    });
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Obtenir mon code de réinitialisation';
+                }
+            });
         });
     </script>
 </body>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Livreur;
 use App\Models\ResetCodePasswordLivreur;
 use App\Notifications\ApiPasswordResetNotification;
@@ -21,41 +22,54 @@ class LivreurPasswordForgotController extends Controller
      */
     public function forgotPassword(Request $request)
     {
+        Log::info('LivreurPasswordForgotController@forgotPassword: Start', ['email' => $request->email]);
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:livreurs,email',
         ]);
 
         if ($validator->fails()) {
+            Log::error('LivreurPasswordForgotController@forgotPassword: Validation failed', ['errors' => $validator->errors()]);
             return response()->json(['message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
         }
 
-        $code = random_int(100000, 999999);
+        try {
+            $code = random_int(100000, 999999);
+            Log::info('LivreurPasswordForgotController@forgotPassword: Code generated', ['email' => $request->email]);
 
-        // Utilisation du modèle ResetCodePasswordLivreur ou DB directe
-        // Le modèle a 'code' et 'email'. On va stocker le hash du code dans 'code'.
-        
-        // On vérifie s'il existe déjà une entrée pour cet email
-        $existing = ResetCodePasswordLivreur::where('email', $request->email)->first();
+            $existing = ResetCodePasswordLivreur::where('email', $request->email)->first();
 
-        if ($existing) {
-            $existing->update([
-                'code' => Hash::make($code),
-                'created_at' => Carbon::now()
-            ]);
-        } else {
-            ResetCodePasswordLivreur::create([
+            if ($existing) {
+                Log::info('LivreurPasswordForgotController@forgotPassword: Updating existing reset record', ['email' => $request->email]);
+                $existing->update([
+                    'code' => Hash::make($code),
+                    'created_at' => Carbon::now()
+                ]);
+            } else {
+                Log::info('LivreurPasswordForgotController@forgotPassword: Creating new reset record', ['email' => $request->email]);
+                ResetCodePasswordLivreur::create([
+                    'email' => $request->email,
+                    'code' => Hash::make($code)
+                ]);
+            }
+
+            $livreur = Livreur::where('email', $request->email)->first();
+            Log::info('LivreurPasswordForgotController@forgotPassword: Sending notification to livreur', ['email' => $request->email]);
+            $livreur->notify(new ApiPasswordResetNotification($code));
+
+            Log::info('LivreurPasswordForgotController@forgotPassword: Process successful', ['email' => $request->email]);
+            return response()->json([
+                'message' => 'Un code de réinitialisation de mot de passe a été envoyé à votre adresse email.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('LivreurPasswordForgotController@forgotPassword: Exception occurred', [
                 'email' => $request->email,
-                'code' => Hash::make($code)
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+            return response()->json(['message' => 'Une erreur est survenue lors de la demande.', 'error' => $e->getMessage()], 500);
         }
-
-        $livreur = Livreur::where('email', $request->email)->first();
-        // On utilise la même notification que pour les users, car elle est générique
-        $livreur->notify(new ApiPasswordResetNotification($code));
-
-        return response()->json([
-            'message' => 'Un code de réinitialisation de mot de passe a été envoyé à votre adresse email.'
-        ], 200);
     }
 
     /**
@@ -64,42 +78,61 @@ class LivreurPasswordForgotController extends Controller
      */
     public function verifyResetCode(Request $request)
     {
+        Log::info('LivreurPasswordForgotController@verifyResetCode: Start', ['email' => $request->email, 'token' => $request->token]);
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:livreurs,email',
-            'token' => 'required|string|min:6|max:6', // Le code à 6 chiffres
+            'token' => 'required', // Removed strict string validation to avoid issues with numeric JSON values
         ]);
 
         if ($validator->fails()) {
+            Log::error('LivreurPasswordForgotController@verifyResetCode: Validation failed', ['errors' => $validator->errors()]);
             return response()->json(['message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
         }
 
-        $resetRecord = ResetCodePasswordLivreur::where('email', $request->email)->first();
+        try {
+            $resetRecord = ResetCodePasswordLivreur::where('email', $request->email)->first();
+            $expiration = config('auth.passwords.users.expire', 60);
 
-        // On assume une expiration similaire à celle des users (config('auth.passwords.users.expire'))
-        // ou une valeur par défaut de 60 minutes si non configuré.
-        $expiration = config('auth.passwords.users.expire', 60);
+            if (!$resetRecord) {
+                Log::warning('LivreurPasswordForgotController@verifyResetCode: No reset record found', ['email' => $request->email]);
+                return response()->json(['message' => 'Le code de réinitialisation est invalide ou a expiré.'], 400);
+            }
 
-        if (!$resetRecord || Carbon::parse($resetRecord->updated_at)->addMinutes($expiration)->isPast()) {
-            return response()->json(['message' => 'Le code de réinitialisation est invalide ou a expiré.'], 400);
+            if (Carbon::parse($resetRecord->updated_at)->addMinutes($expiration)->isPast()) {
+                Log::warning('LivreurPasswordForgotController@verifyResetCode: Code expired', ['email' => $request->email, 'updated_at' => $resetRecord->updated_at]);
+                return response()->json(['message' => 'Le code de réinitialisation est invalide ou a expiré.'], 400);
+            }
+
+            // Ensure token is cast to string for hash checking
+            $providedToken = (string) $request->token;
+
+            if (!Hash::check($providedToken, $resetRecord->code)) {
+                Log::warning('LivreurPasswordForgotController@verifyResetCode: Invalid code provided', ['email' => $request->email]);
+                return response()->json(['message' => 'Le code de réinitialisation est invalide.'], 400);
+            }
+
+            $secureToken = Str::random(60);
+
+            $resetRecord->update([
+                'code' => Hash::make($secureToken), 
+            ]);
+
+            Log::info('LivreurPasswordForgotController@verifyResetCode: Code verified successfully', ['email' => $request->email]);
+
+            return response()->json([
+                'message' => 'Code vérifié avec succès. Vous pouvez maintenant réinitialiser votre mot de passe.',
+                'reset_token' => $secureToken 
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('LivreurPasswordForgotController@verifyResetCode: Exception occurred', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Une erreur est survenue lors de la vérification.', 'error' => $e->getMessage()], 500);
         }
-
-        if (!Hash::check($request->token, $resetRecord->code)) {
-            return response()->json(['message' => 'Le code de réinitialisation est invalide.'], 400);
-        }
-
-        // Si le code est bon, on génère un nouveau token sécurisé pour l'étape finale
-        $secureToken = Str::random(60);
-
-        // On met à jour l'enregistrement avec ce nouveau token
-        $resetRecord->update([
-            'code' => Hash::make($secureToken), // On le stocke haché pour la sécurité
-        ]);
-
-        // On renvoie le token non-haché à l'application mobile
-        return response()->json([
-            'message' => 'Code vérifié avec succès. Vous pouvez maintenant réinitialiser votre mot de passe.',
-            'reset_token' => $secureToken // L'app mobile doit utiliser ce token pour la prochaine étape
-        ], 200);
     }
 
 
@@ -109,36 +142,62 @@ class LivreurPasswordForgotController extends Controller
      */
     public function resetPassword(Request $request)
     {
+        Log::info('LivreurPasswordForgotController@resetPassword: Start', ['email' => $request->email]);
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:livreurs,email',
-            'token' => 'required|string', // Le token sécurisé de l'étape 2
+            'token' => 'required|string', 
             'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required',
         ]);
 
         if ($validator->fails()) {
+            Log::error('LivreurPasswordForgotController@resetPassword: Validation failed', ['errors' => $validator->errors()]);
             return response()->json(['message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
         }
 
-        $resetRecord = ResetCodePasswordLivreur::where('email', $request->email)->first();
-        $expiration = config('auth.passwords.users.expire', 60);
+        try {
+            $resetRecord = ResetCodePasswordLivreur::where('email', $request->email)->first();
+            $expiration = config('auth.passwords.users.expire', 60);
 
-        if (!$resetRecord || Carbon::parse($resetRecord->updated_at)->addMinutes($expiration)->isPast()) {
-            return response()->json(['message' => 'La demande de réinitialisation est invalide ou a expiré.'], 400);
+            if (!$resetRecord) {
+                Log::warning('LivreurPasswordForgotController@resetPassword: No reset record found', ['email' => $request->email]);
+                return response()->json(['message' => 'La demande de réinitialisation est invalide ou a expiré.'], 400);
+            }
+            
+            if (Carbon::parse($resetRecord->updated_at)->addMinutes($expiration)->isPast()) {
+                Log::warning('LivreurPasswordForgotController@resetPassword: Token expired', ['email' => $request->email]);
+                return response()->json(['message' => 'La demande de réinitialisation est invalide ou a expiré.'], 400);
+            }
+            
+            if (!Hash::check($request->token, $resetRecord->code)) {
+                Log::warning('LivreurPasswordForgotController@resetPassword: Invalid secure token', ['email' => $request->email]);
+                return response()->json(['message' => 'Le token de réinitialisation est invalide.'], 400);
+            }
+
+            $livreur = Livreur::where('email', $request->email)->first();
+            
+            if (!$livreur) {
+                Log::error('LivreurPasswordForgotController@resetPassword: Livreur not found (should not happen)', ['email' => $request->email]);
+                return response()->json(['message' => 'Livreur introuvable.'], 404);
+            }
+
+            $livreur->password = Hash::make($request->password);
+            $livreur->save();
+            Log::info('LivreurPasswordForgotController@resetPassword: Password successfully updated', ['email' => $request->email]);
+
+            $resetRecord->delete();
+            Log::info('LivreurPasswordForgotController@resetPassword: Reset record deleted', ['email' => $request->email]);
+
+            return response()->json(['message' => 'Votre mot de passe a été réinitialisé avec succès.'], 200);
+
+        } catch (\Exception $e) {
+            Log::error('LivreurPasswordForgotController@resetPassword: Exception occurred', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Une erreur est survenue lors de la réinitialisation.', 'error' => $e->getMessage()], 500);
         }
-        
-        // On compare le token sécurisé fourni avec la version hachée en DB
-        if (!Hash::check($request->token, $resetRecord->code)) {
-            return response()->json(['message' => 'Le token de réinitialisation est invalide.'], 400);
-        }
-
-        $livreur = Livreur::where('email', $request->email)->first();
-        $livreur->password = Hash::make($request->password);
-        $livreur->save();
-
-        // On supprime le code de reset après utilisation
-        $resetRecord->delete();
-
-        return response()->json(['message' => 'Votre mot de passe a été réinitialisé avec succès.'], 200);
     }
 }

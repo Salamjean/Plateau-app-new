@@ -174,3 +174,24 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
     }); // Fin groupe livreur
 
 }); // Fin groupe auth:sanctum
+
+// Route de test d'envoi de mail
+Route::get('/test-email', function (\Illuminate\Http\Request $request) {
+    $email = $request->query('email', 'redfieldluise@gmail.com');
+    try {
+        \Illuminate\Support\Facades\Mail::raw("Bonjour ! Ceci est un test direct depuis Laravel.\nSi vous recevez ce message, votre configuration SMTP Hostinger fonctionne parfaitement !", function ($message) use ($email) {
+            $message->to($email)
+                    ->subject('Test SMTP Plateau App');
+        });
+        return response()->json([
+            'success' => true, 
+            'message' => "L'e-mail a été envoyé au serveur SMTP avec succès pour l'adresse : $email. Vérifiez votre boîte de réception et vos spams."
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false, 
+            'message' => "Erreur lors de l'envoi de l'e-mail.",
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
