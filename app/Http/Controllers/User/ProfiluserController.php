@@ -36,7 +36,7 @@ class ProfiluserController extends Controller
             'prenom'            => 'required|string|max:255',
             'email'             => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'indicatif'         => 'nullable|string|max:10',
-            'contact'           => 'nullable|string|max:20',
+            'contact'           => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
             'CMU'               => 'nullable|string|max:255',
             'diaspora'          => 'sometimes|boolean',
             'pays_residence'    => 'nullable|string|max:255',
@@ -54,6 +54,7 @@ class ProfiluserController extends Controller
         $request->validate($rules, [
             'password.current_password' => 'Le mot de passe actuel de confirmation est incorrect.',
             'new_password.different'    => 'Le nouveau mot de passe doit être différent du mot de passe actuel.',
+            'contact.unique'            => 'Ce numéro est déjà attribué à un autre utilisateur.',
         ]);
         
         // Mettre à jour les informations du profil
@@ -149,12 +150,14 @@ class ProfiluserController extends Controller
      */
     public function updateContact(Request $request)
     {
+        $user = Auth::user();
         $request->validate([
             'indicatif' => 'required|string|max:10',
-            'contact' => 'required|string|max:20',
+            'contact'   => ['required', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
+        ], [
+            'contact.unique' => 'Ce numéro est déjà attribué à un autre utilisateur.',
         ]);
 
-        $user = Auth::user();
         $user->indicatif = $request->indicatif;
         $user->contact = $request->contact;
         $user->save();

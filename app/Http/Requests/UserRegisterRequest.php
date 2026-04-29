@@ -26,7 +26,7 @@ class UserRegisterRequest extends FormRequest
             'prenom' => 'required',
             'email' => 'required|email|unique:users,email',
             'indicatif' => 'required',
-            'contact' => 'required',
+            'contact' => 'required|unique:users,contact',
             'password' => [
                 'required',
                 'min:8',
@@ -58,6 +58,7 @@ class UserRegisterRequest extends FormRequest
             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
             'indicatif.required' => 'L\'indicatif du pays est obligatoire.',
             'contact.required' => 'Le contact est obligatoire.',
+            'contact.unique' => 'Ce numéro de téléphone est déjà associé à un compte.',
             'password.regex' => 'Le mot de passe doit contenir au moins une lettre minuscule, une lettre majuscule, un chiffre et un caractère spécial.',
             'profile_picture.image' => 'Le fichier doit être une image.',
             'profile_picture.mimes' => 'L\'image doit être au format jpeg, png, jpg, gif ou svg.',
