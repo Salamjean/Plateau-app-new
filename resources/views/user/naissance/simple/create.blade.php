@@ -6,493 +6,612 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        :root {
-            --primary: #1977cc;
-            --primary-soft: rgba(25, 119, 204, 0.1);
-            --secondary: #2c7873;
-            --accent: #ff7e5f;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --bg-glass: rgba(255, 255, 255, 0.9);
-            --border-radius: 16px;
-            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .form-page-container {
+            padding: 2rem 0;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        .form-container {
-            background: var(--bg-glass);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(12px);
+        .form-glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
             padding: 3rem;
-            width: 70%;
-            margin: 2rem auto;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            animation: slideUp 0.6s ease-out;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-title {
+        .form-header-box {
             text-align: center;
-            color: var(--primary);
-            margin-bottom: 2.5rem;
-            font-size: 2.2rem;
+            margin-bottom: 3rem;
+        }
+
+        .form-header-box h2 {
+            color: var(--text-navy);
             font-weight: 800;
-            letter-spacing: -0.5px;
+            font-size: 2.2rem;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
         }
 
-        .form-title::after {
-            content: '';
-            display: block;
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            margin: 12px auto 0;
-            border-radius: 2px;
+        .form-header-box p {
+            color: #718096;
+            font-size: 1rem;
         }
 
-        .section-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid #edf2f7;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-col {
-            margin-bottom: 0;
-        }
-
-        .form-col.full-width {
-            grid-column: span 2;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.6rem;
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-
-        .form-control {
-            width: 100%;
-            border: 2px solid #eef2f7;
-            border-radius: 10px;
-            background-color: #fcfdfe;
-            transition: var(--transition);
-            font-size: 0.95rem;
-            color: #2d3748;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(25, 119, 204, 0.1);
-        }
-
-        .input-icon-wrapper {
+        .form-section {
+            margin-bottom: 2.5rem;
             position: relative;
         }
 
-        .input-icon-wrapper i {
+        .form-section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-section-title i {
+            width: 35px;
+            height: 35px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-right: 12px;
+            font-size: 14px;
+        }
+
+        .input-group-custom {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group-custom label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-navy);
+            font-size: 0.9rem;
+            padding-left: 5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .input-wrapper i {
             position: absolute;
-            left: 12px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: #a0aec0;
+            font-size: 14px;
+            transition: 0.3s;
         }
 
-        .input-icon-wrapper .form-control {
-            padding-left: 40px;
+        .form-control-custom {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border-radius: 15px;
+            border: 2px solid #f4f7fe;
+            background: #f4f7fe;
+            color: var(--text-navy);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
         }
 
-        /* Radio Cards */
-    /* Nouveau style pour les options de retrait cards premium */
-    .delivery-options-cards {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
+        .form-control-custom:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 10px 20px rgba(25, 119, 204, 0.05);
+            outline: none;
+        }
 
-    .delivery-card {
-        position: relative;
-        cursor: pointer;
-    }
-
-    .delivery-card input {
-        position: absolute;
-        opacity: 0;
-    }
-
-    .delivery-label {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 1.5rem;
-        background: white;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        transition: all 0.2s;
-        height: 100%;
-        text-align: center;
-    }
-
-    .delivery-label .icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        color: #1977cc;
-    }
-
-    .delivery-name {
-        font-weight: 700;
-        font-size: 0.95rem;
-        margin-bottom: 0.25rem;
-        color: #2c3e50;
-    }
-
-    .delivery-info {
-        font-size: 0.8rem;
-        color: #718096;
-    }
-
-    .delivery-card input:checked + .delivery-label {
-        border-color: #1977cc;
-        background-color: #f0f7ff;
-        box-shadow: 0 0 0 1px #1977cc;
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        margin: 2rem 0 1rem;
-        border-bottom: 1px solid #edf2f7;
-        padding-bottom: 0.5rem;
-    }
-
-    .section-header i {
-        color: #1977cc;
-        margin-right: 0.75rem;
-    }
-
-    .section-header h3 {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #1977cc;
-        text-transform: uppercase;
-        margin: 0;
-    }
-
-        .radio-card i {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
+        .form-control-custom:focus + i {
             color: var(--primary);
         }
 
-        .radio-card span {
-            font-weight: 700;
-            color: #2d3748;
-            font-size: 0.95rem;
+        .delivery-card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
         }
 
-        .radio-card small {
-            color: #718096;
-            margin-top: 4px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 1.2rem;
-            background: linear-gradient(135deg, var(--primary), #1565b8);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
+        .delivery-option-card {
+            position: relative;
             cursor: pointer;
-            transition: var(--transition);
+        }
+
+        .delivery-option-card input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .delivery-option-content {
+            padding: 2rem;
+            background: #fff;
+            border-radius: 20px;
+            border: 2px solid #f4f7fe;
+            text-align: center;
+            transition: 0.3s;
+            height: 100%;
+        }
+
+        .delivery-option-content i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #a0aec0;
+            transition: 0.3s;
+        }
+
+        .delivery-option-content h5 {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-navy);
+        }
+
+        .delivery-option-content p {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-bottom: 0;
+        }
+
+        .delivery-option-card input:checked + .delivery-option-content {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(25, 119, 204, 0.1);
+        }
+
+        .delivery-option-card input:checked + .delivery-option-content i {
+            color: var(--primary);
+        }
+
+        .file-upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: #f8faff;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .file-upload-area i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .btn-submit-premium {
+            background: linear-gradient(135deg, var(--primary), #0d4a85);
+            color: #fff;
+            border: none;
+            padding: 1.2rem;
+            border-radius: 18px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            width: 100%;
             margin-top: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            box-shadow: 0 4px 15px rgba(25, 119, 204, 0.3);
+            box-shadow: 0 10px 20px rgba(25, 119, 204, 0.2);
+            transition: 0.3s;
         }
 
-        .btn-submit:hover {
+        .btn-submit-premium:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(25, 119, 204, 0.4);
+            box-shadow: 0 15px 30px rgba(25, 119, 204, 0.3);
         }
 
-        .error-message {
-            color: var(--danger);
-            font-size: 0.8rem;
-            margin-top: 5px;
-            font-weight: 500;
-        }
-
-        /* Custom File Upload */
-        .file-input-container {
-            position: relative;
-            width: 100%;
-        }
-
-        .file-input-label {
+        /* Stepper Styles */
+        .stepper-container {
             display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stepper-container::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #f4f7fe;
+            z-index: 1;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 10px;
-            padding: 0.8rem 1rem;
-            background: #f8fafc;
-            border: 2px dashed #e2e8f0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: var(--transition);
-            color: #64748b;
+            flex: 1;
         }
 
-        .file-input-label:hover {
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #f4f7fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #a0aec0;
+            transition: 0.3s;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: 0.3s;
+        }
+
+        .step-item.active .step-number {
             border-color: var(--primary);
-            background: var(--primary-soft);
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(25, 119, 204, 0.2);
+        }
+
+        .step-item.active .step-label {
             color: var(--primary);
         }
 
-        /* Responsive */
+        .step-item.completed .step-number {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .form-step {
+            display: none;
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .stepper-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #f4f7fe;
+        }
+
+        .btn-step {
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-prev {
+            background: #f4f7fe;
+            color: #718096;
+            border: none;
+        }
+
+        .btn-prev:hover {
+            background: #edf2f7;
+            transform: translateX(-3px);
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            box-shadow: 0 5px 15px rgba(25, 119, 204, 0.1);
+        }
+
+        .btn-next:hover {
+            background: #0d4a85;
+            transform: translateX(3px);
+            box-shadow: 0 8px 20px rgba(25, 119, 204, 0.2);
+        }
+
+        .form-control-custom.is-invalid {
+            border-color: #EE5D50 !important;
+            background: #fffafa !important;
+        }
+
+        .error-message {
+            color: #EE5D50;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 5px;
+            display: block;
+            padding-left: 5px;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 768px) {
-            .form-container {
-                padding: 1.5rem;
-                margin: 1rem;
-            }
-
-            .form-row,
-            .radio-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-title {
-                font-size: 1.8rem;
-            }
+            .form-glass-card { padding: 1.5rem; }
+            .delivery-card-grid { grid-template-columns: 1fr; }
         }
     </style>
 
-    <div class="form-container">
-        <h2 class="form-title">Demande d'acte de naissance</h2>
+<div class="form-page-container">
+    <div class="form-glass-card">
+        <div class="form-header-box">
+            <h2>Demande d'acte de naissance</h2>
+            <p>Processus simplifié en 3 étapes</p>
+        </div>
+
+        <!-- Stepper Indicator -->
+        <div class="stepper-container">
+            <div class="step-item active" id="step-1-indicator">
+                <div class="step-number">1</div>
+                <div class="step-label">Type</div>
+            </div>
+            <div class="step-item" id="step-2-indicator">
+                <div class="step-number">2</div>
+                <div class="step-label">Informations</div>
+            </div>
+            <div class="step-item" id="step-3-indicator">
+                <div class="step-number">3</div>
+                <div class="step-label">Mode & Pièce</div>
+            </div>
+        </div>
 
         <form id="naissanceForm" action="{{route('user.extrait.store')}}" method="POST" enctype="multipart/form-data">
             @csrf
+            <input type="hidden" name="commune" value="Plateau">
 
-            <!-- Section: Type de demande -->
-            <div class="section-card">
-                <h3 class="section-title"><i class="fas fa-info-circle"></i> Type de demande</h3>
-                <div class="form-row">
-                    <div class="form-col">
-                        <label for="pour" class="form-label">Cette demande est pour :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-users"></i>
-                            <select id="pour" name="pour" class="form-control" onchange="updateFields()">
-                                <option value="Moi" {{ old('pour') == 'Moi' ? 'selected' : '' }}>Moi-même</option>
-                                <option value="une_autre_personne" {{ old('pour') == 'une_autre_personne' ? 'selected' : '' }}>Une autre personne</option>
-                            </select>
+            <!-- ÉTAPE 1: Type de demande -->
+            <div class="form-step active" id="step-1">
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-info-circle"></i> Type de demande
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group-custom">
+                                <label>Cette demande est pour :</label>
+                                <div class="input-wrapper">
+                                    <select id="pour" name="pour" class="form-control-custom" onchange="updateFields()">
+                                        <option value="Moi" {{ old('pour') == 'Moi' ? 'selected' : '' }}>Moi-même</option>
+                                        <option value="une_autre_personne" {{ old('pour') == 'une_autre_personne' ? 'selected' : '' }}>Une autre personne</option>
+                                    </select>
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group-custom">
+                                <label>Type de document :</label>
+                                <div class="input-wrapper">
+                                    <select id="type" name="type" class="form-control-custom">
+                                        <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Acte simple</option>
+                                        <option value="extrait_integral" {{ old('type') == 'extrait_integral' ? 'selected' : '' }}>Acte intégral</option>
+                                    </select>
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="form-col">
-                        <label for="type" class="form-label">Type de document :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-file-alt"></i>
-                            <select id="type" name="type" class="form-control">
-                                <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Acte simple</option>
-                                <option value="extrait_integral" {{ old('type') == 'extrait_integral' ? 'selected' : '' }}>
-                                    Acte intégral</option>
-                            </select>
-                        </div>
-                    </div>
+                </div>
+                <div class="stepper-footer">
+                    <div></div>
+                    <button type="button" class="btn-step btn-next" onclick="nextStep(1)">
+                        Continuer <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Section: Informations du titulaire -->
-            <div class="section-card">
-                <h3 class="section-title"><i class="fas fa-user"></i> Informations sur l'acte</h3>
-                <div class="form-row">
-                    <div class="form-col">
-                        <label for="name" class="form-label">Nom :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-id-card"></i>
-                            <input type="text" id="name" name="name" class="form-control"
-                                value="{{ old('name', $userName) }}" placeholder="Nom tel qu'indiqué sur l'acte">
+            <!-- ÉTAPE 2: Informations sur l'acte -->
+            <div class="form-step" id="step-2">
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-user"></i> Informations sur l'acte
+                    </div>
+                    
+                    <!-- Ligne 1: Identité et Lieu -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group-custom">
+                                <label>Nom :</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="name" name="name" class="form-control-custom"
+                                        value="{{ old('name', $userName) }}" placeholder="Nom sur l'acte">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                            </div>
                         </div>
-                        @error('name') <span class="error-message">{{ $message }}</span> @enderror
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group-custom">
+                                <label>Prénoms :</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="prenom" name="prenom" class="form-control-custom"
+                                        value="{{ old('prenom', $userPrenom) }}" placeholder="Prénoms sur l'acte">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group-custom">
+                                <label>Lieu de naissance :</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="commune_naissance" name="commune_naissance" class="form-control-custom" 
+                                        value="{{ old('commune_naissance') }}" placeholder="Commune">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-col">
-                        <label for="prenom" class="form-label">Prénoms :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-id-card"></i>
-                            <input type="text" id="prenom" name="prenom" class="form-control"
-                                value="{{ old('prenom', $userPrenom) }}" placeholder="Prénoms tels qu'indiqués sur l'acte">
+                    <!-- Ligne 2: Registre et Quantité -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group-custom">
+                                <label>N° Registre :</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="number" name="number" class="form-control-custom" 
+                                        value="{{ old('number') }}" placeholder="Ex: 123/2024">
+                                    <i class="fas fa-hashtag"></i>
+                                </div>
+                            </div>
                         </div>
-                        @error('prenom') <span class="error-message">{{ $message }}</span> @enderror
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group-custom">
+                                <label>Date Registre :</label>
+                                <div class="input-wrapper">
+                                    <input type="date" id="DateR" name="DateR" class="form-control-custom" 
+                                        value="{{ old('DateR') }}" onclick="this.showPicker()">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group-custom">
+                                <label>Quantité :</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="quantite" name="quantite" class="form-control-custom"
+                                        value="{{ old('quantite', 1) }}" min="1" max="10">
+                                    <i class="fas fa-copy"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ligne 3: Filiation -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group-custom">
+                                <label>Nom et Prénoms du père :</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere" class="form-control-custom"
+                                        value="{{ old('nom_prenoms_pere') }}" placeholder="Nom complet du père">
+                                    <i class="fas fa-male"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group-custom">
+                                <label>Nom et Prénoms de la mère :</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere" class="form-control-custom"
+                                        value="{{ old('nom_prenoms_mere') }}" placeholder="Nom complet de la mère">
+                                    <i class="fas fa-female"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="form-row">
-                    <div class="form-col">
-                        <label for="number" class="form-label">Numéro de registre :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-hashtag"></i>
-                            <input type="text" id="number" name="number" class="form-control" value="{{ old('number') }}"
-                                placeholder="Ex: 123/2024 (Optionnel si parents fournis)">
-                        </div>
-                        @error('number') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-col">
-                        <label for="DateR" class="form-label">Date de registre :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-calendar-check"></i>
-                            <input type="date" id="DateR" name="DateR" class="form-control" value="{{ old('DateR') }}">
-                        </div>
-                        @error('DateR') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-
-                <!-- Informations Parentales -->
-                <div class="form-row">
-                    <div class="form-col">
-                        <label for="nom_prenoms_pere" class="form-label">Nom et Prénoms du père :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere" class="form-control"
-                                value="{{ old('nom_prenoms_pere') }}" placeholder="Nom et Prénoms du père">
-                        </div>
-                        @error('nom_prenoms_pere') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-col">
-                        <label for="nom_prenoms_mere" class="form-label">Nom et Prénoms de la mère :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere" class="form-control"
-                                value="{{ old('nom_prenoms_mere') }}" placeholder="Nom et Prénoms de la mère">
-                        </div>
-                        @error('nom_prenoms_mere') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-col" style="display: none;">
-                        <label for="commune" class="form-label">Commune d'enregistrement :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="commune" name="commune" class="form-control" value="Plateau" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-col">
-                        <label for="commune_naissance" class="form-label">Commune de naissance :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="commune_naissance" name="commune_naissance" class="form-control" value="{{ old('commune_naissance') }}">
-                        </div>
-                        @error('commune_naissance') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-col">
-                        <label for="quantite" class="form-label">Quantité d'exemplaires :</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-copy"></i>
-                            <input type="number" id="quantite" name="quantite" class="form-control"
-                                value="{{ old('quantite', 1) }}" min="1" max="10">
-                        </div>
-                        @error('quantite') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
+                <div class="stepper-footer">
+                    <button type="button" class="btn-step btn-prev" onclick="prevStep(2)">
+                        <i class="fas fa-arrow-left"></i> Précédent
+                    </button>
+                    <button type="button" class="btn-step btn-next" onclick="nextStep(2)">
+                        Continuer <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Section: Pièce jointe -->
-            <div class="section-card">
-                <h3 class="section-title"><i class="fas fa-paperclip"></i> Justificatif d'identité</h3>
-                <div class="form-group">
-                    <label for="CNI" class="form-label">Pièce d'identité (CNI, Passeport ou Page du livret de famille)
-                        :</label>
-                    <div class="file-input-container">
-                        <label class="file-input-label">
+            <!-- ÉTAPE 3: Justificatif & Mode de retrait -->
+            <div class="form-step" id="step-3">
+                <!-- Section: Justificatif -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-paperclip"></i> Justificatif d'identité
+                    </div>
+                    <div class="input-group-custom">
+                        <label>Pièce d'identité (CNI, Passeport, Livret) :</label>
+                        <label class="file-upload-area">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <span id="file-name">Cliquez pour choisir un fichier</span>
-                            <input type="file" id="CNI" name="CNI" class="form-control d-none"
-                                onchange="updateFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
+                            <h6 id="file-name" class="text-navy-bold mb-1">Téléverser votre pièce</h6>
+                            <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 1Mo)</p>
+                            <input type="file" id="CNI" name="CNI" class="d-none" onchange="updateFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
                         </label>
                     </div>
-                    @error('CNI') <span class="error-message">{{ $message }}</span> @enderror
+                </div>
+
+                <!-- Section: Mode de retrait -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-truck"></i> Mode de retrait
+                    </div>
+                    <div class="delivery-card-grid">
+                        <label class="delivery-option-card">
+                            <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
+                            <div class="delivery-option-content">
+                                <i class="fas fa-university"></i>
+                                <h5>Retrait en Mairie</h5>
+                                <p>Gratuit - Guichet</p>
+                            </div>
+                        </label>
+                        <label class="delivery-option-card">
+                            <input type="radio" id="option2" name="choix_option" value="livraison">
+                            <div class="delivery-option-content">
+                                <i class="fas fa-motorcycle"></i>
+                                <h5>Livraison Express</h5>
+                                <p>1500 FCFA - Domicile</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="stepper-footer">
+                    <button type="button" class="btn-step btn-prev" onclick="prevStep(3)">
+                        <i class="fas fa-arrow-left"></i> Précédent
+                    </button>
+                    <button type="submit" id="btnValider" class="btn-step btn-next" style="background: var(--success);">
+                        <i class="fas fa-check-circle"></i> Valider ma demande
+                    </button>
                 </div>
             </div>
-
-            <!-- Section: Mode de retrait -->
-            <div class="delivery-options" id="optionsSection">
-                <div class="section-header">
-                    <i class="fas fa-truck text-primary"></i>
-                    <h3 class="section-title">Mode de retrait</h3>
-                </div>
-                <div class="delivery-options-cards">
-                    <label class="delivery-card">
-                        <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
-                        <div class="delivery-label">
-                            <i class="fas fa-building icon"></i>
-                            <span class="delivery-name">Retrait sur place</span>
-                            <span class="delivery-info">À la mairie (Gratuit)</span>
-                        </div>
-                    </label>
-                    <label class="delivery-card">
-                        <input type="radio" id="option2" name="choix_option" value="livraison">
-                        <div class="delivery-label">
-                            <i class="fas fa-truck icon"></i>
-                            <span class="delivery-name">Livraison à domicile</span>
-                            <span class="delivery-info">Frais : 1500 FCFA</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <button type="submit" id="btnValider" class="btn-submit">
-                <i class="fas fa-check-circle"></i> Soumettre ma demande
-            </button>
         </form>
     </div>
+</div>
 
     <script>
         let formSubmitted = false;
@@ -530,6 +649,79 @@
         function updateFileName(input) {
             const fileName = input.files[0] ? input.files[0].name : 'Aucun fichier sélectionné';
             document.getElementById('file-name').textContent = fileName;
+        }
+
+        // Stepper Navigation
+        function nextStep(step) {
+            if (validateStep(step)) {
+                document.getElementById('step-' + step).classList.remove('active');
+                document.getElementById('step-' + (step + 1)).classList.add('active');
+                
+                document.getElementById('step-' + step + '-indicator').classList.add('completed');
+                document.getElementById('step-' + step + '-indicator').classList.remove('active');
+                document.getElementById('step-' + (step + 1) + '-indicator').classList.add('active');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function prevStep(step) {
+            document.getElementById('step-' + step).classList.remove('active');
+            document.getElementById('step-' + (step - 1)).classList.add('active');
+            
+            document.getElementById('step-' + step + '-indicator').classList.remove('active');
+            document.getElementById('step-' + (step - 1) + '-indicator').classList.add('active');
+            document.getElementById('step-' + (step - 1) + '-indicator').classList.remove('completed');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function validateStep(step) {
+            const form = document.getElementById('naissanceForm');
+            form.querySelectorAll('.error-message').forEach(el => el.remove());
+            form.querySelectorAll('.form-control-custom.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            let isValid = true;
+            if (step === 1) {
+                // Étape 1 toujours valide (selects avec valeurs par défaut)
+            } else if (step === 2) {
+                const name = document.getElementById('name');
+                const prenom = document.getElementById('prenom');
+                const commune = document.getElementById('commune_naissance');
+                const number = document.getElementById('number');
+                const dateR = document.getElementById('DateR');
+                const pere = document.getElementById('nom_prenoms_pere');
+                const mere = document.getElementById('nom_prenoms_mere');
+
+                if (!name.value.trim()) { isValid = false; displayClientError(name, "Le nom est obligatoire."); }
+                if (!prenom.value.trim()) { isValid = false; displayClientError(prenom, "Le prénom est obligatoire."); }
+                if (!commune.value.trim()) { isValid = false; displayClientError(commune, "La commune de naissance est obligatoire."); }
+                
+                // Logic: Registry OR Parents
+                const hasRegistry = number.value.trim() && dateR.value.trim();
+                const hasParents = pere.value.trim() && mere.value.trim();
+                
+                if (!hasRegistry && !hasParents) {
+                    isValid = false;
+                    displayClientError(number, "Veuillez fournir soit le registre (N° et Date), soit les deux parents.");
+                }
+            } else if (step === 3) {
+                const cni = document.getElementById('CNI');
+                if (cni.files.length === 0) {
+                    isValid = false;
+                    displayClientError(cni.closest('.input-group-custom'), "Veuillez téléverser votre pièce d'identité.");
+                }
+            }
+            
+            if (!isValid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Champs manquants',
+                    text: 'Veuillez remplir les informations obligatoires.',
+                    confirmButtonColor: '#1977cc'
+                });
+            }
+            return isValid;
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -582,8 +774,8 @@
             // Retirer les messages d'erreur existants et les styles d'erreur
             form.querySelectorAll('.error-message').forEach(el => el.remove());
 
-            form.querySelectorAll('.form-control.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            form.querySelectorAll('.form-control').forEach(el => el.style.animation = 'none');
+            form.querySelectorAll('.form-control-custom.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.form-control-custom').forEach(el => el.style.animation = 'none');
 
 
             fieldsToValidate.forEach(fieldInfo => {
@@ -626,17 +818,13 @@
 
         // Fonction pour afficher les erreurs côté client
         function displayClientError(inputElement, message) {
-            inputElement.classList.add('is-invalid'); // Pour un style visuel d'erreur
-            inputElement.style.animation = 'pulse 1.5s infinite'; // Appliquer l'animation si erreur
+            inputElement.classList.add('is-invalid');
             const errorSpan = document.createElement('span');
             errorSpan.classList.add('error-message');
             errorSpan.textContent = message;
-            // Insérer le message d'erreur après le champ ou son conteneur parent
-            if (inputElement.closest('.form-col')) {
-                inputElement.closest('.form-col').appendChild(errorSpan);
-            } else {
-                inputElement.parentNode.insertBefore(errorSpan, inputElement.nextSibling);
-            }
+            
+            const wrapper = inputElement.closest('.input-group-custom') || inputElement.closest('.form-section') || inputElement.parentNode;
+            wrapper.appendChild(errorSpan);
         }
 
 
@@ -646,23 +834,23 @@
                 return;
             }
 
-            const livraisonCheckbox = document.getElementById('option2');
-            if (livraisonCheckbox.checked) {
-                event.preventDefault(); // Empêche la soumission initiale
+            event.preventDefault(); // On gère toujours manuellement
 
-                if (validateFormClient()) { // Valider le formulaire côté client
-                    showLivraisonPopup(); // Si validation réussie, afficher la popup de paiement
+            if (validateFormClient()) {
+                const livraisonCheckbox = document.getElementById('option2');
+                if (livraisonCheckbox.checked) {
+                    showLivraisonPopup();
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur de Validation',
-                        text: 'Veuillez corriger les erreurs dans le formulaire avant de continuer.',
-                        confirmButtonColor: '#e74c3c'
-                    });
+                    formSubmitted = true;
+                    this.submit();
                 }
             } else {
-                formSubmitted = true;
-                this.submit(); // Soumettre le formulaire directement si 'Retrait sur place'
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur de Validation',
+                    text: 'Veuillez corriger les erreurs dans le formulaire avant de continuer.',
+                    confirmButtonColor: '#1977cc'
+                });
             }
         });
 

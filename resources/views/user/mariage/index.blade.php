@@ -1,414 +1,324 @@
 @extends('user.layouts.template')
 
 @section('content')
-    <!-- Styles et Scripts -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    
     <style>
         :root {
-            --primary-color: #1977cc;
-            --secondary-color: #1977cc;
-            --accent-color: #1977cc;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --light-bg: #f8f9fa;
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --transition: all 0.3s ease;
+            --primary: #1977cc;
+            --primary-light: #eef5fc;
+            --success: #28a745;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-navy: #1a365d;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
         }
 
-        .form-background {
-            background: linear-gradient(135deg, rgba(25, 119, 204, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease-out;
         }
 
-        .card-rounded {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            border: none;
-            transition: var(--transition);
+        .page-title {
+            color: var(--text-navy);
+            font-weight: 800;
+            font-size: 1.8rem;
+            margin: 0;
+            letter-spacing: -0.5px;
         }
 
-        .btn-warning {
-            background-color: #ffc107;
-            color: #212529;
+        .btn-add-premium {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(25, 119, 204, 0.2);
+            text-decoration: none;
         }
 
-        .btn-warning:hover {
-            background-color: #e0a800;
+        .btn-add-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(25, 119, 204, 0.3);
+            color: white;
         }
 
-        .card-rounded:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .section-title {
-            color: var(--secondary-color);
-            margin: 30px 0 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(25, 119, 204, 0.1);
-            position: relative;
-            font-weight: 600;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -2px;
-            width: 80px;
-            height: 2px;
-            background: var(--accent-color);
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            animation: fadeInUp 0.8s ease-out;
         }
 
         .table-responsive {
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        thead {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            color: white;
-        }
-
-        th {
-            padding: 15px;
-            font-weight: 600;
-            text-align: center;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            padding: 12px 15px;
-            vertical-align: middle;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-            text-align: center;
-        }
-
-        tr:hover {
-            background-color: rgba(25, 119, 204, 0.03) !important;
-        }
-
-        .badge {
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-waiting {
-            background-color: rgba(243, 156, 18, 0.1);
-            color: var(--warning-color);
-        }
-
-        .badge-received {
-            background-color: rgba(46, 204, 113, 0.1);
-            color: var(--success-color);
-        }
-
-        .badge-rejected {
-            background-color: rgba(231, 76, 60, 0.1);
-            color: var(--danger-color);
-        }
-
-        .btn-new-request {
-            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(25, 119, 204, 0.3);
-        }
-
-        .btn-new-request:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(25, 119, 204, 0.4);
-            color: white;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            transition: var(--transition);
-            color: white;
-            background-color: red;
-        }
-
-        .action-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .btn-delete {
-            background-color: #dc3545;
-            color: var(--danger-color);
-            border: none;
-        }
-
-        .btn-delete:hover {
-            background-color: #d82d3e;
-        }
-
-        .btn-disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background-color: rgba(108, 117, 125, 0.1) !important;
-            color: #6c757d !important;
-        }
-
-        .document-preview {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .document-preview:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .retrait-badge {
-            background-color: var(--danger-color);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            display: inline-block;
-        }
-
-        .empty-state {
-            padding: 40px 0;
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.02);
-            border-radius: 12px;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            color: rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
-        }
-
-        /* Modal styles */
-        .modal-content {
             border-radius: 16px;
             overflow: hidden;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .modal-image {
-            max-width: 100%;
-            max-height: 80vh;
-            display: block;
-            margin: 0 auto;
+        #mariageTable {
+            width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0 12px !important;
+            background: transparent !important;
+        }
+
+        #mariageTable thead th {
+            background: transparent !important;
+            color: #718096 !important;
+            text-transform: uppercase !important;
+            font-size: 0.75rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 1px !important;
+            border: none !important;
+            padding: 15px !important;
+        }
+
+        #mariageTable tbody tr {
+            background: #fff !important;
+            border-radius: 16px !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02) !important;
+            transition: 0.3s !important;
+        }
+
+        #mariageTable tbody tr:hover {
+            transform: translateY(-3px) scale(1.002);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        #mariageTable tbody td {
+            padding: 1.2rem !important;
+            border: none !important;
+            vertical-align: middle !important;
+        }
+
+        #mariageTable tbody td:first-child { border-radius: 16px 0 0 16px !important; }
+        #mariageTable tbody td:last-child { border-radius: 0 16px 16px 0 !important; }
+
+        .badge-status {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .badge-en-attente { background: #fff7ed; color: #c2410c; }
+        .badge-en-cours { background: #eff6ff; color: #1d4ed8; }
+        .badge-termine { background: #f0fdf4; color: #15803d; }
+        .badge-rejete { background: #fef2f2; color: #b91c1c; }
+
+        .delivery-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f8fafc;
             border-radius: 8px;
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .form-background {
-                padding: 15px;
-            }
+        .btn-action {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            border: none;
+            text-decoration: none;
+        }
 
-            th,
-            td {
-                padding: 10px 8px;
-                font-size: 0.8rem;
-            }
+        .btn-edit { background: #eff6ff; color: #2563eb; }
+        .btn-edit:hover { background: #2563eb; color: #fff; }
+        .btn-delete { background: #fef2f2; color: #dc2626; }
+        .btn-delete:hover { background: #dc2626; color: #fff; }
 
-            .btn-new-request {
-                padding: 8px 15px;
-                font-size: 0.85rem;
-            }
+        .doc-thumbnail {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+        .doc-thumbnail:hover { transform: scale(1.15); z-index: 10; }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .agent-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom search for DataTables */
+        .dataTables_filter input {
+            border-radius: 12px !important;
+            padding: 8px 16px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #fff !important;
+            margin-left: 10px !important;
         }
     </style>
 
-    <div class="row flex-grow form-background animate__animated animate__fadeIn">
-        <div class="col-12 grid-margin stretch-card">
-            <div class="card card-rounded">
-                <div class="card-body">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
-                        <h4 class="card-title card-title-dash mb-3 mb-md-0 text-center text-md-start">
-                            <i class="fas fa-file-contract me-2"></i> Mes actes de mariage
-                        </h4>
-                        <a href="{{ route('user.extrait.mariage.create') }}" class="btn btn-new-request">
-                            <i class="fas fa-plus-circle me-2"></i>Nouvelle demande
-                        </a>
-                    </div>
+    <div class="container-fluid py-4">
+        <div class="page-header">
+            <h1 class="page-title">Mes actes de mariage</h1>
+            <a href="{{ route('user.extrait.mariage.create') }}" class="btn-add-premium">
+                <i class="fas fa-plus"></i> Nouvelle demande
+            </a>
+        </div>
 
-                    <!-- Demandes d'extrait de mariage -->
-                    <h5 class="section-title">
-                        <i class="fas fa-list-check me-2"></i>Mes demandes d'actes
-                    </h5>
-                    <div class="table-responsive">
-                        <table class="table" id="mariageTable">
-                            <thead>
-                                <tr>
-                                    <th>Référence</th>
-                                    <th>Quantité</th>
-                                    <th class="d-none-tablet">Conjoint(e)</th>
-                                    <th>Documents</th>
-                                    <th>Statut</th>
-                                    <th>Agent</th>
-                                    <th>Actions</th>
-                                    <th>Retrait</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($allMariages as $mariage)
-                                    <tr class="animate__animated animate__fadeIn">
-                                        <td>
-                                            <span class="badge bg-light text-dark">{{ $mariage->reference }}</span>
-                                        </td>
-                                        <td>{{ $mariage->quantite }} copie(s)</td>
-                                        <td class="d-none-tablet">
-                                            {{ $mariage->nomEpoux ?: 'N/A' }} {{ $mariage->prenomEpoux ?: '' }}
-                                        </td>
-                                        <td>
-                                            <div class="d-flex justify-content-center gap-2">
-                                                @if ($mariage->pieceIdentite)
-                                                    @if (pathinfo($mariage->pieceIdentite, PATHINFO_EXTENSION) === 'pdf')
-                                                        <a href="{{ asset('storage/' . $mariage->pieceIdentite) }}"
-                                                            target="_blank" title="Pièce d'identité (PDF)">
-                                                            <img src="{{ asset('assets/assets/img/pdf.jpg') }}"
-                                                                alt="PDF" class="document-preview">
-                                                        </a>
-                                                    @else
-                                                        <img src="{{ asset('storage/' . $mariage->pieceIdentite) }}"
-                                                            alt="Pièce d'identité" class="document-preview"
-                                                            onclick="showImage(this)" title="Pièce d'identité">
-                                                    @endif
-                                                @endif
-
-                                                @if ($mariage->extraitMariage)
-                                                    @if (pathinfo($mariage->extraitMariage, PATHINFO_EXTENSION) === 'pdf')
-                                                        <a href="{{ asset('storage/' . $mariage->extraitMariage) }}"
-                                                            target="_blank" title="Extrait (PDF)">
-                                                            <img src="{{ asset('assets/assets/img/pdf.jpg') }}"
-                                                                alt="PDF" class="document-preview">
-                                                        </a>
-                                                    @else
-                                                        <img src="{{ asset('storage/' . $mariage->extraitMariage) }}"
-                                                            alt="Extrait de mariage" class="document-preview"
-                                                            onclick="showImage(this)" title="Extrait de mariage">
-                                                    @endif
-                                                @endif
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @if ($mariage->etat == 'rejetée')
-                                                <span class="badge badge-rejected">
-                                                    MODIFIER LES INFORMATIONS
-                                                    @if ($mariage->peut_modifier)
-                                                        <br><small class="text-white">(Modification requise)</small>
-                                                    @endif
-                                                </span>
-                                            @elseif($mariage->etat == 'en attente')
-                                                <span class="badge badge-waiting">EN ATTENTE</span>
-                                            @elseif($mariage->etat == 'réçu')
-                                                <span class="badge badge-received">EN COURS DE TRAITEMENT</span>
+        <div class="glass-container">
+            <div class="table-responsive">
+                <table id="mariageTable" class="table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Référence</th>
+                            <th class="text-center">Quantité</th>
+                            <th class="text-center">Conjoint(e)</th>
+                            <th class="text-center">Documents</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Mode</th>
+                            <th class="text-center">Agent</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($allMariages as $mariage)
+                            <tr>
+                                <td class="text-center">
+                                    <span class="fw-bold">{{ $mariage->reference }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold">{{ $mariage->quantite }}</span> <small class="text-muted">copie(s)</small>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-navy">{{ $mariage->nomEpoux ?: 'N/A' }}</span>
+                                        <small class="text-muted">{{ $mariage->prenomEpoux }}</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        @if ($mariage->pieceIdentite)
+                                            @php $ext = pathinfo($mariage->pieceIdentite, PATHINFO_EXTENSION); @endphp
+                                            @if ($ext === 'pdf')
+                                                <a href="{{ asset('storage/' . $mariage->pieceIdentite) }}" target="_blank" class="btn-action btn-edit" title="Voir CNI (PDF)">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </a>
+                                            @else
+                                                <img src="{{ asset('storage/' . $mariage->pieceIdentite) }}" class="doc-thumbnail" onclick="showImage(this)" title="Pièce d'identité">
                                             @endif
-                                        </td>
-                                        <td>
-                                            {{ $mariage->agent ? $mariage->agent->name : 'Non attribué' }}
-                                        </td>
-                                        <td>
-                                            <div class="d-flex justify-content-center gap-1">
-                                                @if ($mariage->peut_modifier)
-                                                    <button
-                                                        onclick="showModificationPopup('{{ $mariage->id }}', {{ json_encode($mariage) }})"
-                                                        class="action-btn btn-warning" title="Modifier la demande">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                @endif
-
-                                                @if ($mariage->etat !== 'réçu' && $mariage->etat !== 'terminé' && !$mariage->peut_modifier)
-                                                    <button
-                                                        onclick="confirmDelete('{{ route('user.extrait.mariage.delete', $mariage->id) }}')"
-                                                        class="action-btn btn-delete" title="Supprimer">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                @elseif(!$mariage->peut_modifier)
-                                                    <button class="action-btn btn-disabled" title="Non modifiable"
-                                                        onclick="showDisabledMessage()">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="retrait-badge">{{ $mariage->choix_option }}</span>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="9">
-                                            <div class="empty-state">
-                                                <i class="fas fa-inbox"></i>
-                                                <h5 class="mt-3">Aucune demande trouvée</h5>
-                                                <p class="text-muted">Vous n'avez effectué aucune demande d'acte de
-                                                    mariage</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                        @endif
+                                        
+                                        @if ($mariage->extraitMariage)
+                                            @php $extE = pathinfo($mariage->extraitMariage, PATHINFO_EXTENSION); @endphp
+                                            @if ($extE === 'pdf')
+                                                <a href="{{ asset('storage/' . $mariage->extraitMariage) }}" target="_blank" class="btn-action btn-edit" title="Voir Ancien Acte (PDF)">
+                                                    <i class="fas fa-file-contract"></i>
+                                                </a>
+                                            @else
+                                                <img src="{{ asset('storage/' . $mariage->extraitMariage) }}" class="doc-thumbnail" onclick="showImage(this)" title="Ancien acte">
+                                            @endif
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @if ($mariage->etat == 'rejetée')
+                                        <span class="badge-status badge-rejete" title="Cliquez sur modifier pour voir les motifs">REJETÉ</span>
+                                    @elseif($mariage->etat == 'en attente')
+                                        <span class="badge-status badge-en-attente">EN ATTENTE</span>
+                                    @elseif($mariage->etat == 'réçu')
+                                        <span class="badge-status badge-en-cours">EN COURS</span>
+                                    @else
+                                        <span class="badge-status badge-termine">TERMINÉ</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="delivery-badge">
+                                        <i class="fas {{ $mariage->choix_option == 'livraison' ? 'fa-motorcycle' : 'fa-university' }}"></i>
+                                        {{ $mariage->choix_option == 'livraison' ? 'Livraison' : 'Mairie' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if($mariage->agent)
+                                        <div class="agent-info justify-content-center">
+                                            <div class="agent-avatar">{{ substr($mariage->agent->name, 0, 1) }}</div>
+                                            <span class="small fw-bold">{{ $mariage->agent->name }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-muted small">Non attribué</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        @if ($mariage->peut_modifier)
+                                            <button onclick="showModificationPopup('{{ $mariage->id }}', {{ json_encode($mariage) }})" class="btn-action btn-edit" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        @endif
+                                        
+                                        @if ($mariage->etat == 'en attente' || $mariage->etat == 'rejetée')
+                                            <button onclick="confirmDelete('{{ route('user.extrait.mariage.delete', $mariage->id) }}')" class="btn-action btn-delete" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Modale pour afficher les images -->
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <!-- Modale Image -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">
-                        <i class="fas fa-file-image me-2"></i>Visualisation du document
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="modalImage" class="modal-image" src="" alt="Document agrandi">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Fermer
-                    </button>
+            <div class="modal-content" style="border-radius: 24px; border: none; overflow: hidden;">
+                <div class="modal-body p-0 text-center bg-dark">
+                    <img id="modalImage" src="" style="max-width: 100%; max-height: 85vh;">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
                 </div>
             </div>
         </div>
@@ -416,34 +326,19 @@
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Initialiser DataTables
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#mariageTable').DataTable({
                 responsive: true,
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
                 },
-                order: [
-                    [0, 'desc']
-                ],
-                columnDefs: [{
-                        responsivePriority: 1,
-                        targets: 0
-                    },
-                    {
-                        responsivePriority: 2,
-                        targets: 3
-                    },
-                    {
-                        responsivePriority: 3,
-                        targets: 4
-                    }
-                ]
+                order: [[0, 'desc']],
+                pageLength: 10,
+                dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rtip'
             });
         });
 
@@ -456,13 +351,13 @@
 
         function confirmDelete(url) {
             Swal.fire({
-                title: 'Confirmer la suppression',
-                text: "Voulez-vous vraiment supprimer cette demande ? Cette action est irréversible.",
+                title: 'Confirmer la suppression ?',
+                text: "Cette action est irréversible.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#1977cc',
-                cancelButtonColor: '#e74c3c',
-                confirmButtonText: 'Oui, supprimer',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Supprimer',
                 cancelButtonText: 'Annuler',
                 reverseButtons: true
             }).then((result) => {
@@ -472,303 +367,73 @@
             });
         }
 
-        function showDisabledMessage() {
-            Swal.fire({
-                title: 'Action non autorisée',
-                text: 'Cette demande ne peut pas être supprimée car elle est en cours de traitement ou déjà finalisée.',
-                icon: 'info',
-                confirmButtonColor: '#1977cc'
-            });
-        }
-
-        // Fonction pour afficher le pop-up de modification
         function showModificationPopup(demandeId, demande) {
-            // Récupérer les champs à modifier depuis le JSON
             let champsAModifier = JSON.parse(demande.champs_a_modifier || '[]');
-
-            if (champsAModifier.length === 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: 'Aucun champ à modifier n\'a été spécifié.',
-                    confirmButtonColor: '#3085d6'
-                });
-                return;
-            }
-
-            // Mapping des champs vers leurs libellés
             const fieldLabels = {
-                'typeDemande': 'Type de demande',
-                'nomEpoux': 'Nom du conjoint',
-                'prenomEpoux': 'Prénom du conjoint',
-                'dateNaissanceEpoux': 'Date de naissance du conjoint',
-                'lieuNaissanceEpoux': 'Lieu de naissance du conjoint',
-                'commune': 'Commune',
-                'quantite': 'Quantité',
-                'pieceIdentite': 'Pièce d\'identité',
-                'extraitMariage': 'Extrait de mariage',
+                'typeDemande': 'Type de demande', 'nomEpoux': 'Nom conjoint',
+                'prenomEpoux': 'Prénom conjoint', 'dateNaissanceEpoux': 'Date naissance conjoint',
+                'lieuNaissanceEpoux': 'Lieu naissance conjoint', 'quantite': 'Quantité',
+                'pieceIdentite': 'Pièce d\'identité', 'extraitMariage': 'Ancien acte',
                 'CMU': 'Numéro NNI'
             };
 
-            // Créer le formulaire dynamique
-            let formHtml = `
-        <form id="modificationForm" enctype="multipart/form-data">
-            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-    `;
-
+            let formHtml = `<form id="modificationForm" class="text-start" enctype="multipart/form-data">`;
             champsAModifier.forEach(field => {
                 const label = fieldLabels[field] || field;
-                let fieldValue = demande[field] || '';
+                let val = demande[field] || '';
+                if (field === 'dateNaissanceEpoux' && val) val = new Date(val).toISOString().split('T')[0];
 
-                // Formater la date si nécessaire
-                if (field === 'dateNaissanceEpoux' && fieldValue) {
-                    fieldValue = new Date(fieldValue).toISOString().split('T')[0];
-                }
-
+                formHtml += `<div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase">${label}</label>`;
+                
                 if (field === 'typeDemande') {
-                    formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <select name="${field}" class="form-control" required>
-                        <option value="extraitSimple" ${fieldValue === 'extraitSimple' ? 'selected' : ''}>Extrait simple</option>
-                        <option value="copieIntegrale" ${fieldValue === 'copieIntegrale' ? 'selected' : ''}>Copie intégrale</option>
-                    </select>
-                </div>
-            `;
-                } else if (field === 'quantite') {
-                    formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="number" name="${field}" class="form-control" 
-                           value="${fieldValue}" min="1" max="10" required>
-                </div>
-            `;
-                } else if (field === 'commune') {
-                    formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="text" name="${field}" class="form-control" 
-                           value="plateau" readonly>
-                    <small class="text-muted">Commune fixée à Plateau</small>
-                </div>
-            `;
+                    formHtml += `<select name="${field}" class="form-select"><option value="extraitSimple" ${val==='extraitSimple'?'selected':''}>Simple</option><option value="copieIntegrale" ${val==='copieIntegrale'?'selected':''}>Intégrale</option></select>`;
                 } else if (['pieceIdentite', 'extraitMariage'].includes(field)) {
-                    formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <div class="file-input-container mb-2">
-                        <label class="file-input-label">
-                            <span class="file-input-text" id="file-name-${field}">Choisir un fichier</span>
-                            <span class="file-input-button">Parcourir</span>
-                            <input type="file" id="${field}" name="${field}" class="file-input" 
-                                   onchange="updateFileName(this, '${field}')" accept=".jpg,.jpeg,.png,.pdf">
-                        </label>
-                    </div>
-                    <small class="text-muted">Formats acceptés: JPG, PNG, PDF (max 1MB)</small>
-                    ${fieldValue ? '<div class="mt-2"><small>Document actuel: ' + fieldValue.split('/').pop() + '</small></div>' : ''}
-                </div>
-            `;
+                    formHtml += `<input type="file" name="${field}" class="form-control" accept=".jpg,.jpeg,.png,.pdf">`;
                 } else if (field === 'dateNaissanceEpoux') {
-                    formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="date" name="${field}" class="form-control" 
-                           value="${fieldValue}" required>
-                </div>
-            `;
+                    formHtml += `<input type="date" name="${field}" class="form-control" value="${val}">`;
                 } else {
-                    formHtml += `
-                <div class="mb-3">
-                    <label class="form-label">${label}</label>
-                    <input type="text" name="${field}" class="form-control" 
-                           value="${fieldValue}" required>
-                </div>
-            `;
+                    formHtml += `<input type="${field==='quantite'?'number':'text'}" name="${field}" class="form-control" value="${val}">`;
                 }
+                formHtml += `</div>`;
             });
-
-            formHtml += `
-            </div>
-        </form>
-        <style>
-            .file-input-container {
-                position: relative;
-                overflow: hidden;
-            }
-            .file-input-label {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0.8rem 1rem;
-                background: #f9f9f9;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .file-input-label:hover {
-                background: #f0f0f0;
-            }
-            .file-input-text {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                color: #666;
-            }
-            .file-input-button {
-                background: #1977cc;
-                color: white;
-                padding: 0.3rem 0.8rem;
-                border-radius: 6px;
-                font-size: 0.85rem;
-                margin-left: 1rem;
-            }
-            .file-input {
-                position: absolute;
-                left: 0;
-                top: 0;
-                opacity: 0;
-                width: 100%;
-                height: 100%;
-                cursor: pointer;
-            }
-            .swal2-popup .form-control {
-                margin-bottom: 10px;
-            }
-        </style>
-    `;
+            formHtml += `</form>`;
 
             Swal.fire({
-                title: 'Modifier la demande rejetée',
+                title: 'Modifier la demande',
                 html: formHtml,
-                width: '600px',
                 showCancelButton: true,
-                confirmButtonText: 'Enregistrer les modifications',
-                cancelButtonText: 'Annuler',
+                confirmButtonText: 'Enregistrer',
                 confirmButtonColor: '#1977cc',
-                didOpen: () => {
-                    // Réinitialiser le nom de fichier
-                    champsAModifier.forEach(field => {
-                        if (['pieceIdentite', 'extraitMariage'].includes(field)) {
-                            const fileElement = document.getElementById(`file-name-${field}`);
-                            if (fileElement) {
-                                fileElement.textContent = 'Choisir un fichier';
-                            }
-                        }
-                    });
-                },
-                preConfirm: () => {
-                    const form = document.getElementById('modificationForm');
-                    const formData = new FormData(form);
-
-                    // Validation côté client
-                    let isValid = true;
-                    champsAModifier.forEach(field => {
-                        const input = form.querySelector(`[name="${field}"]`);
-                        if (input && input.hasAttribute('required') && !input.value.trim()) {
-                            isValid = false;
-                            input.classList.add('is-invalid');
-                        } else if (input) {
-                            input.classList.remove('is-invalid');
-                        }
-                    });
-
-                    if (!isValid) {
-                        Swal.showValidationMessage('Veuillez remplir tous les champs obligatoires');
-                        return false;
-                    }
-
-                    return formData;
-                }
+                preConfirm: () => new FormData(document.getElementById('modificationForm'))
             }).then((result) => {
-                if (result.isConfirmed && result.value) {
+                if (result.isConfirmed) {
                     const formData = result.value;
-
-                    // Ajouter l'ID de la demande
                     formData.append('_method', 'PUT');
-
-                    // Afficher le loader
-                    Swal.fire({
-                        title: 'Traitement en cours',
-                        html: 'Modification de la demande...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
+                    
+                    Swal.showLoading();
+                    fetch(`/user/extrait/mariage/${demandeId}/modifier`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('Succès', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Erreur', data.message, 'error');
                         }
                     });
-
-                    // Utiliser la route nommée avec le paramètre ID
-                    const url = `/user/extrait/mariage/${demandeId}/modifier`;
-
-                    // Envoyer la requête AJAX
-                    fetch(url, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            Swal.close();
-                            if (data.success) {
-                                Swal.fire({
-                                    title: 'Succès',
-                                    text: data.message,
-                                    icon: 'success',
-                                    confirmButtonColor: '#1977cc'
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Erreur',
-                                    text: data.message || 'Une erreur est survenue',
-                                    icon: 'error',
-                                    confirmButtonColor: '#3085d6'
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            Swal.close();
-                            Swal.fire({
-                                title: 'Erreur',
-                                text: 'Erreur lors de la modification',
-                                icon: 'error',
-                                confirmButtonColor: '#3085d6'
-                            });
-                        });
                 }
             });
         }
-
-        // Fonction pour mettre à jour le nom du fichier sélectionné
-        function updateFileName(input, fieldId) {
-            const fileName = input.files[0] ? input.files[0].name : 'Choisir un fichier';
-            document.getElementById(`file-name-${fieldId}`).textContent = fileName;
-        }
-
-        // Notifications
-        @if (session('success'))
-            Swal.fire({
-                title: 'Succès',
-                text: "{{ session('success') }}",
-                icon: 'success',
-                confirmButtonColor: '#1977cc',
-                timer: 3000
-            });
-        @endif
-
-        @if (session('error'))
-            Swal.fire({
-                title: 'Erreur',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonColor: '#e74c3c'
-            });
-        @endif
     </script>
 
+    @if (session('success'))
+        <script>Swal.fire('Succès', "{{ session('success') }}", 'success');</script>
+    @endif
+    @if (session('error'))
+        <script>Swal.fire('Erreur', "{{ session('error') }}", 'error');</script>
+    @endif
 @endsection

@@ -1,160 +1,162 @@
 @extends('user.layouts.template')
+
 @section('content')
-<div class="dashboard-final container-fluid px-4 pt-4 mb-5">
+<div class="dashboard-final container-fluid px-4 pt-4 mb-5 animate-fade-in">
     
-    <!-- Sophisticated Split Hero Banner -->
-    <div class="card border-0 mb-4 overflow-hidden shadow-sm" style="border-radius: 24px; min-height: 200px;">
-        <div class="row no-gutters hero-banner-row">
-            <!-- Left Side (Blue Stats Summary) -->
-            <div class="col-12 col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center bg-primary-gradient text-white">
-                <div class="d-flex align-items-center mb-3">
-                    <span class="badge badge-light mr-2 px-3 py-1" style="border-radius: 50px; color: var(--primary); font-weight: 800; font-size: 10px;">VOTRE ACTIVITÉ</span>
-                    <span class="small opacity-8">{{ now()->locale('fr')->translatedFormat('l d F Y') }}</span>
-                </div>
-                <h2 class="font-weight-bold mb-2">Bonjour, {{ Auth::user()->prenom }} !</h2>
-                <p class="opacity-8 mb-0">Ravi de vous revoir. Voici un aperçu de vos demandes d'actes d'état civil.</p>
-                
-                @if(isset($freeRequestsRemaining) && $freeRequestsRemaining > 0)
-                <div class="mt-4 d-inline-flex align-items-center px-3 py-1 bg-white-20" style="border-radius: 50px; background: rgba(255,255,255,0.15); width: fit-content;">
-                    <i class="fas fa-magic mr-2"></i>
-                    <small class="font-weight-bold">Plus que {{ $freeRequestsRemaining }} actes offerts !</small>
-                </div>
-                @endif
+    <!-- Header Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <h1 class="text-navy-bold mb-1">Tableau de bord</h1>
+            <p class="text-grey mb-0">Bienvenue, <span class="text-primary font-weight-bold">{{ Auth::user()->prenom }}</span>. Voici l'état de vos démarches aujourd'hui.</p>
+            @if(isset($freeRequestsRemaining) && $freeRequestsRemaining > 0)
+            <div class="mt-2 d-inline-flex align-items-center bg-white px-3 py-1 shadow-sm border" style="border-radius: 50px;">
+                <i class="fas fa-magic text-primary mr-2" style="font-size: 12px;"></i>
+                <span class="x-small font-weight-bold text-navy">Plus que <span class="text-primary">{{ $freeRequestsRemaining }}</span> actes offerts !</span>
             </div>
-            <!-- Right Side (Main Action) -->
-            <div class="col-12 col-lg-5 p-4 p-md-5 bg-white d-flex flex-column justify-content-center border-left hero-banner-right">
-                <h5 class="font-weight-bold text-navy mb-3">Besoin d'un acte ?</h5>
-                <p class="text-grey small mb-4">Commandez vos extraits en ligne et suivez leur livraison.</p>
-                <div class="d-flex gap-2">
-                    <a href="{{route('user.extrait.create')}}" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 12px; flex: 1;">
-                        Nouvelle Demande
-                    </a>
-                    <a href="{{route('user.history')}}" class="btn btn-outline-primary px-3 py-2" style="border-radius: 12px;">
-                        <i class="fas fa-history"></i>
-                    </a>
-                </div>
+            @endif
+        </div>
+        <div class="col-md-4 text-md-right mt-3 mt-md-0">
+            <div class="d-inline-flex align-items-center bg-white p-2 px-3 shadow-sm" style="border-radius: 14px;">
+                <i class="fas fa-calendar-alt text-primary mr-2"></i>
+                <span class="small font-weight-bold text-navy">{{ now()->locale('fr')->translatedFormat('d M Y') }}</span>
             </div>
         </div>
     </div>
 
-    <!-- KPI Section (Compact & Premium) -->
-    <div class="row mb-4">
-        <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 mb-3" style="border-radius: 18px; border-top: 3px solid var(--success) !important;">
-                <div class="d-flex align-items-center">
-                    <div class="mr-3 text-success p-2 bg-success-light" style="border-radius: 10px; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-baby"></i></div>
-                    <div>
-                        <p class="text-grey x-small mb-0">Naissances</p>
-                        <h5 class="font-weight-bold text-navy mb-0">{{ $naissancesCount }}</h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 mb-3" style="border-radius: 18px; border-top: 3px solid var(--pink) !important;">
-                <div class="d-flex align-items-center">
-                    <div class="mr-3 text-pink p-2 bg-pink-light" style="border-radius: 10px; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-heart"></i></div>
-                    <div>
-                        <p class="text-grey x-small mb-0">Mariages</p>
-                        <h5 class="font-weight-bold text-navy mb-0">{{ $mariageCount }}</h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 mb-3" style="border-radius: 18px; border-top: 3px solid var(--danger) !important;">
-                <div class="d-flex align-items-center">
-                    <div class="mr-3 text-danger p-2 bg-danger-light" style="border-radius: 10px; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-skull-crossbones"></i></div>
-                    <div>
-                        <p class="text-grey x-small mb-0">Décès</p>
-                        <h5 class="font-weight-bold text-navy mb-0">{{ $decesCount }}</h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 border-top-primary" style="border-radius: 18px;">
-                <div class="d-flex align-items-center">
-                    <div class="mr-3 text-primary p-2 bg-primary-light" style="border-radius: 10px; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-file-invoice"></i></div>
-                    <div>
-                        <p class="text-grey x-small mb-0">Total</p>
-                        <h5 class="font-weight-bold text-navy mb-0">{{ $nombreDemandes }}</h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Content Grid -->
-    <div class="row">
-        <!-- Main Column -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm mb-4 border-top-primary" style="border-radius: 20px;">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="font-weight-bold text-navy mb-0">Performance des Services</h5>
-                    <div class="chart-legend d-flex gap-3 small text-grey">
-                        <span><i class="fas fa-circle text-primary mr-1"></i> Naissances</span>
-                        <span><i class="fas fa-circle text-danger mr-1"></i> Décès</span>
-                        <span><i class="fas fa-circle mr-1" style="color: #8c52ff;"></i> Mariages</span>
-                    </div>
-                </div>
+    <!-- Category KPIs -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm hover-lift glass-card h-100" style="border-radius: 24px;">
                 <div class="card-body p-4">
-                    <div class="chart-container-responsive" style="height: 380px; position: relative; width: 100%;">
-                        <canvas id="evolutionChart"></canvas>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box-lg" style="background: rgba(1, 181, 116, 0.1); color: #01B574;">
+                            <i class="fas fa-baby"></i>
+                        </div>
+                        <span class="badge-soft" style="background: rgba(1, 181, 116, 0.1); color: #01B574;">Naissance</span>
+                    </div>
+                    <h5 class="text-navy font-weight-bold mb-1">Demandes d'actes de Naissance</h5>
+                    <p class="text-grey small mb-3">Suivi de vos demandes d'extraits</p>
+                    <div class="d-flex align-items-baseline">
+                        <h2 class="text-navy-bold mb-0 mr-2">{{ $naissancesCount }}</h2>
+                        <small class="text-success font-weight-bold">Demandes</small>
                     </div>
                 </div>
             </div>
-
-            <!-- Activity List -->
-            <div class="card border-0 shadow-sm p-4 border-top-primary mb-4" style="border-radius: 20px;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="font-weight-bold text-navy mb-0">Activités Récentes</h5>
-                    <a href="{{route('user.history')}}" class="text-primary small font-weight-bold">Voir tout</a>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm hover-lift glass-card h-100" style="border-radius: 24px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box-lg" style="background: rgba(255, 59, 103, 0.1); color: #FF3B67;">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <span class="badge-soft" style="background: rgba(255, 59, 103, 0.1); color: #FF3B67;">Mariage</span>
+                    </div>
+                    <h5 class="text-navy font-weight-bold mb-1">Demandes d'actes de Mariage</h5>
+                    <p class="text-grey small mb-3">Suivi de vos contrats civils</p>
+                    <div class="d-flex align-items-baseline">
+                        <h2 class="text-navy-bold mb-0 mr-2">{{ $mariageCount }}</h2>
+                        <small class="text-pink font-weight-bold" style="color: #FF3B67;">Demandes</small>
+                    </div>
                 </div>
-                <div class="activity-feed">
-                    <div class="activity-item d-flex align-items-center py-3 border-bottom">
-                        <div class="activity-icon bg-success-light text-success mr-3 p-2" style="border-radius: 12px; width:45px; height:45px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm hover-lift glass-card h-100" style="border-radius: 24px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="icon-box-lg" style="background: rgba(238, 93, 80, 0.1); color: #EE5D50;">
+                            <i class="fas fa-cross"></i>
+                        </div>
+                        <span class="badge-soft" style="background: rgba(238, 93, 80, 0.1); color: #EE5D50;">Décès</span>
+                    </div>
+                    <h5 class="text-navy font-weight-bold mb-1">Demandes d'actes de Décès</h5>
+                    <p class="text-grey small mb-3">Suivi des déclarations</p>
+                    <div class="d-flex align-items-baseline">
+                        <h2 class="text-navy-bold mb-0 mr-2">{{ $decesCount }}</h2>
+                        <small class="text-danger font-weight-bold">Demandes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Activity Row -->
+    <div class="row">
+        <!-- Performance Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm p-4" style="border-radius: 30px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="text-navy-bold mb-1">Évolution des Demandes</h5>
+                        <p class="text-grey small mb-0">Performance mensuelle par type d'acte</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <div class="d-flex align-items-center mr-3">
+                            <span style="width: 10px; height: 10px; background: #1977cc; border-radius: 50%; display: block; margin-right: 6px;"></span>
+                            <small class="text-grey font-weight-bold">Naissance</small>
+                        </div>
+                        <div class="d-flex align-items-center mr-3">
+                            <span style="width: 10px; height: 10px; background: #8c52ff; border-radius: 50%; display: block; margin-right: 6px;"></span>
+                            <small class="text-grey font-weight-bold">Mariage</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span style="width: 10px; height: 10px; background: #EE5D50; border-radius: 50%; display: block; margin-right: 6px;"></span>
+                            <small class="text-grey font-weight-bold">Décès</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container-responsive" style="height: 350px;">
+                    <canvas id="evolutionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 30px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-navy-bold mb-0">Activités</h5>
+                    <a href="{{route('user.history')}}" class="text-primary small font-weight-bold">Voir plus</a>
+                </div>
+                <div class="activity-timeline">
+                    <!-- Timeline Item 1 -->
+                    <div class="d-flex mb-4 position-relative">
+                        <div class="timeline-line" style="position: absolute; left: 22px; top: 40px; bottom: -20px; width: 2px; background: #f4f7fe;"></div>
+                        <div class="icon-box-sm bg-primary-light text-primary mr-3 flex-shrink-0" style="width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 1;">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div>
+                            <p class="text-navy font-weight-bold mb-0 small">Demande enregistrée</p>
+                            <p class="text-grey x-small mb-1">Votre demande d'acte a été reçue.</p>
+                            <span class="badge badge-soft-primary" style="font-size: 9px;">Recu</span>
+                        </div>
+                    </div>
+                    <!-- Timeline Item 2 -->
+                    <div class="d-flex mb-4 position-relative">
+                        <div class="icon-box-sm bg-warning-light text-warning mr-3 flex-shrink-0" style="width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 1;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <p class="text-navy font-weight-bold mb-0 small">En cours de traitement</p>
+                            <p class="text-grey x-small mb-1">L'agent vérifie vos informations.</p>
+                            <span class="badge badge-soft-warning" style="font-size: 9px; background: rgba(255, 181, 71, 0.1); color: #FFB547;">Traitement</span>
+                        </div>
+                    </div>
+                    <!-- Timeline Item 3 -->
+                    <div class="d-flex position-relative">
+                        <div class="icon-box-sm bg-success-light text-success mr-3 flex-shrink-0" style="width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 1;">
                             <i class="fas fa-check-circle"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="font-weight-bold text-navy mb-1 small">Demande d'acte transmise</h6>
-                            <p class="text-grey mb-0 x-small">Date : {{ now()->format('d/m/Y') }} • Ref: #{{ rand(1000, 9999) }}</p>
+                        <div>
+                            <p class="text-navy font-weight-bold mb-0 small">Dossier complété</p>
+                            <p class="text-grey x-small mb-1">Tous vos documents sont valides.</p>
+                            <span class="badge badge-soft-success" style="font-size: 9px; background: rgba(1, 181, 116, 0.1); color: #01B574;">Terminé</span>
                         </div>
-                        <span class="badge badge-soft-primary px-3 py-1" style="border-radius: 50px; font-size: 10px;">Traitement</span>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm mb-4 border-top-primary" style="border-radius: 20px;">
-                <div class="card-header bg-transparent border-0 pt-4 px-4">
-                    <h5 class="font-weight-bold text-navy mb-0">Répartition par type</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div style="height: 250px;">
-                        <canvas id="distributionChart"></canvas>
-                    </div>
-                    <div class="mt-4 px-2">
-                        <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
-                            <span class="text-grey small"><i class="fas fa-truck-fade mr-2 text-warning"></i> En cours</span>
-                            <span class="font-weight-bold text-navy">{{ $TotalEtatCount }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-3">
-                            <span class="text-grey small"><i class="fas fa-check-double mr-2 text-success"></i> Livrées</span>
-                            <span class="font-weight-bold text-navy">{{ $TotalLivreCount }}</span>
-                        </div>
-                    </div>
-                </div>
-                 <!-- Support -->
-            <div class="card border-0 p-4 shadow-sm position-relative overflow-hidden" style="border-radius: 24px; background: #2b3674;">
-                <div style="position: absolute; top: -10px; right: -10px; width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
-                <div class="text-white">
-                    <h5 class="font-weight-bold mb-2">Un souci ?</h5>
-                    <p class="small opacity-8 mb-4">Nos agents sont là pour vous aider par WhatsApp ou Email.</p>
-                    <a href="#" class="btn btn-white btn-block font-weight-bold" style="border-radius: 50px; color: #2b3674; font-size: 0.9rem;">Contacter Support</a>
-                </div>
             </div>
         </div>
     </div>
@@ -162,161 +164,127 @@
 @endsection
 
 @push('scripts')
-<!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Modern Chart.js Global Config
-        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.font.family = "'Poppins', sans-serif";
         Chart.defaults.color = '#a3aed0';
-        Chart.defaults.scale.grid.color = 'rgba(163, 174, 208, 0.05)';
 
-        // Data from Controller
         const labels = ['Jan', 'Féb', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
         const naissancesData = @json($totalNaissancesMonthly);
         const decesData = @json($totalDecesMonthly);
         const mariagesData = @json($mariageMonthly);
 
-        // Evolution Chart (Evolution des actes)
-        const evolutionCtx = document.getElementById('evolutionChart');
-        if (evolutionCtx) {
-            const ctx = evolutionCtx.getContext('2d');
-            const blueGradient = ctx.createLinearGradient(0, 0, 0, 400);
-            blueGradient.addColorStop(0, 'rgba(25, 119, 204, 0.2)');
-            blueGradient.addColorStop(1, 'rgba(25, 119, 204, 0)');
+        const ctx = document.getElementById('evolutionChart').getContext('2d');
+        
+        // Custom Gradients
+        const blueGrad = ctx.createLinearGradient(0, 0, 0, 300);
+        blueGrad.addColorStop(0, 'rgba(25, 119, 204, 0.2)');
+        blueGrad.addColorStop(1, 'rgba(25, 119, 204, 0)');
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Naissances',
-                            data: naissancesData,
-                            borderColor: '#1977cc',
-                            backgroundColor: blueGradient,
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 0,
-                            pointHoverRadius: 6
-                        },
-                        {
-                            label: 'Décès',
-                            data: decesData,
-                            borderColor: '#EE5D50',
-                            backgroundColor: 'rgba(238, 93, 80, 0.05)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 0,
-                            pointHoverRadius: 6
-                        },
-                        {
-                            label: 'Mariages',
-                            data: mariagesData,
-                            borderColor: '#8c52ff',
-                            backgroundColor: 'rgba(140, 82, 255, 0.05)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 0,
-                            pointHoverRadius: 6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false } // We use custom legends in HTML
+        const purpleGrad = ctx.createLinearGradient(0, 0, 0, 300);
+        purpleGrad.addColorStop(0, 'rgba(140, 82, 255, 0.2)');
+        purpleGrad.addColorStop(1, 'rgba(140, 82, 255, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Naissances',
+                        data: naissancesData,
+                        borderColor: '#1977cc',
+                        backgroundColor: blueGrad,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
                     },
-                    scales: {
-                        y: { 
-                            beginAtZero: true,
-                            grid: { borderDash: [5, 5] },
-                            border: { display: false }
-                        },
-                        x: { grid: { display: false } }
+                    {
+                        label: 'Mariages',
+                        data: mariagesData,
+                        borderColor: '#8c52ff',
+                        backgroundColor: purpleGrad,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                    },
+                    {
+                        label: 'Décès',
+                        data: decesData,
+                        borderColor: '#EE5D50',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#fff',
+                        titleColor: '#2b3674',
+                        bodyColor: '#a3aed0',
+                        borderColor: '#f4f7fe',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 12,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f4f7fe', borderDash: [5, 5], drawBorder: false },
+                        ticks: { stepSize: 1 }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false }
                     }
                 }
-            });
-        }
+            }
+        });
 
-        // Distribution Chart (Répartition)
-        const distributionCtx = document.getElementById('distributionChart');
-        if (distributionCtx) {
-            new Chart(distributionCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Naissances', 'Décès', 'Mariages'],
-                    datasets: [{
-                        data: [{{ $totalNaissances }}, {{ $totalDeces }}, {{ $mariageCount }}],
-                        backgroundColor: ['#1977cc', '#EE5D50', '#8c52ff'],
-                        borderWidth: 0,
-                        hoverOffset: 20
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 20 } }
-                    },
-                    cutout: '80%'
-                }
-            });
-        // Message pour les demandes gratuites
+        // Welcome Popup
         @if(isset($showFreeRequestsMessage) && $showFreeRequestsMessage)
             setTimeout(() => {
                 Swal.fire({
-                    title: '<span style="color: #1977cc; font-size: 1.5rem; font-weight: 800;">FÉLICITATIONS ! 🎊</span>',
+                    title: '<span class="text-primary font-weight-bold">FÉLICITATIONS ! 🎊</span>',
                     html: `
-                        <div style="padding: 10px;">
-                            <div style="background: linear-gradient(135deg, #1977cc, #4895ef); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(25, 119, 204, 0.3);">
-                                <i class="fas fa-gift" style="color: white; font-size: 2.5rem;"></i>
-                            </div>
-                            <h4 style="color: #2b3674; font-weight: 700; margin-bottom: 15px;">Vos premiers actes sont offerts !</h4>
-                            <p style="color: #707ebe; font-size: 1rem; line-height: 1.6; margin-bottom: 25px;">
-                                Pour célébrer votre arrivée sur <b>Plateau App</b>, nous avons le plaisir de vous offrir vos 
-                                <span style="color: #1977cc; font-weight: 800; font-size: 1.1rem;">{{ $freeRequestsRemaining }} prochaines demandes</span> 
-                                d'extraits d'état civil entièrement gratuitement.
+                        <div class="p-3">
+                            <h4 class="text-navy font-weight-bold mb-3">Vos premiers actes sont offerts !</h4>
+                            <p class="text-grey small mb-4">
+                                Pour célébrer votre arrivée sur Plateau App, nous vous offrons vos 
+                                <span class="text-primary font-weight-bold">{{ $freeRequestsRemaining }} prochaines demandes</span> entièrement gratuitement.
                             </p>
-                            <div style="background: #f4f7fe; border-radius: 15px; padding: 15px; border: 1px dashed #1977cc;">
-                                <p style="margin-bottom: 0; color: #1977cc; font-weight: 600; font-size: 0.9rem;">
-                                    <i class="fas fa-info-circle mr-2"></i> Valable sur les extraits de Naissance, Mariage et Décès.
-                                </p>
-                            </div>
                         </div>
                     `,
-                    showCloseButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Profiter de mes cadeaux 🚀',
+                    confirmButtonText: 'C\'est génial ! 🚀',
                     confirmButtonColor: '#1977cc',
-                    padding: '2rem',
-                    background: '#ffffff',
-                    borderRadius: '24px',
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInUp'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutDown'
-                    },
-                    allowOutsideClick: false,
-                    backdrop: `rgba(43, 54, 116, 0.6)`
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch("{{ route('user.dismiss.free.requests') }}", {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        });
-                    }
+                    borderRadius: '30px',
+                    backdrop: `rgba(25, 119, 204, 0.2)`
+                }).then(() => {
+                    fetch("{{ route('user.dismiss.free.requests') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
                 });
-            }, 800);
+            }, 1000);
         @endif
     });
 </script>

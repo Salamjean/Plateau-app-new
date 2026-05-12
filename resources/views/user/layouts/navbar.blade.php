@@ -3,7 +3,7 @@
       <button type="button" id="sidebarCollapse" class="sidebar_toggle">
          <i class="fa fa-bars"></i>
       </button>
-      <h5 class="ml-3 mb-0 d-none d-md-block" style="font-weight: 700; color: var(--text-navy);">Tableau de bord</h5>
+      <h5 class="ml-3 mb-0 d-none d-md-block" style="font-weight: 700;">Tableau de bord</h5>
    </div>
    
    <div class="d-flex align-items-center">
@@ -15,7 +15,7 @@
       </div>
       
       <div class="dropdown">
-         <a class="dropdown-toggle d-flex align-items-center" data-toggle="dropdown" style="cursor:pointer;"> 
+         <a class="dropdown-toggle d-flex align-items-center" data-toggle="dropdown" style="cursor:pointer; text-decoration:none;"> 
             @php
                 $navPic = optional(Auth::user())->profile_picture;
                 $navPicUrl = $navPic
@@ -23,7 +23,7 @@
                     : asset('assets/images/profiles/useriii.jpeg');
             @endphp
             <img src="{{ $navPicUrl }}"
-            style="width:40px; height:40px; border-radius:50%;" alt="Profile">
+            style="width:40px; height:40px; border-radius:50%; border: 2px solid rgba(255,255,255,0.5);" alt="Profile">
             <span class="name_user ml-2 d-none d-md-inline">{{ Auth::user()->name.' '.Auth::user()->prenom }}</span>
          </a>
          <div class="dropdown-menu dropdown-menu-right mt-3 border-0 shadow-sm" style="border-radius:12px;">

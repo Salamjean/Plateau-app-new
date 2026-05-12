@@ -1,618 +1,391 @@
 @extends('user.layouts.template')
 
 @section('content')
-    <!-- Styles et Scripts -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    
     <style>
         :root {
-            --primary-color: #1977cc;
-            --secondary-color: #1977cc;
-            --success-color: #2ecc71;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --light-bg: #f8f9fa;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --primary: #1977cc;
+            --primary-light: #eef5fc;
+            --success: #28a745;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-navy: #1a365d;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
         }
 
-        .form-background {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease-out;
         }
 
-        .card-rounded {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            border: none;
+        .page-title {
+            color: var(--text-navy);
+            font-weight: 800;
+            font-size: 1.8rem;
+            margin: 0;
+            letter-spacing: -0.5px;
         }
 
-        .section-header {
-            color: #1977cc;
-            padding: 12px 20px;
-            border-radius: 8px 8px 0 0;
-            margin-bottom: 0;
+        .btn-add-premium {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(25, 119, 204, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-add-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(25, 119, 204, 0.3);
+            color: white;
+        }
+
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            animation: fadeInUp 0.8s ease-out;
         }
 
         .table-responsive {
-            border-radius: 0 0 8px 8px;
-            overflow-x: auto;
+            border-radius: 16px;
+            overflow: hidden;
         }
 
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+        #decesTable {
+            width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0 12px !important;
+            background: transparent !important;
         }
 
-        th {
-            color: white;
-            font-weight: 600;
-            padding: 12px;
-            text-align: center;
+        #decesTable thead th {
+            background: transparent !important;
+            color: #718096 !important;
+            text-transform: uppercase !important;
+            font-size: 0.75rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 1px !important;
+            border: none !important;
+            padding: 15px !important;
         }
 
-
-        td {
-            padding: 10px;
-            vertical-align: middle;
-            border-bottom: 1px solid #eee;
-            text-align: center;
+        #decesTable tbody tr {
+            background: #fff !important;
+            border-radius: 16px !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02) !important;
+            transition: 0.3s !important;
         }
 
-        tr:nth-child(even) {
-            background-color: rgba(0, 0, 0, 0.02);
+        #decesTable tbody tr:hover {
+            transform: translateY(-3px) scale(1.002);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
         }
 
-        tr:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+        #decesTable tbody td {
+            padding: 1.2rem !important;
+            border: none !important;
+            vertical-align: middle !important;
         }
 
-        .badge {
-            padding: 6px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.8rem;
+        #decesTable tbody td:first-child { border-radius: 16px 0 0 16px !important; }
+        #decesTable tbody td:last-child { border-radius: 0 16px 16px 0 !important; }
+
+        .badge-status {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
         }
 
-        .badge-warning {
-            background-color: rgba(243, 156, 18, 0.1);
-            color: var(--warning-color);
-        }
+        .badge-en-attente { background: #fff7ed; color: #c2410c; }
+        .badge-en-cours { background: #eff6ff; color: #1d4ed8; }
+        .badge-termine { background: #f0fdf4; color: #15803d; }
+        .badge-rejete { background: #fef2f2; color: #b91c1c; }
 
-        .badge-success {
-            background-color: rgba(46, 204, 113, 0.1);
-            color: var(--success-color);
-        }
-
-        .badge-danger {
-            background-color: rgba(231, 76, 60, 0.1);
-            color: var(--danger-color);
-        }
-
-        .btn-new-request {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .action-btn {
+        .delivery-badge {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-        }
-
-        .document-preview {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 6px;
-            cursor: pointer;
-            border: 1px solid #eee;
-        }
-
-        .retrait-badge {
-            background-color: var(--danger-color);
-            color: white;
+            gap: 6px;
             padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
+            background: #f8fafc;
+            border-radius: 8px;
+            color: #64748b;
             font-size: 0.8rem;
+            font-weight: 600;
         }
 
-        /* Styles responsive */
-        @media (max-width: 768px) {
-            .document-preview {
-                width: 60px;
-                height: 60px;
-            }
+        .btn-action {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            border: none;
+            text-decoration: none;
         }
 
-        @media (max-width: 576px) {
-            .btn-new-request {
-                padding: 8px 16px;
-                font-size: 0.9rem;
-            }
+        .btn-edit { background: #eff6ff; color: #2563eb; }
+        .btn-edit:hover { background: #2563eb; color: #fff; }
+        .btn-delete { background: #fef2f2; color: #dc2626; }
+        .btn-delete:hover { background: #dc2626; color: #fff; }
 
-            .section-header {
-                font-size: 1.1rem;
-                padding: 10px 15px;
-            }
+        .doc-thumbnail {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+        .doc-thumbnail:hover { transform: scale(1.15); z-index: 10; }
+
+        .info-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .info-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; }
+        .info-value { font-size: 0.9rem; font-weight: 600; color: var(--text-navy); }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dataTables_filter input {
+            border-radius: 12px !important;
+            padding: 8px 16px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #fff !important;
+            margin-left: 10px !important;
         }
     </style>
 
-    <div class="row flex-grow form-background">
-        <div class="col-12 grid-margin stretch-card">
-            <div class="card card-rounded">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="card-title card-title-dash mb-0">Demandes d'acte de décès</h4>
-                        <a href="{{ route('user.extrait.deces.create') }}" class="btn btn-new-request">
-                            <i class="fas fa-plus me-2"></i>Nouvelle demande
-                        </a>
-                    </div>
+    <div class="container-fluid py-4">
+        <div class="page-header">
+            <h1 class="page-title">Demandes d'acte de décès</h1>
+            <a href="{{ route('user.extrait.deces.create') }}" class="btn-add-premium">
+                <i class="fas fa-plus"></i> Nouvelle demande
+            </a>
+        </div>
 
-                    <!-- Section Demandes pour tierce personne -->
-                    <div>
-                        <h5 class="section-header">Mes demandes d'actes de décès</h5>
-                        <div class="table-responsive">
-                            <table class="table select-table">
-                                <thead>
-                                    <tr style="background-color: #1977cc">
-                                        <th>Référence</th>
-                                        <th>Type</th>
-                                        <th>Quantité</th>
-                                        <th>Défunt</th>
-                                        <th>Parents</th>
-                                        <th>Détails</th>
-                                        <th>Documents</th>
-                                        <th>Statut</th>
-                                        <th>Agent</th>
-                                        <th>Actions</th>
-                                        <th>Retrait</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($deces as $decesItem)
-                                        <tr>
-                                            <td>{{ $decesItem->reference }}</td>
-                                            <td>
-                                                @if($decesItem->type == 'integral')
-                                                    <span class="badge bg-info text-dark">Intégrale</span>
-                                                @else
-                                                    <span class="badge bg-secondary">Simple</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ $decesItem->quantite }} copie(s)</td>
-                                            <td>{{ $decesItem->name }}</td>
-                                            <td>
-                                                <small>
-                                                    <strong>Père:</strong>
-                                                    {{ $decesItem->nom_prenoms_pere ?? 'Non renseigné' }}<br>
-                                                    <strong>Mère:</strong> {{ $decesItem->nom_prenoms_mere ?? 'Non renseigné' }}
-                                                </small>
-                                            </td>
-                                            <td>
-                                                <small>
-                                                    <strong>Registre:</strong> {{ $decesItem->numberR }}<br>
-                                                    <strong>Date:</strong> {{ $decesItem->dateR }}<br>
-                                                </small>
-                                            </td>
-                                            <td>
-                                                @if ($decesItem->CNIdfnt)
-                                                    @if (pathinfo($decesItem->CNIdfnt, PATHINFO_EXTENSION) === 'pdf')
-                                                        <a href="{{ asset('storage/' . $decesItem->CNIdfnt) }}" target="_blank">
-                                                            <img src="{{ asset('assets/assets/img/pdf.jpg') }}" alt="PDF"
-                                                                class="document-preview">
-                                                        </a>
-                                                    @else
-                                                        <img src="{{ asset('storage/' . $decesItem->CNIdfnt) }}" alt="CNI défunt"
-                                                            class="document-preview" onclick="showImage(this)">
-                                                    @endif
-                                                @else
-                                                    <span class="text-muted">Aucun document</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if ($decesItem->etat == 'rejetée')
-                                                    <span class="badge badge-danger">
-                                                        MODIFIER LES INFORMATIONS
-                                                        @if ($decesItem->peut_modifier)
-                                                            <br><small class="text-white">(Modification requise)</small>
-                                                        @endif
-                                                    </span>
-                                                @elseif($decesItem->etat == 'en attente')
-                                                    <span class="badge badge-warning">EN ATTENTE</span>
-                                                @elseif($decesItem->etat == 'réçu')
-                                                    <span class="badge badge-success">EN COURS DE TRAITEMENT</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ $decesItem->agent ? $decesItem->agent->name . ' ' . $decesItem->agent->prenom : 'Non attribué' }}
-                                            </td>
-                                            <td>
-                                                <div class="d-flex justify-content-center">
-                                                    @if ($decesItem->peut_modifier)
-                                                        <button
-                                                            onclick="showModificationPopup('{{ $decesItem->id }}', {{ json_encode($decesItem) }})"
-                                                            class="btn btn-sm btn-warning action-btn" title="Modifier la demande">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                    @endif
-
-                                                    @if ($decesItem->etat !== 'réçu' && $decesItem->etat !== 'terminé' && !$decesItem->peut_modifier)
-                                                        <button
-                                                            onclick="confirmDelete('{{ route('user.extrait.deces.delete', $decesItem->id) }}')"
-                                                            class="btn btn-sm btn-danger action-btn ms-1" title="Supprimer">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    @elseif(!$decesItem->peut_modifier)
-                                                        <button class="btn btn-sm btn-secondary action-btn disabled"
-                                                            title="Non modifiable">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="retrait-badge">{{ $decesItem->choix_option }}</span>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="9" class="text-center py-4">Aucune demande d'acte de décès
-                                                trouvée</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+        <div class="glass-container">
+            <div class="table-responsive">
+                <table id="decesTable" class="table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Référence</th>
+                            <th class="text-center">Type</th>
+                            <th class="text-center">Défunt</th>
+                            <th class="text-center">Parents</th>
+                            <th class="text-center">Registre</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Retrait</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($deces as $item)
+                            <tr>
+                                <td class="text-center">
+                                    <span class="fw-bold">{{ $item->reference }}</span>
+                                    <div class="small text-muted">{{ $item->quantite }} copie(s)</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {{ $item->type == 'integral' ? 'bg-primary' : 'bg-info' }} rounded-pill small text-white">
+                                        {{ $item->type == 'integral' ? 'Intégrale' : 'Simple' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="info-cell">
+                                        <span class="info-value">{{ $item->name }}</span>
+                                        <span class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $item->commune_deces ?: 'N/A' }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="info-cell">
+                                        <span class="small"><strong class="text-muted">P :</strong> {{ $item->nom_prenoms_pere ?: '-' }}</span>
+                                        <span class="small"><strong class="text-muted">M :</strong> {{ $item->nom_prenoms_mere ?: '-' }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="info-cell">
+                                        <span class="info-value">{{ $item->numberR ?: '-' }}</span>
+                                        <span class="small text-muted">{{ $item->dateR ? date('d/m/Y', strtotime($item->dateR)) : '-' }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @if ($item->etat == 'rejetée')
+                                        <span class="badge-status badge-rejete">REJETÉ</span>
+                                    @elseif($item->etat == 'en attente')
+                                        <span class="badge-status badge-en-attente">EN ATTENTE</span>
+                                    @elseif($item->etat == 'réçu')
+                                        <span class="badge-status badge-en-cours">EN COURS</span>
+                                    @else
+                                        <span class="badge-status badge-termine">TERMINÉ</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="delivery-badge">
+                                        <i class="fas {{ $item->choix_option == 'livraison' ? 'fa-motorcycle' : 'fa-university' }}"></i>
+                                        {{ $item->choix_option == 'livraison' ? 'Livraison' : 'Mairie' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        @if ($item->peut_modifier)
+                                            <button onclick="showModificationPopup('{{ $item->id }}', {{ json_encode($item) }})" class="btn-action btn-edit" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        @endif
+                                        
+                                        @if ($item->etat == 'en attente' || $item->etat == 'rejetée')
+                                            <button onclick="confirmDelete('{{ route('user.extrait.deces.delete', $item->id) }}')" class="btn-action btn-delete" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Modale pour afficher les images -->
-    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <!-- Modale Image -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">Visualisation du document</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="modalImage" class="modal-image" src="" alt="Document agrandi">
+            <div class="modal-content" style="border-radius: 24px; border: none; overflow: hidden;">
+                <div class="modal-body p-0 text-center bg-dark">
+                    <img id="modalImage" src="" style="max-width: 100%; max-height: 85vh;">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function () {
-            $('.table').DataTable({
+            $('#decesTable').DataTable({
                 responsive: true,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
-                }
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json' },
+                order: [[0, 'desc']],
+                dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rtip'
             });
         });
 
-        function showImage(imageElement) {
-            const modalImage = document.getElementById('modalImage');
-            modalImage.src = imageElement.src;
-            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
-            imageModal.show();
-        }
-
         function confirmDelete(url) {
             Swal.fire({
-                title: 'Confirmation',
-                text: "Êtes-vous sûr de vouloir supprimer cette demande ?",
+                title: 'Supprimer cette demande ?',
+                text: "Cette action est irréversible.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Oui, supprimer',
-                cancelButtonText: 'Annuler'
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Supprimer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true
             }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = url;
-                }
+                if (result.isConfirmed) window.location.href = url;
             });
         }
 
-        // Fonction pour afficher le pop-up de modification
         function showModificationPopup(demandeId, demande) {
-            // Récupérer les champs à modifier depuis le JSON
             let champsAModifier = JSON.parse(demande.champs_a_modifier || '[]');
-
-            if (champsAModifier.length === 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: 'Aucun champ à modifier n\'a été spécifié.',
-                    confirmButtonColor: '#3085d6'
-                });
-                return;
-            }
-
-            // Mapping des champs vers leurs libellés
             const fieldLabels = {
-                'name': 'Nom et Prénoms du Défunt',
-                'numberR': 'Numéro de Registre',
-                'dateR': 'Date de Registre',
-                'commune': 'Commune',
-                'quantite': 'Quantité',
-                'CNIdfnt': 'CNI/extrait de naissance du défunt',
-                'CNIdcl': 'Certificat médical de décès',
-                'documentMariage': 'Document de mariage',
-                'RequisPolice': 'Réquisition de police'
+                'name': 'Nom défunt', 'numberR': 'N° Registre', 'dateR': 'Date Registre',
+                'commune_deces': 'Commune décès', 'quantite': 'Quantité',
+                'CNIdfnt': 'CNI défunt', 'CNIdcl': 'Certificat médical',
+                'documentMariage': 'Acte mariage', 'RequisPolice': 'Réquisition police'
             };
 
-            // Créer le formulaire dynamique
-            let formHtml = `
-                    <form id="modificationForm" enctype="multipart/form-data">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                `;
-
+            let formHtml = `<form id="modificationForm" class="text-start" enctype="multipart/form-data">`;
             champsAModifier.forEach(field => {
                 const label = fieldLabels[field] || field;
-                let fieldValue = demande[field] || '';
+                let val = demande[field] || '';
+                if (field === 'dateR' && val) val = new Date(val).toISOString().split('T')[0];
 
-                // Formater la date si nécessaire
-                if (field === 'dateR' && fieldValue) {
-                    fieldValue = new Date(fieldValue).toISOString().split('T')[0];
-                }
-
-                if (field === 'quantite') {
-                    formHtml += `
-                            <div class="mb-3">
-                                <label class="form-label">${label}</label>
-                                <input type="number" name="${field}" class="form-control" 
-                                       value="${fieldValue}" min="1" max="10" required>
-                            </div>
-                        `;
-                } else if (field === 'commune') {
-                    formHtml += `
-                            <div class="mb-3">
-                                <label class="form-label">${label}</label>
-                                <input type="text" name="${field}" class="form-control" 
-                                       value="plateau" readonly>
-                                <small class="text-muted">Commune fixée à Plateau</small>
-                            </div>
-                        `;
-                } else if (['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice'].includes(field)) {
-                    formHtml += `
-                            <div class="mb-3">
-                                <label class="form-label">${label}</label>
-                                <div class="file-input-container mb-2">
-                                    <label class="file-input-label">
-                                        <span class="file-input-text" id="file-name-${field}">Choisir un fichier</span>
-                                        <span class="file-input-button">Parcourir</span>
-                                        <input type="file" id="${field}" name="${field}" class="file-input" 
-                                               onchange="updateFileName(this, '${field}')" accept=".jpg,.jpeg,.png,.pdf">
-                                    </label>
-                                </div>
-                                <small class="text-muted">Formats acceptés: JPG, PNG, PDF (max 1MB)</small>
-                                ${fieldValue ? '<div class="mt-2"><small>Document actuel: ' + fieldValue.split('/').pop() + '</small></div>' : ''}
-                            </div>
-                        `;
+                formHtml += `<div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase">${label}</label>`;
+                
+                if (['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice'].includes(field)) {
+                    formHtml += `<input type="file" name="${field}" class="form-control" accept=".jpg,.jpeg,.png,.pdf">`;
                 } else if (field === 'dateR') {
-                    formHtml += `
-                            <div class="mb-3">
-                                <label class="form-label">${label}</label>
-                                <input type="date" name="${field}" class="form-control" 
-                                       value="${fieldValue}" required>
-                            </div>
-                        `;
+                    formHtml += `<input type="date" name="${field}" class="form-control" value="${val}">`;
                 } else {
-                    formHtml += `
-                            <div class="mb-3">
-                                <label class="form-label">${label}</label>
-                                <input type="text" name="${field}" class="form-control" 
-                                       value="${fieldValue}" required>
-                            </div>
-                        `;
+                    formHtml += `<input type="${field==='quantite'?'number':'text'}" name="${field}" class="form-control" value="${val}">`;
                 }
+                formHtml += `</div>`;
             });
-
-            formHtml += `
-                        </div>
-                    </form>
-                    <style>
-                        .file-input-container {
-                            position: relative;
-                            overflow: hidden;
-                        }
-                        .file-input-label {
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            padding: 0.8rem 1rem;
-                            background: #f9f9f9;
-                            border: 1px solid #e0e0e0;
-                            border-radius: 8px;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        }
-                        .file-input-label:hover {
-                            background: #f0f0f0;
-                        }
-                        .file-input-text {
-                            white-space: nowrap;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            color: #666;
-                        }
-                        .file-input-button {
-                            background: #1977cc;
-                            color: white;
-                            padding: 0.3rem 0.8rem;
-                            border-radius: 6px;
-                            font-size: 0.85rem;
-                            margin-left: 1rem;
-                        }
-                        .file-input {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            opacity: 0;
-                            width: 100%;
-                            height: 100%;
-                            cursor: pointer;
-                        }
-                        .swal2-popup .form-control {
-                            margin-bottom: 10px;
-                        }
-                    </style>
-                `;
+            formHtml += `</form>`;
 
             Swal.fire({
-                title: 'Modifier la demande rejetée',
+                title: 'Modifier la demande',
                 html: formHtml,
-                width: '600px',
                 showCancelButton: true,
-                confirmButtonText: 'Enregistrer les modifications',
-                cancelButtonText: 'Annuler',
+                confirmButtonText: 'Enregistrer',
                 confirmButtonColor: '#1977cc',
-                didOpen: () => {
-                    // Réinitialiser le nom de fichier
-                    champsAModifier.forEach(field => {
-                        if (['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice'].includes(field)) {
-                            const fileElement = document.getElementById(`file-name-${field}`);
-                            if (fileElement) {
-                                fileElement.textContent = 'Choisir un fichier';
-                            }
-                        }
-                    });
-                },
-                preConfirm: () => {
-                    const form = document.getElementById('modificationForm');
-                    const formData = new FormData(form);
-
-                    // Validation côté client
-                    let isValid = true;
-                    champsAModifier.forEach(field => {
-                        const input = form.querySelector(`[name="${field}"]`);
-                        if (input && input.hasAttribute('required') && !input.value.trim()) {
-                            isValid = false;
-                            input.classList.add('is-invalid');
-                        } else if (input) {
-                            input.classList.remove('is-invalid');
-                        }
-                    });
-
-                    if (!isValid) {
-                        Swal.showValidationMessage('Veuillez remplir tous les champs obligatoires');
-                        return false;
-                    }
-
-                    return formData;
-                }
+                preConfirm: () => new FormData(document.getElementById('modificationForm'))
             }).then((result) => {
-                if (result.isConfirmed && result.value) {
+                if (result.isConfirmed) {
                     const formData = result.value;
-
-                    // Ajouter l'ID de la demande
                     formData.append('_method', 'PUT');
-
-                    // Afficher le loader
-                    Swal.fire({
-                        title: 'Traitement en cours',
-                        html: 'Modification de la demande...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    // Utiliser la route nommée avec le paramètre ID
-                    const url = `/user/extrait/deces/${demandeId}/modifier`;
-
-                    // Envoyer la requête AJAX
-                    fetch(url, {
+                    
+                    Swal.showLoading();
+                    fetch(`/user/extrait/deces/${demandeId}/modifier`, {
                         method: 'POST',
                         body: formData,
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        }
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            Swal.close();
-                            if (data.success) {
-                                Swal.fire({
-                                    title: 'Succès',
-                                    text: data.message,
-                                    icon: 'success',
-                                    confirmButtonColor: '#1977cc'
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Erreur',
-                                    text: data.message || 'Une erreur est survenue',
-                                    icon: 'error',
-                                    confirmButtonColor: '#3085d6'
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            Swal.close();
-                            Swal.fire({
-                                title: 'Erreur',
-                                text: 'Erreur lors de la modification',
-                                icon: 'error',
-                                confirmButtonColor: '#3085d6'
-                            });
-                        });
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('Succès', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Erreur', data.message, 'error');
+                        }
+                    });
                 }
             });
         }
-
-        // Fonction pour mettre à jour le nom du fichier sélectionné
-        function updateFileName(input, fieldId) {
-            const fileName = input.files[0] ? input.files[0].name : 'Choisir un fichier';
-            document.getElementById(`file-name-${fieldId}`).textContent = fileName;
-        }
-
-                    @if (session('success'))
-                        Swal.fire({
-                            title: 'Succès',
-                            text: "{{ session('success') }}",
-                            icon: 'success',
-                            confirmButtonColor: '#3085d6'
-                        });
-                    @endif
-
-                    @if (session('error'))
-                        Swal.fire({
-                            title: 'Erreur',
-                            text: "{{ session('error') }}",
-                            icon: 'error',
-                            confirmButtonColor: '#3085d6'
-                        });
-                    @endif
     </script>
 
+    @if (session('success'))
+        <script>Swal.fire('Succès', "{{ session('success') }}", 'success');</script>
+    @endif
+    @if (session('error'))
+        <script>Swal.fire('Erreur', "{{ session('error') }}", 'error');</script>
+    @endif
 @endsection

@@ -1,477 +1,530 @@
 @extends('user.layouts.template')
-@section('content')
 
+@section('content')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
             --primary: #1977cc;
-            --primary-soft: rgba(25, 119, 204, 0.1);
-            --secondary: #2c7873;
-            --accent: #ff7e5f;
+            --primary-light: #eef5fc;
             --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --bg-glass: rgba(255, 255, 255, 0.9);
-            --border-radius: 16px;
-            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --text-navy: #1a365d;
         }
 
-        .marriage-certificate-container {
-            background: var(--bg-glass);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(12px);
+        .form-page-container {
+            padding: 2rem 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .form-glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
             padding: 3rem;
-            width: 70%;
-            margin: 2rem auto;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            animation: slideUp 0.6s ease-out;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .marriage-certificate-title {
+        .form-header-box {
             text-align: center;
-            color: var(--primary);
-            margin-bottom: 2.5rem;
-            font-size: 2.2rem;
+            margin-bottom: 3rem;
+        }
+
+        .form-header-box h2 {
+            color: var(--text-navy);
             font-weight: 800;
-            letter-spacing: -0.5px;
+            font-size: 2.2rem;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
         }
 
-        .marriage-certificate-title::after {
-            content: '';
-            display: block;
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            margin: 12px auto 0;
-            border-radius: 2px;
+        .form-section {
+            margin-bottom: 2.5rem;
         }
 
-        .section-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid #edf2f7;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-        }
-
-        .section-card:hover {
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-soft);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
+        .form-section-title {
             display: flex;
             align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 10px;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
+        .form-section-title i {
+            width: 35px;
+            height: 35px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-right: 12px;
         }
 
-        .form-group {
-            margin-bottom: 0;
+        .input-group-custom {
+            margin-bottom: 1.5rem;
         }
 
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        .form-label {
+        .input-group-custom label {
             display: block;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #4a5568;
+            color: var(--text-navy);
             font-size: 0.9rem;
         }
 
-        .form-control {
-            width: 100%;
-            border: 2px solid #eef2f7;
-            border-radius: 10px;
-            background-color: #fcfdfe;
-            transition: var(--transition);
-            font-size: 0.95rem;
-            color: #2d3748;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(25, 119, 204, 0.1);
-        }
-
-        .input-icon-wrapper {
+        .input-wrapper {
             position: relative;
         }
 
-        .input-icon-wrapper i {
+        .input-wrapper i {
             position: absolute;
-            left: 12px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: #a0aec0;
         }
 
-        .input-icon-wrapper .form-control {
-            padding-left: 40px;
+        .form-control-custom {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border-radius: 15px;
+            border: 2px solid #f4f7fe;
+            background: #f4f7fe;
+            transition: 0.3s;
         }
 
-    /* Nouveau style pour les options de retrait cards premium */
-    .delivery-options-cards {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
+        .form-control-custom:focus {
+            border-color: var(--primary);
+            background: #fff;
+            outline: none;
+        }
 
-    .delivery-card {
-        position: relative;
-        cursor: pointer;
-    }
+        /* Stepper */
+        .stepper-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-    .delivery-card input {
-        position: absolute;
-        opacity: 0;
-    }
+        .stepper-container::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
 
-    .delivery-label {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 1.5rem;
-        background: white;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        transition: all 0.2s;
-        height: 100%;
-        text-align: center;
-    }
+        .step-item {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 120px;
+        }
 
-    .delivery-label .icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        color: #1977cc;
-    }
-
-    .delivery-name {
-        font-weight: 700;
-        font-size: 0.95rem;
-        margin-bottom: 0.25rem;
-        color: #2c3e50;
-    }
-
-    .delivery-info {
-        font-size: 0.8rem;
-        color: #718096;
-    }
-
-    .delivery-card input:checked + .delivery-label {
-        border-color: #1977cc;
-        background-color: #f0f7ff;
-        box-shadow: 0 0 0 1px #1977cc;
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        margin: 2rem 0 1rem;
-        border-bottom: 1px solid #edf2f7;
-        padding-bottom: 0.5rem;
-    }
-
-    .section-header i {
-        color: #1977cc;
-        margin-right: 0.75rem;
-    }
-
-    .section-header h3 {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #1977cc;
-        text-transform: uppercase;
-        margin: 0;
-    }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1.2rem;
-            background: linear-gradient(135deg, var(--primary), #1565b8);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 2rem;
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            box-shadow: 0 4px 15px rgba(25, 119, 204, 0.3);
+            font-weight: 700;
+            margin-bottom: 10px;
+            transition: 0.4s;
+            color: #718096;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(25, 119, 204, 0.4);
+        .step-item.active .step-circle {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 0 0 5px var(--primary-light);
         }
 
-        .error-message {
-            color: var(--danger);
+        .step-item.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff;
+        }
+
+        .step-label {
             font-size: 0.8rem;
-            margin-top: 5px;
-            font-weight: 500;
+            font-weight: 700;
+            color: #718096;
+            text-align: center;
         }
 
-        .hidden-section {
-            display: none;
-            animation: fadeIn 0.5s ease-out;
+        .step-item.active .step-label { color: var(--primary); }
+
+        .form-step { display: none; }
+        .form-step.active { display: block; animation: slideIn 0.5s ease-out; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .stepper-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #f4f7fe;
         }
 
-        /* Responsive */
-        @media (max-width: 992px) {
-            .marriage-certificate-container {
-                width: 90%;
-            }
+        .btn-step {
+            padding: 14px 30px;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        @media (max-width: 768px) {
-            .marriage-certificate-container {
-                padding: 1.5rem;
-                width: 95%;
-            }
+        .btn-prev { background: #f4f7fe; color: #718096; }
+        .btn-prev:hover { background: #e2e8f0; }
+        .btn-next { background: var(--primary); color: #fff; }
+        .btn-next:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(25, 119, 204, 0.3); }
 
-            .form-grid,
-            .radio-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .marriage-certificate-title {
-                font-size: 1.8rem;
-            }
+        /* Delivery Options */
+        .delivery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
         }
+
+        .delivery-card {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .delivery-card input { position: absolute; opacity: 0; }
+
+        .delivery-card-content {
+            padding: 2rem;
+            background: #fff;
+            border-radius: 20px;
+            border: 2px solid #f4f7fe;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .delivery-card input:checked + .delivery-card-content {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-5px);
+        }
+
+        .delivery-card-content i { font-size: 2rem; color: var(--primary); margin-bottom: 1rem; }
+        .delivery-title { display: block; font-weight: 800; color: var(--text-navy); }
+        .delivery-price { font-size: 0.85rem; color: #718096; }
+
+        .is-invalid { border-color: var(--danger) !important; }
+        .error-message { color: var(--danger); font-size: 0.75rem; margin-top: 5px; font-weight: 600; }
     </style>
 
-    @if (Session::get('success'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Succès',
-                text: '{{ Session::get('success') }}',
-                timer: 3000,
-                showConfirmButton: false,
-            });
-        </script>
-    @endif
+    <div class="form-page-container">
+        <div class="form-glass-card">
+            <div class="form-header-box">
+                <h2>Demande d'acte de mariage</h2>
+                <p class="text-muted">Remplissez les informations ci-dessous pour commander votre acte de mariage.</p>
+            </div>
 
-    @if (Session::get('error'))
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: '{{ Session::get('error') }}',
-                timer: 3000,
-                showConfirmButton: false,
-            });
-        </script>
-    @endif
-
-    <div class="marriage-certificate-container">
-        <h1 class="marriage-certificate-title">Demande d'acte de mariage</h1>
-
-        <form id="demandeForm" method="POST" enctype="multipart/form-data"
-            action="{{ route('user.extrait.mariage.store') }}">
-            @csrf
-
-            <!-- Section: Type de demande -->
-            <div class="section-card">
-                <h3 class="section-title"><i class="fas fa-file-signature"></i> Type de demande</h3>
-                <div class="form-group full-width">
-                    <label for="typeDemande" class="form-label">Type d'acte souhaité</label>
-                    <div class="input-icon-wrapper">
-                        <i class="fas fa-list"></i>
-                        <select id="typeDemande" name="typeDemande" class="form-control">
-                            <option value="extraitSimple">Acte simple (Extrait)</option>
-                            <option value="copieIntegrale">Copie intégrale</option>
-                        </select>
-                    </div>
+            <!-- Stepper -->
+            <div class="stepper-container">
+                <div class="step-item active" id="step-item-1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Type d'acte</div>
+                </div>
+                <div class="step-item" id="step-item-2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Informations</div>
+                </div>
+                <div class="step-item" id="step-item-3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Retrait & Pièces</div>
                 </div>
             </div>
 
-            <!-- Section: Informations Conjoint (Conditionnelle) -->
-            <div id="infoEpoux" class="section-card hidden-section">
-                <h3 class="section-title"><i class="fas fa-user-friends"></i> Informations sur le conjoint(e)</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="nomEpoux" class="form-label">Nom du conjoint(e)</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="nomEpoux" name="nomEpoux" class="form-control"
-                                placeholder="Nom de l'époux(se)">
+            <form id="demandeForm" method="POST" enctype="multipart/form-data" action="{{ route('user.extrait.mariage.store') }}">
+                @csrf
+
+                <!-- ÉTAPE 1: Type de demande -->
+                <div class="form-step active" id="step-1">
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-file-signature"></i> Quel type d'acte souhaitez-vous ?
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="input-group-custom">
+                                    <label>Format de l'acte :</label>
+                                    <div class="input-wrapper">
+                                        <select id="typeDemande" name="typeDemande" class="form-control-custom">
+                                            <option value="extraitSimple">Acte simple (Extrait)</option>
+                                            <option value="copieIntegrale">Copie intégrale</option>
+                                        </select>
+                                        <i class="fas fa-list"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="prenomEpoux" class="form-label">Prénom du conjoint(e)</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="prenomEpoux" name="prenomEpoux" class="form-control"
-                                placeholder="Prénom de l'époux(se)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="dateNaissanceEpoux" class="form-label">Date de naissance</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-calendar-alt"></i>
-                            <input type="date" id="dateNaissanceEpoux" name="dateNaissanceEpoux" class="form-control">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="lieuNaissanceEpoux" class="form-label">Lieu de naissance</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="lieuNaissanceEpoux" name="lieuNaissanceEpoux" class="form-control"
-                                placeholder="Ville de naissance">
-                        </div>
+                    <div class="stepper-footer">
+                        <div></div>
+                        <button type="button" class="btn-step btn-next" onclick="nextStep(1)">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Section: Détails de l'acte -->
-            <div class="section-card">
-                <h3 class="section-title"><i class="fas fa-book"></i> Détails de l'acte et Pièces</h3>
-                <div class="form-grid">
-                    <div class="form-group" style="display: none;">
-                        <label for="commune" class="form-label">Commune d'enregistrement</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-city"></i>
-                            <input type="text" id="commune" value="Plateau" name="commune" class="form-control" readonly>
+                <!-- ÉTAPE 2: Informations -->
+                <div class="form-step" id="step-2">
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-book"></i> Détails du mariage
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Commune de mariage :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="commune_mariage" name="commune_mariage" class="form-control-custom" placeholder="Ville ou commune">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Quantité :</label>
+                                    <div class="input-wrapper">
+                                        <input type="number" id="quantite" name="quantite" class="form-control-custom" value="1" min="1" max="10">
+                                        <i class="fas fa-copy"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Numéro NNI (Optionnel) :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="CMU" name="CMU" class="form-control-custom" value="{{ Auth::user()->CMU }}" placeholder="Votre NNI">
+                                        <i class="fas fa-id-card"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloc Conjoint (Si Copie Intégrale) -->
+                        <div id="infoEpoux" style="display: none; margin-top: 2rem;">
+                            <div class="form-section-title">
+                                <i class="fas fa-user-friends"></i> Informations sur le conjoint(e)
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Nom du conjoint(e) :</label>
+                                        <div class="input-wrapper">
+                                            <input type="text" id="nomEpoux" name="nomEpoux" class="form-control-custom" placeholder="Nom">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Prénom du conjoint(e) :</label>
+                                        <div class="input-wrapper">
+                                            <input type="text" id="prenomEpoux" name="prenomEpoux" class="form-control-custom" placeholder="Prénom">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Date de naissance :</label>
+                                        <div class="input-wrapper">
+                                            <input type="date" id="dateNaissanceEpoux" name="dateNaissanceEpoux" class="form-control-custom">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Lieu de naissance :</label>
+                                        <div class="input-wrapper">
+                                            <input type="text" id="lieuNaissanceEpoux" name="lieuNaissanceEpoux" class="form-control-custom" placeholder="Ville">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="commune_mariage" class="form-label">Commune de mariage</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="commune_mariage" name="commune_mariage" class="form-control" value="{{ old('commune_mariage') }}">
-                        </div>
-                        @error('commune_mariage') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="quantite" class="form-label">Quantité souhaitée</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-copy"></i>
-                            <input type="number" id="quantite" name="quantite" class="form-control"
-                                value="{{ old('quantite', 1) }}" min="1" max="10">
-                        </div>
-                        @error('quantite') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="pieceIdentite" class="form-label">Pièce d'identité (CNI/Pass)</label>
-                        <input type="file" id="pieceIdentite" name="pieceIdentite" class="form-control"
-                            accept=".pdf,.jpg,.jpeg,.png">
-                        @error('pieceIdentite') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="extraitMariage" class="form-label">Ancien acte de mariage</label>
-                        <input type="file" id="extraitMariage" name="extraitMariage" class="form-control"
-                            accept=".pdf,.jpg,.jpeg,.png">
-                        @error('extraitMariage') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="CMU" class="form-label">Numéro NNI (Optionnel)</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-id-card"></i>
-                            <input type="text" id="CMU" value="{{ Auth::user()->CMU }}" name="CMU"
-                                placeholder="Votre numéro NNI" class="form-control">
-                        </div>
+                    <div class="stepper-footer">
+                        <button type="button" class="btn-step btn-prev" onclick="prevStep(2)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn-step btn-next" onclick="nextStep(2)">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <div class="delivery-options" id="optionsSection">
-                <div class="section-header">
-                    <i class="fas fa-truck text-primary"></i>
-                    <h3 class="section-title">Mode de retrait</h3>
-                </div>
-                <div class="delivery-options-cards">
-                    <label class="delivery-card">
-                        <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
-                        <div class="delivery-label">
-                            <i class="fas fa-building icon"></i>
-                            <span class="delivery-name">Retrait sur place</span>
-                            <span class="delivery-info">À la mairie (Gratuit)</span>
+                <!-- ÉTAPE 3: Pièces & Retrait -->
+                <div class="form-step" id="step-3">
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-upload"></i> Justificatifs & Mode de retrait
                         </div>
-                    </label>
-                    <label class="delivery-card">
-                        <input type="radio" id="option2" name="choix_option" value="livraison">
-                        <div class="delivery-label">
-                            <i class="fas fa-truck icon"></i>
-                            <span class="delivery-name">Livraison à domicile</span>
-                            <span class="delivery-info">Frais : 1500 FCFA</span>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="input-group-custom">
+                                    <label>Pièce d'identité (CNI/Pass) :</label>
+                                    <input type="file" id="pieceIdentite" name="pieceIdentite" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                    <small class="text-muted">Document obligatoire (Max 1Mo)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="input-group-custom">
+                                    <label>Ancien acte de mariage (Optionnel) :</label>
+                                    <input type="file" id="extraitMariage" name="extraitMariage" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                </div>
+                            </div>
                         </div>
-                    </label>
-                </div>
-            </div>
 
-            <button type="submit" class="submit-btn" id="submitBtn">
-                <i class="fas fa-check-circle"></i> Soumettre la demande
-            </button>
-        </form>
+                        <div class="form-section-title mt-4">
+                            <i class="fas fa-truck"></i> Comment souhaitez-vous récupérer l'acte ?
+                        </div>
+                        <div class="delivery-grid">
+                            <label class="delivery-card">
+                                <input type="radio" name="choix_option" id="option1" value="Retrait sur place" checked>
+                                <div class="delivery-card-content">
+                                    <i class="fas fa-university"></i>
+                                    <span class="delivery-title">Retrait en Mairie</span>
+                                    <span class="delivery-price">Gratuit</span>
+                                </div>
+                            </label>
+                            <label class="delivery-card">
+                                <input type="radio" name="choix_option" id="option2" value="livraison">
+                                <div class="delivery-card-content">
+                                    <i class="fas fa-motorcycle"></i>
+                                    <span class="delivery-title">Livraison Express</span>
+                                    <span class="delivery-price">+ 1 500 FCFA</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="stepper-footer">
+                        <button type="button" class="btn-step btn-prev" onclick="prevStep(3)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" id="btnValider" class="btn-step btn-next" style="background: var(--success);">
+                            <i class="fas fa-check-circle"></i> Valider ma demande
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
         let formSubmitted = false;
-        let submitAfterPopup = false;
 
         document.getElementById('typeDemande').addEventListener('change', function () {
             const infoEpoux = document.getElementById('infoEpoux');
-            if (this.value === 'copieIntegrale') {
-                infoEpoux.classList.remove('hidden-section');
-            } else {
-                infoEpoux.classList.add('hidden-section');
+            infoEpoux.style.display = (this.value === 'copieIntegrale') ? 'block' : 'none';
+        });
+
+        function nextStep(step) {
+            if (validateStep(step)) {
+                document.getElementById('step-' + step).classList.remove('active');
+                document.getElementById('step-' + (step + 1)).classList.add('active');
+                
+                document.getElementById('step-item-' + step).classList.remove('active');
+                document.getElementById('step-item-' + step).classList.add('completed');
+                document.getElementById('step-item-' + (step + 1)).classList.add('active');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function prevStep(step) {
+            document.getElementById('step-' + step).classList.remove('active');
+            document.getElementById('step-' + (step - 1)).classList.add('active');
+            
+            document.getElementById('step-item-' + step).classList.remove('active');
+            document.getElementById('step-item-' + (step - 1)).classList.remove('completed');
+            document.getElementById('step-item-' + (step - 1)).classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function validateStep(step) {
+            let isValid = true;
+            const container = document.getElementById('step-' + step);
+            container.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            container.querySelectorAll('.error-message').forEach(el => el.remove());
+
+            if (step === 2) {
+                const commune = document.getElementById('commune_mariage');
+                if (!commune.value.trim()) {
+                    isValid = false;
+                    displayError(commune, "La commune de mariage est obligatoire.");
+                }
+
+                if (document.getElementById('typeDemande').value === 'copieIntegrale') {
+                    const nom = document.getElementById('nomEpoux');
+                    const prenom = document.getElementById('prenomEpoux');
+                    if (!nom.value.trim()) { isValid = false; displayError(nom, "Le nom du conjoint est obligatoire."); }
+                    if (!prenom.value.trim()) { isValid = false; displayError(prenom, "Le prénom du conjoint est obligatoire."); }
+                }
+            } else if (step === 3) {
+                const piece = document.getElementById('pieceIdentite');
+                if (piece.files.length === 0) {
+                    isValid = false;
+                    displayError(piece, "Veuillez téléverser votre pièce d'identité.");
+                }
+            }
+
+            return isValid;
+        }
+
+        function displayError(input, message) {
+            input.classList.add('is-invalid');
+            const err = document.createElement('div');
+            err.className = 'error-message';
+            err.innerText = message;
+            input.closest('.input-group-custom').appendChild(err);
+        }
+
+        document.getElementById('demandeForm').addEventListener('submit', function(e) {
+            if (formSubmitted) return;
+            e.preventDefault();
+
+            if (validateStep(3)) {
+                if (document.getElementById('option2').checked) {
+                    showLivraisonPopup();
+                } else {
+                    formSubmitted = true;
+                    this.submit();
+                }
             }
         });
 
@@ -480,7 +533,6 @@
             const montantTimbreUnitaire = 500; 
             const montantLivraison = 1500; 
             
-            // Calcul des timbres gratuits
             let freeTimbres = 0;
             let freeAmount = 0;
             const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
@@ -495,7 +547,6 @@
             const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
             const montantTotal = montantTimbreTotal + montantLivraison;
 
-            // Élément d'affichage pour les timbres gratuits
             let freeTimbresHtml = '';
             let originalTimbreHtml = '';
             
@@ -527,7 +578,6 @@
                 html: `
                     <div style="display: flex; flex-wrap: wrap; gap: 20px; text-align: left; max-height: 70vh; overflow-y: auto; padding: 10px;">
                         
-                        <!-- Formulaire (Partie gauche) -->
                         <div style="flex: 1 1 400px;">
                             <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍 Vos coordonnées</h4>
                             
@@ -585,7 +635,6 @@
                             </div>
                         </div>
 
-                        <!-- Résumé et Paiement (Partie droite) -->
                         <div style="flex: 1 1 250px; display: flex; flex-direction: column; gap: 15px;">
                             <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6;">
                                 <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #cce3f6; padding-bottom: 5px;">🧾 Résumé</h4>
@@ -607,231 +656,116 @@
                                 </div>
                             </div>
 
-                            <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                            </button>
-                            <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                            </button>
-                            <button type="button" id="btn-pay-mtn" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('mtn')">
-                                <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                            </button>
-                            <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
-                            </button>
-                        </div>
-                        <input type="hidden" id="swal-payment_method" value="wave">
-                        <div id="payment-phone-container" style="display: none; margin-top: 10px;">
-                            <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                            <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Ex: 05... (sans indicatif)" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                            <div>
+                                <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                    <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                    <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                    <button type="button" id="btn-pay-mtn" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('mtn')">
+                                        <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                    <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                        <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                </div>
+                                <input type="hidden" id="swal-payment_method" value="wave">
+                                <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
+                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
                 `,
-                icon: 'info',
                 showCancelButton: true,
-                confirmButtonText: `Payer`,
+                confirmButtonText: 'Payer & Valider',
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#1977cc',
-                focusConfirm: false,
                 preConfirm: () => {
-                    const nom_destinataire = document.getElementById('swal-nom_destinataire').value;
-                    const prenom_destinataire = document.getElementById('swal-prenom_destinataire').value;
-                    const email_destinataire = document.getElementById('swal-email_destinataire').value;
-                    const contact_destinataire = document.getElementById('swal-contact_destinataire').value;
-                    const adresse_livraison = document.getElementById('swal-adresse_livraison').value;
-                    const ville = document.getElementById('swal-ville').value;
-                    const commune_livraison = document.getElementById('swal-commune_livraison').value;
-                    const quartier = document.getElementById('swal-quartier').value;
-                    const date_livraison = document.getElementById('swal-date_livraison').value;
-                    const heure_livraison = document.getElementById('swal-heure_livraison').value;
-
-                    if (!nom_destinataire || !prenom_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !heure_livraison) {
-                        Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires, y compris la date et l'heure de livraison.");
-                        return false;
-                    }
-
-                    const selectedDate = new Date(date_livraison);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    if (selectedDate < today) {
-                        Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
-                        return false;
-                    }
-                    if (email_destinataire && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
-                        Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
-                        return false;
-                    }
-                    const cleanContact = contact_destinataire.replace(/\s+/g, '');
-                    if (!/^\d{8,15}$/.test(cleanContact)) {
-                        Swal.showValidationMessage("Veuillez entrer un numéro de téléphone de contact valide (8 à 15 chiffres).");
-                        return false;
-                    }
-                    
-                    const payment_number = document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
-                    const payment_method = document.getElementById('swal-payment_method').value;
-
-                    if (payment_method === 'mtn') {
-                        if (!/^\d{10}$/.test(payment_number)) {
-                            Swal.showValidationMessage('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
-                            return false;
-                        }
-                    }
-
-                    // Ouvrir la fenêtre de paiement de manière synchrone pour contourner le bloqueur
-                    window.PaymentPopup = window.open('', 'PaymentPopup');
-
-                    return {
-                        nom_destinataire, prenom_destinataire, email_destinataire, contact_destinataire, adresse_livraison, ville, commune_livraison, quartier,
-                        date_livraison, heure_livraison,
-                           montant_timbre_unitaire: montantTimbreUnitaire,
-                        montant_timbre: montantTimbreTotal,
-                        montant_livraison: montantLivraison,
-                        payment_method: payment_method,
-                        mtn_number: payment_number
+                    const d = {
+                        nom: document.getElementById('swal-nom_destinataire').value,
+                        prenom: document.getElementById('swal-prenom_destinataire').value,
+                        email: document.getElementById('swal-email_destinataire').value,
+                        contact: document.getElementById('swal-contact_destinataire').value,
+                        adresse: document.getElementById('swal-adresse_livraison').value,
+                        ville: document.getElementById('swal-ville').value,
+                        commune: document.getElementById('swal-commune_livraison').value,
+                        quartier: document.getElementById('swal-quartier').value,
+                        date: document.getElementById('swal-date_livraison').value,
+                        heure: document.getElementById('swal-heure_livraison').value,
+                        method: document.getElementById('swal-payment_method').value,
+                        number: document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value : ''
                     };
+                    
+                    if(!d.nom || !d.prenom || !d.contact || !d.adresse || !d.ville || !d.commune || !d.quartier || !d.date || !d.heure) {
+                        Swal.showValidationMessage('Veuillez remplir tous les champs obligatoires');
+                        return false;
+                    }
+                    window.PaymentPopup = window.open('', 'PaymentPopup');
+                    return d;
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const formData = result.value;
-
-                    // Ajouter les données de livraison au formulaire
+                    const d = result.value;
                     const form = document.getElementById('demandeForm');
-
-                    // Créer des champs cachés pour les données de livraison
-                    const hiddenFields = [
-                        { name: 'nom_destinataire', value: formData.nom_destinataire },
-                        { name: 'prenom_destinataire', value: formData.prenom_destinataire },
-                        { name: 'email_destinataire', value: formData.email_destinataire },
-                        { name: 'contact_destinataire', value: formData.contact_destinataire },
-                        { name: 'adresse_livraison', value: formData.adresse_livraison },
-                        { name: 'ville', value: formData.ville },
-                        { name: 'commune_livraison', value: formData.commune_livraison },
-                        { name: 'quartier', value: formData.quartier },
-                        { name: 'date_livraison', value: formData.date_livraison },
-                        { name: 'heure_livraison', value: formData.heure_livraison },
-                        { name: 'montant_timbre_unitaire', value: formData.montant_timbre_unitaire },
-                        { name: 'montant_timbre', value: formData.montant_timbre },
-                        { name: 'montant_livraison', value: formData.montant_livraison },
-                        { name: 'payment_method', value: formData.payment_method },
-                        { name: 'mtn_number', value: formData.mtn_number }
-                    ];
-
-                    hiddenFields.forEach(field => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = field.name;
-                        input.value = field.value;
+                    const fields = {
+                        'nom_destinataire': d.nom, 'prenom_destinataire': d.prenom,
+                        'email_destinataire': d.email, 'contact_destinataire': d.contact,
+                        'adresse_livraison': d.adresse, 'ville': d.ville,
+                        'commune_livraison': d.commune, 'quartier': d.quartier,
+                        'date_livraison': d.date, 'heure_livraison': d.heure,
+                        'payment_method': d.method, 'mtn_number': d.number || d.contact,
+                        'montant_livraison': montantLivraison, 'montant_timbre': montantTimbreTotal
+                    };
+                    for(let k in fields) {
+                        let input = document.createElement('input');
+                        input.type = 'hidden'; input.name = k; input.value = fields[k];
                         form.appendChild(input);
-                    });
-
-                    window.paymentSuccess = false;
-                    
-                    if (window.PaymentPopup) {
-                        form.target = 'PaymentPopup';
-                    } else {
-                        form.target = '_blank';
                     }
-                    
-                    if (formData.payment_method === 'wave') {
-                        Swal.fire({
-                            title: 'Paiement en cours',
-                            html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
-                            allowOutsideClick: false,
-                            showConfirmButton: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-
-                        const timer = setInterval(() => {
-                            if (window.PaymentPopup && window.PaymentPopup.closed) {
-                                clearInterval(timer);
-                                Swal.close();
-                                // Vérifier d'abord window.paymentSuccess (opener accessible)
-                                if (window.paymentSuccess) {
-                                    window.location.href = window.paymentSuccessUrl || "{{ route('user.extrait.mariage.index') }}";
-                                    return;
-                                }
-                                // Fallback : lire localStorage (cas où COOP a rompu window.opener)
-                                try {
-                                    var result = JSON.parse(localStorage.getItem('plateauPaymentResult') || '{}');
-                                    var age = Date.now() - (result.timestamp || 0);
-                                    if (result.status === 'success' && age < 120000) {
-                                        localStorage.removeItem('plateauPaymentResult');
-                                        window.location.href = result.listUrl || "{{ route('user.extrait.mariage.index') }}";
-                                        return;
-                                    }
-                                } catch (e) {}
-                                // Paiement annulé ou inconnu : recharger le formulaire
-                                window.location.reload();
-                            }
-                        }, 1000);
-                    } else {
-                        // Pour les autres paiements (MTN, etc.)
-                        Swal.fire({
-                            title: 'Redirection en cours',
-                            html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
-                            icon: 'info',
-                            confirmButtonText: 'Fermer',
-                            confirmButtonColor: '#1977cc',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = "{{ route('user.extrait.mariage.index') }}";
-                        });
-                    }
-
-                    // Soumettre le formulaire
+                    form.target = 'PaymentPopup';
                     formSubmitted = true;
                     form.submit();
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    
+                    Swal.fire({
+                        title: 'Paiement en cours',
+                        html: 'Suivez les instructions dans le nouvel onglet.',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+                    
+                    const check = setInterval(() => {
+                        if (window.PaymentPopup && window.PaymentPopup.closed) {
+                            clearInterval(check);
+                            location.href = "{{ route('user.extrait.mariage.index') }}";
+                        }
+                    }, 1000);
+                } else {
                     document.getElementById('option1').checked = true;
                 }
             });
         }
 
-        document.getElementById('demandeForm').addEventListener('submit', function (event) {
-            if (formSubmitted) return;
-            const livraison = document.getElementById('option2').checked;
-            if (livraison && !submitAfterPopup) {
-                event.preventDefault();
-                showLivraisonPopup();
-            } else {
-                formSubmitted = true;
-            }
-        });
-
-        // Fonction pour sélectionner la méthode de paiement
         function selectPaymentMethod(method) {
-            if (method !== 'wave' && method !== 'mtn') return;
-            
-            // Réinitialiser tous les boutons
+            document.getElementById('swal-payment_method').value = method;
             document.querySelectorAll('.payment-method-btn').forEach(btn => {
-                if(!btn.classList.contains('opacity-50')) { // Reset style only for non-disabled ones
-                    btn.style.border = '1px solid #edf2f7';
-                    btn.style.backgroundColor = 'white';
-                }
+                btn.style.border = '1px solid #edf2f7';
+                btn.style.backgroundColor = 'white';
             });
-            
-            // Appliquer le style actif au bouton sélectionné
             const activeBtn = document.getElementById('btn-pay-' + method);
             if (method === 'wave') {
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';
                 document.getElementById('payment-phone-container').style.display = 'none';
             } else if (method === 'mtn') {
-                activeBtn.style.border = '2px solid #fcb711'; // MTN Yellow
+                activeBtn.style.border = '2px solid #fcb711';
                 activeBtn.style.backgroundColor = '#fffbed';
                 document.getElementById('payment-phone-container').style.display = 'block';
                 document.getElementById('payment-phone-label').innerText = 'Numéro MTN Money';
             }
-            
-            // Mettre à jour la valeur du champ caché
-            document.getElementById('swal-payment_method').value = method;
         }
     </script>
-
 @endsection

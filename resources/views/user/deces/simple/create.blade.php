@@ -1,741 +1,596 @@
 @extends('user.layouts.template')
-@section('content')
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@section('content')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
             --primary: #1977cc;
-            --primary-soft: rgba(25, 119, 204, 0.1);
-            --secondary: #2c7873;
-            --accent: #ff7e5f;
+            --primary-light: #eef5fc;
             --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --bg-glass: rgba(255, 255, 255, 0.9);
-            --border-radius: 16px;
-            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --text-navy: #1a365d;
         }
 
-        .death-certificate-container {
-            background: var(--bg-glass);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(12px);
+        .form-page-container {
+            padding: 2rem 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .form-glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
             padding: 3rem;
-            width: 70%;
-            margin: 2rem auto;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            animation: slideUp 0.6s ease-out;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .death-certificate-title {
+        .form-header-box {
             text-align: center;
-            color: var(--primary);
-            margin-bottom: 2.5rem;
-            font-size: 2.2rem;
+            margin-bottom: 3rem;
+        }
+
+        .form-header-box h2 {
+            color: var(--text-navy);
             font-weight: 800;
-            letter-spacing: -0.5px;
+            font-size: 2.2rem;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
         }
 
-        .death-certificate-title::after {
-            content: '';
-            display: block;
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            margin: 12px auto 0;
-            border-radius: 2px;
+        .form-section {
+            margin-bottom: 2.5rem;
         }
 
-        .section-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid #edf2f7;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
+        .form-section-title {
             display: flex;
             align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 10px;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
+        .form-section-title i {
+            width: 35px;
+            height: 35px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-right: 12px;
         }
 
-        .form-group {
-            margin-bottom: 0;
+        .input-group-custom {
+            margin-bottom: 1.5rem;
         }
 
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        .form-label {
+        .input-group-custom label {
             display: block;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #4a5568;
+            color: var(--text-navy);
             font-size: 0.9rem;
         }
 
-        .form-control {
-            width: 100%;
-            border: 2px solid #eef2f7;
-            border-radius: 10px;
-            background-color: #fcfdfe;
-            transition: var(--transition);
-            font-size: 0.95rem;
-            color: #2d3748;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(25, 119, 204, 0.1);
-        }
-
-        .input-icon-wrapper {
+        .input-wrapper {
             position: relative;
         }
 
-        .input-icon-wrapper i {
+        .input-wrapper i {
             position: absolute;
-            left: 12px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: #a0aec0;
         }
 
-        .input-icon-wrapper .form-control {
-            padding-left: 40px;
-        }
-
-        /* Radio Cards */
-    /* Nouveau style pour les options de retrait cards premium */
-    .delivery-options-cards {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
-
-    .delivery-card {
-        position: relative;
-        cursor: pointer;
-    }
-
-    .delivery-card input {
-        position: absolute;
-        opacity: 0;
-    }
-
-    .delivery-label {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 1.5rem;
-        background: white;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        transition: all 0.2s;
-        height: 100%;
-        text-align: center;
-    }
-
-    .delivery-label .icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        color: #1977cc;
-    }
-
-    .delivery-name {
-        font-weight: 700;
-        font-size: 0.95rem;
-        margin-bottom: 0.25rem;
-        color: #2c3e50;
-    }
-
-    .delivery-info {
-        font-size: 0.8rem;
-        color: #718096;
-    }
-
-    .delivery-card input:checked + .delivery-label {
-        border-color: #1977cc;
-        background-color: #f0f7ff;
-        box-shadow: 0 0 0 1px #1977cc;
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        margin: 2rem 0 1rem;
-        border-bottom: 1px solid #edf2f7;
-        padding-bottom: 0.5rem;
-    }
-
-    .section-header i {
-        color: #1977cc;
-        margin-right: 0.75rem;
-    }
-
-    .section-header h3 {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #1977cc;
-        text-transform: uppercase;
-        margin: 0;
-    }
-
-        .radio-card i {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        .radio-card span {
-            font-weight: 700;
-            color: #2d3748;
-            font-size: 0.95rem;
-        }
-
-        .radio-card small {
-            color: #718096;
-            margin-top: 4px;
-        }
-
-        .submit-btn {
+        .form-control-custom {
             width: 100%;
-            padding: 1.2rem;
-            background: linear-gradient(135deg, var(--primary), #1565b8);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 2rem;
+            padding: 14px 20px 14px 50px;
+            border-radius: 15px;
+            border: 2px solid #f4f7fe;
+            background: #f4f7fe;
+            transition: 0.3s;
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--primary);
+            background: #fff;
+            outline: none;
+        }
+
+        /* Stepper */
+        .stepper-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stepper-container::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 120px;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            box-shadow: 0 4px 15px rgba(25, 119, 204, 0.3);
+            font-weight: 700;
+            margin-bottom: 10px;
+            transition: 0.4s;
+            color: #718096;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(25, 119, 204, 0.4);
+        .step-item.active .step-circle {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 0 0 5px var(--primary-light);
         }
 
-        .submit-btn i {
-            font-size: 1.2rem;
+        .step-item.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff;
         }
 
-        .error-message {
-            color: var(--danger);
+        .step-label {
             font-size: 0.8rem;
-            margin-top: 5px;
-            font-weight: 500;
+            font-weight: 700;
+            color: #718096;
+            text-align: center;
         }
 
-        /* Custom File Upload */
-        .file-upload-wrapper {
-            position: relative;
-            width: 100%;
+        .step-item.active .step-label { color: var(--primary); }
+
+        .form-step { display: none; }
+        .form-step.active { display: block; animation: slideIn 0.5s ease-out; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
-        .file-upload-label {
+        .stepper-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #f4f7fe;
+        }
+
+        .btn-step {
+            padding: 14px 30px;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: 0.3s;
+            border: none;
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 0.8rem 1rem;
-            background: #f8fafc;
-            border: 2px dashed #e2e8f0;
-            border-radius: 10px;
+        }
+
+        .btn-prev { background: #f4f7fe; color: #718096; }
+        .btn-prev:hover { background: #e2e8f0; }
+        .btn-next { background: var(--primary); color: #fff; }
+        .btn-next:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(25, 119, 204, 0.3); }
+
+        /* Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .option-card {
+            position: relative;
             cursor: pointer;
-            transition: var(--transition);
-            color: #64748b;
         }
 
-        .file-upload-label:hover {
+        .option-card input { position: absolute; opacity: 0; }
+
+        .option-card-content {
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 20px;
+            border: 2px solid #f4f7fe;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .option-card input:checked + .option-card-content {
             border-color: var(--primary);
-            background: var(--primary-soft);
-            color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-3px);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .death-certificate-container {
-                padding: 1.5rem;
-                margin: 1rem;
-            }
+        .option-card-content i { font-size: 1.5rem; color: var(--primary); margin-bottom: 0.5rem; }
+        .option-title { display: block; font-weight: 700; color: var(--text-navy); }
 
-            .form-grid,
-            .radio-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .death-certificate-title {
-                font-size: 1.8rem;
-            }
-        }
+        .is-invalid { border-color: #dc3545 !important; }
+        .error-message { color: #dc3545; font-size: 0.75rem; margin-top: 5px; font-weight: 600; }
     </style>
 
-    <div class="death-certificate-container">
-        <h1 class="death-certificate-title">Demande d'acte de décès</h1>
+    <div class="form-page-container">
+        <div class="form-glass-card">
+            <div class="form-header-box">
+                <h2>Demande d'acte de décès</h2>
+                <p class="text-muted">Commandez un acte de décès en quelques étapes simples.</p>
+            </div>
 
-        <form id="deathForm" method="POST" enctype="multipart/form-data"
-            action="{{route('user.extrait.deces.store')}}">
-            @csrf
-
-            <!-- Section: Informations du défunt -->
-            <div class="section-card">
-                <h3 class="section-title"><i class="fas fa-user-ghost"></i> Informations du défunt</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="type" class="form-label">Type de document</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-file-alt"></i>
-                            <select id="type" name="type" class="form-control">
-                                <option value="" disabled selected>Choisir le type de document</option>
-                                <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Copie simple</option>
-                                <option value="integral" {{ old('type') == 'integral' ? 'selected' : '' }}>Copie intégrale
-                                </option>
-                            </select>
-                        </div>
-                        @error('type') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="name" class="form-label">Nom et Prénoms du Défunt</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="name" name="name" class="form-control" value="{{old('name')}}"
-                                placeholder="Ex : Jean Philippe Kouassi">
-                        </div>
-                        @error('name') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="numberR" class="form-label">Numéro de Registre</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-file-invoice"></i>
-                            <input type="text" id="numberR" name="numberR" class="form-control" value="{{old('numberR')}}"
-                                placeholder="Ex : 1234/2024">
-                        </div>
-                        @error('numberR') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="dateR" class="form-label">Date de Registre</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-calendar-alt"></i>
-                            <input type="date" id="dateR" name="dateR" class="form-control" value="{{old('dateR')}}">
-                        </div>
-                        @error('dateR') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <!-- Informations Parentales -->
-                    <div class="form-group">
-                        <label for="nom_prenoms_pere" class="form-label">Nom et Prénoms du père</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere" class="form-control"
-                                value="{{old('nom_prenoms_pere')}}" placeholder="Nom et Prénoms du père">
-                        </div>
-                        @error('nom_prenoms_pere') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nom_prenoms_mere" class="form-label">Nom et Prénoms de la mère</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere" class="form-control"
-                                value="{{old('nom_prenoms_mere')}}" placeholder="Nom et Prénoms de la mère">
-                        </div>
-                        @error('nom_prenoms_mere') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group" style="display: none;">
-                        <label for="communeD" class="form-label">Commune d'enregistrement</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="communeD" name="communeD" class="form-control" value="Plateau" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="commune_deces" class="form-label">Commune de décès</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="commune_deces" name="commune_deces" class="form-control" value="{{ old('commune_deces') }}">
-                        </div>
-                        @error('commune_deces') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="quantite" class="form-label">Quantité d'exemplaires</label>
-                        <div class="input-icon-wrapper">
-                            <i class="fas fa-copy"></i>
-                            <input type="number" id="quantite" name="quantite" class="form-control"
-                                value="{{ old('quantite', 1) }}" min="1" max="10">
-                        </div>
-                        @error('quantite') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
+            <!-- Stepper -->
+            <div class="stepper-container">
+                <div class="step-item active" id="step-item-1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Détails défunt</div>
+                </div>
+                <div class="step-item" id="step-item-2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Documents</div>
+                </div>
+                <div class="step-item" id="step-item-3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Retrait</div>
                 </div>
             </div>
 
-            <!-- Section: Pièces jointes -->
-            <div class="section-card">
-                <h3 class="section-title"><i class="fas fa-paperclip"></i> Documents justificatifs</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="CNIdfnt" class="form-label">CNI ou Acte de naissance du défunt</label>
-                        <input type="file" name="CNIdfnt" id="CNIdfnt" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
-                        @error('CNIdfnt') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="CNIdcl" class="form-label">Certificat médical de décès</label>
-                        <input type="file" name="CNIdcl" id="CNIdcl" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
-                        @error('CNIdcl') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-            </div>
+            <form id="deathForm" method="POST" enctype="multipart/form-data" action="{{ route('user.extrait.deces.store') }}">
+                @csrf
 
-            <!-- Section: Mariage & Infos Spécifiques -->
-            <div class="section-card">
-                <div class="row">
-                    <div class="col-md-6 border-right">
-                        <h5 class="form-label mb-3"><i class="fas fa-ring me-2"></i>Le défunt était-il marié ?</h5>
-                        <div class="radio-grid" style="grid-template-columns: repeat(2, 1fr);">
-                            <div class="radio-card">
-                                <input type="radio" id="non" name="married" value="non" checked>
-                                <label for="non"><span>Non</span></label>
+                <!-- ÉTAPE 1: Informations du défunt -->
+                <div class="form-step active" id="step-1">
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-user-ghost"></i> Identité du défunt
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Type de document :</label>
+                                    <div class="input-wrapper">
+                                        <select id="type" name="type" class="form-control-custom">
+                                            <option value="simple">Copie simple</option>
+                                            <option value="integral">Copie intégrale</option>
+                                        </select>
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="radio-card">
-                                <input type="radio" id="oui" name="married" value="oui">
-                                <label for="oui"><span>Oui</span></label>
+                            <div class="col-md-6 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Nom et Prénoms du défunt :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="name" name="name" class="form-control-custom" placeholder="Nom complet">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div id="married-file-inputs-container" class="mt-3"></div>
-                    </div>
-                    <div class="col-md-6">
-                        <h5 class="form-label mb-3"><i class="fas fa-hospital-user me-2"></i>Décès hors centre de santé ?
-                        </h5>
-                        <div class="radio-grid" style="grid-template-columns: repeat(2, 1fr);">
-                            <div class="radio-card">
-                                <input type="radio" id="nonHorsS" name="DecesHorsS" value="non" checked>
-                                <label for="nonHorsS"><span>Non</span></label>
-                            </div>
-                            <div class="radio-card">
-                                <input type="radio" id="ouiHorsS" name="DecesHorsS" value="oui">
-                                <label for="ouiHorsS"><span>Oui</span></label>
-                            </div>
-                        </div>
-                        <div id="deces-file-inputs-container" class="mt-3"></div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Section: Mode de retrait -->
-            <div class="delivery-options" id="optionsSection">
-                <div class="section-header">
-                    <i class="fas fa-truck text-primary"></i>
-                    <h3 class="section-title">Mode de retrait</h3>
-                </div>
-                <div class="delivery-options-cards">
-                    <label class="delivery-card">
-                        <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
-                        <div class="delivery-label">
-                            <i class="fas fa-building icon"></i>
-                            <span class="delivery-name">Retrait sur place</span>
-                            <span class="delivery-info">À la mairie (Gratuit)</span>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Numéro de Registre :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="numberR" name="numberR" class="form-control-custom" placeholder="Ex: 1234/2024">
+                                        <i class="fas fa-file-invoice"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Date de Registre :</label>
+                                    <div class="input-wrapper">
+                                        <input type="date" id="dateR" name="dateR" class="form-control-custom">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Commune de décès :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="commune_deces" name="commune_deces" class="form-control-custom" placeholder="Ville/Commune">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </label>
-                    <label class="delivery-card">
-                        <input type="radio" id="option2" name="choix_option" value="livraison">
-                        <div class="delivery-label">
-                            <i class="fas fa-truck icon"></i>
-                            <span class="delivery-name">Livraison à domicile</span>
-                            <span class="delivery-info">Frais : 1500 FCFA</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
 
-            <button type="submit" class="submit-btn">
-                <i class="fas fa-check-circle"></i> Valider ma demande
-            </button>
-        </form>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Nom du Père :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere" class="form-control-custom" placeholder="Nom complet du père">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Nom de la Mère :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere" class="form-control-custom" placeholder="Nom complet de la mère">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Quantité :</label>
+                                    <div class="input-wrapper">
+                                        <input type="number" id="quantite" name="quantite" class="form-control-custom" value="1" min="1" max="10">
+                                        <i class="fas fa-copy"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stepper-footer">
+                        <div></div>
+                        <button type="button" class="btn-step btn-next" onclick="nextStep(1)">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ÉTAPE 2: Documents -->
+                <div class="form-step" id="step-2">
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-paperclip"></i> Justificatifs obligatoires
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="input-group-custom">
+                                    <label>CNI ou Acte de naissance du défunt :</label>
+                                    <input type="file" id="CNIdfnt" name="CNIdfnt" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="input-group-custom">
+                                    <label>Certificat médical de décès :</label>
+                                    <input type="file" id="CNIdcl" name="CNIdcl" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="form-section-title">
+                                    <i class="fas fa-ring"></i> État matrimonial
+                                </div>
+                                <div class="options-grid">
+                                    <label class="option-card">
+                                        <input type="radio" name="married" value="non" checked onclick="toggleMarriageDoc(false)">
+                                        <div class="option-card-content">
+                                            <span class="option-title">Célibataire</span>
+                                        </div>
+                                    </label>
+                                    <label class="option-card">
+                                        <input type="radio" name="married" value="oui" onclick="toggleMarriageDoc(true)">
+                                        <div class="option-card-content">
+                                            <span class="option-title">Marié(e)</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div id="marriageDocContainer" style="display: none; margin-top: 15px;">
+                                    <div class="input-group-custom">
+                                        <label>Acte de mariage du défunt :</label>
+                                        <input type="file" id="documentMariage" name="documentMariage" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-section-title">
+                                    <i class="fas fa-hospital-alt"></i> Lieu du décès
+                                </div>
+                                <div class="options-grid">
+                                    <label class="option-card">
+                                        <input type="radio" name="DecesHorsS" value="non" checked onclick="togglePoliceDoc(false)">
+                                        <div class="option-card-content">
+                                            <span class="option-title">En milieu médical</span>
+                                        </div>
+                                    </label>
+                                    <label class="option-card">
+                                        <input type="radio" name="DecesHorsS" value="oui" onclick="togglePoliceDoc(true)">
+                                        <div class="option-card-content">
+                                            <span class="option-title">Hors milieu médical</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div id="policeDocContainer" style="display: none; margin-top: 15px;">
+                                    <div class="input-group-custom">
+                                        <label>Réquisition de la police :</label>
+                                        <input type="file" id="RequisPolice" name="RequisPolice" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stepper-footer">
+                        <button type="button" class="btn-step btn-prev" onclick="prevStep(2)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn-step btn-next" onclick="nextStep(2)">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ÉTAPE 3: Retrait -->
+                <div class="form-step" id="step-3">
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-truck"></i> Mode de retrait
+                        </div>
+                        <div class="options-grid">
+                            <label class="option-card">
+                                <input type="radio" name="choix_option" id="option1" value="Retrait sur place" checked>
+                                <div class="option-card-content">
+                                    <i class="fas fa-university"></i>
+                                    <span class="option-title">Mairie</span>
+                                    <small class="text-muted">Gratuit</small>
+                                </div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="choix_option" id="option2" value="livraison">
+                                <div class="option-card-content">
+                                    <i class="fas fa-motorcycle"></i>
+                                    <span class="option-title">Livraison</span>
+                                    <small class="text-muted">+ 1 500 FCFA</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="stepper-footer">
+                        <button type="button" class="btn-step btn-prev" onclick="prevStep(3)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" id="btnValider" class="btn-step btn-next" style="background: var(--success);">
+                            <i class="fas fa-check-circle"></i> Confirmer la demande
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let formSubmitted = false;
-        let submitAfterPopup = false;
 
-        // Function to display client-side validation errors
-        function displayClientError(inputElement, message) {
-            // Remove existing error messages for this input
-            $(inputElement).removeClass('is-invalid').next('.error-message').remove();
-            $(inputElement).css('animation', 'none'); // Remove previous animation
+        function toggleMarriageDoc(show) {
+            document.getElementById('marriageDocContainer').style.display = show ? 'block' : 'none';
+        }
 
-            if (message) {
-                $(inputElement).addClass('is-invalid'); // Add class for visual styling if needed
-                $(inputElement).css('animation', 'pulse 1.5s infinite'); // Apply animation
-                const errorSpan = `<span class="error-message">${message}</span>`;
-                $(inputElement).after(errorSpan);
+        function togglePoliceDoc(show) {
+            document.getElementById('policeDocContainer').style.display = show ? 'block' : 'none';
+        }
+
+        function nextStep(step) {
+            if (validateStep(step)) {
+                document.getElementById('step-' + step).classList.remove('active');
+                document.getElementById('step-' + (step + 1)).classList.add('active');
+                
+                document.getElementById('step-item-' + step).classList.remove('active');
+                document.getElementById('step-item-' + step).classList.add('completed');
+                document.getElementById('step-item-' + (step + 1)).classList.add('active');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
-        // Client-side validation function
-        function validateFormClient() {
+        function prevStep(step) {
+            document.getElementById('step-' + step).classList.remove('active');
+            document.getElementById('step-' + (step - 1)).classList.add('active');
+            
+            document.getElementById('step-item-' + step).classList.remove('active');
+            document.getElementById('step-item-' + (step - 1)).classList.remove('completed');
+            document.getElementById('step-item-' + (step - 1)).classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function validateStep(step) {
             let isValid = true;
-            const form = $("#deathForm");
+            const container = document.getElementById('step-' + step);
+            container.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            container.querySelectorAll('.error-message').forEach(el => el.remove());
 
-            // Clear all previous error messages and styles
-            form.find('.error-message').remove();
-            form.find('.form-control').removeClass('is-invalid').css('animation', 'none');
-
-            // Fields to validate based on your Laravel validation rules
-            const fieldsToValidate = [
-                { id: 'type', message: 'Le type de document est obligatoire.' },
-                { id: 'name', message: 'Le nom du défunt est obligatoire.' },
-                { id: 'commune_deces', message: 'La commune de décès est obligatoire.' },
-                { id: 'quantite', message: 'La quantité est obligatoire.' },
-                { id: 'CNIdfnt', message: 'La CNI/extrait de naissance du défunt(e) est obligatoire.' },
-                { id: 'CNIdcl', message: 'Le certificat médical de décès est obligatoire.' }
-            ];
-
-            // Validation conditionnelle : Registre OU Parents
-            const numberR = document.getElementById('numberR').value.trim();
-
-            const dateR = document.getElementById('dateR').value.trim();
-            const nomPrenomsPere = document.getElementById('nom_prenoms_pere').value.trim();
-            const nomPrenomsMere = document.getElementById('nom_prenoms_mere').value.trim();
-
-            const hasRegistryInfo = numberR && dateR;
-            const hasParentInfo = nomPrenomsPere && nomPrenomsMere;
-
-            if (!hasRegistryInfo && !hasParentInfo) {
-                isValid = false;
-                displayClientError(document.getElementById('numberR'), "Veuillez fournir soit les infos de registre (Numéro Et Date), soit les infos complètes des parents.");
-                if (document.getElementById('nom_prenoms_pere')) displayClientError(document.getElementById('nom_prenoms_pere'), "Veuillez fournir soit les infos de registre, soit les infos complètes des parents.");
-            }
-
-            fieldsToValidate.forEach(fieldInfo => {
-                const inputElement = document.getElementById(fieldInfo.id);
-                if (!inputElement) return; // Skip if element not found
-                if (fieldInfo.id === 'quantite') {
-                    const quantite = parseInt(inputElement.value);
-                    if (!quantite || quantite < 1 || quantite > 10) {
-                        isValid = false;
-                        displayClientError(inputElement, 'La quantité doit être entre 1 et 10.');
-                    }
-                }
-                else if (inputElement.type === 'file') {
-                    if (inputElement.files.length === 0) {
-                        isValid = false;
-                        displayClientError(inputElement, fieldInfo.message);
-                    } else {
-                        const file = inputElement.files[0];
-                        const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
-                        const maxSize = 1000 * 1024; // 1 MB
-
-                        if (!allowedTypes.includes(file.type)) {
-                            isValid = false;
-                            displayClientError(inputElement, `Le format du fichier "${file.name}" doit être PNG, JPG, JPEG ou PDF.`);
-                        } else if (file.size > maxSize) {
-                            isValid = false;
-                            displayClientError(inputElement, `Le fichier "${file.name}" ne doit pas dépasser 1Mo.`);
-                        }
-                    }
-                } else if (!inputElement.value.trim()) {
+            if (step === 1) {
+                const required = ['name', 'commune_deces'];
+                required.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el.value.trim()) { isValid = false; displayError(el, "Ce champ est obligatoire."); }
+                });
+                
+                // Registre ou Parents
+                const numR = document.getElementById('numberR').value.trim();
+                const dateR = document.getElementById('dateR').value.trim();
+                const p1 = document.getElementById('nom_prenoms_pere').value.trim();
+                const p2 = document.getElementById('nom_prenoms_mere').value.trim();
+                
+                if (! ( (numR && dateR) || (p1 && p2) ) ) {
                     isValid = false;
-                    displayClientError(inputElement, fieldInfo.message);
+                    displayError(document.getElementById('numberR'), "Fournir soit le registre (num+date), soit les parents.");
                 }
-            });
+            } else if (step === 2) {
+                const files = ['CNIdfnt', 'CNIdcl'];
+                files.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el.files.length === 0) { isValid = false; displayError(el, "Fichier obligatoire."); }
+                });
 
-            // Conditional validation for 'married' field
-            const marriedRadio = $('input[name="married"]:checked').val();
-            if (marriedRadio === 'oui') {
-                const documentMariageInput = document.getElementById('documentMariage');
-                if (documentMariageInput) { // Ensure the field exists if 'oui' is selected
-                    if (documentMariageInput.files.length === 0) {
-                        isValid = false;
-                        displayClientError(documentMariageInput, 'Le document de mariage est obligatoire.');
-                    } else {
-                        const file = documentMariageInput.files[0];
-                        const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
-                        const maxSize = 1000 * 1024; // 1 MB
-                        if (!allowedTypes.includes(file.type)) {
-                            isValid = false;
-                            displayClientError(documentMariageInput, `Le format du fichier "${file.name}" doit être PNG, JPG, JPEG ou PDF.`);
-                        } else if (file.size > maxSize) {
-                            isValid = false;
-                            displayClientError(documentMariageInput, `Le fichier "${file.name}" ne doit pas dépasser 1Mo.`);
-                        }
-                    }
-                } else {
-                    isValid = false; // If 'oui' is selected but input not rendered, it's an error
-                    // This case should ideally not happen if toggleMarriedFields works correctly
-                    console.error("documentMariage input not found when 'married' is 'oui'.");
+                if (document.querySelector('input[name="married"]:checked').value === 'oui') {
+                    const el = document.getElementById('documentMariage');
+                    if (el.files.length === 0) { isValid = false; displayError(el, "Acte de mariage obligatoire."); }
                 }
-            }
-
-            // Conditional validation for 'DecesHorsS' field
-            const decesHorsSRadio = $('input[name="DecesHorsS"]:checked').val();
-            if (decesHorsSRadio === 'oui') {
-                const requisPoliceInput = document.getElementById('RequisPolice');
-                if (requisPoliceInput) { // Ensure the field exists if 'oui' is selected
-                    if (requisPoliceInput.files.length === 0) {
-                        isValid = false;
-                        displayClientError(requisPoliceInput, 'La réquisition de la police est obligatoire.');
-                    } else {
-                        const file = requisPoliceInput.files[0];
-                        const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
-                        const maxSize = 1000 * 1024; // 1 MB
-                        if (!allowedTypes.includes(file.type)) {
-                            isValid = false;
-                            displayClientError(requisPoliceInput, `Le format du fichier "${file.name}" doit être PNG, JPG, JPEG ou PDF.`);
-                        } else if (file.size > maxSize) {
-                            isValid = false;
-                            displayClientError(requisPoliceInput, `Le fichier "${file.name}" ne doit pas dépasser 1Mo.`);
-                        }
-                    }
-                } else {
-                    isValid = false; // If 'oui' is selected but input not rendered, it's an error
-                    console.error("RequisPolice input not found when 'DecesHorsS' is 'oui'.");
+                if (document.querySelector('input[name="DecesHorsS"]:checked').value === 'oui') {
+                    const el = document.getElementById('RequisPolice');
+                    if (el.files.length === 0) { isValid = false; displayError(el, "Réquisition obligatoire."); }
                 }
             }
 
             return isValid;
         }
 
+        function displayError(input, message) {
+            input.classList.add('is-invalid');
+            const err = document.createElement('div');
+            err.className = 'error-message';
+            err.innerText = message;
+            input.closest('.input-group-custom').appendChild(err);
+        }
 
-        $(document).ready(function () {
-            // Section de retrait visible par défaut
-            $("#optionsSection").show();
+        document.getElementById('deathForm').addEventListener('submit', function(e) {
+            if (formSubmitted) return;
+            e.preventDefault();
 
-            // ==============================
-            // MARIAGE
-            // ==============================
-            const marriedFileInputsContainer = $("#married-file-inputs-container");
-            // Added `required` attribute here
-            const marriageFields = `
-                                            <div class="form-group">
-                                                <label for="documentMariage" class="form-label">Photocopie de document de mariage pour le défunt(e)</label>
-                                                <input type="file" id="documentMariage" name="documentMariage" class="form-control" required>
-                                            </div>
-                                        `;
-
-            function toggleMarriedFields() {
-                if ($('input[name="married"]:checked').val() === 'oui') {
-                    marriedFileInputsContainer.html(marriageFields);
+            if (validateStep(3)) {
+                if (document.getElementById('option2').checked) {
+                    showLivraisonPopup();
                 } else {
-                    marriedFileInputsContainer.empty();
-                }
-            }
-
-            $(document).on('change', 'input[name="married"]', toggleMarriedFields);
-            toggleMarriedFields(); // Vérifie au chargement
-
-            // ==============================
-            // DÉCÈS HORS CENTRE
-            // ==============================
-            const decesFileInputsContainer = $("#deces-file-inputs-container");
-            // Added `required` attribute here
-            const decesFields = `
-                                            <div class="form-group">
-                                                <label for="RequisPolice" class="form-label">Photocopie de la réquisition de la police</label>
-                                                <input type="file" id="RequisPolice" name="RequisPolice" class="form-control" required>
-                                            </div>
-                                        `;
-
-            function toggleDecesFields() {
-                if ($('input[name="DecesHorsS"]:checked').val() === 'oui') {
-                    decesFileInputsContainer.html(decesFields);
-                } else {
-                    decesFileInputsContainer.empty();
-                }
-            }
-
-            $(document).on('change', 'input[name="DecesHorsS"]', toggleDecesFields);
-            toggleDecesFields(); // Vérifie au chargement
-
-            // ==============================
-            // SOUMISSION FORMULAIRE
-            // ==============================
-            $("#deathForm").submit(function (event) {
-                if (formSubmitted) {
-                    event.preventDefault();
-                    return;
-                }
-
-                const livraisonCheckbox = $("#option2");
-                if (livraisonCheckbox.is(":checked") && !submitAfterPopup) {
-                    event.preventDefault(); // Prevent default submission initially
-
-                    if (validateFormClient()) { // Perform client-side validation
-                        showLivraisonPopup(); // If valid, show payment popup
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erreur de Validation',
-                            text: 'Veuillez corriger les erreurs dans le formulaire avant de continuer.',
-                            confirmButtonColor: '#e74c3c'
-                        });
-                    }
-                } else {
-                    // If "Retrait sur place" or form is being submitted after successful payment
                     formSubmitted = true;
-                    // Form will naturally submit if preventDefault was not called,
-                    // or will be explicitly submitted by initializeCinetPay
+                    this.submit();
                 }
-            });
+            }
         });
 
-        // ==============================
-        // POPUP LIVRAISON
-        // ==============================
         function showLivraisonPopup() {
             const quantite = parseInt(document.getElementById('quantite').value) || 1;
             const montantTimbreUnitaire = 500; 
             const montantLivraison = 1500; 
             
-            // Calcul des timbres gratuits
             let freeTimbres = 0;
             let freeAmount = 0;
             const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
@@ -750,7 +605,6 @@
             const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
             const montantTotal = montantTimbreTotal + montantLivraison;
 
-            // Élément d'affichage pour les timbres gratuits
             let freeTimbresHtml = '';
             let originalTimbreHtml = '';
             
@@ -782,7 +636,6 @@
                 html: `
                     <div style="display: flex; flex-wrap: wrap; gap: 20px; text-align: left; max-height: 70vh; overflow-y: auto; padding: 10px;">
                         
-                        <!-- Formulaire (Partie gauche) -->
                         <div style="flex: 1 1 400px;">
                             <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍 Vos coordonnées</h4>
                             
@@ -840,7 +693,6 @@
                             </div>
                         </div>
 
-                        <!-- Résumé et Paiement (Partie droite) -->
                         <div style="flex: 1 1 250px; display: flex; flex-direction: column; gap: 15px;">
                             <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6;">
                                 <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #cce3f6; padding-bottom: 5px;">🧾 Résumé</h4>
@@ -881,191 +733,97 @@
                                 <input type="hidden" id="swal-payment_method" value="wave">
                                 <div id="payment-phone-container" style="display: none; margin-top: 10px;">
                                     <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Ex: 05... (sans indicatif)" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 `,
-                icon: 'info',
                 showCancelButton: true,
-                confirmButtonText: `Payer`,
+                confirmButtonText: 'Payer & Valider',
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#1977cc',
-                focusConfirm: false,
                 preConfirm: () => {
-                    const nom_destinataire = document.getElementById('swal-nom_destinataire').value;
-                    const prenom_destinataire = document.getElementById('swal-prenom_destinataire').value;
-                    const email_destinataire = document.getElementById('swal-email_destinataire').value;
-                    const contact_destinataire = document.getElementById('swal-contact_destinataire').value;
-                    const adresse_livraison = document.getElementById('swal-adresse_livraison').value;
-                    const ville = document.getElementById('swal-ville').value;
-                    const commune_livraison = document.getElementById('swal-commune_livraison').value;
-                    const quartier = document.getElementById('swal-quartier').value;
-                    const date_livraison = document.getElementById('swal-date_livraison').value;
-                    const heure_livraison = document.getElementById('swal-heure_livraison').value;
-
-                    if (!nom_destinataire || !prenom_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !heure_livraison) {
-                        Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires, y compris la date et l'heure de livraison.");
-                        return false;
-                    }
-
-                    const selectedDate = new Date(date_livraison);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    if (selectedDate < today) {
-                        Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
-                        return false;
-                    }
-                    if (email_destinataire && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
-                        Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
-                        return false;
-                    }
-                    const cleanContact = contact_destinataire.replace(/\s+/g, '');
-                    if (!/^\d{8,15}$/.test(cleanContact)) {
-                        Swal.showValidationMessage("Veuillez entrer un numéro de téléphone de contact valide (8 à 15 chiffres).");
-                        return false;
-                    }
-
-                    const mtn_number = document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
-                    const payment_method = document.getElementById('swal-payment_method').value;
-
-                    if (payment_method === 'mtn') {
-                        if (!/^\d{10}$/.test(mtn_number)) {
-                            Swal.showValidationMessage('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
-                            return false;
-                        }
-                    }
-
-                    // Ouvrir la fenêtre de paiement de manière synchrone pour contourner le bloqueur
-                    window.PaymentPopup = window.open('', 'PaymentPopup');
-
-                    return {
-                        nom_destinataire, prenom_destinataire, email_destinataire, contact_destinataire, adresse_livraison, ville, commune_livraison, quartier,
-                        date_livraison, heure_livraison,
-                        quantite, montantTimbreTotal, montantLivraison, payment_method, mtn_number
+                    const d = {
+                        nom: document.getElementById('swal-nom_destinataire').value,
+                        prenom: document.getElementById('swal-prenom_destinataire').value,
+                        email: document.getElementById('swal-email_destinataire').value,
+                        contact: document.getElementById('swal-contact_destinataire').value,
+                        adresse: document.getElementById('swal-adresse_livraison').value,
+                        ville: document.getElementById('swal-ville').value,
+                        commune: document.getElementById('swal-commune_livraison').value,
+                        quartier: document.getElementById('swal-quartier').value,
+                        date: document.getElementById('swal-date_livraison').value,
+                        heure: document.getElementById('swal-heure_livraison').value,
+                        method: document.getElementById('swal-payment_method').value,
+                        number: document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value : ''
                     };
+                    
+                    if(!d.nom || !d.prenom || !d.contact || !d.adresse || !d.ville || !d.commune || !d.quartier || !d.date || !d.heure) {
+                        Swal.showValidationMessage('Veuillez remplir tous les champs obligatoires');
+                        return false;
+                    }
+                    window.PaymentPopup = window.open('', 'PaymentPopup');
+                    return d;
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const formData = result.value;
+                    const d = result.value;
                     const form = document.getElementById('deathForm');
-                    const hiddenFields = [
-                        { name: 'nom_destinataire', value: formData.nom_destinataire },
-                        { name: 'prenom_destinataire', value: formData.prenom_destinataire },
-                        { name: 'email_destinataire', value: formData.email_destinataire },
-                        { name: 'contact_destinataire', value: formData.contact_destinataire },
-                        { name: 'adresse_livraison', value: formData.adresse_livraison },
-                        { name: 'ville', value: formData.ville },
-                        { name: 'commune_livraison', value: formData.commune_livraison },
-                        { name: 'quartier', value: formData.quartier },
-                        { name: 'date_livraison', value: formData.date_livraison },
-                        { name: 'heure_livraison', value: formData.heure_livraison },
-                        { name: 'montant_timbre_unitaire', value: 500 },
-                        { name: 'montant_timbre', value: formData.montantTimbreTotal },
-                        { name: 'montant_livraison', value: formData.montantLivraison },
-                        { name: 'payment_method', value: formData.payment_method },
-                        { name: 'mtn_number', value: formData.mtn_number }
-                    ];
-
-                    hiddenFields.forEach(field => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden'; input.name = field.name; input.value = field.value;
+                    const fields = {
+                        'nom_destinataire': d.nom, 'prenom_destinataire': d.prenom,
+                        'email_destinataire': d.email, 'contact_destinataire': d.contact,
+                        'adresse_livraison': d.adresse, 'ville': d.ville,
+                        'commune_livraison': d.commune, 'quartier': d.quartier,
+                        'date_livraison': d.date, 'heure_livraison': d.heure,
+                        'payment_method': d.method, 'mtn_number': d.number || d.contact,
+                        'montant_livraison': montantLivraison, 'montant_timbre': montantTimbreTotal
+                    };
+                    for(let k in fields) {
+                        let input = document.createElement('input');
+                        input.type = 'hidden'; input.name = k; input.value = fields[k];
                         form.appendChild(input);
-                    });
-
-                    window.paymentSuccess = false;
-
-                    if (window.PaymentPopup) {
-                        form.target = 'PaymentPopup';
-                    } else {
-                        form.target = '_blank';
                     }
-
-                    if (formData.payment_method === 'wave') {
-                        Swal.fire({
-                            title: 'Paiement en cours',
-                            html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
-                            allowOutsideClick: false,
-                            showConfirmButton: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-
-                        const timer = setInterval(() => {
-                            if (window.PaymentPopup && window.PaymentPopup.closed) {
-                                clearInterval(timer);
-                                Swal.close();
-                                // Vérifier d'abord window.paymentSuccess (opener accessible)
-                                if (window.paymentSuccess) {
-                                    window.location.href = window.paymentSuccessUrl || "{{ route('user.extrait.deces.index') }}";
-                                    return;
-                                }
-                                // Fallback : lire localStorage (cas où COOP a rompu window.opener)
-                                try {
-                                    var result = JSON.parse(localStorage.getItem('plateauPaymentResult') || '{}');
-                                    var age = Date.now() - (result.timestamp || 0);
-                                    if (result.status === 'success' && age < 120000) {
-                                        localStorage.removeItem('plateauPaymentResult');
-                                        window.location.href = result.listUrl || "{{ route('user.extrait.deces.index') }}";
-                                        return;
-                                    }
-                                } catch (e) {}
-                                // Paiement annulé ou inconnu : recharger le formulaire
-                                window.location.reload();
-                            }
-                        }, 1000);
-                    } else {
-                        // Pour les autres paiements (MTN, etc.)
-                        Swal.fire({
-                            title: 'Redirection en cours',
-                            html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
-                            icon: 'info',
-                            confirmButtonText: 'Fermer',
-                            confirmButtonColor: '#1977cc',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = "{{ route('user.extrait.deces.index') }}";
-                        });
-                    }
-
+                    form.target = 'PaymentPopup';
                     formSubmitted = true;
                     form.submit();
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    
+                    Swal.fire({
+                        title: 'Paiement en cours',
+                        html: 'Suivez les instructions dans le nouvel onglet.',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+                    
+                    const check = setInterval(() => {
+                        if (window.PaymentPopup && window.PaymentPopup.closed) {
+                            clearInterval(check);
+                            location.href = "{{ route('user.extrait.deces.index') }}";
+                        }
+                    }, 1000);
+                } else {
                     document.getElementById('option1').checked = true;
                 }
             });
         }
-        
-        // Fonction pour sélectionner la méthode de paiement
+
         function selectPaymentMethod(method) {
-            if (method !== 'wave' && method !== 'mtn') return;
-            
-            // Réinitialiser tous les boutons
+            document.getElementById('swal-payment_method').value = method;
             document.querySelectorAll('.payment-method-btn').forEach(btn => {
-                if(!btn.classList.contains('opacity-50')) { // Reset style only for non-disabled ones
-                    btn.style.border = '1px solid #edf2f7';
-                    btn.style.backgroundColor = 'white';
-                }
+                btn.style.border = '1px solid #edf2f7';
+                btn.style.backgroundColor = 'white';
             });
-            
-            // Appliquer le style actif au bouton sélectionné
             const activeBtn = document.getElementById('btn-pay-' + method);
             if (method === 'wave') {
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';
                 document.getElementById('payment-phone-container').style.display = 'none';
             } else if (method === 'mtn') {
-                activeBtn.style.border = '2px solid #fcb711'; // MTN Yellow
+                activeBtn.style.border = '2px solid #fcb711';
                 activeBtn.style.backgroundColor = '#fffbed';
                 document.getElementById('payment-phone-container').style.display = 'block';
                 document.getElementById('payment-phone-label').innerText = 'Numéro MTN Money';
             }
-            
-            // Mettre à jour la valeur du champ caché
-            document.getElementById('swal-payment_method').value = method;
         }
     </script>
 @endsection
