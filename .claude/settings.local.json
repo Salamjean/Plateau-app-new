@@ -8,7 +8,8 @@
       "Bash(php -r \"echo php_ini_loaded_file\\(\\);\")",
       "Bash(php -r \"echo ini_get\\('upload_max_filesize'\\);\")",
       "Bash(php -r \"echo ini_get\\('post_max_size'\\);\")",
-      "Bash(Get-Content \"C:\\\\Users\\\\THEWAYNE\\\\Plateau-app-new\\\\storage\\\\logs\\\\laravel.log\" -Tail 80)"
+      "Bash(Get-Content \"C:\\\\Users\\\\THEWAYNE\\\\Plateau-app-new\\\\storage\\\\logs\\\\laravel.log\" -Tail 80)",
+      "Bash(php -r ' *)"
     ]
   }
 }

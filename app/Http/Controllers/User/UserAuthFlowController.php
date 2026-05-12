@@ -117,6 +117,86 @@ class UserAuthFlowController extends Controller
     }
 
     /**
+     * Gère la connexion/inscription via Apple (Firebase ID Token).
+     */
+    public function handleAppleAuth(Request $request)
+    {
+        $request->validate([
+            'id_token' => 'required|string',
+        ]);
+
+        try {
+            $verifier = IdTokenVerifier::createWithProjectId(config('firebase.projects.app.project_id', 'plateau-apps-user'));
+            $token    = $verifier->verifyIdToken($request->id_token);
+            $payload  = $token->payload();
+
+            // Apple identities are nested under the 'firebase' claim
+            $appleId = $payload['firebase']['identities']['apple.com'][0] ?? null;
+            $email   = $payload['email'] ?? null;
+
+            if (!$appleId) {
+                return response()->json(['success' => false, 'message' => 'Identifiant Apple introuvable dans le jeton.'], 401);
+            }
+
+            $user = User::where('apple_id', $appleId)
+                        ->when($email, fn($q) => $q->orWhere('email', $email))
+                        ->first();
+
+            if ($user) {
+                if (empty($user->apple_id)) {
+                    $user->apple_id = $appleId;
+                    $user->save();
+                }
+
+                Auth::login($user);
+
+                if (empty($user->contact) || empty($user->prenom)) {
+                    return response()->json([
+                        'success'  => true,
+                        'redirect' => route('user.auth.profile.complete'),
+                        'message'  => 'Veuillez finaliser votre profil.'
+                    ]);
+                }
+
+                return response()->json([
+                    'success'  => true,
+                    'redirect' => route('user.dashboard'),
+                    'message'  => 'Connexion Apple réussie.'
+                ]);
+            }
+
+            // Nouvelle inscription
+            $user = User::create([
+                'name'     => $email ? explode('@', $email)[0] : 'Utilisateur',
+                'prenom'   => '',
+                'email'    => $email,
+                'apple_id' => $appleId,
+                'commune'  => 'plateau',
+                'password' => Hash::make(Str::random(24)),
+            ]);
+
+            Auth::login($user);
+
+            return response()->json([
+                'success'  => true,
+                'redirect' => route('user.auth.profile.complete'),
+                'message'  => 'Compte Apple créé. Veuillez finaliser votre profil.'
+            ]);
+
+        } catch (IdTokenVerificationFailed $e) {
+            Log::warning('Apple Auth Web - Jeton invalide: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Jeton Apple invalide ou expiré.'], 401);
+        } catch (\Exception $e) {
+            Log::error('Apple Auth Web Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur lors de l\'authentification Apple.',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    /**
      * Envoie un code OTP par SMS.
      */
     public function sendOtp(Request $request)
@@ -257,7 +337,8 @@ class UserAuthFlowController extends Controller
         ];
 
         // Le mot de passe n'est requis que pour les utilisateurs non-Google (inscription par téléphone)
-        if (empty($user->google_id)) {
+        $isSocialUser = !empty($user->google_id) || !empty($user->apple_id);
+        if (!$isSocialUser) {
             $rules['password'] = 'required|string|min:8|confirmed';
             $rules['email'] = 'nullable|email|unique:users,email,' . $user->id;
         }
@@ -275,13 +356,12 @@ class UserAuthFlowController extends Controller
                 'adresse_etrangere' => $request->adresse_etrangere,
             ];
 
-            // Définir le mot de passe uniquement pour les utilisateurs non-Google
-            if (empty($user->google_id) && $request->password) {
+            $isSocialUser = !empty($user->google_id) || !empty($user->apple_id);
+            if (!$isSocialUser && $request->password) {
                 $data['password'] = Hash::make($request->password);
             }
 
-            // Permettre la modification de l'email uniquement pour les utilisateurs non-Google
-            if (empty($user->google_id)) {
+            if (!$isSocialUser) {
                 $data['email'] = $request->email;
             }
 

@@ -65,6 +65,12 @@ class RegisterController extends Controller
                     'push_notification' => $request->push_notification,
                     // Pas de mot de passe encore
                 ]);
+            } else {
+                // User existant : mettre à jour le push token s'il est fourni
+                if ($request->filled('push_notification') && $user->push_notification !== $request->push_notification) {
+                    $user->push_notification = $request->push_notification;
+                    $user->save();
+                }
             }
 
             if ($isPhoneVerified) {

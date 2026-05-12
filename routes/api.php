@@ -36,6 +36,7 @@ Route::prefix('utilisateurs')->group(function () {
     Route::post('/verify-otp', [\App\Http\Controllers\Api\Authenticate\OtpController::class, 'verifyOtp']);
     Route::post('/register-minimal', [\App\Http\Controllers\Api\Authenticate\RegisterController::class, 'registerMinimal']);
     Route::post('/google', [\App\Http\Controllers\Api\Authenticate\GoogleAuthController::class, 'handleGoogleAuth']);
+    Route::post('/apple', [\App\Http\Controllers\Api\Authenticate\AppleAuthController::class, 'handleAppleAuth']);
 });
 
 // LIVREURS - Routes publiques
@@ -73,6 +74,7 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
         Route::post('/toggle-push-notification', [UserLoginController::class, 'togglePushnotification']);
         Route::post('/finalize-profile/google', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfileGoogle']);
         Route::post('/finalize-profile/phone', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfilePhone']);
+        Route::post('/finalize-profile/apple', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfileApple']);
 
         Route::get('/user', function (Request $request) {
             return $request->user();
@@ -136,6 +138,8 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::delete('/photo', [UserProfilController::class, 'deleteProfilePicture']);
             Route::put('/informations', [UserProfilController::class, 'updateInformations']);
             Route::put('/password', [UserProfilController::class, 'updatePassword']);
+            Route::post('/request-phone-otp', [UserProfilController::class, 'requestPhoneOtp']);
+            Route::put('/update-phone', [UserProfilController::class, 'updatePhone']);
         });
         // --- NOUVELLES ROUTES POUR LES RENDEZ-VOUS ---
         Route::prefix('demandes/rendezvous')->group(function () {

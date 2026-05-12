@@ -126,8 +126,9 @@ class LivreurAuthenticateController extends Controller
             Log::info('Livreur Login Attempt', $request->all());
 
             $validator = Validator::make($request->all(), [
-                'email' => 'required|email|exists:livreurs,email',
-                'password' => 'required|min:8',
+                'email'             => 'required|email|exists:livreurs,email',
+                'password'          => 'required|min:8',
+                'push_notification' => 'nullable|string|max:255',
             ], [
                 'email.required' => 'Le mail est obligatoire.',
                 'email.email' => 'Le format de l\'email est invalide.',
@@ -168,7 +169,13 @@ class LivreurAuthenticateController extends Controller
 
             // 5. TOUT EST BON : L'utilisateur existe, le mot de passe est bon, il n'est pas archivé
             // On crée le token.
-            
+
+            // Mettre à jour le push token s'il est fourni
+            if ($request->filled('push_notification') && $livreur->push_notification !== $request->push_notification) {
+                $livreur->push_notification = $request->push_notification;
+                $livreur->save();
+            }
+
             // Vérifier si le modèle utilise bien Sanctum (HasApiTokens)
             if (method_exists($livreur, 'createToken')) {
                 $token = $livreur->createToken('LivreurToken')->plainTextToken;

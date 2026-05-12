@@ -37,6 +37,7 @@ class User extends Authenticatable
         'has_seen_free_requests_message',
         'NNI',
         'google_id',
+        'apple_id',
         'phone_verified_at',
     ];
 

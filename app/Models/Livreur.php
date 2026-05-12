@@ -23,6 +23,7 @@ class Livreur extends Authenticatable
         'cas_urgence',
         'disponible',
         'poste_id',
+        'push_notification',
     ];
     public function scopeActive($query)
     {

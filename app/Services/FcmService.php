@@ -13,8 +13,8 @@ class FcmService
 
     public function __construct()
     {
-        $this->credentialsPath = storage_path(
-            env('FIREBASE_CREDENTIALS', 'plateau-apps-user-firebase-adminsdk-fbsvc-7ec6f5846b.json')
+        $this->credentialsPath = base_path(
+            env('FIREBASE_CREDENTIALS', 'storage/plateau-apps-user-firebase-adminsdk-fbsvc-7ec6f5846b.json')
         );
 
         if (file_exists($this->credentialsPath)) {

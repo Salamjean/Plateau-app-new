@@ -394,6 +394,7 @@ Route::prefix('user')->group(function () {
 
     // Nouvelles routes d'authentification avancée
     Route::post('/auth/google', [\App\Http\Controllers\User\UserAuthFlowController::class, 'handleGoogleAuth'])->name('user.auth.google');
+    Route::post('/auth/apple', [\App\Http\Controllers\User\UserAuthFlowController::class, 'handleAppleAuth'])->name('user.auth.apple');
     Route::post('/auth/otp/send', [\App\Http\Controllers\User\UserAuthFlowController::class, 'sendOtp'])->name('user.auth.otp.send');
     Route::post('/auth/otp/verify', [\App\Http\Controllers\User\UserAuthFlowController::class, 'verifyOtp'])->name('user.auth.otp.verify');
 });

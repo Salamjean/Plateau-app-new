@@ -9,8 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Services\YellikaSmsService;
 
 class UserProfilController extends Controller
 {
@@ -244,6 +246,126 @@ class UserProfilController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la mise à jour des informations'
+            ], 500);
+        }
+    }
+
+    /**
+     * Envoyer un OTP pour confirmer le changement de numéro de téléphone
+     * POST /api/utilisateurs/profil/request-phone-otp
+     */
+    public function requestPhoneOtp(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'indicatif' => 'required|string|max:10',
+            'contact'   => 'required|string|max:20|unique:users,contact,' . $user->id,
+        ], [
+            'contact.unique' => 'Ce numéro de téléphone est déjà utilisé par un autre compte.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $phone = preg_replace('/[^0-9]/', '', $request->indicatif . $request->contact);
+            $otp   = rand(100000, 999999);
+
+            Cache::put('phone_change_otp_' . $user->id, [
+                'otp'       => $otp,
+                'indicatif' => $request->indicatif,
+                'contact'   => $request->contact,
+                'phone'     => $phone,
+            ], now()->addMinutes(10));
+
+            $smsService = app(YellikaSmsService::class);
+            $result = $smsService->sendSms($phone, "Votre code de confirmation pour changer votre numéro Plateau App : " . $otp);
+
+            if (!$result || (isset($result['success']) && !$result['success'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de l\'envoi du SMS. Vérifiez le numéro et réessayez.'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Code OTP envoyé au ' . $request->indicatif . ' ' . $request->contact . '. Valable 10 minutes.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur requestPhoneOtp: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur lors de l\'envoi du code.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Vérifier l'OTP et mettre à jour le numéro de téléphone
+     * PUT /api/utilisateurs/profil/update-phone
+     */
+    public function updatePhone(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'otp' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $cached = Cache::get('phone_change_otp_' . $user->id);
+
+            if (!$cached) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun code OTP en attente. Veuillez d\'abord demander un code.'
+                ], 400);
+            }
+
+            if ((string) $cached['otp'] !== (string) $request->otp) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Code OTP incorrect ou expiré.'
+                ], 422);
+            }
+
+            Cache::forget('phone_change_otp_' . $user->id);
+
+            $user->update([
+                'indicatif' => $cached['indicatif'],
+                'contact'   => $cached['contact'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Numéro de téléphone mis à jour avec succès.',
+                'data'    => [
+                    'indicatif' => $user->indicatif,
+                    'contact'   => $user->contact,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur updatePhone: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur lors de la mise à jour du numéro.'
             ], 500);
         }
     }
