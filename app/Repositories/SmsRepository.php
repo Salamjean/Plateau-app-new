@@ -16,11 +16,10 @@ class SmsRepository
         $this->phone = $phone;
         $this->message = $message;
 
-        // Récupération des identifiants Yéllika depuis le .env (avec trim pour éviter les espaces invisibles et guillemets)
-        $this->apiKey = trim(env('YELLIKA_API_KEY'));
-        $this->senderId = trim(env('YELLIKA_SENDER_ID', 'Plateau app'), ' "\'');
-        // On récupère la base URL (ex: https://app.1smsafrica.com/api/v3)
-        $this->baseUrl = rtrim(env('YELLIKA_API_URL', 'https://app.1smsafrica.com/api/v3'), '/');
+        // Utiliser la config (fiable en production avec config:cache)
+        $this->apiKey = trim((string) config('services.yellika.api_key', ''));
+        $this->senderId = trim((string) config('services.yellika.sender_id', 'Plateau app'), ' "\'');
+        $this->baseUrl = rtrim((string) config('services.yellika.api_url', 'https://app.1smsafrica.com/api/v3'), '/');
     }
 
     public function send()
@@ -53,14 +52,18 @@ class SmsRepository
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        // Debug: Log la clé API utilisée
-        \Illuminate\Support\Facades\Log::info("Debug 1smsafrica - API Key used: " . substr($this->apiKey, 0, 10) . "...");
+        // Debug minimal sans exposer de secret
+        \Illuminate\Support\Facades\Log::info("Debug 1smsafrica - API Key used: " . ($this->apiKey !== '' ? substr($this->apiKey, 0, 6) . "..." : "(empty)"));
         \Illuminate\Support\Facades\Log::info("Debug 1smsafrica - Sender ID: " . trim($this->senderId));
         \Illuminate\Support\Facades\Log::info("Debug 1smsafrica - Request data: " . json_encode($data));
 
+        if ($this->apiKey === '') {
+            \Illuminate\Support\Facades\Log::error("1smsafrica API key manquante. Vérifiez YELLIKA_API_KEY et le cache config.");
+            return ['success' => false, 'error' => 'Missing API key'];
+        }
+
         // Extraire la clé réelle si elle contient le format 811|clé
         $apiKeyToUse = $this->apiKey;
-        \Illuminate\Support\Facades\Log::info("Debug 1smsafrica - Full API Key (trimmed): " . $this->apiKey);
         \Illuminate\Support\Facades\Log::info("Debug 1smsafrica - Checking for pipe character: " . (strpos($this->apiKey, '|') !== false ? 'YES' : 'NO'));
 
         if (strpos($this->apiKey, '|') !== false) {

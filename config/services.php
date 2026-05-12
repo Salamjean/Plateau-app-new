@@ -46,6 +46,12 @@ return [
         'base_url' => env('INFOBIP_BASE_URL'),
     ],
 
+    'yellika' => [
+        'api_url' => env('YELLIKA_API_URL', 'https://app.1smsafrica.com/api/v3'),
+        'api_key' => env('YELLIKA_API_KEY'),
+        'sender_id' => env('YELLIKA_SENDER_ID', 'Plateau app'),
+    ],
+
     'orange' => [
         'client_id' => env('ORANGE_CLIENT_ID'),
         'client_secret' => env('ORANGE_CLIENT_SECRET'),
