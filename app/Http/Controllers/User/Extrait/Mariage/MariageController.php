@@ -142,24 +142,21 @@ class MariageController extends Controller
         // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
         $user->refresh();
         $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
-        
-        if ($freeCalc['free_timbres'] > 0) {
-            $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-            Log::info("Demandes gratuites - Mariage {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
-        }
 
         if ($request->input('choix_option') === 'livraison') {
-            // Recalculer le montant en tenant compte des timbres gratuits
             $montantTimbreTotal = $freeCalc['montant_timbre_total'];
             $montantLivraison = (float) $mariage->montant_livraison;
             $totalAmount = $montantTimbreTotal + $montantLivraison;
-            
+
             $mariage->montant_timbre = $montantTimbreTotal;
-            $mariage->is_free_request = $freeCalc['free_timbres'] > 0 ? true : false;
+            $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
             $mariage->free_timbres_count = $freeCalc['free_timbres'];
             $mariage->save();
 
+            Log::info("Demandes gratuites - Mariage {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
+
             if ($totalAmount > 0) {
+                // Paiement requis → le compteur sera incrémenté APRÈS confirmation du paiement
                 $paymentMethod = $request->input('payment_method', 'wave');
 
                 $baseUrl = config('app.url');
@@ -249,8 +246,12 @@ class MariageController extends Controller
                     }
                 }
             } else {
+                // Livraison totalement gratuite (timbres + livraison = 0)
                 $mariage->etat = 'en attente';
                 $mariage->save();
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                }
             }
         } else {
             // Retrait sur place
@@ -259,8 +260,11 @@ class MariageController extends Controller
             if ($freeCalc['free_timbres'] > 0) {
                 $mariage->is_free_request = true;
                 $mariage->free_timbres_count = $freeCalc['free_timbres'];
+                $mariage->save();
+                $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+            } else {
+                $mariage->save();
             }
-            $mariage->save();
         }
 
         $phoneNumber = $user->indicatif . $user->contact;

@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Api\Authenticate;
 
 use App\Http\Controllers\Controller;
+use App\Models\MaintenanceSetting;
 use App\Models\User;
-use Illuminate\Http\JsonResponse; 
+use App\Traits\HandlesFreeRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log; 
-use Illuminate\Support\Facades\Storage; 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 class UserLoginController extends Controller
 {
+    use HandlesFreeRequests;
     /**
      * Gère la connexion d'un utilisateur via l'API.
      */
@@ -85,6 +88,9 @@ class UserLoginController extends Controller
 
             $token = $user->createToken('user-api-token')->plainTextToken;
 
+            $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+            $freeRequestsRemaining  = $this->getRemainingFreeRequests($user);
+
             return response()->json([
                 'success' => true,
                 'message' => $user->wasChanged('deactivated_at') ? 'Compte réactivé avec succès. Bienvenue !' : 'Connexion réussie.',
@@ -98,7 +104,10 @@ class UserLoginController extends Controller
                         'contact' => $user->contact,
                         'profile_picture' => $user->profile_picture ? (Str::startsWith($user->profile_picture, ['http://', 'https://']) ? $user->profile_picture : Storage::url($user->profile_picture)) : null,
                         'diaspora' => $user->diaspora,
-                        'push_notification' => $user->push_notification, 
+                        'free_requests_mode_active' => $freeRequestsModeActive,
+                        'free_requests_used' => (int) $user->free_requests_used,
+                        'free_requests_remaining' => $freeRequestsRemaining,
+                        'push_notification' => $user->push_notification,
                     ],
                     'token' => $token,
                     'token_type' => 'Bearer'

@@ -235,24 +235,21 @@ class NaissanceController extends Controller
         // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
         $user->refresh();
         $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
-        
-        if ($freeCalc['free_timbres'] > 0) {
-            $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-            Log::info("Demandes gratuites - Naissance {$naissance->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
-        }
 
         if ($request->input('choix_option') === 'livraison') {
-            // Recalculer le montant en tenant compte des timbres gratuits
             $montantTimbreTotal = $freeCalc['montant_timbre_total'];
             $montantLivraison = (float) $naissance->montant_livraison;
             $totalAmount = $montantTimbreTotal + $montantLivraison;
-            
+
             $naissance->montant_timbre = $montantTimbreTotal;
-            $naissance->is_free_request = $freeCalc['free_timbres'] > 0 ? true : false;
+            $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
             $naissance->free_timbres_count = $freeCalc['free_timbres'];
             $naissance->save();
 
+            Log::info("Demandes gratuites - Naissance {$naissance->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
+
             if ($totalAmount > 0) {
+                // Paiement requis → le compteur sera incrémenté APRÈS confirmation du paiement
                 $paymentMethod = $request->input('payment_method', 'wave');
 
                 // Préparer les URLs de retour
@@ -344,17 +341,21 @@ class NaissanceController extends Controller
                     }
                 }
             } else {
-                // Tout est gratuit
+                // Livraison entièrement gratuite (0 à payer) → incrémenter maintenant
                 $naissance->etat = 'en attente';
                 $naissance->save();
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                }
             }
         } else {
-            // Retrait sur place
+            // Retrait sur place (pas de paiement en ligne) → incrémenter maintenant
             $naissance->etat = 'en attente';
             $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
             if ($freeCalc['free_timbres'] > 0) {
                 $naissance->is_free_request = true;
                 $naissance->free_timbres_count = $freeCalc['free_timbres'];
+                $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
             }
             $naissance->save();
         }

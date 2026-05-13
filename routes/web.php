@@ -477,9 +477,13 @@ Route::get('/user/diag-google-auth', function (\Illuminate\Http\Request $request
     return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 });
 
-Route::middleware('auth')->prefix('user')->group(function () {
+// Finalisation de profil — accessible sans auth (nouveaux comptes sociaux avec session)
+Route::prefix('user')->group(function () {
     Route::get('/auth/complete-profile', [\App\Http\Controllers\User\UserAuthFlowController::class, 'showFinalizeProfile'])->name('user.auth.profile.complete');
     Route::post('/auth/complete-profile', [\App\Http\Controllers\User\UserAuthFlowController::class, 'submitFinalizeProfile'])->name('user.auth.profile.submit');
+});
+
+Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
     Route::get('/logout', [UserController::class, 'logout'])->name('user.logout');
     Route::post('/dismiss-free-requests-message', [UserController::class, 'dismissFreeRequestsMessage'])->name('user.dismiss.free.requests');
@@ -529,6 +533,8 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::post('/profile/update-contact', [ProfiluserController::class, 'updateContact'])->name('user.profile.update.contact');
     Route::post('/profile/verify-password', [ProfiluserController::class, 'verifyPassword'])->name('user.verify.password');
     Route::delete('/profile/picture', [ProfiluserController::class, 'deleteProfilePicture'])->name('user.profile.picture.delete');
+    Route::post('/profile/request-email-otp', [ProfiluserController::class, 'requestEmailOtp'])->name('user.profile.request.email.otp');
+    Route::put('/profile/update-email', [ProfiluserController::class, 'updateEmail'])->name('user.profile.update.email');
 });
 
 // Routes de paiement (en dehors du middleware auth car la session peut être perdue après redirection Wave/ngrok)

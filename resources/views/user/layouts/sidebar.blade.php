@@ -90,10 +90,4 @@
       </li>
    </ul>
 
-   <div class="sidebar-footer">
-      <a href="{{route('user.logout')}}" class="logout-btn">
-         <i class="fas fa-sign-out-alt"></i>
-         <span>Déconnexion</span>
-      </a>
-   </div>
 </nav>

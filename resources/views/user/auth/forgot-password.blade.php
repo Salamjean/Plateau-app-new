@@ -7,17 +7,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
-    <title>Mot de passe oublié</title>
+    <title>Réinitialisation - Plateau App</title>
     <style>
-        /* Reprenez le même CSS que votre vue de login */
         :root {
-            --primary-color: #1977cc;
-            --secondary-color: #1977cc;
+            --primary-color: #1a66ff;
+            --secondary-color: #1a66ff;
             --accent-color: #4895ef;
             --error-color: #f72585;
             --success-color: #4cc9f0;
             --light-color: #f8f9fa;
             --dark-color: #212529;
+            --text-muted: #6c757d;
+            --border-color: #e9ecef;
             --transition-speed: 0.3s;
         }
 
@@ -25,7 +26,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
@@ -34,51 +35,82 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background: 
-                linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7)),
-                url('{{ asset('assets/assets/img/bavk.jpg') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0eaff 100%);
             padding: 20px;
         }
 
         .form-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            gap: 20px;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: white;
             padding: 40px;
             width: 100%;
             max-width: 500px;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transform-style: preserve-3d;
-            transition: all var(--transition-speed) ease;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            position: relative;
+            animation: slideUp 0.6s ease-out;
         }
 
-        .form-container:hover {
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .back-btn:hover {
+            transform: scale(1.1);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .illustration {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .illustration-circle {
+            width: 100px;
+            height: 100px;
+            background: #fef9c3; /* Yellowish for warning/reset feel */
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .illustration-circle i {
+            font-size: 40px;
+            color: #eab308;
         }
 
         .form-header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 30px;
         }
 
         .title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-            background: linear-gradient(to right, #1977cc, #1977cc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 8px;
             position: relative;
             display: inline-block;
         }
@@ -86,280 +118,199 @@
         .title::after {
             content: '';
             position: absolute;
-            bottom: -5px;
+            bottom: -8px;
             left: 50%;
             transform: translateX(-50%);
-            width: 50px;
+            width: 40px;
             height: 3px;
-            background: linear-gradient(to right, #1977cc, #1977cc);
-            border-radius: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
         }
 
         .subtitle {
-            color: #6c757d;
-            font-size: 0.9rem;
-            line-height: 1.4;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 15px;
+            line-height: 1.5;
         }
 
-        .input-group {
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .input-wrapper {
             position: relative;
-            width: 100%;
-            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
         }
 
         .input-icon {
             position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #adb5bd;
-            transition: all var(--transition-speed) ease;
-            z-index: 2;
+            left: 18px;
+            color: var(--primary-color);
+            font-size: 1.1rem;
         }
 
         .input-field {
             width: 100%;
-            outline: none;
-            border-radius: 10px;
-            height: 50px;
-            border: 2px solid #e9ecef;
-            background: transparent;
-            padding-left: 45px;
-            padding-right: 15px;
+            height: 56px;
+            padding: 0 50px;
+            background: #fff;
+            border: 1.5px solid #e1e8ef;
+            border-radius: 14px;
             font-size: 1rem;
-            transition: all var(--transition-speed) ease;
-            color: var(--dark-color);
+            color: #1a1a1a;
+            outline: none;
+            transition: all 0.3s ease;
         }
 
         .input-field:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            box-shadow: 0 0 0 4px rgba(26, 102, 255, 0.05);
         }
 
-        .input-field:focus ~ .input-icon {
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            color: #4a5568;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .info-box i {
             color: var(--primary-color);
-        }
-
-        .input-label {
-            position: absolute;
-            top: 15px;
-            left: 45px;
-            color: #adb5bd;
-            transition: all var(--transition-speed) ease;
-            pointer-events: none;
-            background-color: transparent;
-            padding: 0 5px;
-            z-index: 1;
-        }
-
-        .input-field:focus ~ .input-label,
-        .input-field:not(:placeholder-shown) ~ .input-label {
-            top: -10px;
-            left: 35px;
-            font-size: 0.8rem;
-            color: var(--primary-color);
-            background-color: white;
-            z-index: 3;
+            margin-top: 2px;
         }
 
         .submit-btn {
-            margin-top: 20px;
-            height: 55px;
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            border: none;
-            outline: none;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .submit-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: all 0.6s ease;
+            height: 56px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 16px rgba(26, 102, 255, 0.15);
         }
 
         .submit-btn:hover {
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(26, 102, 255, 0.2);
+            filter: brightness(1.05);
         }
 
-        .submit-btn:hover::before {
-            left: 100%;
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
-        .error-message {
-            color: var(--error-color);
-            font-size: 0.85rem;
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            animation: fadeIn var(--transition-speed) ease;
-        }
-
-        .success-message {
-            color: var(--success-color);
-            text-align: center;
-            margin-bottom: 15px;
-            font-weight: 500;
-            animation: fadeIn var(--transition-speed) ease;
+        .submit-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
         .form-footer {
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #6c757d;
+            margin-top: 30px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
         }
 
         .form-footer a {
             color: var(--primary-color);
             text-decoration: none;
-            font-weight: 600;
-            transition: all var(--transition-speed) ease;
+            font-weight: 700;
         }
 
-        .form-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 10;
-            text-decoration: none;
-        }
-
-        .back-btn:hover {
-            background: var(--secondary-color);
-            transform: translateX(-3px);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 576px) {
+        @media (max-width: 480px) {
             .form-container {
                 padding: 30px 20px;
             }
-            
             .title {
                 font-size: 1.5rem;
             }
         }
-
-        .info-box {
-            background: linear-gradient(to right, #e3f2fd, #f3e5f5);
-            border-left: 4px solid var(--primary-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #5a5a5a;
-        }
-
-        .info-box i {
-            color: var(--primary-color);
-            margin-right: 10px;
-        }
     </style>
 </head>
 <body>
-    <form id="resetForm" class="form-container animate__animated animate__fadeIn">
+    <div class="form-container">
         <!-- Bouton Retour -->
-        <a href="{{ route('login') }}" class="back-btn animate__animated animate__fadeInLeft">
+        <a href="{{ route('login') }}" class="back-btn">
             <i class="fas fa-arrow-left"></i>
         </a>
 
+        <div class="illustration">
+            <div class="illustration-circle">
+                <i class="fas fa-key"></i>
+            </div>
+        </div>
+
         <div class="form-header">
             <h1 class="title">Mot de passe oublié</h1>
-            <p class="subtitle">Entrez votre email ou numéro de téléphone pour recevoir un code OTP</p>
+            <p class="subtitle">Entrez votre numéro pour réinitialiser votre accès</p>
         </div>
 
-        @csrf
-
-        <!-- Message d'information -->
         <div class="info-box">
             <i class="fas fa-info-circle"></i>
-            Un code OTP (6 chiffres) vous sera envoyé par email ou par SMS. Ce code expirera dans 60 minutes.
+            <p>Un code OTP (6 chiffres) vous sera envoyé par SMS. Ce code expirera dans 60 minutes.</p>
         </div>
 
-        <!-- Identifier Field -->
-        <div class="input-group">
-            <i class="fas fa-user input-icon"></i>
-            <input class="input-field" type="text" id="login_identifier" name="login_identifier" placeholder=" " required />
-            <label class="input-label" for="login_identifier">Email ou Numéro de téléphone</label>
-        </div>
+        <form id="resetForm">
+            @csrf
+            <div class="form-group">
+                <label class="form-label">Numéro de téléphone</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-mobile-alt input-icon"></i>
+                    <input class="input-field" type="tel" id="login_identifier" name="login_identifier" placeholder="Ex: 0708325027" required />
+                </div>
+            </div>
 
-        <button type="submit" class="submit-btn animate__animated animate__pulse">
-            <i class="fas fa-paper-plane"></i> Obtenir mon code de réinitialisation
-        </button>
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-paper-plane"></i> Obtenir mon code
+            </button>
+        </form>
 
         <div class="form-footer">
-            <p>Vous vous souvenez de votre mot de passe ? <a href="{{ route('login') }}">Se connecter</a></p>
+            <p>Vous vous souvenez du mot de passe ? <a href="{{ route('login') }}">Se connecter</a></p>
         </div>
-    </form>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('resetForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const identifier = document.getElementById('login_identifier').value;
-                const submitBtn = this.querySelector('.submit-btn');
+                const submitBtn = document.getElementById('submitBtn');
                 
-                // Loading state
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement en cours...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
 
                 try {
-                    // Etape 1: Envoyer la demande
                     const response = await fetch('/api/utilisateurs/forgot-password', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                         body: JSON.stringify({ login_identifier: identifier })
                     });
 
                     const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Erreur lors de la demande.');
 
-                    if (!response.ok) {
-                        throw new Error(data.message || 'Une erreur est survenue lors de la demande.');
-                    }
-
-                    // Etape 2: Demander le code OTP
                     const { value: otpCode } = await Swal.fire({
                         title: 'Code de vérification',
                         text: data.message, 
@@ -367,33 +318,24 @@
                         inputPlaceholder: 'Entrez le code à 6 chiffres',
                         showCancelButton: true,
                         confirmButtonText: 'Vérifier',
+                        confirmButtonColor: 'var(--primary-color)',
                         cancelButtonText: 'Annuler',
-                        inputValidator: (value) => {
-                            if (!value) return 'Vous devez entrer le code !';
-                        }
+                        inputValidator: (value) => { if (!value) return 'Le code est obligatoire !'; }
                     });
 
                     if (otpCode) {
-                        // Vérifier le code
                         Swal.showLoading();
                         const verifyResponse = await fetch('/api/utilisateurs/verify-reset-code', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                             body: JSON.stringify({ login_identifier: identifier, token: otpCode })
                         });
                         
                         const verifyData = await verifyResponse.json();
-                        
-                        if (!verifyResponse.ok) {
-                            throw new Error(verifyData.message || 'Code invalide ou expiré');
-                        }
+                        if (!verifyResponse.ok) throw new Error(verifyData.message || 'Code invalide');
 
                         const secureToken = verifyData.reset_token;
 
-                        // Etape 3: Nouveau mot de passe
                         const { value: formValues } = await Swal.fire({
                             title: 'Nouveau mot de passe',
                             html:
@@ -402,22 +344,14 @@
                             focusConfirm: false,
                             showCancelButton: true,
                             confirmButtonText: 'Réinitialiser',
+                            confirmButtonColor: 'var(--primary-color)',
                             preConfirm: () => {
-                                const pwd1 = document.getElementById('swal-input1').value;
-                                const pwd2 = document.getElementById('swal-input2').value;
-                                if (!pwd1 || !pwd2) {
-                                    Swal.showValidationMessage('Veuillez remplir les deux champs');
-                                    return false;
-                                }
-                                if (pwd1 !== pwd2) {
-                                    Swal.showValidationMessage('Les mots de passe ne correspondent pas');
-                                    return false;
-                                }
-                                if (pwd1.length < 8) {
-                                    Swal.showValidationMessage('Le mot de passe doit faire au moins 8 caractères');
-                                    return false;
-                                }
-                                return [pwd1, pwd2];
+                                const p1 = document.getElementById('swal-input1').value;
+                                const p2 = document.getElementById('swal-input2').value;
+                                if (!p1 || !p2) return Swal.showValidationMessage('Remplissez les deux champs');
+                                if (p1 !== p2) return Swal.showValidationMessage('Les mots de passe diffèrent');
+                                if (p1.length < 8) return Swal.showValidationMessage('Minimum 8 caractères');
+                                return [p1, p2];
                             }
                         });
 
@@ -425,10 +359,7 @@
                             Swal.showLoading();
                             const resetResponse = await fetch('/api/utilisateurs/reset-password', {
                                 method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json'
-                                },
+                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                                 body: JSON.stringify({ 
                                     login_identifier: identifier, 
                                     token: secureToken,
@@ -438,31 +369,17 @@
                             });
 
                             const resetData = await resetResponse.json();
+                            if (!resetResponse.ok) throw new Error(resetData.message || 'Erreur finale');
 
-                            if (!resetResponse.ok) {
-                                throw new Error(resetData.message || 'Erreur lors de la réinitialisation');
-                            }
-
-                            await Swal.fire({
-                                icon: 'success',
-                                title: 'Succès !',
-                                text: 'Votre mot de passe a été réinitialisé avec succès.',
-                                confirmButtonText: 'Se connecter'
-                            });
+                            await Swal.fire({ icon: 'success', title: 'Réussi !', text: 'Mot de passe mis à jour.', confirmButtonColor: 'var(--primary-color)' });
                             window.location.href = "{{ route('login') }}";
                         }
                     }
                 } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Action impossible',
-                        text: error.message,
-                        confirmButtonText: 'OK',
-                        background: 'var(--light-color)'
-                    });
+                    Swal.fire({ icon: 'error', title: 'Oups', text: error.message, confirmButtonColor: 'var(--primary-color)' });
                 } finally {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Obtenir mon code de réinitialisation';
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Obtenir mon code';
                 }
             });
         });

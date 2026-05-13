@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -98,29 +99,42 @@ class AppleAuthController extends Controller
                 ], 200);
             }
 
-            // Nouveau compte
-            $user = User::create([
+            // ── NOUVEAU COMPTE : stocker en Cache, PAS en base ───────────────
+            if ($action === 'login') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun compte trouvé. Veuillez vous inscrire.'
+                ], 404);
+            }
+
+            $pendingToken = Str::uuid()->toString();
+
+            Cache::put('pending_apple_' . $pendingToken, [
                 'name'              => $nameStr,
                 'prenom'            => $prenomStr,
                 'email'             => $email,
                 'apple_id'          => $appleId,
-                'commune'           => 'plateau',
-                'password'          => Hash::make(Str::random(24)),
                 'push_notification' => $pushNotification,
-            ]);
+            ], now()->addHours(1));
 
-            $token = $user->createToken('user-api-token')->plainTextToken;
+            Log::info('Apple Auth - Nouveau compte en attente de finalisation', [
+                'email'    => $email,
+                'apple_id' => $appleId,
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Compte Apple créé. Veuillez finaliser votre profil.',
+                'message' => 'Veuillez finaliser votre inscription.',
                 'data'    => [
-                    'is_new_user' => true,
-                    'user'        => $this->formatUser($user),
-                    'token'       => $token,
-                    'token_type'  => 'Bearer',
+                    'is_new_user'   => true,
+                    'pending_token' => $pendingToken,
+                    'user'          => [
+                        'name'   => $nameStr,
+                        'prenom' => $prenomStr,
+                        'email'  => $email,
+                    ],
                 ]
-            ], 201);
+            ], 200);
 
         } catch (\Exception $e) {
             Log::error('Erreur Apple Auth : ' . $e->getMessage());

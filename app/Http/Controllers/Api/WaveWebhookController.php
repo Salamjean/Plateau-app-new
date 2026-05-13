@@ -17,9 +17,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use App\Traits\HandlesFreeRequests;
 
 class WaveWebhookController extends Controller
 {
+    use HandlesFreeRequests;
     /**
      * Handle incoming Wave webhook notifications.
      */
@@ -139,7 +141,10 @@ class WaveWebhookController extends Controller
             $demande->etat = 'en attente';
             $demande->save();
 
-            // 3. Envoyer les notifications
+            // 3. Incrémenter le compteur de demandes gratuites si applicable
+            $this->incrementFreeRequestsFromDemande($demande);
+
+            // 4. Envoyer les notifications
             $user = User::find($demande->user_id);
             if ($user) {
                 $this->sendNotifications($user, $demande, $type);

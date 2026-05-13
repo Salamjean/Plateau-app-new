@@ -153,11 +153,7 @@ class DemandeDecesController extends Controller
             // --- GESTION DES DEMANDES GRATUITES ---
             $user->refresh();
             $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
-            
-            if ($freeCalc['free_timbres'] > 0) {
-                $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-                Log::info("Demandes gratuites - Deces (API) {$deces->reference}: {$freeCalc['free_timbres']} timbres gratuits");
-            }
+            Log::info("Demandes gratuites - Deces (API) {$deces->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} payants");
 
             if ($request->choix_option === 'livraison') {
                 $montantTimbreTotal = $freeCalc['montant_timbre_total'];
@@ -200,6 +196,11 @@ class DemandeDecesController extends Controller
 
             // 5. Réponse conditionnelle (Cas "Retrait" ou "Gratuit Livraison")
             if ($totalAmount == 0) {
+                // Incrémenter le compteur SEULEMENT maintenant (pas de paiement requis)
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                }
+
                 // Envoi des notifications (SMS & Email)
                 try {
                     $phoneNumber = $user->indicatif . $user->contact;
@@ -216,6 +217,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'success' => true,
                     'message' => 'Demande de décès créée avec succès (gratuite ou retrait sur place)',
                     'requires_payment' => false,
+                    'free_requests' => [
+                        'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
+                        'economie' => $freeCalc['montant_timbre_gratuit'],
+                        'restants' => $this->getRemainingFreeRequests($user),
+                    ],
                     'data' => ['demande' => $this->formatDemandeResponse($deces)]
                 ], 201);
             }
@@ -241,10 +247,14 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
-
+                'free_requests' => [
+                    'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
+                    'economie' => $freeCalc['montant_timbre_gratuit'],
+                    'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
+                ],
                 'payment_details' => [
                     'payment_url' => $paymentLinkResult['payment_url'],
-                    'transaction_id' => $paymentLinkResult['generated_transaction_id'], 
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
                     'mode' => 'PRODUCTION',
                     'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
                     'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
@@ -711,15 +721,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
      */
     private function formatDemandeResponse(Deces $deces, bool $includeFiles = false)
     {
-        // --- MODIFICATION ---
-        // Calcul correct du montant total en incluant la quantité
-        // Utilise (?? 1) pour la quantité au cas où elle serait nulle (ancien enregistrement)
-        // Utilise (?? 0) pour les montants au cas où ils seraient nuls
-        $montant_total_timbres = (float) ($deces->montant_timbre ?? 0) * (int) ($deces->quantite ?? 1);
+        // montant_timbre est le TOTAL des timbres payants (après déduction des timbres gratuits)
         $montant_total = $deces->choix_option === 'livraison'
-            ? $montant_total_timbres + (float) ($deces->montant_livraison ?? 0)
+            ? (float) ($deces->montant_timbre ?? 0) + (float) ($deces->montant_livraison ?? 0)
             : 0;
-        // --- FIN MODIFICATION ---
 
         $data = [
             'id' => $deces->id,

@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\Api\Utilisateurs\Profil;
 
 use App\Http\Controllers\Controller;
+use App\Models\MaintenanceSetting;
 use App\Models\User;
+use App\Traits\HandlesFreeRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Services\YellikaSmsService;
 
 class UserProfilController extends Controller
 {
+    use HandlesFreeRequests;
     /**
      * Récupérer les informations du profil utilisateur
      * GET /api/utilisateurs/profil
@@ -24,6 +28,9 @@ class UserProfilController extends Controller
     {
         try {
             $user = $request->user();
+
+            $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+            $freeRequestsRemaining = $this->getRemainingFreeRequests($user);
 
             return response()->json([
                 'success' => true,
@@ -45,6 +52,9 @@ class UserProfilController extends Controller
                         'adresse_etrangere' => $user->adresse_etrangere,
                         'created_at' => $user->created_at->format('Y-m-d H:i:s'),
                         'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
+                        'free_requests_mode_active' => $freeRequestsModeActive,
+                        'free_requests_used' => (int) $user->free_requests_used,
+                        'free_requests_remaining' => $freeRequestsRemaining,
                     ]
                 ]
             ]);
@@ -155,32 +165,40 @@ class UserProfilController extends Controller
     {
         $user = $request->user();
 
-        $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string', // Ajout de la vérification du mot de passe
-            'name' => 'sometimes|required|string|max:255',
-            'prenom' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-            'indicatif' => 'sometimes|required|string|max:10',
-            'contact' => 'sometimes|required|string|max:20',
-            'commune' => 'sometimes|required|string|max:255',
-            'CMU' => 'sometimes|nullable|string|max:255',
-            'diaspora' => 'sometimes|boolean',
-            'pays_residence' => 'nullable|required_if:diaspora,true|string|max:255',
-            'ville_residence' => 'nullable|required_if:diaspora,true|string|max:255',
+        $isSocial = !empty($user->google_id) || !empty($user->apple_id);
+
+        $rules = [
+            'name'              => 'sometimes|required|string|max:255',
+            'prenom'            => 'sometimes|required|string|max:255',
+            'indicatif'         => 'sometimes|required|string|max:10',
+            'contact'           => 'sometimes|required|string|max:20',
+            'commune'           => 'sometimes|required|string|max:255',
+            'CMU'               => 'sometimes|nullable|string|max:255',
+            'diaspora'          => 'sometimes|boolean',
+            'pays_residence'    => 'nullable|required_if:diaspora,true|string|max:255',
+            'ville_residence'   => 'nullable|required_if:diaspora,true|string|max:255',
             'adresse_etrangere' => 'nullable|required_if:diaspora,true|string|max:500',
+        ];
+
+        if (!$isSocial) {
+            $rules['current_password'] = 'required|string';
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
+            'current_password.required' => 'Le mot de passe actuel est obligatoire.',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
         try {
-            // Vérifier le mot de passe actuel
-            if (!Hash::check($request->current_password, $user->password)) {
+            // Vérifier le mot de passe pour les utilisateurs normaux uniquement
+            if (!$isSocial && !Hash::check($request->current_password, $user->password)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Mot de passe incorrect. Veuillez vérifier votre mot de passe actuel.'
@@ -251,12 +269,305 @@ class UserProfilController extends Controller
     }
 
     /**
-     * Envoyer un OTP pour confirmer le changement de numéro de téléphone
+     * Envoyer un OTP pour confirmer le changement d'email
+     * POST /api/utilisateurs/profil/request-email-otp
+     */
+    public function requestEmailOtp(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|unique:users,email,' . $user->id,
+        ], [
+            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $otp = rand(100000, 999999);
+
+            Cache::put('email_change_otp_' . $user->id, [
+                'otp'       => $otp,
+                'new_email' => $request->email,
+            ], now()->addMinutes(10));
+
+            Log::info('EmailOTP Tentative envoi', [
+                'user_id'   => $user->id,
+                'new_email' => $request->email,
+            ]);
+
+            Mail::raw(
+                "Bonjour " . ($user->prenom ?? $user->name) . ",\n\n"
+                . "Votre code de confirmation pour changer votre adresse email sur Plateau App est :\n\n"
+                . "    " . $otp . "\n\n"
+                . "Ce code est valable 10 minutes.\n"
+                . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+                function ($message) use ($request) {
+                    $message->to($request->email)
+                            ->subject('Code de confirmation - Changement d\'email Plateau App');
+                }
+            );
+
+            Log::info('EmailOTP Envoyé avec succès', [
+                'user_id'   => $user->id,
+                'new_email' => $request->email,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Un code de confirmation a été envoyé à ' . $request->email . '. Valable 10 minutes.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('EmailOTP Échec envoi', [
+                'user_id'   => $user->id,
+                'new_email' => $request->email,
+                'error'     => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Erreur lors de l\'envoi du code.'], 500);
+        }
+    }
+
+    /**
+     * Vérifier l'OTP et mettre à jour l'email
+     * PUT /api/utilisateurs/profil/update-email
+     */
+    public function updateEmail(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'otp' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $cached = Cache::get('email_change_otp_' . $user->id);
+
+        if (!$cached) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun code en attente. Veuillez d\'abord faire une demande.'
+            ], 400);
+        }
+
+        if ((string) $cached['otp'] !== (string) $request->otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Code incorrect ou expiré.'
+            ], 422);
+        }
+
+        try {
+            Cache::forget('email_change_otp_' . $user->id);
+
+            $ancienEmail = $user->email;
+            $user->update(['email' => $cached['new_email']]);
+
+            Log::info('EmailOTP Email mis à jour', [
+                'user_id'     => $user->id,
+                'ancien_email' => $ancienEmail,
+                'nouveau_email' => $cached['new_email'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Adresse email mise à jour avec succès.',
+                'data'    => ['email' => $user->email]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('EmailOTP Échec mise à jour email', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Erreur serveur.'], 500);
+        }
+    }
+
+    /**
+     * Vérifier le mot de passe puis envoyer un SMS ou Email OTP
      * POST /api/utilisateurs/profil/request-phone-otp
      */
     public function requestPhoneOtp(Request $request): JsonResponse
     {
+        $user        = $request->user();
+        $isSocial    = !empty($user->google_id) || !empty($user->apple_id);
+
+        // Règles de validation — le mot de passe est requis sauf pour les comptes sociaux
+        $rules = [
+            'indicatif' => 'required|string|max:10',
+            'contact'   => 'required|string|max:20|unique:users,contact,' . $user->id,
+        ];
+        if (!$isSocial) {
+            $rules['current_password'] = 'required|string';
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
+            'contact.unique'           => 'Ce numéro de téléphone est déjà utilisé par un autre compte.',
+            'current_password.required' => 'Le mot de passe actuel est obligatoire.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        // --- Utilisateurs normaux : vérifier le mot de passe puis envoyer le SMS OTP ---
+        if (!$isSocial) {
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mot de passe incorrect.'
+                ], 422);
+            }
+
+            try {
+                $phone = preg_replace('/[^0-9]/', '', $request->indicatif . $request->contact);
+                $otp   = rand(100000, 999999);
+
+                Cache::put('phone_change_otp_' . $user->id, [
+                    'otp'       => $otp,
+                    'indicatif' => $request->indicatif,
+                    'contact'   => $request->contact,
+                    'phone'     => $phone,
+                ], now()->addMinutes(10));
+
+                Log::info('PhoneOTP [SMS] Tentative envoi', [
+                    'user_id' => $user->id,
+                    'phone'   => $phone,
+                ]);
+
+                $smsService = app(YellikaSmsService::class);
+                $result = $smsService->sendSms($phone, "Votre code de confirmation pour changer votre numéro Plateau App : " . $otp);
+
+                if (!$result || (isset($result['success']) && !$result['success'])) {
+                    Log::error('PhoneOTP [SMS] Échec envoi', [
+                        'user_id' => $user->id,
+                        'phone'   => $phone,
+                        'result'  => $result,
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erreur lors de l\'envoi du SMS. Vérifiez le numéro et réessayez.'
+                    ], 500);
+                }
+
+                Log::info('PhoneOTP [SMS] Envoyé avec succès', [
+                    'user_id' => $user->id,
+                    'phone'   => $phone,
+                ]);
+
+                return response()->json([
+                    'success'              => true,
+                    'requires_email_otp'   => false,
+                    'message'              => 'Code SMS envoyé au ' . $request->indicatif . ' ' . $request->contact . '. Valable 10 minutes.'
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error('PhoneOTP [SMS] Exception', [
+                    'user_id' => $user->id,
+                    'error'   => $e->getMessage(),
+                ]);
+                return response()->json(['success' => false, 'message' => 'Erreur serveur lors de l\'envoi du code.'], 500);
+            }
+        }
+
+        // --- Utilisateurs Google/Apple : envoyer un OTP par email pour confirmer l'identité ---
+        if (empty($user->email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucune adresse email associée à votre compte. Contactez le support.'
+            ], 422);
+        }
+
+        try {
+            $emailOtp = rand(100000, 999999);
+
+            Cache::put('phone_change_email_otp_' . $user->id, [
+                'otp'       => $emailOtp,
+                'indicatif' => $request->indicatif,
+                'contact'   => $request->contact,
+            ], now()->addMinutes(10));
+
+            Log::info('PhoneOTP [EMAIL] Tentative envoi', [
+                'user_id' => $user->id,
+                'email'   => $user->email,
+                'nouveau_contact' => $request->indicatif . $request->contact,
+            ]);
+
+            Mail::raw(
+                "Bonjour " . ($user->prenom ?? $user->name) . ",\n\n"
+                . "Votre code de confirmation pour changer votre numéro de téléphone sur Plateau App est :\n\n"
+                . "    " . $emailOtp . "\n\n"
+                . "Ce code est valable 10 minutes.\n"
+                . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+                function ($message) use ($user) {
+                    $message->to($user->email)
+                            ->subject('Code de confirmation - Changement de numéro Plateau App');
+                }
+            );
+
+            Log::info('PhoneOTP [EMAIL] Envoyé avec succès', [
+                'user_id' => $user->id,
+                'email'   => $user->email,
+            ]);
+
+            return response()->json([
+                'success'            => true,
+                'requires_email_otp' => true,
+                'message'            => 'Un code de confirmation a été envoyé à votre adresse email ' . $user->email . '. Valable 10 minutes.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('PhoneOTP [EMAIL] Échec envoi', [
+                'user_id' => $user->id,
+                'email'   => $user->email,
+                'error'   => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Erreur lors de l\'envoi du code email.'], 500);
+        }
+    }
+
+    /**
+     * [Utilisateurs Google/Apple uniquement]
+     * Envoyer un OTP par email pour confirmer le changement de numéro (sans mot de passe)
+     * POST /api/utilisateurs/profil/social/request-phone-otp
+     */
+    public function requestPhoneOtpSocial(Request $request): JsonResponse
+    {
         $user = $request->user();
+
+        // Bloquer les comptes normaux sur cet endpoint
+        if (empty($user->google_id) && empty($user->apple_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cet endpoint est réservé aux comptes Google/Apple. Les comptes normaux doivent utiliser /request-phone-otp.'
+            ], 403);
+        }
+
+        if (empty($user->email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucune adresse email associée à votre compte. Contactez le support.'
+            ], 422);
+        }
 
         $validator = Validator::make($request->all(), [
             'indicatif' => 'required|string|max:10',
@@ -274,37 +585,120 @@ class UserProfilController extends Controller
         }
 
         try {
-            $phone = preg_replace('/[^0-9]/', '', $request->indicatif . $request->contact);
-            $otp   = rand(100000, 999999);
+            $emailOtp = rand(100000, 999999);
 
-            Cache::put('phone_change_otp_' . $user->id, [
-                'otp'       => $otp,
+            Cache::put('phone_change_email_otp_' . $user->id, [
+                'otp'       => $emailOtp,
                 'indicatif' => $request->indicatif,
                 'contact'   => $request->contact,
-                'phone'     => $phone,
             ], now()->addMinutes(10));
 
-            $smsService = app(YellikaSmsService::class);
-            $result = $smsService->sendSms($phone, "Votre code de confirmation pour changer votre numéro Plateau App : " . $otp);
+            Log::info('PhoneOTP [EMAIL/SOCIAL] Tentative envoi', [
+                'user_id'         => $user->id,
+                'email'           => $user->email,
+                'nouveau_contact' => $request->indicatif . $request->contact,
+            ]);
 
-            if (!$result || (isset($result['success']) && !$result['success'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Erreur lors de l\'envoi du SMS. Vérifiez le numéro et réessayez.'
-                ], 500);
-            }
+            Mail::raw(
+                "Bonjour " . ($user->prenom ?? $user->name) . ",\n\n"
+                . "Votre code de confirmation pour changer votre numéro de téléphone sur Plateau App est :\n\n"
+                . "    " . $emailOtp . "\n\n"
+                . "Ce code est valable 10 minutes.\n"
+                . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+                function ($message) use ($user) {
+                    $message->to($user->email)
+                            ->subject('Code de confirmation - Changement de numéro Plateau App');
+                }
+            );
+
+            Log::info('PhoneOTP [EMAIL/SOCIAL] Envoyé avec succès', [
+                'user_id' => $user->id,
+                'email'   => $user->email,
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Code OTP envoyé au ' . $request->indicatif . ' ' . $request->contact . '. Valable 10 minutes.'
+                'message' => 'Un code de confirmation a été envoyé à ' . $user->email . '. Valable 10 minutes.'
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Erreur requestPhoneOtp: ' . $e->getMessage());
+            Log::error('PhoneOTP [EMAIL/SOCIAL] Échec envoi', [
+                'user_id' => $user->id,
+                'email'   => $user->email,
+                'error'   => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Erreur lors de l\'envoi du code email.'], 500);
+        }
+    }
+
+    /**
+     * Vérifier l'OTP email (Google/Apple) puis envoyer le SMS OTP vers le nouveau numéro
+     * POST /api/utilisateurs/profil/verify-email-otp
+     */
+    public function verifyEmailOtp(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'otp' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur serveur lors de l\'envoi du code.'
-            ], 500);
+                'message' => 'Erreur de validation',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $cached = Cache::get('phone_change_email_otp_' . $user->id);
+
+        if (!$cached) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun code email en attente. Veuillez d\'abord faire une demande.'
+            ], 400);
+        }
+
+        if ((string) $cached['otp'] !== (string) $request->otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Code email incorrect ou expiré.'
+            ], 422);
+        }
+
+        // Email OTP validé → mettre à jour le numéro directement
+        try {
+            Cache::forget('phone_change_email_otp_' . $user->id);
+
+            $ancienContact = $user->indicatif . $user->contact;
+
+            $user->update([
+                'indicatif' => $cached['indicatif'],
+                'contact'   => $cached['contact'],
+            ]);
+
+            Log::info('PhoneOTP [EMAIL] Numéro mis à jour', [
+                'user_id'        => $user->id,
+                'ancien_contact' => $ancienContact,
+                'nouveau_contact' => $cached['indicatif'] . $cached['contact'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Numéro de téléphone mis à jour avec succès.',
+                'data'    => [
+                    'indicatif' => $user->indicatif,
+                    'contact'   => $user->contact,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('PhoneOTP [EMAIL] Échec mise à jour numéro', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Erreur serveur.'], 500);
         }
     }
 
@@ -347,9 +741,17 @@ class UserProfilController extends Controller
 
             Cache::forget('phone_change_otp_' . $user->id);
 
+            $ancienContact = $user->indicatif . $user->contact;
+
             $user->update([
                 'indicatif' => $cached['indicatif'],
                 'contact'   => $cached['contact'],
+            ]);
+
+            Log::info('PhoneOTP [SMS] Numéro mis à jour', [
+                'user_id'         => $user->id,
+                'ancien_contact'  => $ancienContact,
+                'nouveau_contact' => $cached['indicatif'] . $cached['contact'],
             ]);
 
             return response()->json([
@@ -362,7 +764,10 @@ class UserProfilController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Erreur updatePhone: ' . $e->getMessage());
+            Log::error('PhoneOTP [SMS] Échec mise à jour numéro', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur serveur lors de la mise à jour du numéro.'

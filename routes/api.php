@@ -30,13 +30,18 @@ Route::prefix('utilisateurs')->group(function () {
     Route::post('/forgot-password', [PasswordforgotController::class, 'forgotPassword']);
     Route::post('/verify-reset-code', [PasswordforgotController::class, 'verifyResetCode']);
     Route::post('/reset-password', [PasswordforgotController::class, 'resetPassword']);
-    
-    // Auth Mobile
+
+    // Auth Mobile (Social)
     Route::post('/send-otp', [\App\Http\Controllers\Api\Authenticate\OtpController::class, 'sendOtp']);
     Route::post('/verify-otp', [\App\Http\Controllers\Api\Authenticate\OtpController::class, 'verifyOtp']);
     Route::post('/register-minimal', [\App\Http\Controllers\Api\Authenticate\RegisterController::class, 'registerMinimal']);
     Route::post('/google', [\App\Http\Controllers\Api\Authenticate\GoogleAuthController::class, 'handleGoogleAuth']);
     Route::post('/apple', [\App\Http\Controllers\Api\Authenticate\AppleAuthController::class, 'handleAppleAuth']);
+
+    // Finalisation de profil (publiques — pas de Sanctum, identifiées par pending_token)
+    Route::post('/finalize-profile/google', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfileGoogle']);
+    Route::post('/finalize-profile/apple', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfileApple']);
+    Route::post('/finalize-profile/phone', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfilePhone']);
 });
 
 // LIVREURS - Routes publiques
@@ -72,9 +77,6 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
         Route::post('/logout', [UserLoginController::class, 'logout']);
         Route::post('/deactivate', [UserLoginController::class, 'deactivateAccount']);
         Route::post('/toggle-push-notification', [UserLoginController::class, 'togglePushnotification']);
-        Route::post('/finalize-profile/google', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfileGoogle']);
-        Route::post('/finalize-profile/phone', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfilePhone']);
-        Route::post('/finalize-profile/apple', [\App\Http\Controllers\Api\Authenticate\ProfileCompletionController::class, 'finalizeProfileApple']);
 
         Route::get('/user', function (Request $request) {
             return $request->user();
@@ -138,7 +140,11 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::delete('/photo', [UserProfilController::class, 'deleteProfilePicture']);
             Route::put('/informations', [UserProfilController::class, 'updateInformations']);
             Route::put('/password', [UserProfilController::class, 'updatePassword']);
+            Route::post('/request-email-otp', [UserProfilController::class, 'requestEmailOtp']);
+            Route::put('/update-email', [UserProfilController::class, 'updateEmail']);
             Route::post('/request-phone-otp', [UserProfilController::class, 'requestPhoneOtp']);
+            Route::post('/social/request-phone-otp', [UserProfilController::class, 'requestPhoneOtpSocial']);
+            Route::put('/verify-email-otp', [UserProfilController::class, 'verifyEmailOtp']);
             Route::put('/update-phone', [UserProfilController::class, 'updatePhone']);
         });
         // --- NOUVELLES ROUTES POUR LES RENDEZ-VOUS ---

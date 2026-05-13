@@ -6,100 +6,75 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ProfileCompletionController extends Controller
 {
+    // ─────────────────────────────────────────────────────────────────────────
+    // GOOGLE
+    // ─────────────────────────────────────────────────────────────────────────
+
     /**
-     * Finalise le profil d'un utilisateur inscrit via Google.
+     * Finalise l'inscription/profil d'un utilisateur Google.
+     * Endpoint PUBLIC — deux modes de fonctionnement :
+     *
+     *   MODE 1 — Nouveau compte (pending_token fourni) :
+     *     Lit le Cache → crée le compte → retourne un token Sanctum.
+     *
+     *   MODE 2 — Compte existant avec profil incomplet (Bearer token fourni, pas de pending_token) :
+     *     Authentifie via Sanctum → met à jour le profil → retourne un token Sanctum.
+     *
+     * POST /api/utilisateurs/finalize-profile/google
      */
     public function finalizeProfileGoogle(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $hasPendingToken = $request->filled('pending_token');
 
-        $validator = Validator::make($request->all(), [
-            'NNI'              => 'nullable|string|max:50',
-            'password'         => 'required|string|min:8|confirmed',
-            'indicatif'        => 'required|string|max:10',
-            'contact'          => 'required|string|max:20|unique:users,contact,' . $user->id,
-            'diaspora'         => 'nullable|boolean',
-            'pays_residence'   => 'nullable|string|max:255',
-            'push_notification' => 'nullable|string|max:255',
-        ]);
+        // Résoudre l'utilisateur selon le mode
+        $authUser    = null;
+        $pendingData = null;
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
-            ], 422);
+        if ($hasPendingToken) {
+            // MODE 1 : nouveau compte
+            $pendingData = Cache::get('pending_google_' . $request->pending_token);
+            if (!$pendingData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session expirée ou invalide. Veuillez recommencer la connexion Google.'
+                ], 400);
+            }
+        } else {
+            // MODE 2 : utilisateur existant (Bearer token)
+            $authUser = auth('sanctum')->user();
+            if (!$authUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non autorisé. Fournissez un pending_token ou un Bearer token valide.'
+                ], 401);
+            }
         }
 
-        try {
-            $data = $request->only([
-                'NNI', 'indicatif', 'contact', 'diaspora', 'pays_residence'
-            ]);
-
-            $data['password'] = Hash::make($request->password);
-
-            if ($request->has('diaspora')) {
-                $data['diaspora'] = $request->boolean('diaspora');
-            }
-
-            // Sauvegarder le push token s'il est fourni
-            if ($request->filled('push_notification')) {
-                $data['push_notification'] = $request->push_notification;
-            }
-
-            $user->update($data);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Profil finalisé avec succès (Google).',
-                'data' => [
-                    'user' => [
-                        'id'               => $user->id,
-                        'name'             => $user->name,
-                        'prenom'           => $user->prenom,
-                        'email'            => $user->email,
-                        'contact'          => $user->contact,
-                        'indicatif'        => $user->indicatif,
-                        'NNI'              => $user->NNI,
-                        'diaspora'         => $user->diaspora,
-                        'pays_residence'   => $user->pays_residence,
-                        'push_notification' => $user->push_notification,
-                    ]
-                ]
-            ], 200);
-
-        } catch (\Exception $e) {
-            Log::error('Erreur finalizeProfileGoogle: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Une erreur est survenue lors de la finalisation du profil par Google.',
-                'error' => config('app.debug') ? $e->getMessage() : null
-            ], 500);
-        }
-    }
-
-    /**
-     * Finalise le profil d'un utilisateur inscrit via Apple.
-     */
-    public function finalizeProfileApple(Request $request): JsonResponse
-    {
-        $user = $request->user();
+        // Règles de validation communes
+        $contactUniqueRule = $hasPendingToken
+            ? 'required|string|max:20|unique:users,contact'
+            : 'required|string|max:20|unique:users,contact,' . ($authUser?->id ?? 0);
 
         $validator = Validator::make($request->all(), [
-            'name'              => 'required|string|max:255',
-            'prenom'            => 'required|string|max:255',
+            'pending_token'     => 'nullable|string',
+            'password'          => 'nullable|string|min:8|confirmed', // optionnel pour MODE 2
+            'indicatif'         => 'required|string|max:10',
+            'contact'           => $contactUniqueRule,
             'NNI'               => 'nullable|string|max:50',
-            'indicatif'         => 'nullable|string|max:10',
-            'contact'           => 'nullable|string|max:20|unique:users,contact,' . $user->id,
             'diaspora'          => 'nullable|boolean',
             'pays_residence'    => 'nullable|string|max:255',
             'push_notification' => 'nullable|string|max:255',
+        ], [
+            'contact.unique' => 'Ce numéro est déjà associé à un autre compte.',
         ]);
 
         if ($validator->fails()) {
@@ -111,33 +86,262 @@ class ProfileCompletionController extends Controller
         }
 
         try {
-            $data = $request->only(['name', 'prenom', 'NNI', 'indicatif', 'contact', 'pays_residence']);
+            // ── MODE 1 : Nouveau compte depuis le Cache ───────────────────────
+            if ($hasPendingToken) {
+                // Vérifier si le compte a déjà été créé (double appel)
+                $existing = User::where('google_id', $pendingData['google_id'])
+                                ->orWhere(function ($q) use ($pendingData) {
+                                    if (!empty($pendingData['email'])) {
+                                        $q->where('email', $pendingData['email']);
+                                    }
+                                })
+                                ->first();
 
-            if ($request->has('diaspora')) {
-                $data['diaspora'] = $request->boolean('diaspora');
-            }
-            if ($request->filled('push_notification')) {
-                $data['push_notification'] = $request->push_notification;
+                if ($existing) {
+                    Cache::forget('pending_google_' . $request->pending_token);
+                    $token = $existing->createToken('user-api-token')->plainTextToken;
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Compte déjà existant — connexion effectuée.',
+                        'data'    => [
+                            'token'      => $token,
+                            'token_type' => 'Bearer',
+                            'user'       => $this->formatUser($existing),
+                        ]
+                    ], 200);
+                }
+
+                $user = User::create([
+                    'name'              => $pendingData['name'],
+                    'prenom'            => $pendingData['prenom'],
+                    'email'             => $pendingData['email'],
+                    'google_id'         => $pendingData['google_id'],
+                    'profile_picture'   => $pendingData['profile_picture'] ?? null,
+                    'commune'           => 'plateau',
+                    'password'          => Hash::make($request->password ?? Str::random(24)),
+                    'indicatif'         => $request->indicatif,
+                    'contact'           => $request->contact,
+                    'NNI'               => $request->NNI,
+                    'diaspora'          => $request->boolean('diaspora'),
+                    'pays_residence'    => $request->pays_residence,
+                    'push_notification' => $request->push_notification ?? $pendingData['push_notification'] ?? null,
+                ]);
+
+                Cache::forget('pending_google_' . $request->pending_token);
+
+                Log::info('Google Auth - Nouveau compte créé et finalisé', [
+                    'user_id' => $user->id,
+                    'email'   => $user->email,
+                ]);
+
+                $token = $user->createToken('user-api-token')->plainTextToken;
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Inscription Google finalisée avec succès.',
+                    'data'    => [
+                        'token'      => $token,
+                        'token_type' => 'Bearer',
+                        'user'       => $this->formatUser($user),
+                    ]
+                ], 201);
             }
 
-            $user->update($data);
+            // ── MODE 2 : Mise à jour d'un compte existant ────────────────────
+            $updateData = [
+                'indicatif'      => $request->indicatif,
+                'contact'        => $request->contact,
+                'diaspora'       => $request->boolean('diaspora'),
+                'pays_residence' => $request->pays_residence,
+            ];
+
+            if ($request->filled('NNI'))               $updateData['NNI']               = $request->NNI;
+            if ($request->filled('push_notification')) $updateData['push_notification'] = $request->push_notification;
+            if ($request->filled('password'))          $updateData['password']          = Hash::make($request->password);
+
+            $authUser->update($updateData);
+
+            Log::info('Google Auth - Profil complété (compte existant)', [
+                'user_id' => $authUser->id,
+            ]);
+
+            $token = $authUser->createToken('user-api-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
-                'message' => 'Profil finalisé avec succès (Apple).',
+                'message' => 'Profil Google complété avec succès.',
                 'data'    => [
-                    'user' => [
-                        'id'                => $user->id,
-                        'name'              => $user->name,
-                        'prenom'            => $user->prenom,
-                        'email'             => $user->email,
-                        'contact'           => $user->contact,
-                        'indicatif'         => $user->indicatif,
-                        'NNI'               => $user->NNI,
-                        'diaspora'          => $user->diaspora,
-                        'pays_residence'    => $user->pays_residence,
-                        'push_notification' => $user->push_notification,
+                    'token'      => $token,
+                    'token_type' => 'Bearer',
+                    'user'       => $this->formatUser($authUser),
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur finalizeProfileGoogle: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la finalisation.',
+                'error'   => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // APPLE
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Finalise l'inscription/profil d'un utilisateur Apple.
+     * Endpoint PUBLIC — deux modes de fonctionnement :
+     *
+     *   MODE 1 — Nouveau compte (pending_token fourni) :
+     *     Lit le Cache → crée le compte → retourne un token Sanctum.
+     *
+     *   MODE 2 — Compte existant avec profil incomplet (Bearer token fourni, pas de pending_token) :
+     *     Authentifie via Sanctum → met à jour le profil → retourne un token Sanctum.
+     *
+     * POST /api/utilisateurs/finalize-profile/apple
+     */
+    public function finalizeProfileApple(Request $request): JsonResponse
+    {
+        $hasPendingToken = $request->filled('pending_token');
+
+        $authUser    = null;
+        $pendingData = null;
+
+        if ($hasPendingToken) {
+            $pendingData = Cache::get('pending_apple_' . $request->pending_token);
+            if (!$pendingData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session expirée ou invalide. Veuillez recommencer la connexion Apple.'
+                ], 400);
+            }
+        } else {
+            $authUser = auth('sanctum')->user();
+            if (!$authUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non autorisé. Fournissez un pending_token ou un Bearer token valide.'
+                ], 401);
+            }
+        }
+
+        $contactUniqueRule = $hasPendingToken
+            ? 'nullable|string|max:20|unique:users,contact'
+            : 'nullable|string|max:20|unique:users,contact,' . ($authUser?->id ?? 0);
+
+        $validator = Validator::make($request->all(), [
+            'pending_token'     => 'nullable|string',
+            'name'              => 'required|string|max:255',
+            'prenom'            => 'required|string|max:255',
+            'indicatif'         => 'nullable|string|max:10',
+            'contact'           => $contactUniqueRule,
+            'NNI'               => 'nullable|string|max:50',
+            'diaspora'          => 'nullable|boolean',
+            'pays_residence'    => 'nullable|string|max:255',
+            'push_notification' => 'nullable|string|max:255',
+        ], [
+            'contact.unique' => 'Ce numéro est déjà associé à un autre compte.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // ── MODE 1 : Nouveau compte depuis le Cache ───────────────────────
+            if ($hasPendingToken) {
+                $existing = User::where('apple_id', $pendingData['apple_id'])
+                                ->orWhere(function ($q) use ($pendingData) {
+                                    if (!empty($pendingData['email'])) {
+                                        $q->where('email', $pendingData['email']);
+                                    }
+                                })
+                                ->first();
+
+                if ($existing) {
+                    Cache::forget('pending_apple_' . $request->pending_token);
+                    $token = $existing->createToken('user-api-token')->plainTextToken;
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Compte déjà existant — connexion effectuée.',
+                        'data'    => [
+                            'token'      => $token,
+                            'token_type' => 'Bearer',
+                            'user'       => $this->formatUser($existing),
+                        ]
+                    ], 200);
+                }
+
+                $user = User::create([
+                    'name'              => $request->name,
+                    'prenom'            => $request->prenom,
+                    'email'             => $pendingData['email'],
+                    'apple_id'          => $pendingData['apple_id'],
+                    'commune'           => 'plateau',
+                    'password'          => Hash::make(Str::random(24)),
+                    'indicatif'         => $request->indicatif,
+                    'contact'           => $request->contact,
+                    'NNI'               => $request->NNI,
+                    'diaspora'          => $request->boolean('diaspora'),
+                    'pays_residence'    => $request->pays_residence,
+                    'push_notification' => $request->push_notification ?? $pendingData['push_notification'] ?? null,
+                ]);
+
+                Cache::forget('pending_apple_' . $request->pending_token);
+
+                Log::info('Apple Auth - Nouveau compte créé et finalisé', [
+                    'user_id'  => $user->id,
+                    'apple_id' => $user->apple_id,
+                ]);
+
+                $token = $user->createToken('user-api-token')->plainTextToken;
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Inscription Apple finalisée avec succès.',
+                    'data'    => [
+                        'token'      => $token,
+                        'token_type' => 'Bearer',
+                        'user'       => $this->formatUser($user),
                     ]
+                ], 201);
+            }
+
+            // ── MODE 2 : Mise à jour d'un compte existant ────────────────────
+            $updateData = [
+                'name'   => $request->name,
+                'prenom' => $request->prenom,
+            ];
+
+            if ($request->filled('indicatif'))         $updateData['indicatif']         = $request->indicatif;
+            if ($request->filled('contact'))           $updateData['contact']           = $request->contact;
+            if ($request->filled('NNI'))               $updateData['NNI']               = $request->NNI;
+            if ($request->has('diaspora'))             $updateData['diaspora']          = $request->boolean('diaspora');
+            if ($request->filled('pays_residence'))    $updateData['pays_residence']    = $request->pays_residence;
+            if ($request->filled('push_notification')) $updateData['push_notification'] = $request->push_notification;
+
+            $authUser->update($updateData);
+
+            Log::info('Apple Auth - Profil complété (compte existant)', [
+                'user_id' => $authUser->id,
+            ]);
+
+            $token = $authUser->createToken('user-api-token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil Apple complété avec succès.',
+                'data'    => [
+                    'token'      => $token,
+                    'token_type' => 'Bearer',
+                    'user'       => $this->formatUser($authUser),
                 ]
             ], 200);
 
@@ -145,28 +349,66 @@ class ProfileCompletionController extends Controller
             Log::error('Erreur finalizeProfileApple: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Une erreur est survenue lors de la finalisation du profil Apple.',
+                'message' => 'Une erreur est survenue lors de la finalisation.',
                 'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // PHONE (OTP)
+    // ─────────────────────────────────────────────────────────────────────────
+
     /**
-     * Finalise le profil d'un utilisateur inscrit via Téléphone (OTP).
+     * Finalise l'inscription/profil d'un utilisateur Téléphone (OTP).
+     * Endpoint PUBLIC — deux modes de fonctionnement :
+     *
+     *   MODE 1 — Nouveau compte (pending_token fourni) :
+     *     Lit le Cache → crée le compte → retourne un token Sanctum.
+     *
+     *   MODE 2 — Compte existant avec profil incomplet (Bearer token fourni, pas de pending_token) :
+     *     Authentifie via Sanctum → met à jour le profil → retourne un token Sanctum.
+     *
+     * POST /api/utilisateurs/finalize-profile/phone
      */
     public function finalizeProfilePhone(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $hasPendingToken = $request->filled('pending_token');
+
+        $authUser    = null;
+        $pendingData = null;
+
+        if ($hasPendingToken) {
+            $pendingData = Cache::get('pending_phone_' . $request->pending_token);
+            if (!$pendingData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session expirée ou invalide. Veuillez recommencer la vérification par SMS.'
+                ], 400);
+            }
+        } else {
+            $authUser = auth('sanctum')->user();
+            if (!$authUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non autorisé. Fournissez un pending_token ou un Bearer token valide.'
+                ], 401);
+            }
+        }
+
+        $emailUniqueRule = $hasPendingToken
+            ? 'nullable|email|unique:users,email'
+            : 'nullable|email|unique:users,email,' . ($authUser?->id ?? 0);
 
         $validator = Validator::make($request->all(), [
-            'name'             => 'required|string|max:255',
-            'prenom'           => 'required|string|max:255',
-            'NNI'              => 'nullable|string|max:50',
-            'email'            => 'nullable|email|unique:users,email,' . $user->id,
-            'password'         => 'required|string|min:8|confirmed',
-            'indicatif'        => 'nullable|string|max:10',
-            'diaspora'         => 'nullable|boolean',
-            'pays_residence'   => 'nullable|string|max:255',
+            'pending_token'     => 'nullable|string',
+            'name'              => 'required|string|max:255',
+            'prenom'            => 'required|string|max:255',
+            'NNI'               => 'nullable|string|max:50',
+            'email'             => $emailUniqueRule,
+            'password'          => 'required|string|min:8|confirmed',
+            'diaspora'          => 'nullable|boolean',
+            'pays_residence'    => 'nullable|string|max:255',
             'push_notification' => 'nullable|string|max:255',
         ], [
             'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
@@ -176,44 +418,96 @@ class ProfileCompletionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
         try {
-            $data = $request->only([
-                'name', 'prenom', 'email', 'NNI', 'indicatif', 'diaspora', 'pays_residence'
+            // ── MODE 1 : Nouveau compte depuis le Cache ───────────────────────
+            if ($hasPendingToken) {
+                $existing = User::where('contact', $pendingData['contact'])
+                                ->where('indicatif', $pendingData['indicatif'])
+                                ->whereNotNull('name')
+                                ->first();
+
+                if ($existing) {
+                    Cache::forget('pending_phone_' . $request->pending_token);
+                    $token = $existing->createToken('user-api-token')->plainTextToken;
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Compte déjà existant — connexion effectuée.',
+                        'data'    => [
+                            'token'      => $token,
+                            'token_type' => 'Bearer',
+                            'user'       => $this->formatUser($existing),
+                        ]
+                    ], 200);
+                }
+
+                $user = User::create([
+                    'name'              => $request->name,
+                    'prenom'            => $request->prenom,
+                    'email'             => $request->email,
+                    'indicatif'         => $pendingData['indicatif'],
+                    'contact'           => $pendingData['contact'],
+                    'commune'           => 'plateau',
+                    'password'          => Hash::make($request->password),
+                    'NNI'               => $request->NNI,
+                    'diaspora'          => $request->boolean('diaspora'),
+                    'pays_residence'    => $request->pays_residence,
+                    'phone_verified_at' => $pendingData['phone_verified_at'],
+                    'push_notification' => $request->push_notification,
+                ]);
+
+                Cache::forget('pending_phone_' . $request->pending_token);
+
+                Log::info('Phone Auth - Nouveau compte créé et finalisé', [
+                    'user_id'   => $user->id,
+                    'indicatif' => $user->indicatif,
+                    'contact'   => $user->contact,
+                ]);
+
+                $token = $user->createToken('user-api-token')->plainTextToken;
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Inscription finalisée avec succès.',
+                    'data'    => [
+                        'token'      => $token,
+                        'token_type' => 'Bearer',
+                        'user'       => $this->formatUser($user),
+                    ]
+                ], 201);
+            }
+
+            // ── MODE 2 : Mise à jour d'un compte existant ────────────────────
+            $updateData = [
+                'name'     => $request->name,
+                'prenom'   => $request->prenom,
+                'password' => Hash::make($request->password),
+            ];
+
+            if ($request->filled('email'))             $updateData['email']             = $request->email;
+            if ($request->filled('NNI'))               $updateData['NNI']               = $request->NNI;
+            if ($request->has('diaspora'))             $updateData['diaspora']          = $request->boolean('diaspora');
+            if ($request->filled('pays_residence'))    $updateData['pays_residence']    = $request->pays_residence;
+            if ($request->filled('push_notification')) $updateData['push_notification'] = $request->push_notification;
+
+            $authUser->update($updateData);
+
+            Log::info('Phone Auth - Profil complété (compte existant)', [
+                'user_id' => $authUser->id,
             ]);
 
-            $data['password'] = Hash::make($request->password);
-
-            if ($request->has('diaspora')) {
-                $data['diaspora'] = $request->boolean('diaspora');
-            }
-
-            // Sauvegarder le push token s'il est fourni
-            if ($request->filled('push_notification')) {
-                $data['push_notification'] = $request->push_notification;
-            }
-
-            $user->update($data);
+            $token = $authUser->createToken('user-api-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
-                'message' => 'Profil finalisé avec succès (Téléphone).',
-                'data' => [
-                    'user' => [
-                        'id'               => $user->id,
-                        'name'             => $user->name,
-                        'prenom'           => $user->prenom,
-                        'email'            => $user->email,
-                        'contact'          => $user->contact,
-                        'indicatif'        => $user->indicatif,
-                        'NNI'              => $user->NNI,
-                        'diaspora'         => $user->diaspora,
-                        'pays_residence'   => $user->pays_residence,
-                        'push_notification' => $user->push_notification,
-                    ]
+                'message' => 'Profil finalisé avec succès.',
+                'data'    => [
+                    'token'      => $token,
+                    'token_type' => 'Bearer',
+                    'user'       => $this->formatUser($authUser),
                 ]
             ], 200);
 
@@ -221,9 +515,33 @@ class ProfileCompletionController extends Controller
             Log::error('Erreur finalizeProfilePhone: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Une erreur est survenue lors de la finalisation du profil par téléphone.',
-                'error' => config('app.debug') ? $e->getMessage() : null
+                'message' => 'Une erreur est survenue lors de la finalisation.',
+                'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function formatUser(User $user): array
+    {
+        $pic = $user->profile_picture;
+        return [
+            'id'                => $user->id,
+            'name'              => $user->name,
+            'prenom'            => $user->prenom,
+            'email'             => $user->email,
+            'indicatif'         => $user->indicatif,
+            'contact'           => $user->contact,
+            'NNI'               => $user->NNI,
+            'diaspora'          => (bool) $user->diaspora,
+            'pays_residence'    => $user->pays_residence,
+            'push_notification' => $user->push_notification,
+            'profile_picture'   => $pic
+                ? (Str::startsWith($pic, ['http://', 'https://']) ? $pic : Storage::url($pic))
+                : null,
+        ];
     }
 }

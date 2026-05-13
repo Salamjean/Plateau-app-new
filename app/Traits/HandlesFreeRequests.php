@@ -83,14 +83,34 @@ trait HandlesFreeRequests
 
     /**
      * Incrémente le compteur de demandes gratuites utilisées
-     * 
-     * @param \App\Models\User $user
-     * @param int $count Nombre de demandes gratuites utilisées
      */
     protected function incrementFreeRequestsUsed($user, int $count = 1): void
     {
         $user->free_requests_used = min($user->free_requests_used + $count, 2);
         $user->save();
+    }
+
+    /**
+     * Incrémente le compteur après confirmation du paiement d'une demande.
+     * À appeler dans les webhooks / handlers de succès de paiement.
+     * Sans effet si la demande n'a pas de timbres gratuits.
+     *
+     * @param \App\Models\Naissance|\App\Models\Mariage|\App\Models\Deces $demande
+     */
+    protected function incrementFreeRequestsFromDemande($demande): void
+    {
+        if (empty($demande->is_free_request) || empty($demande->free_timbres_count)) {
+            return;
+        }
+
+        $user = \App\Models\User::find($demande->user_id);
+        if (!$user) {
+            return;
+        }
+
+        $this->incrementFreeRequestsUsed($user, (int) $demande->free_timbres_count);
+
+        \Illuminate\Support\Facades\Log::info("FreeRequests incrément après paiement [{$demande->reference}]: +{$demande->free_timbres_count} (total: {$user->free_requests_used})");
     }
 
     /**

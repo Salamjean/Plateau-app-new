@@ -153,25 +153,18 @@ class DecesController extends Controller
         $deces->save();
 
         // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
-        $user->refresh(); // Rafraîchir les données utilisateur
+        $user->refresh();
         $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
-        
-        if ($freeCalc['free_timbres'] > 0) {
-            // Incrémenter le compteur de demandes gratuites utilisées
-            $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-            
-            Log::info("Demandes gratuites - Deces {$deces->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
-        }
+
+        Log::info("Demandes gratuites - Deces {$deces->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
 
         if ($request->input('choix_option') === 'livraison') {
-            // Recalculer le montant en tenant compte des timbres gratuits
             $montantTimbreTotal = $freeCalc['montant_timbre_total'];
             $montantLivraison = (float) $deces->montant_livraison;
             $totalAmount = $montantTimbreTotal + $montantLivraison;
-            
-            // Mettre à jour le montant timbre dans la demande
+
             $deces->montant_timbre = $montantTimbreTotal;
-            $deces->is_free_request = $freeCalc['free_timbres'] > 0 ? true : false;
+            $deces->is_free_request = $freeCalc['free_timbres'] > 0;
             $deces->free_timbres_count = $freeCalc['free_timbres'];
             $deces->save();
 
@@ -267,9 +260,12 @@ class DecesController extends Controller
                     }
                 }
             } else {
-                // Tout est gratuit (timbres + pas de livraison surplus), valider directement
+                // Livraison totalement gratuite (timbres + livraison = 0)
                 $deces->etat = 'en attente';
                 $deces->save();
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                }
             }
         } else {
             // Retrait sur place
@@ -278,8 +274,11 @@ class DecesController extends Controller
             if ($freeCalc['free_timbres'] > 0) {
                 $deces->is_free_request = true;
                 $deces->free_timbres_count = $freeCalc['free_timbres'];
+                $deces->save();
+                $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+            } else {
+                $deces->save();
             }
-            $deces->save();
         }
 
         $phoneNumber = $user->indicatif . $user->contact;

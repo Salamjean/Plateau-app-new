@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\DeletionRequestMail;
 
@@ -28,8 +30,8 @@ class ProfiluserController extends Controller
      */
     public function update(Request $request)
     {
-        $user = Auth::user();
-        $isGoogleUser = !empty($user->google_id);
+        $user      = Auth::user();
+        $isSocial  = !empty($user->google_id) || !empty($user->apple_id);
 
         $rules = [
             'name'              => 'required|string|max:255',
@@ -45,8 +47,8 @@ class ProfiluserController extends Controller
             'profile_picture'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:25600',
         ];
 
-        // Les utilisateurs Google n'ont pas de mot de passe → pas de confirmation requise
-        if (!$isGoogleUser) {
+        // Mot de passe requis uniquement pour les utilisateurs normaux
+        if (!$isSocial) {
             $rules['password']     = 'required|current_password';
             $rules['new_password'] = ['nullable', 'confirmed', 'different:password', Password::min(8)];
         }
@@ -126,6 +128,95 @@ class ProfiluserController extends Controller
             return back()->with('success', 'Votre demande de suppression de compte a été envoyée avec succès. Notre équipe traitera votre demande prochainement.');
         } catch (\Exception $e) {
             return back()->with('error', 'Une erreur s\'est produite lors de l\'envoi de votre demande. Veuillez réessayer plus tard.')->withInput();
+        }
+    }
+
+    /**
+     * Envoie un OTP au nouvel email pour confirmer le changement (Web AJAX).
+     */
+    public function requestEmailOtp(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+        ], [
+            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
+        ]);
+
+        try {
+            $otp = rand(100000, 999999);
+
+            Cache::put('email_change_otp_' . $user->id, [
+                'otp'       => $otp,
+                'new_email' => $request->email,
+            ], now()->addMinutes(10));
+
+            Log::info('Web EmailOTP Tentative envoi', [
+                'user_id'   => $user->id,
+                'new_email' => $request->email,
+            ]);
+
+            Mail::raw(
+                "Bonjour " . ($user->prenom ?? $user->name) . ",\n\n"
+                . "Votre code de confirmation pour changer votre adresse email sur Plateau App est :\n\n"
+                . "    " . $otp . "\n\n"
+                . "Ce code est valable 10 minutes.\n"
+                . "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+                function ($message) use ($request) {
+                    $message->to($request->email)
+                            ->subject('Code de confirmation - Changement d\'email Plateau App');
+                }
+            );
+
+            Log::info('Web EmailOTP Envoyé avec succès', [
+                'user_id'   => $user->id,
+                'new_email' => $request->email,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Code envoyé à ' . $request->email]);
+
+        } catch (\Exception $e) {
+            Log::error('Web EmailOTP Échec', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Erreur lors de l\'envoi du code.'], 500);
+        }
+    }
+
+    /**
+     * Vérifie l'OTP et met à jour l'email (Web AJAX).
+     */
+    public function updateEmail(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate(['otp' => 'required|string|size:6']);
+
+        $cached = Cache::get('email_change_otp_' . $user->id);
+
+        if (!$cached) {
+            return response()->json(['success' => false, 'message' => 'Aucun code en attente. Faites d\'abord une demande.'], 400);
+        }
+
+        if ((string) $cached['otp'] !== (string) $request->otp) {
+            return response()->json(['success' => false, 'message' => 'Code incorrect ou expiré.'], 422);
+        }
+
+        try {
+            Cache::forget('email_change_otp_' . $user->id);
+            $ancienEmail = $user->email;
+            $user->update(['email' => $cached['new_email']]);
+
+            Log::info('Web EmailOTP Email mis à jour', [
+                'user_id'       => $user->id,
+                'ancien_email'  => $ancienEmail,
+                'nouveau_email' => $cached['new_email'],
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Email mis à jour avec succès.', 'email' => $user->email]);
+
+        } catch (\Exception $e) {
+            Log::error('Web EmailOTP Échec mise à jour', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Erreur serveur.'], 500);
         }
     }
 

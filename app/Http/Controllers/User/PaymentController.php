@@ -9,11 +9,13 @@ use App\Models\Naissance;
 use App\Models\Paiement;
 use App\Models\User;
 use App\Services\WaveService;
+use App\Traits\HandlesFreeRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+    use HandlesFreeRequests;
     public function success(Request $request)
     {
         $reference = $request->query('reference');
@@ -80,6 +82,9 @@ class PaymentController extends Controller
                 $demande->statut_livraison = 'en attente';
             }
             $demande->save();
+
+            // Incrémenter le compteur de demandes gratuites si applicable
+            $this->incrementFreeRequestsFromDemande($demande);
         } else {
             Log::info("Paiement déjà enregistré (webhook reçu). Paiement ID: {$paiement->id}");
         }
@@ -177,6 +182,9 @@ class PaymentController extends Controller
                         $demande->statut_livraison = 'en attente';
                     }
                     $demande->save();
+
+                    // Incrémenter le compteur de demandes gratuites si applicable
+                    $this->incrementFreeRequestsFromDemande($demande);
                 }
             }
             return response()->json(['status' => 'SUCCESSFUL', 'redirect' => route('payment.success', ['reference' => $reference, 'type' => $type])]);

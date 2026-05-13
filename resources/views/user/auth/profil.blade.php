@@ -503,16 +503,9 @@
                 <div class="card-body">
                     <div class="form-group">
                         <label class="form-label">Numéro de Téléphone</label>
-                        <div class="phone-group">
-                            <select name="indicatif" class="phone-select" required>
-                                <option value="+225" {{ old('indicatif', auth()->user()->indicatif) == '+225' ? 'selected' : '' }}>+225</option>
-                                <option value="+33" {{ old('indicatif', auth()->user()->indicatif) == '+33' ? 'selected' : '' }}>+33</option>
-                                <option value="+1" {{ old('indicatif', auth()->user()->indicatif) == '+1' ? 'selected' : '' }}>+1</option>
-                                <option value="+32" {{ old('indicatif', auth()->user()->indicatif) == '+32' ? 'selected' : '' }}>+32</option>
-                            </select>
-                            <input type="tel" class="form-control1" name="contact" 
-                                   value="{{ old('contact', auth()->user()->contact) }}" placeholder="Votre numéro" required>
-                        </div>
+                        <input type="hidden" name="indicatif" value="+225">
+                        <input type="tel" class="form-control1" name="contact" 
+                               value="{{ old('contact', auth()->user()->contact) }}" placeholder="Votre numéro" required>
                         @error('contact')
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i> {{ $message }}

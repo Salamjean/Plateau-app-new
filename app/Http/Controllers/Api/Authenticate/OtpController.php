@@ -5,43 +5,41 @@ namespace App\Http\Controllers\Api\Authenticate;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\User;
 use App\Services\YellikaSmsService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class OtpController extends Controller
 {
     /**
      * Envoie un code OTP par SMS.
+     * POST /api/utilisateurs/send-otp
      */
     public function sendOtp(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'indicatif' => 'required|string',
-            'contact' => 'required|string',
+            'contact'   => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
         try {
-            $indicatif = preg_replace('/[^0-9]/', '', $request->indicatif);
-            $contact = preg_replace('/[^0-9]/', '', $request->contact);
-            $phone = $indicatif . $contact;
+            $indicatif = $request->indicatif;
+            $contact   = $request->contact;
+            $phone     = preg_replace('/[^0-9]/', '', $indicatif . $contact);
 
-            // Vérifier si le numéro de téléphone est déjà associé à un compte complet (avec mot de passe)
-            $existingUser = \App\Models\User::where(function ($query) use ($contact, $request) {
-                $query->where('contact', $contact)
-                      ->orWhere('contact', $request->contact);
-            })->first();
-            
-            // Si l'utilisateur a un mot de passe, c'est que son compte est finalisé
+            // Bloquer si le numéro est déjà attaché à un compte complet (finalisé)
+            $existingUser = User::where('contact', $contact)->first();
             if ($existingUser && $existingUser->password !== null) {
                 return response()->json([
                     'success' => false,
@@ -49,114 +47,134 @@ class OtpController extends Controller
                 ], 403);
             }
 
-            // Générer un code à 6 chiffres
             $otp = rand(100000, 999999);
-
-            // Stocker en cache pour 10 minutes
             Cache::put('otp_' . $phone, $otp, now()->addMinutes(10));
 
-            // Envoi du SMS
-            $message = "Votre code de vérification est : " . $otp;
             $smsService = app(YellikaSmsService::class);
-            $result = $smsService->sendSms($phone, $message);
+            $result     = $smsService->sendSms($phone, "Votre code de vérification Plateau App est : " . $otp);
 
-            if ($result && $result['success']) {
+            if ($result && isset($result['success']) && $result['success']) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Code de vérification envoyé avec succès.',
                 ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Une erreur est survenue lors de l\'envoi du SMS.',
-                ], 500);
             }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'envoi du SMS.',
+            ], 500);
 
         } catch (\Exception $e) {
             Log::error('Erreur sendOtp : ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur serveur.',
-                'error' => config('app.debug') ? $e->getMessage() : null,
+                'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
 
     /**
-     * Vérifie le code OTP envoyé.
+     * Vérifie le code OTP.
+     * Si valide → stocke les données en Cache (pending_token) SANS créer de compte en base.
+     * Le compte sera créé uniquement lors de /finalize-profile/phone.
+     *
+     * POST /api/utilisateurs/verify-otp
      */
     public function verifyOtp(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'indicatif' => 'required|string',
-            'contact' => 'required|string',
-            'otp' => 'required|string',
+            'contact'   => 'required|string',
+            'otp'       => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
-        $indicatif = preg_replace('/[^0-9]/', '', $request->indicatif);
-        $contact = preg_replace('/[^0-9]/', '', $request->contact);
-        $phone = $indicatif . $contact;
+        $indicatif = $request->indicatif;
+        $contact   = $request->contact;
+        $phone     = preg_replace('/[^0-9]/', '', $indicatif . $contact);
 
         $cachedOtp = Cache::get('otp_' . $phone);
 
-        if (!$cachedOtp || $cachedOtp != $request->otp) {
+        if (!$cachedOtp || (string) $cachedOtp !== (string) $request->otp) {
             return response()->json([
                 'success' => false,
                 'message' => 'Le code de vérification est invalide ou a expiré.',
             ], 400);
         }
 
-        // Si valide, on le supprime et on marque le numéro comme vérifié temporellement
         Cache::forget('otp_' . $phone);
-        Cache::put('otp_verified_' . $phone, true, now()->addMinutes(30));
 
         try {
-            // Cherche si l'utilisateur existe déjà
-            $user = \App\Models\User::where('contact', $contact)
-                        ->where('indicatif', $request->indicatif)
-                        ->first();
+            // Vérifier si le numéro appartient déjà à un compte existant et finalisé
+            $existingUser = User::where('contact', $contact)
+                               ->where('indicatif', $indicatif)
+                               ->whereNotNull('name')
+                               ->whereNotNull('password')
+                               ->first();
 
-            if (!$user) {
-                // Création d'un utilisateur "vide" pour finaliser le profil plus tard
-                $user = \App\Models\User::create([
-                    'indicatif' => $request->indicatif,
-                    'contact' => $request->contact,
-                    'commune' => 'plateau',
-                    'phone_verified_at' => now(),
+            if ($existingUser) {
+                // Connexion directe (compte déjà finalisé)
+                $token = $existingUser->createToken('user-api-token')->plainTextToken;
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Connexion réussie.',
+                    'data'    => [
+                        'is_new_user' => false,
+                        'user'        => [
+                            'id'        => $existingUser->id,
+                            'name'      => $existingUser->name,
+                            'prenom'    => $existingUser->prenom,
+                            'indicatif' => $existingUser->indicatif,
+                            'contact'   => $existingUser->contact,
+                        ],
+                        'token'      => $token,
+                        'token_type' => 'Bearer',
+                    ]
                 ]);
             }
 
-            // Génération du token (valide pour 10 minutes) pour l'étape de finalisation du profil
-            $token = $user->createToken('user-api-token', ['*'], now()->addMinutes(10))->plainTextToken;
+            // Nouveau numéro → stocker en Cache, PAS en base
+            $pendingToken = Str::uuid()->toString();
+
+            Cache::put('pending_phone_' . $pendingToken, [
+                'indicatif'         => $indicatif,
+                'contact'           => $contact,
+                'phone_verified_at' => now()->toDateTimeString(),
+            ], now()->addHours(1));
+
+            Log::info('OTP vérifié - Nouveau compte en attente de finalisation', [
+                'indicatif' => $indicatif,
+                'contact'   => $contact,
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Numéro de téléphone vérifié avec succès.',
-                'data' => [
-                    'user' => [
-                        'id' => $user->id,
-                        'contact' => $user->contact,
-                        'indicatif' => $user->indicatif,
+                'message' => 'Numéro vérifié. Veuillez finaliser votre inscription.',
+                'data'    => [
+                    'is_new_user'   => true,
+                    'pending_token' => $pendingToken,
+                    'user'          => [
+                        'indicatif' => $indicatif,
+                        'contact'   => $contact,
                     ],
-                    'token' => $token,
-                    'token_type' => 'Bearer'
                 ]
             ]);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Erreur verifyOtp : ' . $e->getMessage());
+            Log::error('Erreur verifyOtp : ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la vérification.',
-                'error' => config('app.debug') ? $e->getMessage() : null
+                'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }

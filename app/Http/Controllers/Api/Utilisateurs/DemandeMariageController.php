@@ -117,11 +117,7 @@ class DemandeMariageController extends Controller
             // --- GESTION DES DEMANDES GRATUITES ---
             $user->refresh();
             $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
-            
-            if ($freeCalc['free_timbres'] > 0) {
-                $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-                Log::info("Demandes gratuites - Mariage (API) {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits");
-            }
+            Log::info("Demandes gratuites - Mariage (API) {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} payants");
 
             if ($request->choix_option === 'livraison') {
                 $montantTimbreTotal = $freeCalc['montant_timbre_total'];
@@ -163,7 +159,12 @@ class DemandeMariageController extends Controller
 
             // 5. Réponse conditionnelle (Cas "Retrait" ou "Gratuit Livraison")
             if ($totalAmount == 0) {
-                // Envoi des notifications (SMS & Email) 
+                // Incrémenter le compteur SEULEMENT maintenant (pas de paiement requis)
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                }
+
+                // Envoi des notifications (SMS & Email)
                 try {
                     $phoneNumber = $user->indicatif . $user->contact;
                     $message = "Bonjour {$user->name}, votre demande d'extrait de mariage a bien été transmise à la mairie du plateau. Référence : {$mariage->reference}.
@@ -179,6 +180,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'success' => true,
                     'message' => 'Demande de mariage créée avec succès (gratuite ou retrait)',
                     'requires_payment' => false,
+                    'free_requests' => [
+                        'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
+                        'economie' => $freeCalc['montant_timbre_gratuit'],
+                        'restants' => $this->getRemainingFreeRequests($user),
+                    ],
                     'data' => ['demande' => $this->formatDemandeResponse($mariage)]
                 ], 201);
             }
@@ -202,7 +208,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
-
+                'free_requests' => [
+                    'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
+                    'economie' => $freeCalc['montant_timbre_gratuit'],
+                    'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
+                ],
                 'payment_details' => [
                     'payment_url' => $paymentLinkResult['payment_url'],
                     'transaction_id' => $paymentLinkResult['generated_transaction_id'],
@@ -658,9 +668,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
      */
     private function formatDemandeResponse(Mariage $mariage, bool $includeFiles = false)
     {
-        $montant_total_timbres = (float) ($mariage->montant_timbre ?? 0) * (int) ($mariage->quantite ?? 1);
+        // montant_timbre est le TOTAL des timbres payants (après déduction des timbres gratuits)
         $montant_total = $mariage->choix_option === 'livraison'
-            ? $montant_total_timbres + (float) ($mariage->montant_livraison ?? 0)
+            ? (float) ($mariage->montant_timbre ?? 0) + (float) ($mariage->montant_livraison ?? 0)
             : 0;
 
         $data = [
