@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Authenticate;
 
 use App\Http\Controllers\Controller;
+use App\Models\MaintenanceSetting;
+use App\Traits\HandlesFreeRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\User;
@@ -15,6 +17,7 @@ use Illuminate\Support\Str;
 
 class GoogleAuthController extends Controller
 {
+    use HandlesFreeRequests;
     /**
      * Gère la connexion et l'inscription via Google.
      *
@@ -193,14 +196,24 @@ class GoogleAuthController extends Controller
     private function formatUser(User $user): array
     {
         $pic = $user->profile_picture;
+        $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+        $freeRequestsRemaining  = $this->getRemainingFreeRequests($user);
+
         return [
-            'id'              => $user->id,
-            'name'            => $user->name,
-            'prenom'          => $user->prenom,
-            'email'           => $user->email,
-            'profile_picture' => $pic
+            'id'                        => $user->id,
+            'name'                      => $user->name,
+            'prenom'                    => $user->prenom,
+            'email'                     => $user->email,
+            'commune'                   => $user->commune,
+            'contact'                   => $user->contact,
+            'profile_picture'           => $pic
                 ? (Str::startsWith($pic, ['http://', 'https://']) ? $pic : Storage::url($pic))
                 : null,
+            'diaspora'                  => $user->diaspora,
+            'free_requests_mode_active' => $freeRequestsModeActive,
+            'free_requests_used'        => (int) $user->free_requests_used,
+            'free_requests_remaining'   => $freeRequestsRemaining,
+            'push_notification'         => $user->push_notification,
         ];
     }
 }
