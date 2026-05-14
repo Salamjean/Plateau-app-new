@@ -1727,3 +1727,73 @@ section,
 .starter-section {
   /* Add your styles here */
 }
+
+/*--------------------------------------------------------------
+# Mobile Optimizations (Custom)
+--------------------------------------------------------------*/
+@media (max-width: 768px) {
+  .hero .welcome h2 {
+    font-size: 32px;
+  }
+  
+  .hero .welcome p {
+    font-size: 18px;
+  }
+  
+  .hero .content .why-box h3 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header .logo h1 {
+    font-size: 24px;
+  }
+  
+  .header .cta-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-right: 10px;
+  }
+  
+  .hero .welcome h2 {
+    font-size: 28px;
+  }
+  
+  .section-title h2 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 350px) {
+  .header .logo h1 {
+    font-size: 20px;
+  }
+  
+  .header .cta-btn {
+    display: none; /* Hide login button on extremely small screens to avoid overlap with menu */
+  }
+  
+  .topbar .contact-info {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .topbar .contact-info i + i {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .services .service-item {
+    padding: 40px 20px;
+  }
+  
+  .about .content ul i {
+    font-size: 32px;
+  }
+  
+  .about .content h3 {
+    font-size: 1.5rem;
+  }
+}

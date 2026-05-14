@@ -64,9 +64,9 @@
 
          $('#sidebarCollapse, #sidebarClose, #sidebarOverlay').on('click', toggleSidebar);
 
-         // Fermer la sidebar au clic d'un lien sur mobile
+         // Fermer la sidebar au clic d'un lien final sur mobile (ignore les dropdowns)
          if (isMobile()) {
-            $('#sidebar a').on('click', function() {
+            $('#sidebar a:not([data-toggle="collapse"])').on('click', function() {
                if ($('#sidebar').hasClass('active')) {
                   toggleSidebar();
                }

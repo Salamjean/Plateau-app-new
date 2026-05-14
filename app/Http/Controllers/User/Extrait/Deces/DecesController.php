@@ -55,7 +55,7 @@ class DecesController extends Controller
             'CNIdfnt' => 'required',
             'quantite' => 'required|integer|min:1|max:10',
             'CNIdcl' => 'required',
-            'communeD' => 'required',
+            'commune' => 'required',
             'commune_deces' => 'required|string|max:255',
         ], [
             'name.required' => 'Le nom du défunt est obligatoire.',
@@ -106,7 +106,7 @@ class DecesController extends Controller
         $user = Auth::user();
 
         // Générer la référence ici dans le contrôleur
-        $communeInitiale = strtoupper(substr($request->communeD ?: $user->commune ?: 'X', 0, 1)); // 'X' si commune est null ou vide (prend communeD du request si existe sinon commune user sinon X)
+        $communeInitiale = strtoupper(substr($request->commune ?: $user->commune ?: 'X', 0, 1)); // 'X' si commune est null ou vide
         $anneeCourante = Carbon::now()->year;
         $randomDigits = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
         $increment = Deces::getNextId();
@@ -127,7 +127,7 @@ class DecesController extends Controller
         $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
         $deces->choix_option = $request->choix_option;
         $deces->quantite = $request->quantite;
-        $deces->commune = $request->communeD ?: $user->commune; // Déterminer la commune
+        $deces->commune = $request->commune ?: $user->commune; // Déterminer la commune
         $deces->commune_deces = $request->commune_deces;
         $deces->etat = 'non_paye';
         $deces->user_id = $user->id; // Lier la demande à l'utilisateur connecté

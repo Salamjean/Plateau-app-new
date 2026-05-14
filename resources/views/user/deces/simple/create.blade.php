@@ -238,6 +238,59 @@
 
         .is-invalid { border-color: #dc3545 !important; }
         .error-message { color: #dc3545; font-size: 0.75rem; margin-top: 5px; font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .form-page-container {
+                padding: 1rem 0;
+            }
+
+            .form-glass-card { 
+                padding: 1.5rem; 
+                border-radius: 20px;
+                margin: 0 -5px;
+            }
+
+            .form-header-box h2 {
+                font-size: 1.5rem;
+            }
+
+            .stepper-container {
+                margin-bottom: 2rem;
+            }
+
+            .step-item {
+                width: auto;
+                flex: 1;
+            }
+
+            .step-circle {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+
+            .step-label {
+                font-size: 0.6rem;
+            }
+
+            .options-grid { 
+                grid-template-columns: 1fr; 
+                gap: 1rem;
+            }
+
+            .option-card-content {
+                padding: 1.25rem;
+            }
+
+            .btn-step {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            input[type="date"] {
+                min-height: 48px;
+            }
+        }
     </style>
 
     <div class="form-page-container">
@@ -265,6 +318,26 @@
 
             <form id="deathForm" method="POST" enctype="multipart/form-data" action="{{ route('user.extrait.deces.store') }}">
                 @csrf
+                <input type="hidden" name="commune" value="Plateau">
+
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 15px;">
+                        <i class="fas fa-exclamation-triangle me-2"></i> {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 15px;">
+                        <i class="fas fa-exclamation-circle me-2"></i> Veuillez corriger les erreurs dans le formulaire.
+                        <ul class="mb-0 mt-2 small">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
 
                 <!-- ÉTAPE 1: Informations du défunt -->
                 <div class="form-step active" id="step-1">
@@ -278,8 +351,8 @@
                                     <label>Type de document :</label>
                                     <div class="input-wrapper">
                                         <select id="type" name="type" class="form-control-custom">
-                                            <option value="simple">Copie simple</option>
-                                            <option value="integral">Copie intégrale</option>
+                                            <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Copie simple</option>
+                                            <option value="integral" {{ old('type') == 'integral' ? 'selected' : '' }}>Copie intégrale</option>
                                         </select>
                                         <i class="fas fa-file-alt"></i>
                                     </div>
@@ -289,9 +362,10 @@
                                 <div class="input-group-custom">
                                     <label>Nom et Prénoms du défunt :</label>
                                     <div class="input-wrapper">
-                                        <input type="text" id="name" name="name" class="form-control-custom" placeholder="Nom complet">
+                                        <input type="text" id="name" name="name" class="form-control-custom @error('name') is-invalid @enderror" placeholder="Nom complet" value="{{ old('name') }}">
                                         <i class="fas fa-user"></i>
                                     </div>
+                                    @error('name') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
@@ -310,18 +384,20 @@
                                 <div class="input-group-custom">
                                     <label>Date de Registre :</label>
                                     <div class="input-wrapper">
-                                        <input type="date" id="dateR" name="dateR" class="form-control-custom">
+                                        <input type="date" id="dateR" name="dateR" class="form-control-custom @error('dateR') is-invalid @enderror" value="{{ old('dateR') }}">
                                         <i class="fas fa-calendar-alt"></i>
                                     </div>
+                                    @error('dateR') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <div class="input-group-custom">
                                     <label>Commune de décès :</label>
                                     <div class="input-wrapper">
-                                        <input type="text" id="commune_deces" name="commune_deces" class="form-control-custom" placeholder="Ville/Commune">
+                                        <input type="text" id="commune_deces" name="commune_deces" class="form-control-custom @error('commune_deces') is-invalid @enderror" placeholder="Ville/Commune" value="{{ old('commune_deces') }}">
                                         <i class="fas fa-map-marker-alt"></i>
                                     </div>
+                                    @error('commune_deces') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
@@ -331,27 +407,30 @@
                                 <div class="input-group-custom">
                                     <label>Nom du Père :</label>
                                     <div class="input-wrapper">
-                                        <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere" class="form-control-custom" placeholder="Nom complet du père">
+                                        <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere" class="form-control-custom @error('nom_prenoms_pere') is-invalid @enderror" placeholder="Nom complet du père" value="{{ old('nom_prenoms_pere') }}">
                                         <i class="fas fa-user"></i>
                                     </div>
+                                    @error('nom_prenoms_pere') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <div class="input-group-custom">
                                     <label>Nom de la Mère :</label>
                                     <div class="input-wrapper">
-                                        <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere" class="form-control-custom" placeholder="Nom complet de la mère">
+                                        <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere" class="form-control-custom @error('nom_prenoms_mere') is-invalid @enderror" placeholder="Nom complet de la mère" value="{{ old('nom_prenoms_mere') }}">
                                         <i class="fas fa-user"></i>
                                     </div>
+                                    @error('nom_prenoms_mere') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <div class="input-group-custom">
                                     <label>Quantité :</label>
                                     <div class="input-wrapper">
-                                        <input type="number" id="quantite" name="quantite" class="form-control-custom" value="1" min="1" max="10">
+                                        <input type="number" id="quantite" name="quantite" class="form-control-custom @error('quantite') is-invalid @enderror" value="{{ old('quantite', 1) }}" min="1" max="10">
                                         <i class="fas fa-copy"></i>
                                     </div>
+                                    @error('quantite') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
@@ -374,13 +453,15 @@
                             <div class="col-md-6 mb-4">
                                 <div class="input-group-custom">
                                     <label>CNI ou Acte de naissance du défunt :</label>
-                                    <input type="file" id="CNIdfnt" name="CNIdfnt" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                    <input type="file" id="CNIdfnt" name="CNIdfnt" class="form-control-custom @error('CNIdfnt') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                    @error('CNIdfnt') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <div class="input-group-custom">
                                     <label>Certificat médical de décès :</label>
-                                    <input type="file" id="CNIdcl" name="CNIdcl" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                    <input type="file" id="CNIdcl" name="CNIdcl" class="form-control-custom @error('CNIdcl') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                    @error('CNIdcl') <div class="error-message">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
@@ -388,26 +469,27 @@
                         <div class="row mt-4">
                             <div class="col-md-6">
                                 <div class="form-section-title">
-                                    <i class="fas fa-ring"></i> État matrimonial
+                                    <i class="fas fa-ring"></i> État matrimonial du défunt
                                 </div>
                                 <div class="options-grid">
                                     <label class="option-card">
-                                        <input type="radio" name="married" value="non" checked onclick="toggleMarriageDoc(false)">
+                                        <input type="radio" name="married" value="non" {{ old('married', 'non') == 'non' ? 'checked' : '' }} onclick="toggleMarriageDoc(false)">
                                         <div class="option-card-content">
                                             <span class="option-title">Célibataire</span>
                                         </div>
                                     </label>
                                     <label class="option-card">
-                                        <input type="radio" name="married" value="oui" onclick="toggleMarriageDoc(true)">
+                                        <input type="radio" name="married" value="oui" {{ old('married') == 'oui' ? 'checked' : '' }} onclick="toggleMarriageDoc(true)">
                                         <div class="option-card-content">
                                             <span class="option-title">Marié(e)</span>
                                         </div>
                                     </label>
                                 </div>
-                                <div id="marriageDocContainer" style="display: none; margin-top: 15px;">
+                                <div id="marriageDocContainer" style="{{ old('married') == 'oui' ? 'display: block;' : 'display: none;' }} margin-top: 15px;">
                                     <div class="input-group-custom">
                                         <label>Acte de mariage du défunt :</label>
-                                        <input type="file" id="documentMariage" name="documentMariage" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                        <input type="file" id="documentMariage" name="documentMariage" class="form-control-custom @error('documentMariage') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                        @error('documentMariage') <div class="error-message">{{ $message }}</div> @enderror
                                     </div>
                                 </div>
                             </div>
@@ -417,22 +499,23 @@
                                 </div>
                                 <div class="options-grid">
                                     <label class="option-card">
-                                        <input type="radio" name="DecesHorsS" value="non" checked onclick="togglePoliceDoc(false)">
+                                        <input type="radio" name="DecesHorsS" value="non" {{ old('DecesHorsS', 'non') == 'non' ? 'checked' : '' }} onclick="togglePoliceDoc(false)">
                                         <div class="option-card-content">
                                             <span class="option-title">En milieu médical</span>
                                         </div>
                                     </label>
                                     <label class="option-card">
-                                        <input type="radio" name="DecesHorsS" value="oui" onclick="togglePoliceDoc(true)">
+                                        <input type="radio" name="DecesHorsS" value="oui" {{ old('DecesHorsS') == 'oui' ? 'checked' : '' }} onclick="togglePoliceDoc(true)">
                                         <div class="option-card-content">
                                             <span class="option-title">Hors milieu médical</span>
                                         </div>
                                     </label>
                                 </div>
-                                <div id="policeDocContainer" style="display: none; margin-top: 15px;">
+                                <div id="policeDocContainer" style="{{ old('DecesHorsS') == 'oui' ? 'display: block;' : 'display: none;' }} margin-top: 15px;">
                                     <div class="input-group-custom">
-                                        <label>Réquisition de la police :</label>
-                                        <input type="file" id="RequisPolice" name="RequisPolice" class="form-control-custom" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                        <label>Réquisition de police :</label>
+                                        <input type="file" id="RequisPolice" name="RequisPolice" class="form-control-custom @error('RequisPolice') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png" style="padding: 10px;">
+                                        @error('RequisPolice') <div class="error-message">{{ $message }}</div> @enderror
                                     </div>
                                 </div>
                             </div>

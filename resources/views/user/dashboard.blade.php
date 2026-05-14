@@ -87,27 +87,28 @@
         <!-- Performance Chart -->
         <div class="col-lg-8 mb-4">
             <div class="card border-0 shadow-sm p-4" style="border-radius: 30px;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4">
+
                     <div>
                         <h5 class="text-navy-bold mb-1">Évolution des Demandes</h5>
                         <p class="text-grey small mb-0">Performance mensuelle par type d'acte</p>
                     </div>
-                    <div class="d-flex gap-2">
-                        <div class="d-flex align-items-center mr-3">
+                    <div class="d-flex flex-wrap gap-2 justify-content-end mt-2 mt-sm-0">
+                        <div class="d-flex align-items-center mr-3 mb-2">
                             <span style="width: 10px; height: 10px; background: #1977cc; border-radius: 50%; display: block; margin-right: 6px;"></span>
                             <small class="text-grey font-weight-bold">Naissance</small>
                         </div>
-                        <div class="d-flex align-items-center mr-3">
+                        <div class="d-flex align-items-center mr-3 mb-2">
                             <span style="width: 10px; height: 10px; background: #8c52ff; border-radius: 50%; display: block; margin-right: 6px;"></span>
                             <small class="text-grey font-weight-bold">Mariage</small>
                         </div>
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center mb-2">
                             <span style="width: 10px; height: 10px; background: #EE5D50; border-radius: 50%; display: block; margin-right: 6px;"></span>
                             <small class="text-grey font-weight-bold">Décès</small>
                         </div>
                     </div>
                 </div>
-                <div class="chart-container-responsive" style="height: 350px;">
+                <div class="chart-container-responsive">
                     <canvas id="evolutionChart"></canvas>
                 </div>
             </div>

@@ -52,18 +52,18 @@
         }
 
         .glass-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             padding: 2rem;
-            animation: fadeInUp 0.8s ease-out;
+            margin-bottom: 2rem;
         }
 
         .table-responsive {
             border-radius: 16px;
-            overflow: hidden;
+            overflow-x: auto !important;
         }
 
         #decesTable {
@@ -74,26 +74,26 @@
         }
 
         #decesTable thead th {
-            background: transparent !important;
-            color: #718096 !important;
-            text-transform: uppercase !important;
-            font-size: 0.75rem !important;
-            font-weight: 800 !important;
-            letter-spacing: 1px !important;
-            border: none !important;
+            background: #f8fafc !important;
+            color: #64748b !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
             padding: 15px !important;
+            border: none !important;
         }
 
         #decesTable tbody tr {
-            background: #fff !important;
-            border-radius: 16px !important;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02) !important;
-            transition: 0.3s !important;
+            background: white !important;
+            transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
         #decesTable tbody tr:hover {
-            transform: translateY(-3px) scale(1.002);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            background: #f8fbff !important;
         }
 
         #decesTable tbody td {
@@ -186,9 +186,38 @@
             background: #fff !important;
             margin-left: 10px !important;
         }
+
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+                margin-bottom: 1.5rem;
+            }
+
+            .btn-add-premium {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .glass-container {
+                padding: 1.25rem;
+                margin-left: -5px;
+                margin-right: -5px;
+            }
+
+            #decesTable {
+                min-width: 1000px; /* Plus large pour accueillir toutes les colonnes */
+            }
+
+            .page-title {
+                font-size: 1.4rem;
+            }
+        }
     </style>
 
-    <div class="container-fluid py-4">
+    <div class="dashboard-final container-fluid py-4 animate-fade-in">
         <div class="page-header">
             <h1 class="page-title">Demandes d'acte de décès</h1>
             <a href="{{ route('user.extrait.deces.create') }}" class="btn-add-premium">

@@ -375,8 +375,56 @@
         }
 
         @media (max-width: 768px) {
-            .form-glass-card { padding: 1.5rem; }
-            .delivery-card-grid { grid-template-columns: 1fr; }
+            .form-page-container {
+                padding: 1rem 0;
+            }
+
+            .form-glass-card { 
+                padding: 1.5rem; 
+                border-radius: 20px;
+                margin: 0 -5px;
+            }
+
+            .form-header-box h2 {
+                font-size: 1.5rem;
+            }
+
+            .stepper-container {
+                margin-bottom: 2rem;
+            }
+
+            .step-label {
+                font-size: 0.6rem;
+                text-align: center;
+            }
+
+            .step-number {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+
+            .form-section-title {
+                font-size: 0.9rem;
+            }
+
+            .delivery-card-grid { 
+                grid-template-columns: 1fr; 
+                gap: 1rem;
+            }
+
+            .delivery-option-content {
+                padding: 1.25rem;
+            }
+
+            .btn-step {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            input[type="date"] {
+                min-height: 48px;
+            }
         }
     </style>
 

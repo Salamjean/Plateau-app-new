@@ -86,14 +86,23 @@
         }
 
         .illustration-circle {
-            width: 100px;
-            height: 100px;
-            background: #f0f7ff;
-            border-radius: 50%;
+            width: 130px;
+            height: 130px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .illustration-circle:hover {
+            transform: scale(1.05);
+        }
+
+        .illustration-circle img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
         }
 
         .illustration-circle i {
@@ -247,22 +256,23 @@
 
         .social-btns {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            flex-direction: row;
+            gap: 12px;
         }
 
         .social-btn {
-            width: 100%;
+            flex: 1;
             height: 56px;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            font-size: 1rem;
+            gap: 10px;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .google-btn {
@@ -314,6 +324,10 @@
             .title {
                 font-size: 1.8rem;
             }
+            .social-btn {
+                font-size: 0.85rem;
+                padding: 0 5px;
+            }
         }
     </style>
 </head>
@@ -326,7 +340,7 @@
 
         <div class="illustration">
             <div class="illustration-circle">
-                <i class="fas fa-paper-plane"></i>
+                <img src="{{asset('assets/assets/img/logo plateau.png')}}" alt="Logo Plateau">
             </div>
         </div>
 
@@ -344,6 +358,12 @@
         @if (Session::get('error'))
             <div class="error-message animate__animated animate__shakeX" style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
                 <i class="fas fa-exclamation-circle"></i> {{ Session::get('error') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="error-message animate__animated animate__shakeX" style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
+                <i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}
             </div>
         @endif
 
@@ -385,17 +405,17 @@
         <div class="social-btns">
             <button type="button" class="social-btn google-btn" id="googleLoginBtn">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="22">
-                Continuer avec Google
+                Google
             </button>
 
             <button type="button" class="social-btn apple-btn" id="appleLoginBtn">
                 <svg width="20" height="20" viewBox="0 0 814 1000" fill="white"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46.5 700 0 571.8 0 449.3c0-152.5 99.5-233.1 197.3-233.1 69.1 0 126.4 45.3 170 45.3 42.1 0 108.5-47.9 188.2-47.9 30.1 0 108.2 2.6 168.6 80.6zm-80.6-171.4c31.5-38.5 53.9-89.2 53.9-139.9 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.1-55.1 134.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 134.7-69.7z"/></svg>
-                Continuer avec Apple
+                Apple
             </button>
         </div>
 
         <div class="form-footer">
-            <p>Vous n'avez pas de compte ? <a href="{{route('user.register')}}">Créer un compte</a></p>
+            <p>Vous n'avez pas de compte ? <a href="{{route('user.register')}}">S'inscrire</a></p>
         </div>
     </div>
 

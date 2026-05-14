@@ -169,6 +169,34 @@
             margin-bottom: 1.5rem;
             border-left: 4px solid var(--danger);
         }
+
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .btn-add-premium {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .glass-container {
+                padding: 1.25rem;
+                margin-left: -5px;
+                margin-right: -5px;
+            }
+
+            #naissanceTable {
+                min-width: 900px; /* Plus large pour accueillir toutes les colonnes */
+            }
+
+            .page-title {
+                font-size: 1.25rem;
+            }
+        }
     </style>
 
     @if ($naissances->contains(fn($n) => $n->archived_at))
@@ -187,7 +215,7 @@
         </div>
     @endif
 
-    <div class="glass-container">
+    <div class="dashboard-final glass-container container-fluid animate-fade-in">
         <div class="page-header">
             <h4 class="page-title">Mes demandes d'actes de naissance</h4>
             <a href="{{ route('user.extrait.create') }}" class="btn-add-premium">

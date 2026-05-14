@@ -129,7 +129,6 @@ class UserAuthenticate extends Controller
                 'agents.prenom as agent_prenom'
             )
             ->where('naissances.user_id', $userId)
-            ->where('naissances.etat','terminé')
             
             ->unionAll(
                 DB::table('deces')
@@ -146,7 +145,6 @@ class UserAuthenticate extends Controller
                         'agents.prenom as agent_prenom'
                     )
                     ->where('deces.user_id', $userId)
-                    ->where('deces.etat','terminé')
             )
 
             ->unionAll(
@@ -164,7 +162,6 @@ class UserAuthenticate extends Controller
                         'agents.prenom as agent_prenom'
                     )
                     ->where('mariages.user_id', $userId)
-                    ->where('mariages.etat','terminé')
             )
             
             ->orderBy('created_at', 'desc')

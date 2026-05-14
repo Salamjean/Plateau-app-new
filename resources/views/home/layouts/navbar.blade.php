@@ -42,7 +42,7 @@
               </ul>
             </li>
              <li><a href="{{route('home.contact')}}">Contactez-nous</a></li>
-             <li><a href="{{route('recherche.demande')}}">Rechercher </a></li>
+             <li><a href="{{route('recherche.demande')}}">Suivre ma demande</a></li>
           </ul>
           <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>

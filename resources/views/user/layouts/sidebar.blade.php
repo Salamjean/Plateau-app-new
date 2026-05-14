@@ -4,9 +4,9 @@
          style="position: absolute; top: 15px; right: 15px; font-size: 20px; color: var(--primary);">
          <i class="fas fa-times"></i>
       </button>
-      <a href="{{route('user.dashboard')}}" class="d-block py-2">
+      <a href="{{route('user.dashboard')}}" class="d-center py-2 text-center">
          <img src="{{asset('assets/assets/img/logo plateau.png')}}" alt="Logo" class="img-fluid"
-            style="max-height: 45px;" />
+            style="max-height: 110px; width: auto; display: block; margin: 0 auto;" />
       </a>
    </div>
 

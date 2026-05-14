@@ -2,9 +2,6 @@
 
 @section('content')
 <!-- Styles -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
     :root {
@@ -133,6 +130,52 @@
     .required-field::after {
         content: " *";
         color: var(--danger-color);
+    }
+
+    @media (max-width: 768px) {
+        .form-background {
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .card-body {
+            padding: 1.5rem !important;
+        }
+
+        .progress-steps {
+            margin-bottom: 20px;
+        }
+
+        .step-circle {
+            width: 35px;
+            height: 35px;
+            font-size: 0.9rem;
+        }
+
+        .step-label {
+            display: none !important;
+        }
+
+        .section-header {
+            font-size: 1rem;
+            padding: 10px 15px;
+        }
+
+        h2 {
+            font-size: 1.4rem !important;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        input[type="date"] {
+            width: 100% !important;
+            min-height: 45px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
     }
 </style>
 
@@ -314,9 +357,6 @@
 </div>
 
 <!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -1,7 +1,7 @@
 @extends('user.layouts.template')
 
 @section('content')
-<div class="container-fluid px-4 pt-4 mb-5 animate-fade-in">
+<div class="dashboard-final container-fluid px-4 pt-4 mb-5 animate-fade-in">
     
     <!-- Header Section -->
     <div class="row align-items-center mb-5">
@@ -22,18 +22,13 @@
         <div class="card-header bg-white border-0 pt-4 px-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <h5 class="text-navy-bold mb-0">Liste de vos demandes</h5>
-                <div class="d-flex gap-2">
-                    <select id="filterType" class="custom-select-modern">
-                        <option value="">Tous les types</option>
-                        <option value="Naissance">Naissance</option>
-                        <option value="Mariage">Mariage</option>
-                        <option value="Décès">Décès</option>
-                    </select>
-                    <select id="filterLivraison" class="custom-select-modern">
-                        <option value="">Toutes les livraisons</option>
-                        <option value="Retrait Mairie">Retrait Mairie</option>
-                        <option value="En cours">En cours</option>
-                        <option value="Livré">Livré</option>
+                <div class="d-flex flex-wrap gap-2">
+                    <select id="filterStatus" class="custom-select-modern">
+                        <option value="">Tous les statuts</option>
+                        <option value="en attente">En attente</option>
+                        <option value="en cours">En cours</option>
+                        <option value="terminé">Terminé</option>
+                        <option value="rejeté">Rejeté</option>
                     </select>
                 </div>
             </div>
@@ -46,6 +41,7 @@
                             <th>Référence</th>
                             <th>Type d'acte</th>
                             <th>Livraison</th>
+                            <th>Statut</th>
                             <th>Agent assigné</th>
                             <th>Date</th>
                             <th class="text-right">Action</th>
@@ -83,6 +79,21 @@
                                     @else
                                         <span class="text-grey x-small">Retrait Mairie</span>
                                     @endif
+                                </td>
+                                <td data-search="{{ $demande->etat }}">
+                                    @php
+                                        $statusClass = 'secondary';
+                                        $statusIcon = 'clock';
+                                        switch(strtolower($demande->etat)) {
+                                            case 'terminé': $statusClass = 'success'; $statusIcon = 'check-circle'; break;
+                                            case 'en attente': $statusClass = 'warning'; $statusIcon = 'pause-circle'; break;
+                                            case 'en cours': $statusClass = 'info'; $statusIcon = 'spinner fa-spin'; break;
+                                            case 'rejeté': $statusClass = 'danger'; $statusIcon = 'times-circle'; break;
+                                        }
+                                    @endphp
+                                    <span class="badge badge-soft-{{ $statusClass }} py-2 px-3" style="font-size: 10px; border-radius: 50px;">
+                                        <i class="fas fa-{{ $statusIcon }} mr-1"></i> {{ ucfirst($demande->etat) }}
+                                    </span>
                                 </td>
                                 <td>
                                     @if($demande->agent_nom)
@@ -188,6 +199,39 @@
         color: var(--text-navy);
         outline: none;
         cursor: pointer;
+        width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .custom-modern-table {
+            min-width: 800px; /* Force la largeur pour le défilement horizontal */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .text-navy-bold {
+            font-size: 1.5rem;
+        }
+
+        .custom-modern-table tbody td {
+            padding: 12px 10px;
+            font-size: 13px;
+        }
+
+        .type-icon {
+            font-size: 14px;
+            margin-right: 5px !important;
+        }
+
+        .badge {
+            padding: 4px 8px !important;
+            font-size: 10px !important;
+        }
+
+        .btn-premium {
+            width: 100%;
+            text-align: center;
+        }
     }
 </style>
 
@@ -204,18 +248,13 @@
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
-            order: [[4, 'desc']], // Adjusted index since we removed a column
+            order: [[5, 'desc']], // Tri par date (6ème colonne)
             pageLength: 10,
         });
 
-        // Filter Type d'acte
-        $('#filterType').on('change', function() {
-            table.column(1).search(this.value).draw();
-        });
-
-        // Filter Statut Livraison
-        $('#filterLivraison').on('change', function() {
-            table.column(2).search(this.value).draw();
+        // Filter Statut Demande
+        $('#filterStatus').on('change', function() {
+            table.column(3).search(this.value).draw();
         });
 
         // Event listener for details
