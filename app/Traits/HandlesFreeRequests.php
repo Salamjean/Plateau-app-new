@@ -28,8 +28,9 @@ trait HandlesFreeRequests
     }
 
     /**
-     * Calcule le nombre de demandes gratuites restantes pour un utilisateur
-     * 
+     * Calcule le nombre de demandes gratuites restantes pour un utilisateur.
+     * Source de vérité unique : le champ free_requests_used du User.
+     *
      * @param \App\Models\User $user
      * @return int
      */
@@ -39,14 +40,7 @@ trait HandlesFreeRequests
             return 0;
         }
 
-        // Synchronisation de free_requests_used avec le nombre de demandes réelles
-        $totalDemandes = $this->getTotalDemandesCount($user->id);
-        if ($totalDemandes > $user->free_requests_used) {
-            $user->free_requests_used = min(2, max($user->free_requests_used, $totalDemandes));
-            $user->save();
-        }
-
-        return max(0, 2 - $user->free_requests_used);
+        return max(0, 2 - (int) $user->free_requests_used);
     }
 
     /**
