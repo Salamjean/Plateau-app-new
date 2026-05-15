@@ -293,9 +293,9 @@ class NaissanceController extends Controller
                     if ($response && $response['status'] === 'PENDING') {
                         // Stocker le ReferenceId en session pour la vérification
                         session(['mtn_ref_' . $naissance->reference => $response['referenceId']]);
-                        
+
                         return redirect()->route('user.payment.mtn.waiting', [
-                            'reference' => $naissance->reference, 
+                            'reference' => $naissance->reference,
                             'type' => 'naissance'
                         ]);
                     }

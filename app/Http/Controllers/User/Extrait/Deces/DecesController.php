@@ -212,9 +212,9 @@ class DecesController extends Controller
                     if ($response && $response['status'] === 'PENDING') {
                         // Stocker le ReferenceId en session pour la vérification
                         session(['mtn_ref_' . $deces->reference => $response['referenceId']]);
-                        
+
                         return redirect()->route('user.payment.mtn.waiting', [
-                            'reference' => $deces->reference, 
+                            'reference' => $deces->reference,
                             'type' => 'deces'
                         ]);
                     }
@@ -225,12 +225,12 @@ class DecesController extends Controller
                     // Générer la session CinetPay
                     $channels = 'ALL';
                     if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
-                        $channels = 'MOBILE_MONEY'; 
+                        $channels = 'MOBILE_MONEY';
                     }
 
                     $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
                     $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
-                    
+
                     try {
                         $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
                             'apikey' => $cinetpayApiKey,
@@ -250,7 +250,7 @@ class DecesController extends Controller
                                 return redirect($data['data']['payment_url']);
                             }
                         }
-                        
+
                         Log::error('Échec CinetPay: ' . $response->body());
                         return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur de génération du lien CinetPay.');
 
