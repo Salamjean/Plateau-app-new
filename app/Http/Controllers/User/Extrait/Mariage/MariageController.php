@@ -57,7 +57,7 @@ class MariageController extends Controller
     {
         $user = Auth::user();
         $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
-        $freeRequestsRemaining = max(0, 2 - $user->free_requests_used);
+        $freeRequestsRemaining = $this->getRemainingFreeRequests($user);
 
         return view('user.mariage.create', [
             'user' => $user,

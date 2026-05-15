@@ -291,7 +291,7 @@
                 <div class="input-wrapper">
                     <input type="hidden" name="indicatif" value="+225">
                     <i class="fas fa-mobile-alt input-icon"></i>
-                    <input type="text" name="contact" class="input-field" value="{{ old('contact') }}" required placeholder="Ex: 0708325027">
+                    <input type="text" name="contact" class="input-field" value="{{ old('contact') }}" required placeholder="Ex: 0700000000">
                 </div>
                 @error('contact') <p class="error-msg">{{ $message }}</p> @enderror
             </div>

@@ -33,6 +33,48 @@ class ProfileCompletionController extends Controller
      */
     public function finalizeProfileGoogle(Request $request): JsonResponse
     {
+        // ────────── DEBUG TEMPORAIRE — À RETIRER APRÈS FIX ──────────
+        Log::info('Finalize Google - Payload reçu du mobile', [
+            'all_keys'              => array_keys($request->all()),
+            'content_type'          => $request->header('Content-Type'),
+            'has_authorization'     => $request->hasHeader('Authorization'),
+            'has_pending_token'     => $request->filled('pending_token'),
+            'has_pendingToken'      => $request->filled('pendingToken'),
+            'pending_token_value'   => $request->input('pending_token'),
+            'pendingToken_value'    => $request->input('pendingToken'),
+            'email'                 => $request->input('email'),
+            'google_id'             => $request->input('google_id'),
+        ]);
+        // ────────────────────────────────────────────────────────────
+
+        // Accepter les deux conventions (snake_case et camelCase) côté backend
+        if (!$request->filled('pending_token') && $request->filled('pendingToken')) {
+            $request->merge(['pending_token' => $request->input('pendingToken')]);
+        }
+
+        // Fallback : si le mobile n'envoie pas pending_token,
+        // on essaie de retrouver la session pending via email ou google_id.
+        if (!$request->filled('pending_token')) {
+            $email    = $request->input('email');
+            $googleId = $request->input('google_id');
+
+            if ($email) {
+                $foundToken = Cache::get('pending_google_by_email_' . md5($email));
+                if ($foundToken) {
+                    $request->merge(['pending_token' => $foundToken]);
+                    Log::info('Finalize Google - pending_token retrouvé via email', ['email' => $email]);
+                }
+            }
+
+            if (!$request->filled('pending_token') && $googleId) {
+                $foundToken = Cache::get('pending_google_by_googleid_' . md5($googleId));
+                if ($foundToken) {
+                    $request->merge(['pending_token' => $foundToken]);
+                    Log::info('Finalize Google - pending_token retrouvé via google_id', ['google_id' => $googleId]);
+                }
+            }
+        }
+
         $hasPendingToken = $request->filled('pending_token');
 
         // Résoudre l'utilisateur selon le mode
@@ -98,7 +140,7 @@ class ProfileCompletionController extends Controller
                                 ->first();
 
                 if ($existing) {
-                    Cache::forget('pending_google_' . $request->pending_token);
+                    $this->forgetGooglePendingCache($request->pending_token, $pendingData);
                     $token = $existing->createToken('user-api-token')->plainTextToken;
                     return response()->json([
                         'success' => true,
@@ -127,7 +169,7 @@ class ProfileCompletionController extends Controller
                     'push_notification' => $request->push_notification ?? $pendingData['push_notification'] ?? null,
                 ]);
 
-                Cache::forget('pending_google_' . $request->pending_token);
+                $this->forgetGooglePendingCache($request->pending_token, $pendingData);
 
                 Log::info('Google Auth - Nouveau compte créé et finalisé', [
                     'user_id' => $user->id,
@@ -205,6 +247,51 @@ class ProfileCompletionController extends Controller
      */
     public function finalizeProfileApple(Request $request): JsonResponse
     {
+        // ────────── DEBUG TEMPORAIRE — À RETIRER APRÈS FIX ──────────
+        Log::info('Finalize Apple - Payload reçu du mobile', [
+            'all_keys'                => array_keys($request->all()),
+            'content_type'            => $request->header('Content-Type'),
+            'has_authorization'       => $request->hasHeader('Authorization'),
+            'authorization_preview'   => $request->header('Authorization')
+                ? substr($request->header('Authorization'), 0, 30) . '...'
+                : null,
+            'has_pending_token'       => $request->filled('pending_token'),
+            'has_pendingToken'        => $request->filled('pendingToken'),
+            'pending_token_value'     => $request->input('pending_token'),
+            'pendingToken_value'      => $request->input('pendingToken'),
+            'name'                    => $request->input('name'),
+            'prenom'                  => $request->input('prenom'),
+        ]);
+        // ────────────────────────────────────────────────────────────
+
+        // Accepter les deux conventions (snake_case et camelCase) côté backend
+        if (!$request->filled('pending_token') && $request->filled('pendingToken')) {
+            $request->merge(['pending_token' => $request->input('pendingToken')]);
+        }
+
+        // Fallback : si le mobile n'envoie pas pending_token,
+        // on essaie de retrouver la session pending via email ou apple_id.
+        if (!$request->filled('pending_token')) {
+            $email   = $request->input('email');
+            $appleId = $request->input('apple_id');
+
+            if ($email) {
+                $foundToken = Cache::get('pending_apple_by_email_' . md5($email));
+                if ($foundToken) {
+                    $request->merge(['pending_token' => $foundToken]);
+                    Log::info('Finalize Apple - pending_token retrouvé via email', ['email' => $email]);
+                }
+            }
+
+            if (!$request->filled('pending_token') && $appleId) {
+                $foundToken = Cache::get('pending_apple_by_appleid_' . md5($appleId));
+                if ($foundToken) {
+                    $request->merge(['pending_token' => $foundToken]);
+                    Log::info('Finalize Apple - pending_token retrouvé via apple_id', ['apple_id' => $appleId]);
+                }
+            }
+        }
+
         $hasPendingToken = $request->filled('pending_token');
 
         $authUser    = null;
@@ -266,7 +353,7 @@ class ProfileCompletionController extends Controller
                                 ->first();
 
                 if ($existing) {
-                    Cache::forget('pending_apple_' . $request->pending_token);
+                    $this->forgetApplePendingCache($request->pending_token, $pendingData);
                     $token = $existing->createToken('user-api-token')->plainTextToken;
                     return response()->json([
                         'success' => true,
@@ -294,7 +381,7 @@ class ProfileCompletionController extends Controller
                     'push_notification' => $request->push_notification ?? $pendingData['push_notification'] ?? null,
                 ]);
 
-                Cache::forget('pending_apple_' . $request->pending_token);
+                $this->forgetApplePendingCache($request->pending_token, $pendingData);
 
                 Log::info('Apple Auth - Nouveau compte créé et finalisé', [
                     'user_id'  => $user->id,
@@ -352,6 +439,40 @@ class ProfileCompletionController extends Controller
                 'message' => 'Une erreur est survenue lors de la finalisation.',
                 'error'   => config('app.debug') ? $e->getMessage() : null
             ], 500);
+        }
+    }
+
+    /**
+     * Nettoie toutes les clés de cache liées à une session pending Apple
+     * (clé principale + clés secondaires indexées par email/apple_id).
+     */
+    private function forgetApplePendingCache(?string $pendingToken, ?array $pendingData): void
+    {
+        if ($pendingToken) {
+            Cache::forget('pending_apple_' . $pendingToken);
+        }
+        if (!empty($pendingData['email'])) {
+            Cache::forget('pending_apple_by_email_' . md5($pendingData['email']));
+        }
+        if (!empty($pendingData['apple_id'])) {
+            Cache::forget('pending_apple_by_appleid_' . md5($pendingData['apple_id']));
+        }
+    }
+
+    /**
+     * Nettoie toutes les clés de cache liées à une session pending Google
+     * (clé principale + clés secondaires indexées par email/google_id).
+     */
+    private function forgetGooglePendingCache(?string $pendingToken, ?array $pendingData): void
+    {
+        if ($pendingToken) {
+            Cache::forget('pending_google_' . $pendingToken);
+        }
+        if (!empty($pendingData['email'])) {
+            Cache::forget('pending_google_by_email_' . md5($pendingData['email']));
+        }
+        if (!empty($pendingData['google_id'])) {
+            Cache::forget('pending_google_by_googleid_' . md5($pendingData['google_id']));
         }
     }
 

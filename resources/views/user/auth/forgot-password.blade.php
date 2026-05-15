@@ -277,7 +277,7 @@
                 <label class="form-label">Numéro de téléphone</label>
                 <div class="input-wrapper">
                     <i class="fas fa-mobile-alt input-icon"></i>
-                    <input class="input-field" type="tel" id="login_identifier" name="login_identifier" placeholder="Ex: 0708325027" required />
+                    <input class="input-field" type="tel" id="login_identifier" name="login_identifier" placeholder="Ex: 0700000000" required />
                 </div>
             </div>
 

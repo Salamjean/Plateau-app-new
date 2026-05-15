@@ -39,6 +39,13 @@ trait HandlesFreeRequests
             return 0;
         }
 
+        // Synchronisation de free_requests_used avec le nombre de demandes réelles
+        $totalDemandes = $this->getTotalDemandesCount($user->id);
+        if ($totalDemandes > $user->free_requests_used) {
+            $user->free_requests_used = min(2, max($user->free_requests_used, $totalDemandes));
+            $user->save();
+        }
+
         return max(0, 2 - $user->free_requests_used);
     }
 

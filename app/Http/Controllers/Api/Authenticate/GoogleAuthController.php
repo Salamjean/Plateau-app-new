@@ -154,14 +154,23 @@ class GoogleAuthController extends Controller
 
             $pendingToken = Str::uuid()->toString();
 
-            Cache::put('pending_google_' . $pendingToken, [
+            $pendingData = [
                 'name'              => $nameStr,
                 'prenom'            => $prenomStr,
                 'email'             => $email,
                 'google_id'         => $googleId,
                 'profile_picture'   => $pictureUrl,
                 'push_notification' => $pushNotificationStr,
-            ], now()->addHours(1));
+            ];
+
+            Cache::put('pending_google_' . $pendingToken, $pendingData, now()->addHours(1));
+
+            // Double indexation : permet de retrouver le pending via email ou google_id
+            // si le mobile oublie d'envoyer le pending_token lors de la finalisation.
+            if ($email) {
+                Cache::put('pending_google_by_email_' . md5($email), $pendingToken, now()->addHours(1));
+            }
+            Cache::put('pending_google_by_googleid_' . md5($googleId), $pendingToken, now()->addHours(1));
 
             Log::info('Google Auth - Nouveau compte en attente de finalisation', [
                 'email'     => $email,

@@ -377,7 +377,7 @@
                     <label class="form-label">Numéro de téléphone</label>
                     <div class="input-wrapper">
                         <i class="fas fa-mobile-alt input-icon"></i>
-                        <input name="contact" class="input-field" type="tel" placeholder="Ex: 0708325027" required value="{{ old('contact') }}">
+                        <input name="contact" class="input-field" type="tel" placeholder="Ex: 0700000000" required value="{{ old('contact') }}">
                     </div>
                 </div>
 

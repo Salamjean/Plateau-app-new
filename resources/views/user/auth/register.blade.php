@@ -333,7 +333,7 @@
                 <div class="input-wrapper">
                     <input type="hidden" id="otp_indicatif" value="+225">
                     <i class="fas fa-mobile-alt input-icon"></i>
-                    <input id="otp_contact" class="input-field" type="tel" placeholder="Ex: 0708325027">
+                    <input id="otp_contact" class="input-field" type="tel" placeholder="Ex: 0700000000">
                 </div>
             </div>
 

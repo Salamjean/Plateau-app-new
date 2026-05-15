@@ -97,6 +97,17 @@ class UserController extends Controller
     
             // Données des demandes gratuites (mode test)
             $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+            
+            // Synchronisation de free_requests_used avec le nombre de demandes réelles
+            $totalToutesDemandes = \App\Models\Naissance::where('user_id', $user->id)->count() +
+                                   \App\Models\Deces::where('user_id', $user->id)->count() +
+                                   \App\Models\Mariage::where('user_id', $user->id)->count();
+            
+            if ($totalToutesDemandes > $user->free_requests_used) {
+                $user->free_requests_used = min(2, max($user->free_requests_used, $totalToutesDemandes));
+                $user->save();
+            }
+
             $freeRequestsRemaining = max(0, 2 - $user->free_requests_used);
             $showFreeRequestsMessage = $freeRequestsModeActive && !$user->has_seen_free_requests_message && $freeRequestsRemaining > 0;
 

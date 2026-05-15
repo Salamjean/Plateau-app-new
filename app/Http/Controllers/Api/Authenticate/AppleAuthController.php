@@ -21,6 +21,27 @@ class AppleAuthController extends Controller
     use HandlesFreeRequests;
     public function handleAppleAuth(Request $request): JsonResponse
     {
+        // ────────── DEBUG TEMPORAIRE — À RETIRER APRÈS FIX ──────────
+        Log::info('Apple Auth - Payload reçu du mobile', [
+            'all_keys'                 => array_keys($request->all()),
+            'content_type'             => $request->header('Content-Type'),
+            'has_identity_token'       => $request->filled('identity_token'),
+            'has_identityToken'        => $request->filled('identityToken'),
+            'has_idToken'              => $request->filled('idToken'),
+            'has_token'                => $request->filled('token'),
+            'identity_token_preview'   => $request->filled('identity_token')
+                ? substr($request->input('identity_token'), 0, 30) . '...'
+                : null,
+            'identityToken_preview'    => $request->filled('identityToken')
+                ? substr($request->input('identityToken'), 0, 30) . '...'
+                : null,
+            'name'                     => $request->input('name'),
+            'prenom'                   => $request->input('prenom'),
+            'action'                   => $request->input('action'),
+            'all_raw_keys'             => array_keys($request->json()->all() ?? []),
+        ]);
+        // ────────────────────────────────────────────────────────────
+
         $validator = Validator::make($request->all(), [
             'identity_token'    => 'required|string',
             'name'              => 'nullable|string|max:255',
@@ -112,13 +133,22 @@ class AppleAuthController extends Controller
 
             $pendingToken = Str::uuid()->toString();
 
-            Cache::put('pending_apple_' . $pendingToken, [
+            $pendingData = [
                 'name'              => $nameStr,
                 'prenom'            => $prenomStr,
                 'email'             => $email,
                 'apple_id'          => $appleId,
                 'push_notification' => $pushNotification,
-            ], now()->addHours(1));
+            ];
+
+            Cache::put('pending_apple_' . $pendingToken, $pendingData, now()->addHours(1));
+
+            // Double indexation : permet de retrouver le pending via email ou apple_id
+            // si le mobile oublie d'envoyer le pending_token lors de la finalisation.
+            if ($email) {
+                Cache::put('pending_apple_by_email_' . md5($email), $pendingToken, now()->addHours(1));
+            }
+            Cache::put('pending_apple_by_appleid_' . md5($appleId), $pendingToken, now()->addHours(1));
 
             Log::info('Apple Auth - Nouveau compte en attente de finalisation', [
                 'email'    => $email,
