@@ -2,7 +2,6 @@
 
 @section('content')
 <!-- Styles -->
-
 <style>
     :root {
         --primary-color: #1977cc;
@@ -208,7 +207,6 @@
 
                 <form action="{{ route('user.rendezvous.store') }}" method="POST" id="multiStepForm">
                     @csrf
-
                     <!-- Step 1 -->
                     <div class="step">
                         <h4 class="section-header"><i class="fas fa-user me-2"></i>Informations sur l'époux</h4>
@@ -357,7 +355,6 @@
 </div>
 
 <!-- Scripts -->
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const steps = document.querySelectorAll('.step');
