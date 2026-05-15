@@ -296,7 +296,7 @@
     <div class="form-page-container">
         <div class="form-glass-card">
             <div class="form-header-box">
-                <h2>Demande d'acte de mariage2</h2>
+                <h2>Demande d'acte de mariage</h2>
                 <p class="text-muted">Remplissez les informations ci-dessous pour commander votre acte de mariage.</p>
             </div>
 
