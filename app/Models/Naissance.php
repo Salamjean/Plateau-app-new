@@ -18,6 +18,7 @@ class Naissance extends Model
         'CNI',
         'reference',
         'commune',
+        'commune_naissance',
         'etat',
         'motif_de_rejet',
         'statut_livraison',
@@ -42,7 +43,10 @@ class Naissance extends Model
         'heure_livraison',
         'timbre_recupere',
         'is_free_request',
-        'free_timbres_count'
+        'free_timbres_count',
+        'groupe_id',
+        'position_in_groupe',
+        'type_document',
     ];
 
     public function user()
@@ -62,6 +66,23 @@ class Naissance extends Model
         return $this->belongsTo(Agent::class, 'agent_id');
     }
 
+    /**
+     * Si cette ligne appartient à une demande groupée, retourne le groupe parent.
+     * Sinon null.
+     */
+    public function groupe()
+    {
+        return $this->belongsTo(NaissanceGroupe::class, 'groupe_id');
+    }
+
+    /**
+     * Indique si cette ligne fait partie d'une demande groupée.
+     */
+    public function appartientAUnGroupe(): bool
+    {
+        return !is_null($this->groupe_id);
+    }
+
 
     /**
      * Scope pour exclure les demandes non payées.
@@ -70,6 +91,14 @@ class Naissance extends Model
     public function scopePaye($query)
     {
         return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+    }
+
+    /**
+     * Scope pour ne récupérer que les demandes individuelles (hors groupes).
+     */
+    public function scopeIndividuelle($query)
+    {
+        return $query->whereNull('groupe_id');
     }
 
     public static function getNextId()

@@ -330,23 +330,42 @@
                                 <div class="input-group-custom">
                                     <label>Format de l'acte :</label>
                                     <div class="input-wrapper">
-                                        <select id="typeDemande" name="typeDemande" class="form-control-custom">
+                                        <select id="typeDemande" name="typeDemande" class="form-control-custom" onchange="onMariageTypeChange(this)">
                                             <option value="extraitSimple">Acte simple (Extrait)</option>
                                             <option value="copieIntegrale">Copie intégrale</option>
+                                            <option value="groupee">Demande groupée (plusieurs actes)</option>
                                         </select>
                                         <i class="fas fa-list"></i>
                                     </div>
+                                    <small class="text-muted" id="groupee-hint-mariage" style="display:none; margin-top:8px; padding-left:5px;">
+                                        <i class="fas fa-info-circle"></i> Vous allez être redirigé vers une page dédiée pour configurer votre panier.
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="stepper-footer">
                         <div></div>
-                        <button type="button" class="btn-step btn-next" onclick="nextStep(1)">
+                        <button type="button" class="btn-step btn-next" onclick="onMariageContinue()">
                             Continuer <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
+
+                <script>
+                    function onMariageTypeChange(select) {
+                        const hint = document.getElementById('groupee-hint-mariage');
+                        if (hint) hint.style.display = select.value === 'groupee' ? 'block' : 'none';
+                    }
+                    function onMariageContinue() {
+                        const sel = document.getElementById('typeDemande');
+                        if (sel && sel.value === 'groupee') {
+                            window.location.href = "{{ route('user.extrait.mariage.groupee.create') }}";
+                            return;
+                        }
+                        if (typeof nextStep === 'function') nextStep(1);
+                    }
+                </script>
 
                 <!-- ÉTAPE 2: Informations -->
                 <div class="form-step" id="step-2">

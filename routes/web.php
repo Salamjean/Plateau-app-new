@@ -246,6 +246,11 @@ Route::middleware('agent')->prefix('agent')->group(function () {
     Route::post('/livraison/{id}', [AgentNaissanceController::class, 'markAsDelivered'])->name('livraison.mark');
     Route::get('/telecharger-info-livraison/{id}', [AgentNaissanceController::class, 'downloadDeliveryInfo'])->name('agent.download.delivery.info');
 
+    // Demandes groupées (panier multi-actes)
+    Route::get('/all/requests/birth/groupes', [\App\Http\Controllers\Agent\Extrait\Naissance\AgentNaissanceGroupeController::class, 'index'])->name('agent.demandes.naissance.groupes.index');
+    Route::get('/naissance/groupe/{id}', [\App\Http\Controllers\Agent\Extrait\Naissance\AgentNaissanceGroupeController::class, 'show'])->name('agent.demandes.naissance.groupe.show');
+    Route::post('/naissance/groupe/{id}/process', [\App\Http\Controllers\Agent\Extrait\Naissance\AgentNaissanceGroupeController::class, 'process'])->name('agent.demandes.naissance.groupe.process');
+
     //Les routes des demandes recuperer de deces 
     Route::get('/all/requests/death', [AgentDecesController::class, 'index'])->name('agent.demandes.deces.index');
     Route::get('/deces/{id}/edit', [AgentDecesController::class, 'edit'])->name('agent.demandes.deces.edit');
@@ -253,12 +258,22 @@ Route::middleware('agent')->prefix('agent')->group(function () {
     Route::post('/deces/livraison/{id}', [AgentDecesController::class, 'markAsDeliveredDeces'])->name('livraison.mark.deces');
     Route::get('/deces/telecharger-info-livraison/{id}', [AgentDecesController::class, 'downloadDeliveryInfo'])->name('agent.download.deces.delivery.info');
 
+    // Demandes groupées décès
+    Route::get('/all/requests/death/groupes', [\App\Http\Controllers\Agent\Extrait\Deces\AgentDecesGroupeController::class, 'index'])->name('agent.demandes.deces.groupes.index');
+    Route::get('/deces/groupe/{id}', [\App\Http\Controllers\Agent\Extrait\Deces\AgentDecesGroupeController::class, 'show'])->name('agent.demandes.deces.groupe.show');
+    Route::post('/deces/groupe/{id}/process', [\App\Http\Controllers\Agent\Extrait\Deces\AgentDecesGroupeController::class, 'process'])->name('agent.demandes.deces.groupe.process');
+
     //Les routes des demandes recuperer mariages
     Route::get('/all/requests/wedding', [AgentMariageController::class, 'index'])->name('agent.demandes.wedding.index');
     Route::get('/mariage/{id}/edit', [AgentMariageController::class, 'edit'])->name('agent.demandes.wedding.edit');
     Route::post('/mariage/{id}/update-etat', [AgentMariageController::class, 'updateEtat'])->name('agent.demandes.wedding.update');
     Route::post('/mariage/livraison/{id}', [AgentMariageController::class, 'markAsDeliveredMariage'])->name('livraison.mark.mariage');
     Route::get('/mariage/telecharger-info-livraison/{id}', [AgentMariageController::class, 'downloadDeliveryInfo'])->name('agent.download.mariage.delivery.info');
+
+    // Demandes groupées mariage
+    Route::get('/all/requests/wedding/groupes', [\App\Http\Controllers\Agent\Extrait\Mariage\AgentMariageGroupeController::class, 'index'])->name('agent.demandes.mariage.groupes.index');
+    Route::get('/mariage/groupe/{id}', [\App\Http\Controllers\Agent\Extrait\Mariage\AgentMariageGroupeController::class, 'show'])->name('agent.demandes.mariage.groupe.show');
+    Route::post('/mariage/groupe/{id}/process', [\App\Http\Controllers\Agent\Extrait\Mariage\AgentMariageGroupeController::class, 'process'])->name('agent.demandes.mariage.groupe.process');
 
 
     //Historiques des traitements effectuer par l'agent 
@@ -496,12 +511,16 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::delete('/notifications/delete-all', [NotificationController::class, 'deleteAll'])->name('user.notifications.deleteAll');
 
 
-    //Les demandes d'extrait de naissance 
+    //Les demandes d'extrait de naissance
     Route::get('/extract/index', [NaissanceController::class, 'index'])->name('user.extrait.index');
     Route::get('/extract', [NaissanceController::class, 'create'])->name('user.extrait.create');
     Route::post('/extract', [NaissanceController::class, 'store'])->name('user.extrait.store');
     Route::put('/naissances/{id}/modifier', [NaissanceController::class, 'modifierDemande'])->name('user.naissances.modifier');
     Route::get('/extract/delete/{naissance}', [NaissanceController::class, 'delete'])->name('user.extrait.delete');
+
+    // Demandes groupées (panier multi-actes)
+    Route::get('/extract/groupee', [\App\Http\Controllers\User\Extrait\Naissance\NaissanceGroupeController::class, 'create'])->name('user.extrait.groupee.create');
+    Route::post('/extract/groupee', [\App\Http\Controllers\User\Extrait\Naissance\NaissanceGroupeController::class, 'store'])->name('user.extrait.groupee.store');
 
     //Les demandes d'extrait de deces 
     Route::get('/extract/death/index', [DecesController::class, 'index'])->name('user.extrait.deces.index');
@@ -510,12 +529,20 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::put('/extrait/deces/{id}/modifier', [DecesController::class, 'modifierDemande'])->name('user.extrait.deces.modifier');
     Route::get('/extract/death/certificat{dece}/child', [DecesController::class, 'delete'])->name('user.extrait.deces.delete');
 
+    // Demandes groupées décès
+    Route::get('/extract/death/groupee', [\App\Http\Controllers\User\Extrait\Deces\DecesGroupeController::class, 'create'])->name('user.extrait.deces.groupee.create');
+    Route::post('/extract/death/groupee', [\App\Http\Controllers\User\Extrait\Deces\DecesGroupeController::class, 'store'])->name('user.extrait.deces.groupee.store');
+
     //Les routes d'extrait de mariage
     Route::get('/wedding/index', [MariageController::class, 'index'])->name('user.extrait.mariage.index');
     Route::get('/create/wedding', [MariageController::class, 'create'])->name('user.extrait.mariage.create');
     Route::post('/create/wedding', [MariageController::class, 'store'])->name('user.extrait.mariage.store');
     Route::put('/extrait/mariage/{id}/modifier', [MariageController::class, 'modifierDemande'])->name('user.extrait.mariage.modifier');
     Route::get('/wedding/delete/{mariage}', [MariageController::class, 'delete'])->name('user.extrait.mariage.delete');
+
+    // Demandes groupées mariage
+    Route::get('/wedding/groupee', [\App\Http\Controllers\User\Extrait\Mariage\MariageGroupeController::class, 'create'])->name('user.extrait.mariage.groupee.create');
+    Route::post('/wedding/groupee', [\App\Http\Controllers\User\Extrait\Mariage\MariageGroupeController::class, 'store'])->name('user.extrait.mariage.groupee.store');
 
 
     //Les routes pour prendre un rendez-vous de mariage

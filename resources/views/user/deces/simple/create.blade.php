@@ -350,13 +350,29 @@
                                 <div class="input-group-custom">
                                     <label>Type de document :</label>
                                     <div class="input-wrapper">
-                                        <select id="type" name="type" class="form-control-custom">
+                                        <select id="type" name="type" class="form-control-custom" onchange="onDecesTypeChange(this)">
                                             <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Copie simple</option>
                                             <option value="integral" {{ old('type') == 'integral' ? 'selected' : '' }}>Copie intégrale</option>
+                                            <option value="groupee">Demande groupée (plusieurs actes)</option>
                                         </select>
                                         <i class="fas fa-file-alt"></i>
                                     </div>
+                                    <small class="text-muted" id="groupee-hint-deces" style="display:none; margin-top:8px; padding-left:5px;">
+                                        <i class="fas fa-info-circle"></i> Vous allez être redirigé vers une page dédiée pour configurer votre panier.
+                                    </small>
                                 </div>
+                                <script>
+                                    function onDecesTypeChange(select) {
+                                        const hint = document.getElementById('groupee-hint-deces');
+                                        if (hint) hint.style.display = select.value === 'groupee' ? 'block' : 'none';
+                                        if (select.value === 'groupee') {
+                                            // Délai pour laisser l'animation visible avant redirection
+                                            setTimeout(() => {
+                                                window.location.href = "{{ route('user.extrait.deces.groupee.create') }}";
+                                            }, 800);
+                                        }
+                                    }
+                                </script>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <div class="input-group-custom">

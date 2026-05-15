@@ -41,7 +41,12 @@ class Mariage extends Model
         'heure_livraison',
         'timbre_recupere',
         'is_free_request',
-        'free_timbres_count'
+        'free_timbres_count',
+        'groupe_id',
+        'position_in_groupe',
+        'type_document',
+        'commune_mariage',
+        'CMU',
     ];
 
     public function user()
@@ -61,12 +66,27 @@ class Mariage extends Model
         return $this->belongsTo(Agent::class, 'agent_id');
     }
 
+    public function groupe()
+    {
+        return $this->belongsTo(MariageGroupe::class, 'groupe_id');
+    }
+
+    public function appartientAUnGroupe(): bool
+    {
+        return !is_null($this->groupe_id);
+    }
+
     /**
      * Scope pour exclure les demandes non payées.
      */
     public function scopePaye($query)
     {
         return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+    }
+
+    public function scopeIndividuelle($query)
+    {
+        return $query->whereNull('groupe_id');
     }
 
     public static function getNextId()

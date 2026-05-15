@@ -15,6 +15,9 @@ class Paiement extends Model
         'deces_id',
         'mariage_id',
         'naissance_id',
+        'naissance_groupe_id',
+        'mariage_groupe_id',
+        'deces_groupe_id',
         'user_id',
         'transaction_id',
         'operator_id',
@@ -46,6 +49,21 @@ class Paiement extends Model
     public function naissance()
     {
         return $this->belongsTo(Naissance::class, 'naissance_id');
+    }
+
+    public function naissanceGroupe()
+    {
+        return $this->belongsTo(NaissanceGroupe::class, 'naissance_groupe_id');
+    }
+
+    public function mariageGroupe()
+    {
+        return $this->belongsTo(MariageGroupe::class, 'mariage_groupe_id');
+    }
+
+    public function decesGroupe()
+    {
+        return $this->belongsTo(DecesGroupe::class, 'deces_groupe_id');
     }
 
     public function user()

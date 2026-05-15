@@ -4,8 +4,11 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deces;
+use App\Models\DecesGroupe;
 use App\Models\Mariage;
+use App\Models\MariageGroupe;
 use App\Models\Naissance;
+use App\Models\NaissanceGroupe;
 use App\Models\Paiement;
 use App\Models\User;
 use App\Services\WaveService;
@@ -29,8 +32,25 @@ class PaymentController extends Controller
         // Identifier le type de demande à partir du préfixe de la référence
         $demande = null;
         $type = null;
+        $isGroupe = false;
+        $groupeColumn = null;
 
-        if (str_starts_with($reference, 'AN')) {
+        if (str_starts_with($reference, 'GRN')) {
+            $demande = NaissanceGroupe::where('reference', $reference)->first();
+            $type = 'naissance_groupe';
+            $isGroupe = true;
+            $groupeColumn = 'naissance_groupe_id';
+        } elseif (str_starts_with($reference, 'GRM')) {
+            $demande = MariageGroupe::where('reference', $reference)->first();
+            $type = 'mariage_groupe';
+            $isGroupe = true;
+            $groupeColumn = 'mariage_groupe_id';
+        } elseif (str_starts_with($reference, 'GRD')) {
+            $demande = DecesGroupe::where('reference', $reference)->first();
+            $type = 'deces_groupe';
+            $isGroupe = true;
+            $groupeColumn = 'deces_groupe_id';
+        } elseif (str_starts_with($reference, 'AN')) {
             $demande = Naissance::where('reference', $reference)->first();
             $type = 'naissance';
         } elseif (str_starts_with($reference, 'AM')) {
@@ -49,19 +69,25 @@ class PaymentController extends Controller
         Log::info("Demande trouvée: {$type} ID={$demande->id}, user_id={$demande->user_id}");
 
         // Vérifier si le paiement est déjà enregistré (par le webhook)
-        $paiement = Paiement::where("{$type}_id", $demande->id)->first();
+        $paiementColumn = $isGroupe ? $groupeColumn : "{$type}_id";
+        $paiement = Paiement::where($paiementColumn, $demande->id)->first();
 
         // Fallback: Si pas encore enregistré, on le crée manuellement
         if (!$paiement) {
             Log::info("Webhook non encore reçu pour {$reference}. Enregistrement manuel du paiement.");
-            
-            $montantTimbre = (float) ($demande->montant_timbre ?? 0);
-            $quantite = (int) ($demande->quantite ?? 1);
-            $montantLivraison = (float) ($demande->montant_livraison ?? 0);
-            $totalAmount = ($montantTimbre * $quantite) + $montantLivraison;
+
+            // Calcul du montant total selon le type
+            if ($isGroupe) {
+                $totalAmount = (float) $demande->montant_total;
+            } else {
+                $montantTimbre = (float) ($demande->montant_timbre ?? 0);
+                $quantite = (int) ($demande->quantite ?? 1);
+                $montantLivraison = (float) ($demande->montant_livraison ?? 0);
+                $totalAmount = ($montantTimbre * $quantite) + $montantLivraison;
+            }
 
             try {
-                $paiement = Paiement::create([
+                $paiementData = [
                     'user_id' => $demande->user_id,
                     'transaction_id' => $demande->reference,
                     'operator_id' => 'WAVE',
@@ -69,8 +95,9 @@ class PaymentController extends Controller
                     'currency' => 'XOF',
                     'status' => 'ACCEPTED',
                     'paid_at' => now(),
-                    "{$type}_id" => $demande->id,
-                ]);
+                    $paiementColumn => $demande->id,
+                ];
+                $paiement = Paiement::create($paiementData);
                 Log::info("Paiement enregistré avec succès. ID: {$paiement->id}");
             } catch (\Exception $e) {
                 Log::error("Erreur lors de l'enregistrement du paiement: " . $e->getMessage());
@@ -82,6 +109,11 @@ class PaymentController extends Controller
                 $demande->statut_livraison = 'en attente';
             }
             $demande->save();
+
+            // Pour un groupe : propager l'état aux lignes filles
+            if ($isGroupe && method_exists($demande, 'lignes')) {
+                $demande->lignes()->update(['etat' => 'en attente']);
+            }
 
             // Incrémenter le compteur de demandes gratuites si applicable
             $this->incrementFreeRequestsFromDemande($demande);

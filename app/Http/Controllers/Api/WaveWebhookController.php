@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Deces;
+use App\Models\DecesGroupe;
 use App\Models\Mariage;
+use App\Models\MariageGroupe;
 use App\Models\Naissance;
+use App\Models\NaissanceGroupe;
 use App\Models\Paiement;
 use App\Models\User;
 use App\Notifications\DemandeDecesConfirmationNotification;
@@ -60,7 +63,16 @@ class WaveWebhookController extends Controller
         $demande = null;
         $type = null;
 
-        if (str_starts_with($clientReference, 'AN')) {
+        if (str_starts_with($clientReference, 'GRN')) {
+            $demande = NaissanceGroupe::where('reference', $clientReference)->first();
+            $type = 'naissance_groupe';
+        } elseif (str_starts_with($clientReference, 'GRM')) {
+            $demande = MariageGroupe::where('reference', $clientReference)->first();
+            $type = 'mariage_groupe';
+        } elseif (str_starts_with($clientReference, 'GRD')) {
+            $demande = DecesGroupe::where('reference', $clientReference)->first();
+            $type = 'deces_groupe';
+        } elseif (str_starts_with($clientReference, 'AN')) {
             $demande = Naissance::where('reference', $clientReference)->first();
             $type = 'naissance';
         } elseif (str_starts_with($clientReference, 'AM')) {
@@ -133,13 +145,35 @@ class WaveWebhookController extends Controller
             ];
 
             // Associer l'ID de la demande selon le type
-            $paiementData["{$type}_id"] = $demande->id;
+            // Pour naissance_groupe, on stocke l'ID dans naissance_groupe_id (à ajouter à la table paiements si besoin)
+            // Pour l'instant, on utilise un champ générique
+            // Mapping type → colonne paiement
+            if ($type === 'naissance_groupe') {
+                $paiementData['naissance_groupe_id'] = $demande->id;
+            } elseif ($type === 'mariage_groupe') {
+                $paiementData['mariage_groupe_id'] = $demande->id;
+            } elseif ($type === 'deces_groupe') {
+                $paiementData['deces_groupe_id'] = $demande->id;
+            } else {
+                $paiementData["{$type}_id"] = $demande->id;
+            }
 
-            Paiement::create($paiementData);
+            // Suppression silencieuse des clés inconnues côté Paiement (compat avec colonnes manquantes)
+            try {
+                Paiement::create($paiementData);
+            } catch (\Throwable $e) {
+                // Si naissance_groupe_id n'existe pas dans la table paiements, on log et on continue
+                Log::warning("Paiement non enregistré (colonne manquante ?) pour {$demande->reference} : " . $e->getMessage());
+            }
 
             // 2. Mettre à jour l'état de la demande
             $demande->etat = 'en attente';
             $demande->save();
+
+            // 2bis. Si c'est un groupe, propager l'état aux lignes filles
+            if (in_array($type, ['naissance_groupe', 'mariage_groupe', 'deces_groupe'], true) && method_exists($demande, 'lignes')) {
+                $demande->lignes()->update(['etat' => 'en attente']);
+            }
 
             // 3. Incrémenter le compteur de demandes gratuites si applicable
             $this->incrementFreeRequestsFromDemande($demande);

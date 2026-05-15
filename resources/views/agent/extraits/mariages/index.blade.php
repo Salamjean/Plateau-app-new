@@ -649,15 +649,25 @@
     </div>
   </div>
 
-  <!-- Statistiques -->
-  <div class="stats-card">
-    <div class="stats-icon">
-      <i class="fas fa-tasks"></i>
+  <!-- Statistiques + Lien vers les demandes groupées -->
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+    <div class="stats-card" style="flex: 1; min-width: 250px;">
+      <div class="stats-icon"><i class="fas fa-tasks"></i></div>
+      <div class="stats-content">
+        <h3>{{ $mariages->total() }}</h3>
+        <p>Demandes individuelles en cours</p>
+      </div>
     </div>
-    <div class="stats-content">
-      <h3>{{ $mariages->total() }}</h3>
-      <p>Demandes d'actes de mariages en cours</p>
-    </div>
+    <a href="{{ route('agent.demandes.mariage.groupes.index') }}"
+       style="flex: 1; min-width: 250px; background: linear-gradient(135deg, #FF3B67 0%, #ff7ba0 100%); color: #fff; padding: 1.5rem; border-radius: 16px; text-decoration: none; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 15px rgba(255,59,103,0.2);">
+      <div style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+        <i class="fas fa-shopping-basket"></i>
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800;">Demandes groupées</h3>
+        <p style="margin: 4px 0 0 0; opacity: 0.95; font-size: 0.9rem;">Plusieurs actes en une transaction →</p>
+      </div>
+    </a>
   </div>
 
   <!-- Tableau des demandes -->

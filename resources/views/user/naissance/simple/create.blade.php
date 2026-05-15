@@ -478,12 +478,16 @@
                             <div class="input-group-custom">
                                 <label>Type de document :</label>
                                 <div class="input-wrapper">
-                                    <select id="type" name="type" class="form-control-custom">
+                                    <select id="type" name="type" class="form-control-custom" onchange="onTypeChange(this)">
                                         <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Acte simple</option>
                                         <option value="extrait_integral" {{ old('type') == 'extrait_integral' ? 'selected' : '' }}>Acte intégral</option>
+                                        <option value="groupee">Demande groupée (plusieurs actes)</option>
                                     </select>
                                     <i class="fas fa-file-alt"></i>
                                 </div>
+                                <small class="text-muted" id="groupee-hint" style="display:none; margin-top:8px; padding-left:5px;">
+                                    <i class="fas fa-info-circle"></i> Vous allez être redirigé vers une page dédiée pour configurer votre panier.
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -699,16 +703,34 @@
             document.getElementById('file-name').textContent = fileName;
         }
 
+        // Affiche un message d'info quand l'utilisateur sélectionne "Demande groupée"
+        function onTypeChange(select) {
+            const hint = document.getElementById('groupee-hint');
+            if (hint) {
+                hint.style.display = select.value === 'groupee' ? 'block' : 'none';
+            }
+        }
+
         // Stepper Navigation
         function nextStep(step) {
+            // Si l'utilisateur a choisi "Demande groupée" dès l'étape 1,
+            // on le redirige vers la page dédiée plutôt que de continuer le wizard simple.
+            if (step === 1) {
+                const typeSelect = document.getElementById('type');
+                if (typeSelect && typeSelect.value === 'groupee') {
+                    window.location.href = "{{ route('user.extrait.groupee.create') }}";
+                    return;
+                }
+            }
+
             if (validateStep(step)) {
                 document.getElementById('step-' + step).classList.remove('active');
                 document.getElementById('step-' + (step + 1)).classList.add('active');
-                
+
                 document.getElementById('step-' + step + '-indicator').classList.add('completed');
                 document.getElementById('step-' + step + '-indicator').classList.remove('active');
                 document.getElementById('step-' + (step + 1) + '-indicator').classList.add('active');
-                
+
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
