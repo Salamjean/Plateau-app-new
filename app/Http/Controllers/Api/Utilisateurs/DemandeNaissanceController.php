@@ -66,7 +66,8 @@ class DemandeNaissanceController extends Controller
             'DateR' => 'nullable|date',
             'commune' => 'required|string|max:255',
             'commune_naissance' => 'required|string|max:255',
-            'quantite' => 'required|integer|min:1|max:10',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
             'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
             'CNI' => 'required',
             'nom_prenoms_pere' => 'nullable|string|max:255',
@@ -125,7 +126,24 @@ class DemandeNaissanceController extends Controller
             $naissance->DateR = $request->DateR ? Carbon::parse($request->DateR)->format('Y-m-d') : null;
             $naissance->commune = $request->commune;
             $naissance->commune_naissance = $request->commune_naissance;
-            $naissance->quantite = $request->quantite;
+
+            // Calcul des quantités comme dans NaissanceController web
+            $qtySimple = (int) $request->input('qty_simple', 0);
+            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            if ($qtySimple === 0 && $qtyIntegral === 0) {
+                $type = $request->input('type');
+                if ($type === 'extrait_integral') {
+                    $qtyIntegral = 1;
+                } else {
+                    $qtySimple = 1;
+                }
+            }
+            $totalQuantity = $qtySimple + $qtyIntegral;
+
+            $naissance->qty_simple = $qtySimple;
+            $naissance->qty_integral = $qtyIntegral;
+            $naissance->quantite = $totalQuantity;
+
             $naissance->CNI = $uploadedPaths['CNI'] ?? null;
             $naissance->choix_option = $request->choix_option;
             $naissance->user_id = $user->id;
@@ -247,7 +265,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($naissance)
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeNaissanceController@store: ' . $e->getMessage() . ' Ligne: ' . $e->getLine());
             return response()->json([
@@ -344,7 +361,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'message' => 'Échec de la génération du lien CinetPay.',
                 'error_details' => $response->body()
             ];
-
         } catch (\Exception $e) {
             Log::error('Exception in generatePaymentLink: ' . $e->getMessage(), ['reference' => $naissance->reference]);
             return [
@@ -425,7 +441,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($naissance)
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeNaissanceController@retryPayment: ' . $e->getMessage(), ['naissance_id' => $naissance->id]);
             return response()->json([
@@ -475,7 +490,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($naissance)
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeNaissanceController@relancerDemande: ' . $e->getMessage(), ['naissance_id' => $naissance->id]);
             return response()->json([
@@ -593,7 +607,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($naissance, true)
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeNaissanceController@modifierDemande: ' . $e->getMessage(), ['naissance_id' => $naissance->id]);
             return response()->json([
@@ -668,7 +681,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'champs_a_modifier' => $champsAvecValeurs,
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeNaissanceController@getChampsAModifier: ' . $e->getMessage(), ['naissance_id' => $naissance->id]);
             return response()->json([
@@ -861,7 +873,6 @@ Votre demande est maintenant en attente de traitement.";
             $naissance->save();
             Log::warning("Demande Naissance {$reference} paiement non accepté (status: {$status}).");
             return response()->json(['success' => true, 'message' => 'Paiement non accepté traité'], 200);
-
         } catch (\Exception $e) {
             Log::error("Webhook CinetPay (Naissance) {$cinetpayTransactionId}: Exception critique : " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'Erreur interne'], 500);
@@ -919,7 +930,6 @@ Votre demande est maintenant en attente de traitement.";
             ];
 
             return response()->json($responseData);
-
         } catch (\Exception $e) {
             Log::error("Erreur getPaymentStatus (Naissance) pour {$reference}: " . $e->getMessage());
             return response()->json([
@@ -989,7 +999,6 @@ Votre demande est maintenant en attente de traitement.";
                 'success' => true,
                 'message' => 'Demande de naissance supprimée avec succès'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeNaissanceController@destroy: ' . $e->getMessage());
             return response()->json([

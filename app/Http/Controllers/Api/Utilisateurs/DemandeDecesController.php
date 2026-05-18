@@ -67,11 +67,12 @@ class DemandeDecesController extends Controller
         // 1. Validation
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'numberR' => 'required|string|max:255',
-            'dateR' => 'required|date',
+            'numberR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
+            'dateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
 
             // --- AJOUT --- (Basé sur DecesController.php)
-            'quantite' => 'required|integer|min:1|max:10',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
 
             'CNIdfnt' => 'required',
             'CNIdcl' => 'required',
@@ -135,10 +136,24 @@ class DemandeDecesController extends Controller
             $deces = new Deces();
             $deces->name = $request->name;
             $deces->numberR = $request->numberR;
-            $deces->dateR = Carbon::parse($request->dateR)->format('Y-m-d');
+            $deces->dateR = $request->dateR ? Carbon::parse($request->dateR)->format('Y-m-d') : null;
 
             // --- AJOUT ---
-            $deces->quantite = $request->quantite;
+            $qtySimple = (int) $request->input('qty_simple', 0);
+            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            if ($qtySimple === 0 && $qtyIntegral === 0) {
+                $type = $request->input('type');
+                if ($type === 'extrait_integral') {
+                    $qtyIntegral = 1;
+                } else {
+                    $qtySimple = 1;
+                }
+            }
+            $totalQuantity = $qtySimple + $qtyIntegral;
+
+            $deces->qty_simple = $qtySimple;
+            $deces->qty_integral = $qtyIntegral;
+            $deces->quantite = $totalQuantity;
 
             $deces->CNIdfnt = $uploadedPaths['CNIdfnt'] ?? null;
             $deces->CNIdcl = $uploadedPaths['CNIdcl'] ?? null;
@@ -365,7 +380,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'message' => 'Échec de la génération du lien CinetPay.',
                 'error_details' => $response->body()
             ];
-
         } catch (\Exception $e) {
             Log::error('Exception in generatePaymentLink: ' . $e->getMessage(), ['reference' => $deces->reference]);
             return [
@@ -448,7 +462,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($deces)
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeDecesController@retryPayment: ' . $e->getMessage(), ['deces_id' => $deces->id]);
             return response()->json([
@@ -501,7 +514,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($deces)
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeDecesController@relancerDemande: ' . $e->getMessage(), ['deces_id' => $deces->id]);
             return response()->json([
@@ -631,7 +643,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($deces, true)
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeDecesController@modifierDemande: ' . $e->getMessage(), ['deces_id' => $deces->id]);
             return response()->json([
@@ -706,7 +717,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'champs_a_modifier' => $champsAvecValeurs,
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeDecesController@getChampsAModifier: ' . $e->getMessage(), ['deces_id' => $deces->id]);
             return response()->json([
@@ -931,7 +941,6 @@ Votre demande est maintenant en attente de traitement.";
             Log::warning("Demande {$cinetpayTransactionId} paiement non accepté (status: {$status})."); // ✅ CORRIGÉ
 
             return response()->json(['success' => true, 'message' => 'Paiement non accepté traité'], 200);
-
         } catch (\Exception $e) {
             // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs
             Log::error("Webhook CinetPay (Deces) {$cinetpayTransactionId}: Exception critique : " . $e->getMessage(), [ // ✅ CORRIGÉ
@@ -999,7 +1008,6 @@ Votre demande est maintenant en attente de traitement.";
             ];
 
             return response()->json($responseData);
-
         } catch (\Exception $e) {
             Log::error("Erreur getPaymentStatus pour {$reference}: " . $e->getMessage());
             return response()->json([
@@ -1078,7 +1086,6 @@ Votre demande est maintenant en attente de traitement.";
                 'success' => true,
                 'message' => 'Demande de décès supprimée avec succès'
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeDecesController@destroy: ' . $e->getMessage());
             return response()->json([
@@ -1087,5 +1094,4 @@ Votre demande est maintenant en attente de traitement.";
             ], 500);
         }
     }
-
 }

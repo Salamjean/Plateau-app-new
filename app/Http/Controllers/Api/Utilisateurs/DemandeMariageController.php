@@ -61,8 +61,8 @@ class DemandeMariageController extends Controller
     {
         // 1. Validation (Spécifique au Mariage)
         $validator = Validator::make($request->all(), [
-
-            'quantite' => 'required|integer|min:1|max:10',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
             'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
             'pieceIdentite' => 'required',
             'extraitMariage' => 'required',
@@ -106,7 +106,24 @@ class DemandeMariageController extends Controller
             $mariage->prenomEpoux = $request->prenomEpoux;
             $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;
             $mariage->lieuNaissanceEpoux = $request->lieuNaissanceEpoux;
-            $mariage->quantite = $request->quantite;
+
+            // Calcul des quantités
+            $qtySimple = (int) $request->input('qty_simple', 0);
+            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            if ($qtySimple === 0 && $qtyIntegral === 0) {
+                $type = $request->input('type', 'extrait_mariage');
+                if ($type === 'extrait_integral') {
+                    $qtyIntegral = 1;
+                } else {
+                    $qtySimple = 1;
+                }
+            }
+            $totalQuantity = $qtySimple + $qtyIntegral;
+
+            $mariage->qty_simple = $qtySimple;
+            $mariage->qty_integral = $qtyIntegral;
+            $mariage->quantite = $totalQuantity;
+
             $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
             $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
             $mariage->commune = $commune;
@@ -227,7 +244,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($mariage)
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeMariageController@store: ' . $e->getMessage() . ' Ligne: ' . $e->getLine());
             return response()->json([
@@ -324,7 +340,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'message' => 'Échec de la génération du lien CinetPay.',
                 'error_details' => $response->body()
             ];
-
         } catch (\Exception $e) {
             Log::error('Exception in generatePaymentLink: ' . $e->getMessage(), ['reference' => $mariage->reference]);
             return [
@@ -405,7 +420,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($mariage)
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeMariageController@retryPayment: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
             return response()->json([
@@ -455,7 +469,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($mariage)
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeMariageController@relancerDemande: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
             return response()->json([
@@ -580,7 +593,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'demande' => $this->formatDemandeResponse($mariage, true)
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeMariageController@modifierDemande: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
             return response()->json([
@@ -653,7 +665,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'champs_a_modifier' => $champsAvecValeurs,
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeMariageController@getChampsAModifier: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
             return response()->json([
@@ -854,7 +865,6 @@ Votre demande est maintenant en attente de traitement.";
             $mariage->save();
             Log::warning("Demande (Mariage) {$cinetpayTransactionId} paiement non accepté (status: {$status}).");
             return response()->json(['success' => true, 'message' => 'Paiement non accepté traité'], 200);
-
         } catch (\Exception $e) {
             Log::error("Webhook CinetPay (Mariage) {$cinetpayTransactionId}: Exception critique : " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
@@ -915,7 +925,6 @@ Votre demande est maintenant en attente de traitement.";
             ];
 
             return response()->json($responseData);
-
         } catch (\Exception $e) {
             Log::error("Erreur getPaymentStatus (Mariage) pour {$reference}: " . $e->getMessage());
             return response()->json([
@@ -986,7 +995,6 @@ Votre demande est maintenant en attente de traitement.";
                 'success' => true,
                 'message' => 'Demande de mariage supprimée avec succès'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur DemandeMariageController@destroy: ' . $e->getMessage());
             return response()->json([
