@@ -51,9 +51,7 @@
        <div class="info-item">
          <span class="info-label">Statut actuel</span>
          <span class="info-value">
-           @if($naissance->etat == 'en attente')
-             <span class="status-badge status-pending">En attente</span>
-           @elseif($naissance->etat == 'réçu')
+           @if($naissance->etat == 'réçu')
              <span class="status-badge status-recu">En cours</span>
            @elseif($naissance->etat == 'rejetée')
              <span class="status-badge status-rejected">Rejetée</span>

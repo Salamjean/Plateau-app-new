@@ -3,7 +3,7 @@
         <thead>
             <tr class="text-center">
                 <th class="text-center">Type</th>
-                <th class="text-center">Demandeur / Sujet</th>
+                <th class="text-center">Demandeur</th>
                 <th class="text-center">Date</th>
                 <th class="text-center">Heure</th>
                 <th class="text-center">Action</th>
@@ -23,13 +23,13 @@
                         $rowClass = 'row-naissance';
                         $typeName = 'Acte de naissance';
                         $actionRoute = route('naissance.traiter', $request->id);
-                        $details = $request->name . ' ' . $request->prenom;
+                        $details =  $request->user->name . ' ' . $request->user->prenom;
                     } elseif ($request->request_type == 'deces') {
                         $badgeClass = 'badge-deces';
                         $rowClass = 'row-deces';
                         $typeName = 'Acte de décès';
                         $actionRoute = route('deces.traiter', $request->id);
-                        $details = $request->name;
+                        $details =  $request->user->name . ' ' . $request->user->prenom;
                     } elseif ($request->request_type == 'mariage') {
                         $badgeClass = 'badge-mariage';
                         $rowClass = 'row-mariage';
@@ -37,7 +37,7 @@
                         $actionRoute = route('mariage.traiter', $request->id);
                         // Tentative de récupérer un nom pour le mariage
                         if (isset($request->nomEpoux)) {
-                            $details = $request->nomEpoux . ' & ' . $request->nomEpouse;
+                            $details =  $request->user->name . ' ' . $request->user->prenom;
                         } elseif (isset($request->user)) {
                             $details = $request->user->name . ' ' . $request->user->prenom;
                         } else {

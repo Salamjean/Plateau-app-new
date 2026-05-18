@@ -52,7 +52,7 @@ class AgentDecesController extends Controller
     {
         $deces = Deces::findOrFail($id);
         $isDiaspora = $deces->user->diaspora ?? false;
-        $etats = ['en attente', 'réçu', 'terminé', 'rejetée'];
+        $etats = ['réçu', 'terminé', 'rejetée'];
         return view('agent.extraits.deces.edit_etat', compact('deces', 'etats', 'isDiaspora'));
     }
 

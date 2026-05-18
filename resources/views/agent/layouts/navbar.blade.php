@@ -10,7 +10,7 @@
                   <span class="figure">
                         <img src="{{ optional(Auth::guard('agent')->user())->profile_picture 
                           ? asset('storage/' . Auth::guard('agent')->user()->profile_picture) 
-                          : asset('assets/images/profiles/useriii.jpeg') }}" alt="Logo plateau"  class="user" />
+                          : asset('assets/assets/img/logo plateau.png') }}" alt="Logo plateau"  class="user" />
                   </span>
                   <span class="user-name"  style="color: white; font-size:20px; font-weight:bold">{{Auth::guard('agent')->user()->name.' '.Auth::guard('agent')->user()->prenom}} </span>
                 </span>

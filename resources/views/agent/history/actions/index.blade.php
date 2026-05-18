@@ -104,20 +104,19 @@
               <th class="text-center">Action</th>
               <th class="text-center">Ancien État</th>
               <th class="text-center">Nouvel État</th>
-              <th class="text-center">Détails</th>
             </tr>
           </thead>
           <tbody>
             @forelse($actions as $action)
               <tr class="text-center">
-                <td>
+                <td class="text-center">
                   <strong>{{ $action->created_at->format('d/m/Y') }}</strong><br>
                   <small class="text-muted">{{ $action->created_at->format('H:i') }}</small>
                 </td>
-                <td>
+                <td class="text-center">
                   <span class="badge" >{{ $action->reference }}</span>
                 </td>
-                <td>
+                <td class="text-center">
                   @if($action->demande_type == 'naissance')
                     <span class="badge-type badge-naiss">Acte Naissance</span>
                   @elseif($action->demande_type == 'mariage')
@@ -126,7 +125,7 @@
                     <span class="badge-type badge-deces">Acte Décès</span>
                   @endif
                 </td>
-                <td>
+                <td class="text-center">
                   @if($action->action == 'rejet')
                     <span class="badge-action badge-action-rejet">Rejet</span>
                   @elseif($action->action == 'recu')
@@ -137,7 +136,7 @@
                     <span class="badge-action badge-action-default">{{ $action->action }}</span>
                   @endif
                 </td>
-                <td>
+                <td class="text-center">
                   @if($action->ancien_etat == 'terminé')
                     <span class="badge-etat badge-etat-termine">{{ $action->ancien_etat }}</span>
                   @elseif($action->ancien_etat == 'rejetée')
@@ -150,7 +149,7 @@
                     <span class="badge-etat badge-etat-default">{{ $action->ancien_etat ?? '-' }}</span>
                   @endif
                 </td>
-                <td>
+                <td class="text-center">
                   @if($action->nouvel_etat == 'terminé')
                     <span class="badge-etat badge-etat-termine">{{ $action->nouvel_etat }}</span>
                   @elseif($action->nouvel_etat == 'rejetée')
@@ -163,38 +162,10 @@
                     <span class="badge-etat badge-etat-default">{{ $action->nouvel_etat ?? '-' }}</span>
                   @endif
                 </td>
-                <td>
-                  @if($action->motif)
-                    <button type="button" class="btn-action" onclick="showMotif({{ $action->id }})">
-                      <i class="fas fa-eye"></i> Voir motif
-                    </button>
-                    
-                    <!-- Div caché pour le motif -->
-                    <div id="motif-{{ $action->id }}" style="display: none;">
-                      <div class="motif-content">
-                        <strong>Motif de rejet - {{ $action->reference }}</strong>
-                        <hr>
-                        <pre style="white-space: pre-wrap; text-align: left; background: #f8f9fa; padding: 10px; border-radius: 5px;">{{ $action->motif }}</pre>
-                        
-                        @if($action->champs_modifies)
-                          <hr>
-                          <strong>Champs concernés:</strong>
-                          <ul style="text-align: left;">
-                            @foreach($action->champs_modifies as $champ)
-                              <li>{{ $champ }}</li>
-                            @endforeach
-                          </ul>
-                        @endif
-                      </div>
-                    </div>
-                  @else
-                    <span class="text-muted">-</span>
-                  @endif
-                </td>
               </tr>
             @empty
               <tr>
-                <td colspan="7" class="empty-state">
+                <td colspan="6" class="empty-state">
                   <i class="fas fa-inbox"></i>
                   <h5>Aucune action enregistrée</h5>
                 </td>

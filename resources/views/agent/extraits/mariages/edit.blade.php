@@ -52,9 +52,7 @@
                 <div class="info-item">
                     <span class="info-label">Statut actuel</span>
                     <span class="info-value">
-                        @if($mariage->etat == 'en attente')
-                            <span class="status-badge status-pending">En attente</span>
-                        @elseif($mariage->etat == 'réçu')
+                        @if($mariage->etat == 'réçu')
                             <span class="status-badge status-recu">En cours</span>
                         @elseif($mariage->etat == 'rejetée')
                             <span class="status-badge status-rejected">Rejetée</span>

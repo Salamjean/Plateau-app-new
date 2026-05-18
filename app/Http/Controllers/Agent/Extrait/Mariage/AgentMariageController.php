@@ -69,7 +69,7 @@ class AgentMariageController extends Controller
         // Récupérer le statut diaspora de l'utilisateur
         $isDiaspora = $mariage->user->diaspora ?? false;
 
-        $etats = ['en attente', 'réçu', 'terminé', 'rejetée'];
+        $etats = ['réçu', 'terminé', 'rejetée'];
 
         return view('agent.extraits.mariages.edit', compact('mariage', 'etats', 'isDiaspora'));
     }

@@ -128,9 +128,7 @@
                 <div class="info-item">
                     <span class="info-label">Statut actuel</span>
                     <span class="info-value">
-                        @if($deces->etat == 'en attente')
-                            <span class="status-badge status-pending">En attente</span>
-                        @elseif($deces->etat == 'réçu')
+                        @if($deces->etat == 'réçu')
                             <span class="status-badge status-recu">Réçu</span>
                         @elseif($deces->etat == 'rejetée')
                             <span class="status-badge status-rejected">Rejetée</span>
