@@ -271,7 +271,7 @@
                         </div>
                         <div class="type-colis-info">
                             Extrait de Naissance - 
-                            {{ $naissance->type == 'simple' ? 'Copie Simple' : 'Copie Intégrale' }}
+                            {{ $naissance->type == 'simple' ? 'Copie Simple' : ($naissance->type == 'groupee' ? 'Simple + Intégral' : 'Copie Intégrale') }}
                         </div>
                     </td>
                     <td class="count-cell">

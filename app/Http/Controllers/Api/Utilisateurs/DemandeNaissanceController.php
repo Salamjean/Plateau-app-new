@@ -156,7 +156,7 @@ class DemandeNaissanceController extends Controller
                 $naissance->ville = $request->ville;
                 $naissance->commune_livraison = $request->commune_livraison;
                 $naissance->quartier = $request->quartier;
-                
+
                 if ($totalAmount > 0) {
                     $naissance->etat = 'en attente de paiement';
                     $naissance->statut_livraison = 'en attente de paiement';
@@ -306,12 +306,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, MTN, Moov)
             $channels = 'ALL';
             if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
-                $channels = 'MOBILE_MONEY'; 
+                $channels = 'MOBILE_MONEY';
             }
 
             $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
             $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
-            
+
             $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,

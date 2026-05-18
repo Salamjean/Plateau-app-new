@@ -71,7 +71,6 @@ class MariageController extends Controller
         $filesToUpload = [
             'pieceIdentite' => 'identite',
             'extraitMariage' => 'extrait',
-            'quantite' => 'required|integer|min:1|max:10',
         ];
 
         $uploadedPaths = [];
@@ -103,6 +102,13 @@ class MariageController extends Controller
         $increment = Mariage::getNextId();
         $reference = 'AM' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AM pour Acte de Mariage
 
+        // Récupérer les quantités simple et intégrale
+        $qtySimple = (int) $request->input('qty_simple', 0);
+        $qtyIntegral = (int) $request->input('qty_integral', 0);
+        if ($qtySimple === 0 && $qtyIntegral === 0) {
+            $qtySimple = 1;
+        }
+        $totalQuantity = $qtySimple + $qtyIntegral;
 
         // Enregistrement de l'objet Mariage
         $mariage = new Mariage();
@@ -110,7 +116,9 @@ class MariageController extends Controller
         $mariage->prenomEpoux = $request->prenomEpoux;
         $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;
         $mariage->lieuNaissanceEpoux = $request->lieuNaissanceEpoux;
-        $mariage->quantite = $request->quantite;
+        $mariage->qty_simple = $qtySimple;
+        $mariage->qty_integral = $qtyIntegral;
+        $mariage->quantite = $totalQuantity;
         $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
         $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
         $mariage->commune = $commune; // Utilisation de la commune spécifiée
@@ -141,7 +149,7 @@ class MariageController extends Controller
 
         // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
         $user->refresh();
-        $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
+        $freeCalc = $this->calculateFreeRequestsDiscount($user, $totalQuantity);
 
         if ($request->input('choix_option') === 'livraison') {
             $montantTimbreTotal = $freeCalc['montant_timbre_total'];
@@ -198,9 +206,9 @@ class MariageController extends Controller
                     if ($response && $response['status'] === 'PENDING') {
                         // Stocker le ReferenceId en session pour la vérification
                         session(['mtn_ref_' . $mariage->reference => $response['referenceId']]);
-                        
+
                         return redirect()->route('user.payment.mtn.waiting', [
-                            'reference' => $mariage->reference, 
+                            'reference' => $mariage->reference,
                             'type' => 'mariage'
                         ]);
                     }
@@ -211,12 +219,12 @@ class MariageController extends Controller
                     // Générer la session CinetPay
                     $channels = 'ALL';
                     if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
-                        $channels = 'MOBILE_MONEY'; 
+                        $channels = 'MOBILE_MONEY';
                     }
 
                     $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
                     $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
-                    
+
                     try {
                         $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
                             'apikey' => $cinetpayApiKey,
@@ -236,7 +244,7 @@ class MariageController extends Controller
                                 return redirect($data['data']['payment_url']);
                             }
                         }
-                        
+
                         Log::error('Échec CinetPay: ' . $response->body());
                         return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur de génération du lien CinetPay.');
 

@@ -23,6 +23,8 @@ class Mariage extends Model
         'agence_id',
         'livraison_code',
         'statut_livraison',
+        'qty_simple',
+        'qty_integral',
         'quantite',
         'choix_option',
         'montant_timbre',

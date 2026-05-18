@@ -26,6 +26,8 @@ class Naissance extends Model
         'agent_id',
         'livreur_id',
         'agence_id',
+        'qty_simple',
+        'qty_integral',
         'quantite',
         'choix_option',
         'montant_timbre',

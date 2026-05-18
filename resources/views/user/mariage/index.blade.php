@@ -118,6 +118,16 @@
         .badge-termine { background: #f0fdf4; color: #15803d; }
         .badge-rejete { background: #fef2f2; color: #b91c1c; }
 
+        .badge-type {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 8px;
+            font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+        }
+        .badge-type-simple   { background: #eff6ff; color: #1d4ed8; }
+        .badge-type-integral { background: #f5f3ff; color: #7c3aed; }
+        .badge-type-both     { background: linear-gradient(90deg,#eff6ff,#f5f3ff); color: #4338ca; border: 1px solid #c7d2fe; }
+
         .delivery-badge {
             display: inline-flex;
             align-items: center;
@@ -226,6 +236,23 @@
                 font-size: 1.4rem;
             }
         }
+
+        /* Stat summary cards */
+        .stat-card {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1rem 1.25rem; border-radius: 16px;
+            background: #fff; border: 1.5px solid #f0f4fa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: 0.25s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text-navy); line-height: 1; }
+        .stat-label { font-size: 0.72rem; font-weight: 600; color: #94a3b8; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-total    .stat-icon { background: #eef5fc; color: var(--primary); }
+        .stat-pending  .stat-icon { background: #fff7ed; color: #ea580c; }
+        .stat-progress .stat-icon { background: #eff6ff; color: #2563eb; }
+        .stat-done     .stat-icon { background: #f0fdf4; color: #16a34a; }
+        .stat-rejected .stat-icon { background: #fef2f2; color: #dc2626; }
     </style>
 
     <div class="dashboard-final container-fluid py-4 animate-fade-in">
@@ -236,6 +263,21 @@
             </a>
         </div>
 
+        @php
+            $total     = $allMariages->count();
+            $enAttente = $allMariages->where('etat', 'en attente')->count();
+            $enCours   = $allMariages->where('etat', 'réçu')->count();
+            $termine   = $allMariages->where('etat', 'terminé')->count();
+            $rejete    = $allMariages->where('etat', 'rejetée')->count();
+        @endphp
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md"><div class="stat-card stat-total"><div class="stat-icon"><i class="fas fa-file-alt"></i></div><div><div class="stat-value">{{ $total }}</div><div class="stat-label">Total</div></div></div></div>
+            <div class="col-6 col-md"><div class="stat-card stat-pending"><div class="stat-icon"><i class="fas fa-clock"></i></div><div><div class="stat-value">{{ $enAttente }}</div><div class="stat-label">En attente</div></div></div></div>
+            <div class="col-6 col-md"><div class="stat-card stat-progress"><div class="stat-icon"><i class="fas fa-spinner"></i></div><div><div class="stat-value">{{ $enCours }}</div><div class="stat-label">En cours</div></div></div></div>
+            <div class="col-6 col-md"><div class="stat-card stat-done"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div><div class="stat-value">{{ $termine }}</div><div class="stat-label">Terminées</div></div></div></div>
+            <div class="col-6 col-md"><div class="stat-card stat-rejected"><div class="stat-icon"><i class="fas fa-times-circle"></i></div><div><div class="stat-value">{{ $rejete }}</div><div class="stat-label">Rejetées</div></div></div></div>
+        </div>
+
         <div class="glass-container">
             <div class="table-responsive">
                 <table id="mariageTable" class="table">
@@ -243,6 +285,7 @@
                         <tr>
                             <th class="text-center">Référence</th>
                             <th class="text-center">Quantité</th>
+                            <th class="text-center">Type</th>
                             <th class="text-center">Conjoint(e)</th>
                             <th class="text-center">Documents</th>
                             <th class="text-center">Statut</th>
@@ -259,6 +302,15 @@
                                 </td>
                                 <td class="text-center">
                                     <span class="fw-bold">{{ $mariage->quantite }}</span> <small class="text-muted">copie(s)</small>
+                                </td>
+                                <td class="text-center">
+                                    @if($mariage->typeDemande === 'simpleIntegrale')
+                                        <span class="badge-type badge-type-both"><i class="fas fa-layer-group"></i> Simple + Intégrale</span>
+                                    @elseif($mariage->typeDemande === 'copieIntegrale')
+                                        <span class="badge-type badge-type-integral"><i class="fas fa-scroll"></i> Intégrale</span>
+                                    @else
+                                        <span class="badge-type badge-type-simple"><i class="fas fa-file-alt"></i> Simple</span>
+                                    @endif
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex flex-column">
@@ -416,7 +468,7 @@
                     <label class="form-label fw-bold small text-uppercase">${label}</label>`;
                 
                 if (field === 'typeDemande') {
-                    formHtml += `<select name="${field}" class="form-select"><option value="extraitSimple" ${val==='extraitSimple'?'selected':''}>Simple</option><option value="copieIntegrale" ${val==='copieIntegrale'?'selected':''}>Intégrale</option></select>`;
+                    formHtml += `<select name="${field}" class="form-select"><option value="extraitSimple" ${val==='extraitSimple'?'selected':''}>Simple</option><option value="copieIntegrale" ${val==='copieIntegrale'?'selected':''}>Intégrale</option><option value="simpleIntegrale" ${val==='simpleIntegrale'?'selected':''}>Simple + Intégrale</option></select>`;
                 } else if (['pieceIdentite', 'extraitMariage'].includes(field)) {
                     formHtml += `<input type="file" name="${field}" class="form-control" accept=".jpg,.jpeg,.png,.pdf">`;
                 } else if (field === 'dateNaissanceEpoux') {

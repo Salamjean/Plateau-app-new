@@ -543,6 +543,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     // Demandes groupées mariage
     Route::get('/wedding/groupee', [\App\Http\Controllers\User\Extrait\Mariage\MariageGroupeController::class, 'create'])->name('user.extrait.mariage.groupee.create');
     Route::post('/wedding/groupee', [\App\Http\Controllers\User\Extrait\Mariage\MariageGroupeController::class, 'store'])->name('user.extrait.mariage.groupee.store');
+    Route::get('/wedding/groupee/index', [\App\Http\Controllers\User\Extrait\Mariage\MariageGroupeController::class, 'index'])->name('user.extrait.mariage.groupee.index');
 
 
     //Les routes pour prendre un rendez-vous de mariage

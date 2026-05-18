@@ -131,7 +131,7 @@ class NaissanceController extends Controller
 
     public function store(Request $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService)
     {
-        $validated = $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'type' => 'required',
             'name' => 'required',
             'prenom' => 'required',
@@ -141,7 +141,8 @@ class NaissanceController extends Controller
             'nom_prenoms_mere' => 'nullable|string|max:255',
             'commune' => 'required',
             'commune_naissance' => 'required|string|max:255',
-            'quantite' => 'required|integer|min:1|max:10',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
             'CNI' => 'required',
         ], [
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
@@ -152,13 +153,21 @@ class NaissanceController extends Controller
             'commune.required' => 'La commune est obligatoire',
             'commune_naissance.required' => 'La commune de naissance est obligatoire',
             'CNI.required' => 'Le champ CNI est obligatoire',
-            'quantite.required' => 'La quantité est obligatoire',
-            'quantite.integer' => 'La quantité doit être un nombre entier',
-            'quantite.min' => 'La quantité doit être au moins de 1',
-            'quantite.max' => 'La quantité ne peut pas dépasser 10',
+            'qty_simple.integer' => 'La quantité simple doit être un nombre entier',
+            'qty_integral.integer' => 'La quantité intégrale doit être un nombre entier',
             'CNI.mimes' => 'Le format du fichier doit être PNG, JPG, JPEG ou PDF',
             'CNI.max' => 'Le fichier ne doit pas dépasser 1Mo',
         ]);
+
+        if ($validator->fails()) {
+            Log::error('Validation échouée pour la demande de naissance : ', [
+                'errors' => $validator->errors()->toArray(),
+                'input' => $request->all(),
+            ]);
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $validated = $validator->validated();
         // Log des données de la requête
         Log::info('Store method called', $request->all());
 
@@ -192,12 +201,27 @@ class NaissanceController extends Controller
         $increment = Naissance::getNextId();
         $reference = 'AN' . $randomDigits . $increment . $communeInitiale . $anneeCourante;
 
+        // Récupération des quantités
+        $qtySimple = (int) $request->input('qty_simple', 0);
+        $qtyIntegral = (int) $request->input('qty_integral', 0);
+        if ($qtySimple === 0 && $qtyIntegral === 0) {
+            $type = $request->input('type');
+            if ($type === 'extrait_integral') {
+                $qtyIntegral = 1;
+            } else {
+                $qtySimple = 1;
+            }
+        }
+        $totalQuantity = $qtySimple + $qtyIntegral;
+
         // Création de la demande d'extrait de naissance
         $naissance = new Naissance();
         $naissance->pour = $request->pour;
         $naissance->type = $request->type;
         $naissance->name = $request->name;
-        $naissance->quantite = $request->quantite;
+        $naissance->qty_simple = $qtySimple;
+        $naissance->qty_integral = $qtyIntegral;
+        $naissance->quantite = $totalQuantity;
         $naissance->prenom = $request->prenom;
         $naissance->nom_prenoms_pere = $request->nom_prenoms_pere;
         $naissance->nom_prenoms_mere = $request->nom_prenoms_mere;
@@ -234,7 +258,7 @@ class NaissanceController extends Controller
 
         // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
         $user->refresh();
-        $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+        $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) ($naissance->qty_simple + $naissance->qty_integral));
 
         if ($request->input('choix_option') === 'livraison') {
             $montantTimbreTotal = $freeCalc['montant_timbre_total'];

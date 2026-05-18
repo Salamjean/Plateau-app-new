@@ -26,6 +26,13 @@ class MariageGroupeController extends Controller
     public const TARIF_TIMBRE = 500;
     public const TARIF_LIVRAISON = 1500;
 
+    public function index()
+    {
+        $user   = Auth::user();
+        $groupes = MariageGroupe::where('user_id', $user->id)->latest()->get();
+        return view('user.mariage.groupee.index', compact('groupes'));
+    }
+
     public function create()
     {
         $user = Auth::user();
@@ -157,6 +164,8 @@ class MariageGroupeController extends Controller
                     'extraitMariage'      => $extraitPath ?? '',
                     'commune'             => $user->commune ?? 'plateau',
                     'reference'           => $groupeReference . '-' . $position1Based,
+                    'qty_simple'          => $ligneData['type_document'] === 'simple' ? 1 : 0,
+                    'qty_integral'        => $ligneData['type_document'] === 'extrait_integral' ? 1 : 0,
                     'quantite'            => 1,
                     'choix_option'        => $request->choix_option,
                     'montant_timbre'      => self::TARIF_TIMBRE,

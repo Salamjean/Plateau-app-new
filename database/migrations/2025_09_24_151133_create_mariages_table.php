@@ -22,7 +22,9 @@ return new class extends Migration
             $table->string('reference');
             $table->string('statut_livraison')->nullable(); // État par défaut
             $table->string('commune')->nullable();
-            $table->string('quantite');
+            $table->integer('qty_simple')->default(0);
+            $table->integer('qty_integral')->default(0);
+            $table->string('quantite')->nullable();
             $table->string('etat')->default('en attente'); // État par défaut
             $table->string('CMU')->nullable();
 

@@ -1,7 +1,6 @@
 @extends('user.layouts.template')
 
 @section('content')
-
     <!-- Inclure SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -115,7 +114,7 @@
             outline: none;
         }
 
-        .form-control-custom:focus + i {
+        .form-control-custom:focus+i {
             color: var(--primary);
         }
 
@@ -165,14 +164,14 @@
             margin-bottom: 0;
         }
 
-        .delivery-option-card input:checked + .delivery-option-content {
+        .delivery-option-card input:checked+.delivery-option-content {
             border-color: var(--primary);
             background: var(--primary-light);
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(25, 119, 204, 0.1);
         }
 
-        .delivery-option-card input:checked + .delivery-option-content i {
+        .delivery-option-card input:checked+.delivery-option-content i {
             color: var(--primary);
         }
 
@@ -302,8 +301,15 @@
         }
 
         @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .stepper-footer {
@@ -364,14 +370,160 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Quantités intégrées dans step 1 */
+        .qty-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #f0f2f5;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .qty-section-label {
+            font-weight: 600;
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .quantity-cards-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Carte unique : centrée */
+        .quantity-cards-row.single-card {
+            grid-template-columns: minmax(200px, 420px);
+            justify-content: center;
+        }
+
+        .quantity-cards-row.single-card+*,
+        .quantity-cards-row.single-card {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 576px) {
+
+            .quantity-cards-row,
+            .quantity-cards-row.single-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .quantity-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.25rem;
+            border: 2px solid #f4f7fe;
+            transition: 0.3s;
+        }
+
+        .quantity-card.has-value {
+            border-color: var(--primary);
+            background: #f8fbff;
+        }
+
+        .quantity-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .quantity-card-title {
+            font-weight: 700;
+            color: var(--text-navy);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-card-title i {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .quantity-card-meta {
+            color: #718096;
+            font-size: 0.82rem;
+            margin-top: 0.5rem;
+        }
+
+        .qty-stepper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: none;
+            background: #f4f7fe;
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .qty-btn:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .qty-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .qty-btn:disabled:hover {
+            background: #f4f7fe;
+            color: var(--primary);
+        }
+
+        .qty-input {
+            width: 52px;
+            text-align: center;
+            padding: 6px;
+            border-radius: 8px;
+            border: 2px solid #f4f7fe;
+            font-weight: 700;
+            font-size: 1rem;
         }
 
         @media (max-width: 768px) {
@@ -379,8 +531,8 @@
                 padding: 1rem 0;
             }
 
-            .form-glass-card { 
-                padding: 1.5rem; 
+            .form-glass-card {
+                padding: 1.5rem;
                 border-radius: 20px;
                 margin: 0 -5px;
             }
@@ -408,8 +560,8 @@
                 font-size: 0.9rem;
             }
 
-            .delivery-card-grid { 
-                grid-template-columns: 1fr; 
+            .delivery-card-grid {
+                grid-template-columns: 1fr;
                 gap: 1rem;
             }
 
@@ -426,250 +578,487 @@
                 min-height: 48px;
             }
         }
+
+        /* Cards visuelles type/pour */
+        .type-cards-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .type-cards-grid.grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .type-cards-grid.grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .type-option-card {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .type-option-card input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .type-option-content {
+            padding: 1.5rem 1rem;
+            background: #fff;
+            border-radius: 16px;
+            border: 2px solid #f4f7fe;
+            text-align: center;
+            transition: all 0.25s ease;
+            height: 100%;
+        }
+
+        .type-option-content i {
+            font-size: 1.6rem;
+            color: #a0aec0;
+            margin-bottom: 0.6rem;
+            display: block;
+            transition: 0.25s;
+        }
+
+        .type-option-content h6 {
+            font-weight: 700;
+            color: var(--text-navy);
+            margin-bottom: 0.2rem;
+            font-size: 0.95rem;
+        }
+
+        .type-option-content small {
+            color: #718096;
+            font-size: 0.78rem;
+        }
+
+        .type-option-card input:checked+.type-option-content {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: 0 8px 20px rgba(25, 119, 204, 0.12);
+            transform: translateY(-3px);
+        }
+
+        .type-option-card input:checked+.type-option-content i {
+            color: var(--primary);
+        }
+
+        /* Pills compactes pour "Cette demande est pour" */
+        .pour-toggle-group {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .pour-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .pour-toggle-row-label {
+            font-weight: 700;
+            color: var(--text-navy);
+            font-size: 0.92rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pour-toggle-row-label i {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .pour-toggle-label {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .pour-toggle-label input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .pour-toggle-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 1.1rem;
+            background: #fff;
+            border: 2px solid #e8edf5;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #718096;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .pour-toggle-content i {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            transition: 0.2s;
+        }
+
+        .pour-toggle-content .check-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e0;
+            flex-shrink: 0;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content i {
+            color: var(--primary);
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content .check-dot {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
     </style>
 
-<div class="form-page-container">
-    <div class="form-glass-card">
-        <div class="form-header-box">
-            <h2>Demande d'acte de naissance</h2>
-            <p>Processus simplifié en 3 étapes</p>
-        </div>
-
-        <!-- Stepper Indicator -->
-        <div class="stepper-container">
-            <div class="step-item active" id="step-1-indicator">
-                <div class="step-number">1</div>
-                <div class="step-label">Type</div>
+    <div class="form-page-container">
+        <div class="form-glass-card">
+            <div class="form-header-box">
+                <h2>Demande d'acte de naissance</h2>
+                <p>Processus simplifié en 3 étapes</p>
             </div>
-            <div class="step-item" id="step-2-indicator">
-                <div class="step-number">2</div>
-                <div class="step-label">Informations</div>
-            </div>
-            <div class="step-item" id="step-3-indicator">
-                <div class="step-number">3</div>
-                <div class="step-label">Mode & Pièce</div>
-            </div>
-        </div>
 
-        <form id="naissanceForm" action="{{route('user.extrait.store')}}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <input type="hidden" name="commune" value="Plateau">
+            <!-- Stepper Indicator -->
+            <div class="stepper-container">
+                <div class="step-item active" id="step-1-indicator">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Type</div>
+                </div>
+                <div class="step-item" id="step-2-indicator">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Informations</div>
+                </div>
+                <div class="step-item" id="step-3-indicator">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Mode & Pièce</div>
+                </div>
+            </div>
 
-            <!-- ÉTAPE 1: Type de demande -->
-            <div class="form-step active" id="step-1">
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-info-circle"></i> Type de demande
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="input-group-custom">
-                                <label>Cette demande est pour :</label>
-                                <div class="input-wrapper">
-                                    <select id="pour" name="pour" class="form-control-custom" onchange="updateFields()">
-                                        <option value="Moi" {{ old('pour') == 'Moi' ? 'selected' : '' }}>Moi-même</option>
-                                        <option value="une_autre_personne" {{ old('pour') == 'une_autre_personne' ? 'selected' : '' }}>Une autre personne</option>
-                                    </select>
-                                    <i class="fas fa-users"></i>
-                                </div>
-                            </div>
+            <form id="naissanceForm" action="{{ route('user.extrait.store') }}" method="POST"
+                enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="commune" value="Plateau">
+
+                <!-- ÉTAPE 1: Type de demande -->
+                <div class="form-step active" id="step-1">
+                    <div class="form-section">
+                        <div class="pour-toggle-row">
+                            <span class="pour-toggle-row-label">
+                                <i class="fas fa-user-circle"></i> Cette demande est pour
+                            </span>
+                            <div class="pour-toggle-group" style="margin-bottom:0;">
+                                <label class="pour-toggle-label">
+                                    <input type="radio" name="pour" value="Moi"
+                                        {{ old('pour', 'Moi') !== 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
+                                    <div class="pour-toggle-content">
+                                        <span class="check-dot"></span>
+                                        <i class="fas fa-user"></i>
+                                        Moi-même
+                                    </div>
+                                </label>
+                                <label class="pour-toggle-label">
+                                    <input type="radio" name="pour" value="une_autre_personne"
+                                        {{ old('pour') === 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
+                                    <div class="pour-toggle-content">
+                                        <span class="check-dot"></span>
+                                        <i class="fas fa-users"></i>
+                                        Une autre personne
+                                    </div>
+                                </label>
+                            </div>{{-- /pour-toggle-group --}}
+                        </div>{{-- /pour-toggle-row --}}
+
+                        <div class="form-section-title" style="margin-top:1.5rem;">
+                            <i class="fas fa-file-alt"></i> Type de document
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="input-group-custom">
-                                <label>Type de document :</label>
-                                <div class="input-wrapper">
-                                    <select id="type" name="type" class="form-control-custom" onchange="onTypeChange(this)">
-                                        <option value="simple" {{ old('type') == 'simple' ? 'selected' : '' }}>Acte simple</option>
-                                        <option value="extrait_integral" {{ old('type') == 'extrait_integral' ? 'selected' : '' }}>Acte intégral</option>
-                                        <option value="groupee">Demande groupée (plusieurs actes)</option>
-                                    </select>
+                        <div class="type-cards-grid grid-3">
+                            <label class="type-option-card">
+                                <input type="radio" name="type" value="simple"
+                                    {{ old('type', 'simple') === 'simple' ? 'checked' : '' }} onchange="onTypeChange(this)">
+                                <div class="type-option-content">
                                     <i class="fas fa-file-alt"></i>
+                                    <h6>Acte simple</h6>
+                                    <small>Extrait d'acte de naissance</small>
                                 </div>
-                                <small class="text-muted" id="groupee-hint" style="display:none; margin-top:8px; padding-left:5px;">
-                                    <i class="fas fa-info-circle"></i> Vous allez être redirigé vers une page dédiée pour configurer votre panier.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="stepper-footer">
-                    <div></div>
-                    <button type="button" class="btn-step btn-next" onclick="nextStep(1)">
-                        Continuer <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ÉTAPE 2: Informations sur l'acte -->
-            <div class="form-step" id="step-2">
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-user"></i> Informations sur l'acte
-                    </div>
-                    
-                    <!-- Ligne 1: Identité et Lieu -->
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="input-group-custom">
-                                <label>Nom :</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="name" name="name" class="form-control-custom"
-                                        value="{{ old('name', $userName) }}" placeholder="Nom sur l'acte">
-                                    <i class="fas fa-id-card"></i>
+                            </label>
+                            <label class="type-option-card">
+                                <input type="radio" name="type" value="extrait_integral"
+                                    {{ old('type') === 'extrait_integral' ? 'checked' : '' }} onchange="onTypeChange(this)">
+                                <div class="type-option-content">
+                                    <i class="fas fa-file-contract"></i>
+                                    <h6>Acte intégral</h6>
+                                    <small>Acte avec filiation complète</small>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="input-group-custom">
-                                <label>Prénoms :</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="prenom" name="prenom" class="form-control-custom"
-                                        value="{{ old('prenom', $userPrenom) }}" placeholder="Prénoms sur l'acte">
-                                    <i class="fas fa-id-card"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="input-group-custom">
-                                <label>Lieu de naissance :</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="commune_naissance" name="commune_naissance" class="form-control-custom" 
-                                        value="{{ old('commune_naissance') }}" placeholder="Commune">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ligne 2: Registre et Quantité -->
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="input-group-custom">
-                                <label>N° Registre :</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="number" name="number" class="form-control-custom" 
-                                        value="{{ old('number') }}" placeholder="Ex: 123/2024">
-                                    <i class="fas fa-hashtag"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="input-group-custom">
-                                <label>Date Registre :</label>
-                                <div class="input-wrapper">
-                                    <input type="date" id="DateR" name="DateR" class="form-control-custom" 
-                                        value="{{ old('DateR') }}" onclick="this.showPicker()">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="input-group-custom">
-                                <label>Quantité :</label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="quantite" name="quantite" class="form-control-custom"
-                                        value="{{ old('quantite', 1) }}" min="1" max="10">
+                            </label>
+                            <label class="type-option-card">
+                                <input type="radio" name="type" value="groupee"
+                                    {{ old('type') === 'groupee' ? 'checked' : '' }} onchange="onTypeChange(this)">
+                                <div class="type-option-content">
                                     <i class="fas fa-copy"></i>
+                                    <h6>Simple + Intégral</h6>
+                                    <small>Les deux types d'acte</small>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Section quantités (toujours visible) -->
+                        <div id="qty-section" class="qty-section">
+                            <div id="qty-section-label" class="qty-section-label" style="text-align:center;">
+                                <i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?
+                            </div>
+                            <div class="quantity-cards-row single-card" id="qty-cards-row">
+                                <div class="quantity-card has-value" id="sq-card-simple">
+                                    <div class="quantity-card-header">
+                                        <div class="quantity-card-title">
+                                            <i class="fas fa-file-alt"
+                                                style="background:rgba(1,181,116,0.1); color:var(--success);"></i>
+                                            Acte simple
+                                        </div>
+                                        <div class="qty-stepper">
+                                            <button type="button" class="qty-btn"
+                                                onclick="updateSQty('sq_simple',-1)">−</button>
+                                            <input type="number" id="sq_simple" name="qty_simple" class="qty-input"
+                                                min="1" max="10" value="1" readonly>
+                                            <button type="button" class="qty-btn"
+                                                onclick="updateSQty('sq_simple',1)">+</button>
+                                        </div>
+                                    </div>
+                                    <div class="quantity-card-meta">
+                                        {{ \App\Http\Controllers\User\Extrait\Naissance\NaissanceGroupeController::TARIF_TIMBRE }}
+                                        FCFA / copie</div>
+                                </div>
+                                <div class="quantity-card has-value" id="sq-card-integral" style="display:none;">
+                                    <div class="quantity-card-header">
+                                        <div class="quantity-card-title">
+                                            <i class="fas fa-file-contract"
+                                                style="background:rgba(255,59,103,0.1); color:var(--pink);"></i>
+                                            Acte intégral
+                                        </div>
+                                        <div class="qty-stepper">
+                                            <button type="button" class="qty-btn"
+                                                onclick="updateSQty('sq_integral',-1)">−</button>
+                                            <input type="number" id="sq_integral" name="qty_integral" class="qty-input"
+                                                min="1" max="10" value="1" readonly disabled>
+                                            <button type="button" class="qty-btn"
+                                                onclick="updateSQty('sq_integral',1)">+</button>
+                                        </div>
+                                    </div>
+                                    <div class="quantity-card-meta">
+                                        {{ \App\Http\Controllers\User\Extrait\Naissance\NaissanceGroupeController::TARIF_TIMBRE }}
+                                        FCFA / copie (avec filiation)</div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="stepper-footer">
+                        <div></div>
+                        <button type="button" class="btn-step btn-next" onclick="nextStep(1)">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
 
-                    <!-- Ligne 3: Filiation -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="input-group-custom">
-                                <label>Nom et Prénoms du père :</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere" class="form-control-custom"
-                                        value="{{ old('nom_prenoms_pere') }}" placeholder="Nom complet du père">
-                                    <i class="fas fa-male"></i>
+                <!-- ÉTAPE 2: Informations sur l'acte -->
+                <div class="form-step" id="step-2">
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-user"></i> Informations sur l'acte
+                        </div>
+
+                        <!-- Ligne 1: Identité et Lieu -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Nom :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="name" name="name" class="form-control-custom"
+                                            value="{{ old('name', $userName) }}" placeholder="Nom sur l'acte">
+                                        <i class="fas fa-id-card"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Prénoms :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="prenom" name="prenom" class="form-control-custom"
+                                            value="{{ old('prenom', $userPrenom) }}" placeholder="Prénoms sur l'acte">
+                                        <i class="fas fa-id-card"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Lieu de naissance :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="commune_naissance" name="commune_naissance"
+                                            class="form-control-custom" value="{{ old('commune_naissance') }}"
+                                            placeholder="Commune">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="input-group-custom">
-                                <label>Nom et Prénoms de la mère :</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere" class="form-control-custom"
-                                        value="{{ old('nom_prenoms_mere') }}" placeholder="Nom complet de la mère">
-                                    <i class="fas fa-female"></i>
+
+                        <!-- Ligne 2: Registre + Filiation -->
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group-custom">
+                                    <label>N° Registre :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="number" name="number" class="form-control-custom"
+                                            value="{{ old('number') }}" placeholder="Ex: 123/2024">
+                                        <i class="fas fa-hashtag"></i>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Date Registre :</label>
+                                    <div class="input-wrapper">
+                                        <input type="date" id="DateR" name="DateR" class="form-control-custom"
+                                            value="{{ old('DateR') }}" onclick="this.showPicker()">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Nom et Prénoms du père :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere"
+                                            class="form-control-custom" value="{{ old('nom_prenoms_pere') }}"
+                                            placeholder="Nom complet du père">
+                                        <i class="fas fa-male"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Nom et Prénoms de la mère :</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere"
+                                            class="form-control-custom" value="{{ old('nom_prenoms_mere') }}"
+                                            placeholder="Nom complet de la mère">
+                                        <i class="fas fa-female"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="quantite" name="quantite" value="{{ old('quantite', 1) }}">
                         </div>
                     </div>
-                </div>
-                <div class="stepper-footer">
-                    <button type="button" class="btn-step btn-prev" onclick="prevStep(2)">
-                        <i class="fas fa-arrow-left"></i> Précédent
-                    </button>
-                    <button type="button" class="btn-step btn-next" onclick="nextStep(2)">
-                        Continuer <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ÉTAPE 3: Justificatif & Mode de retrait -->
-            <div class="form-step" id="step-3">
-                <!-- Section: Justificatif -->
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-paperclip"></i> Justificatif d'identité
-                    </div>
-                    <div class="input-group-custom">
-                        <label>Pièce d'identité (CNI, Passeport, Livret) :</label>
-                        <label class="file-upload-area">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h6 id="file-name" class="text-navy-bold mb-1">Téléverser votre pièce</h6>
-                            <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 1Mo)</p>
-                            <input type="file" id="CNI" name="CNI" class="d-none" onchange="updateFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
-                        </label>
+                    <div class="stepper-footer">
+                        <button type="button" class="btn-step btn-prev" onclick="prevStep(2)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="button" class="btn-step btn-next" onclick="nextStep(2)">
+                            Continuer <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Section: Mode de retrait -->
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-truck"></i> Mode de retrait
+                <!-- ÉTAPE 3: Justificatif & Mode de retrait -->
+                <div class="form-step" id="step-3">
+                    <!-- Section: Justificatif -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-paperclip"></i> Justificatif d'identité
+                        </div>
+                        <div class="input-group-custom">
+                            <label>Pièce d'identité (CNI, Passeport, Livret) :</label>
+                            <label class="file-upload-area">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h6 id="file-name" class="text-navy-bold mb-1">Téléverser votre pièce</h6>
+                                <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 1Mo)</p>
+                                <input type="file" id="CNI" name="CNI" class="d-none"
+                                    onchange="updateFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
+                            </label>
+                        </div>
                     </div>
-                    <div class="delivery-card-grid">
-                        <label class="delivery-option-card">
-                            <input type="radio" id="option1" name="choix_option" value="Retrait sur place" checked>
-                            <div class="delivery-option-content">
-                                <i class="fas fa-university"></i>
-                                <h5>Retrait en Mairie</h5>
-                                <p>Gratuit - Guichet</p>
-                            </div>
-                        </label>
-                        <label class="delivery-option-card">
-                            <input type="radio" id="option2" name="choix_option" value="livraison">
-                            <div class="delivery-option-content">
-                                <i class="fas fa-motorcycle"></i>
-                                <h5>Livraison Express</h5>
-                                <p>1500 FCFA - Domicile</p>
-                            </div>
-                        </label>
-                    </div>
-                </div>
 
-                <div class="stepper-footer">
-                    <button type="button" class="btn-step btn-prev" onclick="prevStep(3)">
-                        <i class="fas fa-arrow-left"></i> Précédent
-                    </button>
-                    <button type="submit" id="btnValider" class="btn-step btn-next" style="background: var(--success);">
-                        <i class="fas fa-check-circle"></i> Valider ma demande
-                    </button>
+                    <!-- Section: Mode de retrait -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-truck"></i> Mode de retrait
+                        </div>
+                        <div class="delivery-card-grid">
+                            <label class="delivery-option-card">
+                                <input type="radio" id="option1" name="choix_option" value="Retrait sur place"
+                                    checked>
+                                <div class="delivery-option-content">
+                                    <i class="fas fa-university"></i>
+                                    <h5>Retrait en Mairie</h5>
+                                    <p>Gratuit - Guichet</p>
+                                </div>
+                            </label>
+                            <label class="delivery-option-card">
+                                <input type="radio" id="option2" name="choix_option" value="livraison">
+                                <div class="delivery-option-content">
+                                    <i class="fas fa-motorcycle"></i>
+                                    <h5>Livraison Express</h5>
+                                    <p>1500 FCFA - Domicile</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="stepper-footer">
+                        <button type="button" class="btn-step btn-prev" onclick="prevStep(3)">
+                            <i class="fas fa-arrow-left"></i> Précédent
+                        </button>
+                        <button type="submit" id="btnValider" class="btn-step btn-next"
+                            style="background: var(--success);">
+                            <i class="fas fa-check-circle"></i> Valider ma demande
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
     <script>
         let formSubmitted = false;
 
         function updateFields() {
-            const pourSelect = document.getElementById('pour');
+            const pourSelect = document.querySelector('input[name="pour"]:checked');
             const nameInput = document.getElementById('name');
             const prenomInput = document.getElementById('prenom');
             // const communeSelect = document.getElementById('commune'); // La commune est en readonly 'plateau'
@@ -703,22 +1092,113 @@
             document.getElementById('file-name').textContent = fileName;
         }
 
-        // Affiche un message d'info quand l'utilisateur sélectionne "Demande groupée"
-        function onTypeChange(select) {
-            const hint = document.getElementById('groupee-hint');
-            if (hint) {
-                hint.style.display = select.value === 'groupee' ? 'block' : 'none';
+        const ROUTE_SIMPLE_STORE = "{{ route('user.extrait.store') }}";
+        const ROUTE_GROUPEE_STORE = "{{ route('user.extrait.groupee.store') }}";
+
+        function onTypeChange(input) {
+            const type = input.value;
+            const isGroupee = type === 'groupee';
+            const isSimple = type === 'simple';
+            const isIntegral = type === 'extrait_integral';
+
+            const cardSimple = document.getElementById('sq-card-simple');
+            const cardIntegral = document.getElementById('sq-card-integral');
+            const sqSimple = document.getElementById('sq_simple');
+            const sqIntegral = document.getElementById('sq_integral');
+            const label = document.getElementById('qty-section-label');
+            const row = document.getElementById('qty-cards-row');
+
+            if (isGroupee) {
+                cardSimple.style.display = '';
+                cardIntegral.style.display = '';
+                sqSimple.disabled = false;
+                sqSimple.min = '1';
+                sqIntegral.disabled = false;
+                sqIntegral.min = '1';
+                if (parseInt(sqSimple.value) < 1) sqSimple.value = 1;
+                if (parseInt(sqIntegral.value) < 1) sqIntegral.value = 1;
+                if (label) {
+                    label.style.textAlign = '';
+                    label.innerHTML =
+                        '<i class="fas fa-layer-group" style="color:var(--primary);"></i> Combien de copies de chaque type ?';
+                }
+                if (row) row.classList.remove('single-card');
+            } else if (isSimple) {
+                cardSimple.style.display = '';
+                cardIntegral.style.display = 'none';
+                sqSimple.disabled = false;
+                sqSimple.min = '1';
+                sqIntegral.disabled = true;
+                sqIntegral.value = 0;
+                if (parseInt(sqSimple.value) < 1) sqSimple.value = 1;
+                if (label) {
+                    label.style.textAlign = 'center';
+                    label.innerHTML =
+                        '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?';
+                }
+                if (row) row.classList.add('single-card');
+            } else if (isIntegral) {
+                cardSimple.style.display = 'none';
+                cardIntegral.style.display = '';
+                sqIntegral.disabled = false;
+                sqIntegral.min = '1';
+                sqSimple.disabled = true;
+                sqSimple.value = 0;
+                if (parseInt(sqIntegral.value) < 1) sqIntegral.value = 1;
+                if (label) {
+                    label.style.textAlign = 'center';
+                    label.innerHTML =
+                        '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?';
+                }
+                if (row) row.classList.add('single-card');
             }
+
+            syncQuantite();
+            document.getElementById('naissanceForm').action = ROUTE_SIMPLE_STORE;
+        }
+
+        function syncQuantite() {
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const qEl = document.getElementById('quantite');
+            if (!qEl) return;
+            if (type === 'simple') {
+                qEl.value = parseInt(document.getElementById('sq_simple').value) || 1;
+            } else if (type === 'extrait_integral') {
+                qEl.value = parseInt(document.getElementById('sq_integral').value) || 1;
+            } else if (type === 'groupee') {
+                const s = parseInt(document.getElementById('sq_simple').value) || 0;
+                const i = parseInt(document.getElementById('sq_integral').value) || 0;
+                qEl.value = s + i;
+            }
+        }
+
+        function updateSQty(field, delta) {
+            const input = document.getElementById(field);
+            const min = parseInt(input.min) || 0;
+            input.value = Math.max(min, Math.min(10, parseInt(input.value || 0) + delta));
+            document.getElementById('sq-card-simple').classList.toggle('has-value',
+                parseInt(document.getElementById('sq_simple').value) > 0);
+            document.getElementById('sq-card-integral').classList.toggle('has-value',
+                parseInt(document.getElementById('sq_integral').value) > 0);
+            syncQuantite();
         }
 
         // Stepper Navigation
         function nextStep(step) {
-            // Si l'utilisateur a choisi "Demande groupée" dès l'étape 1,
-            // on le redirige vers la page dédiée plutôt que de continuer le wizard simple.
             if (step === 1) {
-                const typeSelect = document.getElementById('type');
-                if (typeSelect && typeSelect.value === 'groupee') {
-                    window.location.href = "{{ route('user.extrait.groupee.create') }}";
+                const type = document.querySelector('input[name="type"]:checked').value;
+                const qS = parseInt(document.getElementById('sq_simple').value || 0);
+                const qI = parseInt(document.getElementById('sq_integral').value || 0);
+                if (type === 'groupee' && (qS < 1 || qI < 1)) {
+                    alert('Pour le type "Simple + Intégral", veuillez choisir au moins 1 copie de chaque type.');
+                    return;
+                }
+                if (type === 'simple' && qS < 1) {
+                    alert('Veuillez choisir au moins 1 copie.');
+                    return;
+                }
+                if (type === 'extrait_integral' && qI < 1) {
+                    alert('Veuillez choisir au moins 1 copie.');
                     return;
                 }
             }
@@ -731,19 +1211,25 @@
                 document.getElementById('step-' + step + '-indicator').classList.remove('active');
                 document.getElementById('step-' + (step + 1) + '-indicator').classList.add('active');
 
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             }
         }
 
         function prevStep(step) {
             document.getElementById('step-' + step).classList.remove('active');
             document.getElementById('step-' + (step - 1)).classList.add('active');
-            
+
             document.getElementById('step-' + step + '-indicator').classList.remove('active');
             document.getElementById('step-' + (step - 1) + '-indicator').classList.add('active');
             document.getElementById('step-' + (step - 1) + '-indicator').classList.remove('completed');
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
 
         function validateStep(step) {
@@ -763,17 +1249,42 @@
                 const pere = document.getElementById('nom_prenoms_pere');
                 const mere = document.getElementById('nom_prenoms_mere');
 
-                if (!name.value.trim()) { isValid = false; displayClientError(name, "Le nom est obligatoire."); }
-                if (!prenom.value.trim()) { isValid = false; displayClientError(prenom, "Le prénom est obligatoire."); }
-                if (!commune.value.trim()) { isValid = false; displayClientError(commune, "La commune de naissance est obligatoire."); }
-                
-                // Logic: Registry OR Parents
-                const hasRegistry = number.value.trim() && dateR.value.trim();
-                const hasParents = pere.value.trim() && mere.value.trim();
-                
-                if (!hasRegistry && !hasParents) {
+                if (!name.value.trim()) {
                     isValid = false;
-                    displayClientError(number, "Veuillez fournir soit le registre (N° et Date), soit les deux parents.");
+                    displayClientError(name, "Le nom est obligatoire.");
+                }
+                if (!prenom.value.trim()) {
+                    isValid = false;
+                    displayClientError(prenom, "Le prénom est obligatoire.");
+                }
+                if (!commune.value.trim()) {
+                    isValid = false;
+                    displayClientError(commune, "La commune de naissance est obligatoire.");
+                }
+
+                // Logic: Registry OR Parents, but if Simple + Intégral (groupee), parents are strictly required
+                const typeVal = document.querySelector('input[name="type"]:checked').value;
+                if (typeVal === 'groupee') {
+                    if (!pere.value.trim()) {
+                        isValid = false;
+                        displayClientError(pere, "Pour une copie intégrale (Simple + Intégral), les informations du père sont obligatoires.");
+                    }
+                    if (!mere.value.trim()) {
+                        isValid = false;
+                        displayClientError(mere, "Pour une copie intégrale (Simple + Intégral), les informations de la mère sont obligatoires.");
+                    }
+                    if (!number.value.trim() || !dateR.value.trim()) {
+                        isValid = false;
+                        displayClientError(number, "Le numéro et la date de registre sont obligatoires.");
+                    }
+                } else {
+                    const hasRegistry = number.value.trim() && dateR.value.trim();
+                    const hasParents = pere.value.trim() && mere.value.trim();
+
+                    if (!hasRegistry && !hasParents) {
+                        isValid = false;
+                        displayClientError(number, "Veuillez fournir soit le registre (N° et Date), soit les deux parents.");
+                    }
                 }
             } else if (step === 3) {
                 const cni = document.getElementById('CNI');
@@ -782,7 +1293,7 @@
                     displayClientError(cni.closest('.input-group-custom'), "Veuillez téléverser votre pièce d'identité.");
                 }
             }
-            
+
             if (!isValid) {
                 Swal.fire({
                     icon: 'error',
@@ -794,8 +1305,11 @@
             return isValid;
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             updateFields();
+            // Initialise l'affichage des cartes quantité selon le type sélectionné par défaut
+            const typeEl = document.querySelector('input[name="type"]:checked');
+            if (typeEl) onTypeChange(typeEl);
 
             // Animation pour les champs
             // Note: Ici, je commente la partie qui ajoute l'animation 'pulse' à tous les champs 'required'.
@@ -816,14 +1330,36 @@
             let isValid = true;
             const form = document.getElementById('naissanceForm');
 
+            // Retirer les messages d'erreur existants et les styles d'erreur en tout premier
+            form.querySelectorAll('.error-message').forEach(el => el.remove());
+            form.querySelectorAll('.form-control-custom.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.form-control-custom').forEach(el => el.style.animation = 'none');
+
             // Champs à valider (basés sur vos règles de validation Laravel)
-            const fieldsToValidate = [
-                { id: 'type', message: 'Le type d\'extrait est obligatoire.' },
-                { id: 'name', message: 'Le nom est obligatoire.' },
-                { id: 'prenom', message: 'Le prénom est obligatoire.' },
-                { id: 'commune_naissance', message: 'La commune de naissance est obligatoire.' },
-                { id: 'quantite', message: 'La quantité est obligatoire.' },
-                { id: 'CNI', message: 'Une pièce d\'identité (CNI/Passeport) est obligatoire.' }
+            const fieldsToValidate = [{
+                    id: 'type',
+                    message: 'Le type d\'extrait est obligatoire.'
+                },
+                {
+                    id: 'name',
+                    message: 'Le nom est obligatoire.'
+                },
+                {
+                    id: 'prenom',
+                    message: 'Le prénom est obligatoire.'
+                },
+                {
+                    id: 'commune_naissance',
+                    message: 'La commune de naissance est obligatoire.'
+                },
+                {
+                    id: 'quantite',
+                    message: 'La quantité est obligatoire.'
+                },
+                {
+                    id: 'CNI',
+                    message: 'Une pièce d\'identité (CNI/Passeport) est obligatoire.'
+                }
             ];
 
             // Validation conditionnelle : Registre OU Parents
@@ -832,20 +1368,33 @@
             const nomPrenomsPere = document.getElementById('nom_prenoms_pere').value.trim();
             const nomPrenomsMere = document.getElementById('nom_prenoms_mere').value.trim();
 
-            const hasRegistryInfo = number && dateR;
-            const hasParentInfo = nomPrenomsPere && nomPrenomsMere;
+            const typeVal = document.querySelector('input[name="type"]:checked').value;
+            if (typeVal === 'groupee') {
+                if (!nomPrenomsPere) {
+                    isValid = false;
+                    displayClientError(document.getElementById('nom_prenoms_pere'), "Pour une copie intégrale (Simple + Intégral), les informations du père sont obligatoires.");
+                }
+                if (!nomPrenomsMere) {
+                    isValid = false;
+                    displayClientError(document.getElementById('nom_prenoms_mere'), "Pour une copie intégrale (Simple + Intégral), les informations de la mère sont obligatoires.");
+                }
+                if (!number || !dateR) {
+                    isValid = false;
+                    displayClientError(document.getElementById('number'), "Le numéro et la date de registre sont obligatoires.");
+                }
+            } else {
+                const hasRegistryInfo = number && dateR;
+                const hasParentInfo = nomPrenomsPere && nomPrenomsMere;
 
-            if (!hasRegistryInfo && !hasParentInfo) {
-                isValid = false;
-                displayClientError(document.getElementById('number'), "Veuillez fournir soit les infos de registre, soit les infos complètes des parents.");
-                if (document.getElementById('nom_prenoms_pere')) displayClientError(document.getElementById('nom_prenoms_pere'), "Veuillez fournir soit les infos de registre, soit les infos complètes des parents.");
+                if (!hasRegistryInfo && !hasParentInfo) {
+                    isValid = false;
+                    displayClientError(document.getElementById('number'),
+                        "Veuillez fournir soit les infos de registre, soit les infos complètes des parents.");
+                    if (document.getElementById('nom_prenoms_pere')) displayClientError(document.getElementById(
+                            'nom_prenoms_pere'),
+                        "Veuillez fournir soit les infos de registre, soit les infos complètes des parents.");
+                }
             }
-
-            // Retirer les messages d'erreur existants et les styles d'erreur
-            form.querySelectorAll('.error-message').forEach(el => el.remove());
-
-            form.querySelectorAll('.form-control-custom.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            form.querySelectorAll('.form-control-custom').forEach(el => el.style.animation = 'none');
 
 
             fieldsToValidate.forEach(fieldInfo => {
@@ -871,7 +1420,8 @@
 
                             if (!allowedTypes.includes(file.type)) {
                                 isValid = false;
-                                displayClientError(inputElement, 'Le format du fichier doit être PNG, JPG, JPEG ou PDF.');
+                                displayClientError(inputElement,
+                                    'Le format du fichier doit être PNG, JPG, JPEG ou PDF.');
                             } else if (file.size > maxSize) {
                                 isValid = false;
                                 displayClientError(inputElement, 'Le fichier ne doit pas dépasser 1Mo.');
@@ -892,13 +1442,14 @@
             const errorSpan = document.createElement('span');
             errorSpan.classList.add('error-message');
             errorSpan.textContent = message;
-            
-            const wrapper = inputElement.closest('.input-group-custom') || inputElement.closest('.form-section') || inputElement.parentNode;
+
+            const wrapper = inputElement.closest('.input-group-custom') || inputElement.closest('.form-section') ||
+                inputElement.parentNode;
             wrapper.appendChild(errorSpan);
         }
 
 
-        document.getElementById('naissanceForm').addEventListener('submit', function (event) {
+        document.getElementById('naissanceForm').addEventListener('submit', function(event) {
             if (formSubmitted) {
                 event.preventDefault();
                 return;
@@ -908,9 +1459,72 @@
 
             if (validateFormClient()) {
                 const livraisonCheckbox = document.getElementById('option2');
+
+                // Calculer et ajouter montant_a_payer avant soumission
+                const type = document.querySelector('input[name="type"]:checked').value;
+                const montantTimbreUnitaire = 500;
+                const montantLivraison = 1500;
+
+                // Récupérer les quantités selon le type
+                let totalTimbres = 0;
+                if (type === 'groupee') {
+                    const qtySimple = parseInt(document.getElementById('sq_simple').value) || 0;
+                    const qtyIntegral = parseInt(document.getElementById('sq_integral').value) || 0;
+                    totalTimbres = qtySimple + qtyIntegral;
+                } else if (type === 'simple') {
+                    totalTimbres = parseInt(document.getElementById('sq_simple').value) || 0;
+                } else if (type === 'extrait_integral') {
+                    totalTimbres = parseInt(document.getElementById('sq_integral').value) || 0;
+                }
+
+                // Calcul des timbres gratuits (max 2 demandes gratuites)
+                let freeTimbres = 0;
+                const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
+                const freeRequestsRemaining = @json($freeRequestsRemaining ?? 0);
+
+                if (freeRequestsModeActive && freeRequestsRemaining > 0) {
+                    freeTimbres = Math.min(totalTimbres, freeRequestsRemaining);
+                }
+
+                const paidTimbres = totalTimbres - freeTimbres;
+                const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
+
+                // Montant à payer: timbres + livraison si livraison est choisie
+                const montantAPayer = livraisonCheckbox.checked ? montantTimbreTotal + montantLivraison :
+                    montantTimbreTotal;
+
+                // Ajouter le champ montant_a_payer au formulaire
+                let montantAPayerInput = document.querySelector('input[name="montant_a_payer"]');
+                if (!montantAPayerInput) {
+                    montantAPayerInput = document.createElement('input');
+                    montantAPayerInput.type = 'hidden';
+                    montantAPayerInput.name = 'montant_a_payer';
+                    this.appendChild(montantAPayerInput);
+                }
+                montantAPayerInput.value = montantAPayer;
+
                 if (livraisonCheckbox.checked) {
                     showLivraisonPopup();
                 } else {
+                    // Pour retrait sur place, ajouter aussi montant_timbre et montant_livraison
+                    let montantTimbreInput = document.querySelector('input[name="montant_timbre"]');
+                    if (!montantTimbreInput) {
+                        montantTimbreInput = document.createElement('input');
+                        montantTimbreInput.type = 'hidden';
+                        montantTimbreInput.name = 'montant_timbre';
+                        this.appendChild(montantTimbreInput);
+                    }
+                    montantTimbreInput.value = montantTimbreTotal;
+
+                    let montantLivraisonInput = document.querySelector('input[name="montant_livraison"]');
+                    if (!montantLivraisonInput) {
+                        montantLivraisonInput = document.createElement('input');
+                        montantLivraisonInput.type = 'hidden';
+                        montantLivraisonInput.name = 'montant_livraison';
+                        this.appendChild(montantLivraisonInput);
+                    }
+                    montantLivraisonInput.value = 0;
+
                     formSubmitted = true;
                     this.submit();
                 }
@@ -925,62 +1539,94 @@
         });
 
         function showLivraisonPopup() {
-    // Récupérer la quantité depuis le formulaire
-    const quantite = parseInt(document.getElementById('quantite').value) || 1;
-    const montantTimbreUnitaire = 500; 
-    const montantLivraison = 1500; 
-    
-    // Calcul des timbres gratuits
-    let freeTimbres = 0;
-    let freeAmount = 0;
-    const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
-    const freeRequestsRemaining = @json($freeRequestsRemaining ?? 0);
+            // Récupérer les quantités selon le type
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const montantTimbreUnitaire = 500;
+            const montantLivraison = 1500;
 
-    if (freeRequestsModeActive && freeRequestsRemaining > 0) {
-        freeTimbres = Math.min(quantite, freeRequestsRemaining);
-        freeAmount = freeTimbres * montantTimbreUnitaire;
-    }
+            let qtySimple = 0;
+            let qtyIntegral = 0;
+            let totalTimbres = 0;
 
-    const paidTimbres = quantite - freeTimbres;
-    const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
-    const montantTotal = montantTimbreTotal + montantLivraison;
+            if (type === 'groupee') {
+                qtySimple = parseInt(document.getElementById('sq_simple').value) || 0;
+                qtyIntegral = parseInt(document.getElementById('sq_integral').value) || 0;
+                totalTimbres = qtySimple + qtyIntegral;
+            } else if (type === 'simple') {
+                qtySimple = parseInt(document.getElementById('sq_simple').value) || 0;
+                totalTimbres = qtySimple;
+            } else if (type === 'extrait_integral') {
+                qtyIntegral = parseInt(document.getElementById('sq_integral').value) || 0;
+                totalTimbres = qtyIntegral;
+            }
 
-    // Élément d'affichage pour les timbres gratuits
-    let freeTimbresHtml = '';
-    let originalTimbreHtml = '';
-    
-    if (freeTimbres > 0) {
-        originalTimbreHtml = `
+            // Calcul des timbres gratuits (max 2 demandes gratuites)
+            let freeTimbres = 0;
+            let freeAmount = 0;
+            const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
+            const freeRequestsRemaining = @json($freeRequestsRemaining ?? 0);
+
+            if (freeRequestsModeActive && freeRequestsRemaining > 0) {
+                freeTimbres = Math.min(totalTimbres, freeRequestsRemaining);
+                freeAmount = freeTimbres * montantTimbreUnitaire;
+            }
+
+            const paidTimbres = totalTimbres - freeTimbres;
+            const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
+            const montantTotal = montantTimbreTotal + montantLivraison;
+
+            // Stocker globalement pour accès dans preConfirm
+            window.livraisonData = {
+                montantTimbreTotal: montantTimbreTotal,
+                montantLivraison: montantLivraison,
+                totalTimbres: totalTimbres
+            };
+
+            // Élément d'affichage pour les timbres gratuits
+            let freeTimbresHtml = '';
+            let originalTimbreHtml = '';
+            let exemplaireText = '';
+
+            if (type === 'groupee') {
+                exemplaireText = `Simple: ${qtySimple}, Intégral: ${qtyIntegral}`;
+            } else if (type === 'simple') {
+                exemplaireText = `Simple: ${qtySimple}`;
+            } else if (type === 'extrait_integral') {
+                exemplaireText = `Intégral: ${qtyIntegral}`;
+            }
+
+            if (freeTimbres > 0) {
+                originalTimbreHtml = `
             <div style="display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 0.85rem; text-decoration: line-through; color: #a0aec0;">
-                <span>Timbres (x${quantite}):</span>
-                <span>${quantite * montantTimbreUnitaire} FCFA</span>
+                <span>Timbres (x${totalTimbres}):</span>
+                <span>${totalTimbres * montantTimbreUnitaire} FCFA</span>
             </div>
         `;
-        freeTimbresHtml = `
+                freeTimbresHtml = `
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; color: #28a745; font-weight: bold;">
                 <span><i class="fas fa-gift mr-1"></i> Timbres offerts (x${freeTimbres}):</span>
                 <span>- ${freeAmount} FCFA</span>
             </div>
         `;
-    }
+            }
 
-    let finalTimbreHtml = `
+            let finalTimbreHtml = `
         <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
             <span style="color: #555;">Timbres payants (x${paidTimbres}):</span>
             <span style="font-weight: 700">${montantTimbreTotal} FCFA</span>
         </div>
     `;
 
-    Swal.fire({
-        title: '<div class="flex items-center justify-center p-2"><i class="fas fa-truck text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1977cc;">DÉTAILS DE LIVRAISON</span></div>',
-        width: '800px',
-        html: `
+            Swal.fire({
+                title: '<div class="flex items-center justify-center p-2"><i class="fas fa-truck text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1977cc;">DÉTAILS DE LIVRAISON</span></div>',
+                width: '800px',
+                html: `
             <div style="display: flex; flex-wrap: wrap; gap: 20px; text-align: left; max-height: 70vh; overflow-y: auto; padding: 10px;">
-                
+
                 <!-- Formulaire (Partie gauche) -->
                 <div style="flex: 1 1 400px;">
                     <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍 Vos coordonnées</h4>
-                    
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
                             <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Nom</label>
@@ -1039,10 +1685,10 @@
                 <div style="flex: 1 1 250px; display: flex; flex-direction: column; gap: 15px;">
                     <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6;">
                         <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #cce3f6; padding-bottom: 5px;">🧾 Résumé</h4>
-                        
+
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
                             <span style="color: #555;">Exemplaires:</span>
-                            <span style="font-weight: 700">${quantite}</span>
+                            <span style="font-weight: 700">${exemplaireText}</span>
                         </div>
                         ${originalTimbreHtml}
                         ${freeTimbresHtml}
@@ -1082,54 +1728,61 @@
                 </div>
             </div>
         `,
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: `Payer`,
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#1977cc',
-        focusConfirm: false,
-        preConfirm: () => {
-            const nom_destinataire = document.getElementById('swal-nom_destinataire').value;
-            const prenom_destinataire = document.getElementById('swal-prenom_destinataire').value;
-            const email_destinataire = document.getElementById('swal-email_destinataire').value;
-            const contact_destinataire = document.getElementById('swal-contact_destinataire').value;
-            const adresse_livraison = document.getElementById('swal-adresse_livraison').value;
-            const ville = document.getElementById('swal-ville').value;
-            const commune_livraison = document.getElementById('swal-commune_livraison').value;
-            const quartier = document.getElementById('swal-quartier').value;
-            const date_livraison = document.getElementById('swal-date_livraison').value;
-            const heure_livraison = document.getElementById('swal-heure_livraison').value;
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: `Payer`,
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1977cc',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const nom_destinataire = document.getElementById('swal-nom_destinataire').value;
+                    const prenom_destinataire = document.getElementById('swal-prenom_destinataire').value;
+                    const email_destinataire = document.getElementById('swal-email_destinataire').value;
+                    const contact_destinataire = document.getElementById('swal-contact_destinataire').value;
+                    const adresse_livraison = document.getElementById('swal-adresse_livraison').value;
+                    const ville = document.getElementById('swal-ville').value;
+                    const commune_livraison = document.getElementById('swal-commune_livraison').value;
+                    const quartier = document.getElementById('swal-quartier').value;
+                    const date_livraison = document.getElementById('swal-date_livraison').value;
+                    const heure_livraison = document.getElementById('swal-heure_livraison').value;
 
-            if (!nom_destinataire || !prenom_destinataire || !contact_destinataire || !adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !heure_livraison) {
-                Swal.showValidationMessage("Veuillez remplir tous les champs obligatoires, y compris la date et l'heure de livraison.");
-                return false;
-            }
+                    if (!nom_destinataire || !prenom_destinataire || !contact_destinataire || !
+                        adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !
+                        heure_livraison) {
+                        Swal.showValidationMessage(
+                            "Veuillez remplir tous les champs obligatoires, y compris la date et l'heure de livraison."
+                        );
+                        return false;
+                    }
 
-            const selectedDate = new Date(date_livraison);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (selectedDate < today) {
-                Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
-                return false;
-            }
-            // Validation d'email simple (si renseigné)
-            if (email_destinataire && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
-                Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
-                return false;
-            }
-            // Validation de numéro de téléphone (8 à 15 chiffres)
-            const cleanContact = contact_destinataire.replace(/\s+/g, '');
-            if (!/^\d{8,15}$/.test(cleanContact)) {
-                Swal.showValidationMessage("Veuillez entrer un numéro de téléphone de contact valide (8 à 15 chiffres).");
-                return false;
-            }
+                    const selectedDate = new Date(date_livraison);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (selectedDate < today) {
+                        Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
+                        return false;
+                    }
+                    // Validation d'email simple (si renseigné)
+                    if (email_destinataire && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {
+                        Swal.showValidationMessage("Veuillez entrer une adresse email valide.");
+                        return false;
+                    }
+                    // Validation de numéro de téléphone (8 à 15 chiffres)
+                    const cleanContact = contact_destinataire.replace(/\s+/g, '');
+                    if (!/^\d{8,15}$/.test(cleanContact)) {
+                        Swal.showValidationMessage(
+                            "Veuillez entrer un numéro de téléphone de contact valide (8 à 15 chiffres).");
+                        return false;
+                    }
 
-            const payment_number = document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
-            const payment_method = document.getElementById('swal-payment_method').value;
+                    const payment_number = document.getElementById('swal-mtn_number') ? document.getElementById(
+                        'swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
+                    const payment_method = document.getElementById('swal-payment_method').value;
 
                     if (payment_method === 'mtn') {
                         if (!/^\d{10}$/.test(payment_number)) {
-                            Swal.showValidationMessage('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
+                            Swal.showValidationMessage(
+                                'Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
                             return false;
                         }
                     }
@@ -1148,125 +1801,176 @@
                         quartier: quartier,
                         date_livraison: date_livraison,
                         heure_livraison: heure_livraison,
-                        quantite: quantite,
-                        montant_timbre_unitaire: montantTimbreUnitaire,
-                        montant_timbre: montantTimbreTotal,
-                        montant_livraison: montantLivraison,
+                        quantite: window.livraisonData.totalTimbres,
+                        montant_timbre_unitaire: 500,
+                        montant_timbre: window.livraisonData.montantTimbreTotal,
+                        montant_livraison: window.livraisonData.montantLivraison,
                         payment_method: payment_method,
                         mtn_number: payment_number
                     };
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const formData = result.value;
-            
-            // Ajouter les données de livraison au formulaire
-            const form = document.getElementById('naissanceForm');
-            
-            // Créer des champs cachés pour les données de livraison
-            const hiddenFields = [
-                { name: 'nom_destinataire', value: formData.nom_destinataire },
-                { name: 'prenom_destinataire', value: formData.prenom_destinataire },
-                { name: 'email_destinataire', value: formData.email_destinataire },
-                { name: 'contact_destinataire', value: formData.contact_destinataire },
-                { name: 'adresse_livraison', value: formData.adresse_livraison },
-                { name: 'ville', value: formData.ville },
-                { name: 'commune_livraison', value: formData.commune_livraison },
-                { name: 'quartier', value: formData.quartier },
-                { name: 'date_livraison', value: formData.date_livraison },
-                { name: 'heure_livraison', value: formData.heure_livraison },
-                { name: 'montant_timbre_unitaire', value: formData.montant_timbre_unitaire },
-                { name: 'montant_timbre', value: formData.montant_timbre },
-                { name: 'montant_livraison', value: formData.montant_livraison },
-                { name: 'payment_method', value: formData.payment_method },
-                { name: 'mtn_number', value: formData.mtn_number }
-            ];
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = result.value;
 
-            hiddenFields.forEach(field => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = field.name;
-                input.value = field.value;
-                form.appendChild(input);
-            });
+                    // Ajouter les données de livraison au formulaire
+                    const form = document.getElementById('naissanceForm');
 
-            window.paymentSuccess = false;
-            
-            if (window.PaymentPopup) {
-                form.target = 'PaymentPopup';
-            } else {
-                form.target = '_blank';
-            }
-            
-            if (formData.payment_method === 'wave') {
-                Swal.fire({
-                    title: 'Paiement en cours',
-                    html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                const timer = setInterval(() => {
-                    if (window.PaymentPopup && window.PaymentPopup.closed) {
-                        clearInterval(timer);
-                        Swal.close();
-                        // Vérifier d'abord window.paymentSuccess (opener accessible)
-                        if (window.paymentSuccess) {
-                            window.location.href = window.paymentSuccessUrl || "{{ route('user.extrait.index') }}";
-                            return;
+                    // Créer des champs cachés pour les données de livraison
+                    const hiddenFields = [{
+                            name: 'nom_destinataire',
+                            value: formData.nom_destinataire
+                        },
+                        {
+                            name: 'prenom_destinataire',
+                            value: formData.prenom_destinataire
+                        },
+                        {
+                            name: 'email_destinataire',
+                            value: formData.email_destinataire
+                        },
+                        {
+                            name: 'contact_destinataire',
+                            value: formData.contact_destinataire
+                        },
+                        {
+                            name: 'adresse_livraison',
+                            value: formData.adresse_livraison
+                        },
+                        {
+                            name: 'ville',
+                            value: formData.ville
+                        },
+                        {
+                            name: 'commune_livraison',
+                            value: formData.commune_livraison
+                        },
+                        {
+                            name: 'quartier',
+                            value: formData.quartier
+                        },
+                        {
+                            name: 'date_livraison',
+                            value: formData.date_livraison
+                        },
+                        {
+                            name: 'heure_livraison',
+                            value: formData.heure_livraison
+                        },
+                        {
+                            name: 'montant_timbre_unitaire',
+                            value: formData.montant_timbre_unitaire
+                        },
+                        {
+                            name: 'montant_timbre',
+                            value: formData.montant_timbre
+                        },
+                        {
+                            name: 'montant_livraison',
+                            value: formData.montant_livraison
+                        },
+                        {
+                            name: 'montant_a_payer',
+                            value: formData.montant_timbre + formData.montant_livraison
+                        },
+                        {
+                            name: 'payment_method',
+                            value: formData.payment_method
+                        },
+                        {
+                            name: 'mtn_number',
+                            value: formData.mtn_number
                         }
-                        // Fallback : lire localStorage (cas où COOP a rompu window.opener)
-                        try {
-                            var result = JSON.parse(localStorage.getItem('plateauPaymentResult') || '{}');
-                            var age = Date.now() - (result.timestamp || 0);
-                            if (result.status === 'success' && age < 120000) {
-                                localStorage.removeItem('plateauPaymentResult');
-                                window.location.href = result.listUrl || "{{ route('user.extrait.index') }}";
-                                return;
-                            }
-                        } catch (e) {}
-                        // Paiement annulé ou inconnu : recharger le formulaire
-                        window.location.reload();
-                    }
-                }, 1000);
-            } else {
-                // Pour les autres paiements (MTN, etc.)
-                Swal.fire({
-                    title: 'Redirection en cours',
-                    html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
-                    icon: 'info',
-                    confirmButtonText: 'Fermer',
-                    confirmButtonColor: '#1977cc',
-                    allowOutsideClick: false
-                }).then(() => {
-                    window.location.href = "{{ route('user.extrait.index') }}";
-                });
-            }
+                    ];
 
-            // Soumettre le formulaire
-            formSubmitted = true;
-            form.submit();
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            document.getElementById('option1').checked = true;
+                    hiddenFields.forEach(field => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = field.name;
+                        input.value = field.value;
+                        form.appendChild(input);
+                    });
+
+                    window.paymentSuccess = false;
+
+                    if (window.PaymentPopup) {
+                        form.target = 'PaymentPopup';
+                    } else {
+                        form.target = '_blank';
+                    }
+
+                    if (formData.payment_method === 'wave') {
+                        Swal.fire({
+                            title: 'Paiement en cours',
+                            html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        const timer = setInterval(() => {
+                            if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                clearInterval(timer);
+                                Swal.close();
+                                // Vérifier d'abord window.paymentSuccess (opener accessible)
+                                if (window.paymentSuccess) {
+                                    window.location.href = window.paymentSuccessUrl ||
+                                        "{{ route('user.extrait.index') }}";
+                                    return;
+                                }
+                                // Fallback : lire localStorage (cas où COOP a rompu window.opener)
+                                try {
+                                    var result = JSON.parse(localStorage.getItem('plateauPaymentResult') ||
+                                        '{}');
+                                    var age = Date.now() - (result.timestamp || 0);
+                                    if (result.status === 'success' && age < 120000) {
+                                        localStorage.removeItem('plateauPaymentResult');
+                                        window.location.href = result.listUrl ||
+                                            "{{ route('user.extrait.index') }}";
+                                        return;
+                                    }
+                                } catch (e) {}
+                                // Paiement annulé ou inconnu : recharger le formulaire
+                                window.location.reload();
+                            }
+                        }, 1000);
+                    } else {
+                        // Pour les autres paiements (MTN, etc.)
+                        Swal.fire({
+                            title: 'Redirection en cours',
+                            html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
+                            icon: 'info',
+                            confirmButtonText: 'Fermer',
+                            confirmButtonColor: '#1977cc',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = "{{ route('user.extrait.index') }}";
+                        });
+                    }
+
+                    // Soumettre le formulaire
+                    formSubmitted = true;
+                    form.submit();
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    document.getElementById('option1').checked = true;
+                }
+            });
         }
-    });
-}
 
         // Fonction pour sélectionner la méthode de paiement
         function selectPaymentMethod(method) {
             if (method !== 'wave' && method !== 'mtn') return;
-            
+
             // Réinitialiser tous les boutons
             document.querySelectorAll('.payment-method-btn').forEach(btn => {
-                if(!btn.classList.contains('opacity-50')) {
+                if (!btn.classList.contains('opacity-50')) {
                     btn.style.border = '1px solid #edf2f7';
                     btn.style.backgroundColor = 'white';
                 }
             });
-            
+
             // Appliquer le style actif au bouton sélectionné
             const activeBtn = document.getElementById('btn-pay-' + method);
             if (method === 'wave') {
@@ -1279,7 +1983,7 @@
                 document.getElementById('payment-phone-container').style.display = 'block';
                 document.getElementById('payment-phone-label').innerText = 'Numéro MTN Money';
             }
-            
+
             // Mettre à jour la valeur du champ caché
             document.getElementById('swal-payment_method').value = method;
         }

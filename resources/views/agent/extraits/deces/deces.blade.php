@@ -685,8 +685,10 @@
                   <td style="text-align: center">
                     @if($dece->type == 'simple')
                       <span class="badge bg-info">Extrait Simple</span>
-                    @elseif($dece->type == 'integrale')
+                    @elseif($dece->type == 'extrait_integral' || $dece->type == 'integrale')
                       <span class="badge bg-primary">Copie Intégrale</span>
+                    @elseif($dece->type == 'simpleIntegrale' || $dece->type == 'groupee')
+                      <span class="badge bg-success text-white">Simple + Intégral</span>
                     @else
                       <span class="badge bg-secondary">{{ $dece->type }}</span>
                     @endif
@@ -1027,7 +1029,7 @@
       const user = dece.user || {};
 
       // Déterminer le type de document
-      const documentType = dece.type === 'simple' ? 'Copie Simple' : 'Copie Intégrale';
+      const documentType = dece.type === 'simple' ? 'Copie Simple' : (dece.type === 'simpleIntegrale' || dece.type === 'groupee' ? 'Simple + Intégral' : 'Copie Intégrale');
 
       // Formater les documents avec prévisualisation
       const formatDocuments = (dece) => {

@@ -46,7 +46,7 @@
        </div>
        <div class="info-item">
          <span class="info-label">Type</span>
-         <span class="info-value">{{ $naissance->type === 'simple' ? 'Copie Simple' : 'Copie Intégrale' }}</span>
+         <span class="info-value">{{ $naissance->type === 'simple' ? 'Copie Simple' : ($naissance->type === 'groupee' ? 'Simple + Intégral' : 'Copie Intégrale') }}</span>
        </div>
        <div class="info-item">
          <span class="info-label">Statut actuel</span>

@@ -359,6 +359,10 @@
                                     <span class="badge badge-normal">
                                         <i class="fas fa-clock me-1"></i> Copie Simple
                                     </span>
+                                    @elseif($naissance->type == 'groupee')
+                                    <span class="badge bg-success text-white">
+                                        <i class="fas fa-copy me-1"></i> Simple + Intégral
+                                    </span>
                                     @else
                                     <span class="badge badge-urgent">
                                         <i class="fas fa-bolt me-1"></i> Copie Integrale

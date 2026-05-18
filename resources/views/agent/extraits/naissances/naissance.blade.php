@@ -730,6 +730,8 @@
                   <td style="text-align: center" data-label="Type">
                     @if($naissance->type == 'simple')
                       <span class="badge-status badge-pending">Copie Simple</span>
+                    @elseif($naissance->type == 'groupee')
+                      <span class="badge bg-success text-white">Simple + Intégral</span>
                     @else
                       <span class="badge-status badge-completed">Copie Integrale</span>
                     @endif
@@ -990,7 +992,7 @@
       const user = naissance.user || {};
 
       // Déterminer le type de document
-      const documentType = naissance.type === 'simple' ? 'Copie Simple' : 'Copie Intégrale';
+      const documentType = naissance.type === 'simple' ? 'Copie Simple' : (naissance.type === 'groupee' ? 'Simple + Intégral' : 'Copie Intégrale');
 
       // Formater les documents avec prévisualisation
       const formatDocuments = (naissance) => {

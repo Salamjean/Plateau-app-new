@@ -186,6 +186,8 @@ class DecesGroupeController extends Controller
                     'RequisPolice'        => $requisPolicePath,
                     'commune'             => $user->commune ?? 'plateau',
                     'reference'           => $groupeReference . '-' . $position1Based,
+                    'qty_simple'          => $ligneData['type_document'] === 'simple' ? 1 : 0,
+                    'qty_integral'        => $ligneData['type_document'] === 'extrait_integral' ? 1 : 0,
                     'quantite'            => 1,
                     'choix_option'        => $request->choix_option,
                     'montant_timbre'      => self::TARIF_TIMBRE,

@@ -23,7 +23,9 @@ return new class extends Migration
             $table->string('reference');
             $table->string('statut_livraison')->nullable(); 
             $table->string('commune')->nullable();
-            $table->string('quantite');
+            $table->integer('qty_simple')->default(0);
+            $table->integer('qty_integral')->default(0);
+            $table->string('quantite')->nullable();
             $table->string('etat')->default('en attente');
             $table->text('motif_de_rejet')->nullable();
             $table->boolean('is_read')->default(false); 

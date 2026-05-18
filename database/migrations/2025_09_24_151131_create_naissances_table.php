@@ -21,7 +21,9 @@ return new class extends Migration
             $table->string('DateR'); // Numéro associé
             $table->string('CNI'); // Numéro associé
             $table->string('reference');
-            $table->string('quantite');
+            $table->integer('qty_simple')->default(0);
+            $table->integer('qty_integral')->default(0);
+            $table->string('quantite')->nullable();
             $table->string('commune')->nullable(); // Commune, nullable
             $table->string('etat')->default('en attente'); // État par défaut
             // <-- LIGNE AJOUTÉE -->

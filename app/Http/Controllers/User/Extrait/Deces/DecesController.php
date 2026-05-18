@@ -53,7 +53,8 @@ class DecesController extends Controller
             'nom_prenoms_pere' => 'nullable|string|max:255',
             'nom_prenoms_mere' => 'nullable|string|max:255',
             'CNIdfnt' => 'required',
-            'quantite' => 'required|integer|min:1|max:10',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
             'CNIdcl' => 'required',
             'commune' => 'required',
             'commune_deces' => 'required|string|max:255',
@@ -63,10 +64,8 @@ class DecesController extends Controller
             'dateR.required_without_all' => 'La date de registre est obligatoire si les informations parentales ne sont pas fournies.',
             'CNIdfnt.required' => 'Cet document est obligatoire.',
             'CNIdcl.required' => 'Cet document est obligatoire.',
-            'quantite.required' => 'La quantité est obligatoire',
-            'quantite.integer' => 'La quantité doit être un nombre entier',
-            'quantite.min' => 'La quantité doit être au moins de 1',
-            'quantite.max' => 'La quantité ne peut pas dépasser 10',
+            'qty_simple.integer' => 'La quantité doit être un nombre entier',
+            'qty_integral.integer' => 'La quantité intégrale doit être un nombre entier',
             'documentMariage.required' => 'Cet document de mariage est obligatoire.',
             'RequisPolice.required' => 'Cet document requis de police est obligatoire.',
             'pActe.mimes' => 'Cet document d\'extrait de décès doit être un format de fichier valide (png, jpg, jpeg, pdf).',
@@ -112,6 +111,13 @@ class DecesController extends Controller
         $increment = Deces::getNextId();
         $reference = 'AD' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AD pour Acte de Decès
 
+        // Récupérer les quantités
+        $qtySimple = (int) $request->input('qty_simple', 0);
+        $qtyIntegral = (int) $request->input('qty_integral', 0);
+        if ($qtySimple === 0 && $qtyIntegral === 0) {
+            $qtySimple = 1;
+        }
+        $totalQuantity = $qtySimple + $qtyIntegral;
 
         // Enregistrement de l'objet deces
         $deces = new Deces();
@@ -126,7 +132,9 @@ class DecesController extends Controller
         $deces->documentMariage = $uploadedPaths['documentMariage'] ?? null;
         $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
         $deces->choix_option = $request->choix_option;
-        $deces->quantite = $request->quantite;
+        $deces->qty_simple = $qtySimple;
+        $deces->qty_integral = $qtyIntegral;
+        $deces->quantite = $totalQuantity;
         $deces->commune = $request->commune ?: $user->commune; // Déterminer la commune
         $deces->commune_deces = $request->commune_deces;
         $deces->etat = 'non_paye';
@@ -154,7 +162,7 @@ class DecesController extends Controller
 
         // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
         $user->refresh();
-        $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
+        $freeCalc = $this->calculateFreeRequestsDiscount($user, $totalQuantity);
 
         Log::info("Demandes gratuites - Deces {$deces->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
 
