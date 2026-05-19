@@ -104,6 +104,7 @@ Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/create', [MairieController::class, 'create'])->name('admin.create');
         Route::post('/store', [MairieController::class, 'store'])->name('admin.store');
         Route::post('/add-solde', [MairieController::class, 'addSolde'])->name('admin.add_solde');
+        Route::post('/{id}/reset-password', [MairieController::class, 'requestPasswordReset'])->name('admin.mairie.reset_password');
 
         Route::delete('/{vendor}/archive', [MairieController::class, 'archive'])->name('mairie.archive');
         Route::put('/mairie/unarchive/{id}', [MairieController::class, 'unarchive'])->name('mairie.unarchive');
@@ -155,6 +156,7 @@ Route::middleware('mairie')->prefix('mairie')->group(function () {
         Route::get('/indexd', [EtatCivilController::class, 'index'])->name('mairie.state.index');
         Route::get('/create', [EtatCivilController::class, 'create'])->name('mairie.state.create');
         Route::post('/create', [EtatCivilController::class, 'store'])->name('mairie.state.store');
+        Route::post('/etat-civil/{id}/reset-password', [EtatCivilController::class, 'requestPasswordReset'])->name('mairie.state.reset_password');
         Route::delete('/etat-civil/{id}', [EtatCivilController::class, 'destroy'])->name('etat-civil.destroy');
         Route::get('/etat-civil/{id}/edit', [EtatCivilController::class, 'edit'])->name('etat-civil.edit');
         Route::put('/etat-civil/{id}', [EtatCivilController::class, 'update'])->name('etat-civil.update');
@@ -164,6 +166,7 @@ Route::middleware('mairie')->prefix('mairie')->group(function () {
         Route::get('/index/money', [FinanceController::class, 'index'])->name('mairie.finance.index');
         Route::get('/create/price', [FinanceController::class, 'create'])->name('mairie.finance.create');
         Route::post('/create', [FinanceController::class, 'store'])->name('mairie.finance.store');
+        Route::post('/{id}/reset-password', [FinanceController::class, 'requestPasswordReset'])->name('mairie.finance.reset_password');
         Route::delete('/{id}', [FinanceController::class, 'destroy'])->name('finance.destroy');
         Route::get('/{id}/edit', [FinanceController::class, 'edit'])->name('finance.edit');
         Route::put('/{id}', [FinanceController::class, 'update'])->name('finance.update');
@@ -174,6 +177,7 @@ Route::middleware('mairie')->prefix('mairie')->group(function () {
         Route::get('/indexpost', [PosteController::class, 'index'])->name('post.index');
         Route::get('/createpost', [PosteController::class, 'create'])->name('post.create');
         Route::post('/create', [PosteController::class, 'store'])->name('post.store');
+        Route::post('/{id}/reset-password', [PosteController::class, 'requestPasswordReset'])->name('mairie.post.reset_password');
         Route::get('/{id}/edit', [PosteController::class, 'edit'])->name('post.edit');
         Route::put('/{id}', [PosteController::class, 'update'])->name('post.update');
     });

@@ -16,92 +16,67 @@ class RegisterController extends Controller
 {
    
     /**
-     * Inscription minimale (Etape 2 après l'OTP)
-     * Enregistre l'utilisateur avec son numéro uniquement.
+     * Vérifie que le numéro est OTP-vérifié et autorise l'utilisateur à passer
+     * à l'étape de finalisation du profil.
+     *
+     * ⚠ IMPORTANT : Cette méthode NE CRÉE PLUS de User en base.
+     *   Le User est créé uniquement par /finalize-profile/phone après que
+     *   l'utilisateur ait fourni toutes ses infos (nom, prénom, mot de passe).
+     *
+     * Le mobile doit simplement appeler verify-otp puis directement
+     * finalize-profile/phone (avec indicatif + contact + nom + prénom + password).
      */
     public function registerMinimal(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'indicatif' => 'required|string|max:10',
-            'contact' => 'required|string|max:20',
-            'push_notification' => 'nullable|string|max:255',
+            'contact'   => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
-        // Vérification OTP
-        $indicatif = preg_replace('/[^0-9]/', '', $request->indicatif);
-        $contact = preg_replace('/[^0-9]/', '', $request->contact);
-        $phone = $indicatif . $contact;
-        
-        $isPhoneVerified = \Illuminate\Support\Facades\Cache::get('otp_verified_' . $phone);
-        
-        if (!$isPhoneVerified && !config('app.debug')) {
+        // Construire la clé OTP-vérifié
+        $indicatifClean = preg_replace('/[^0-9]/', '', $request->indicatif);
+        $contactClean   = preg_replace('/[^0-9]/', '', $request->contact);
+        $phone          = $indicatifClean . $contactClean;
+
+        $otpVerified = \Illuminate\Support\Facades\Cache::get('otp_verified_' . $phone);
+
+        if (!$otpVerified && !config('app.debug')) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Le numéro de téléphone n\'a pas été vérifié par OTP.'
             ], 403);
         }
 
-        try {
-            // Cherche si l'utilisateur existe déjà
-            $user = User::where('contact', $contact)
-                        ->where('indicatif', $request->indicatif)
-                        ->first();
+        // Vérifier qu'un compte finalisé n'existe pas déjà avec ce numéro
+        $existingUser = User::where('contact', $request->contact)
+                            ->where('indicatif', $request->indicatif)
+                            ->whereNotNull('password')
+                            ->first();
 
-            if (!$user) {
-                // Création d'un utilisateur "vide" (nom/prénom nullables)
-                $user = User::create([
-                    'indicatif' => $request->indicatif,
-                    'contact' => $request->contact,
-                    'commune' => 'plateau',
-                    'phone_verified_at' => now(),
-                    'push_notification' => $request->push_notification,
-                    // Pas de mot de passe encore
-                ]);
-            } else {
-                // User existant : mettre à jour le push token s'il est fourni
-                if ($request->filled('push_notification') && $user->push_notification !== $request->push_notification) {
-                    $user->push_notification = $request->push_notification;
-                    $user->save();
-                }
-            }
-
-            if ($isPhoneVerified) {
-                \Illuminate\Support\Facades\Cache::forget('otp_verified_' . $phone);
-            }
-
-            // Génération du token (valide 10 minutes)
-            $token = $user->createToken('user-api-token', ['*'], now()->addMinutes(10))->plainTextToken;
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Inscription initiale réussie. Veuillez compléter votre profil.',
-                'data' => [
-                    'user' => [
-                        'id' => $user->id,
-                        'contact' => $user->contact,
-                        'indicatif' => $user->indicatif,
-                    ],
-                    'token' => $token,
-                    'token_type' => 'Bearer'
-                ]
-            ], 201);
-
-        } catch (\Exception $e) {
-            Log::error('Erreur registerMinimal: ' . $e->getMessage());
+        if ($existingUser) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'inscription initiale.',
-                'error' => config('app.debug') ? $e->getMessage() : null
-            ], 500);
+                'message' => 'Un compte existe déjà avec ce numéro. Veuillez vous connecter.'
+            ], 409);
         }
+
+        // OK : OTP validé, numéro libre — l'utilisateur peut continuer la finalisation
+        return response()->json([
+            'success' => true,
+            'message' => 'Numéro vérifié. Veuillez finaliser votre inscription.',
+            'data'    => [
+                'indicatif' => $request->indicatif,
+                'contact'   => $request->contact,
+            ]
+        ], 200);
     }
 
     public function register(Request $request): JsonResponse

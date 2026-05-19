@@ -30,4 +30,12 @@ class Finance extends Authenticatable
     {
         return $this->hasMany(Timbre::class);
     }
+
+    /**
+     * Comptables enregistrés par cette régie des taxes.
+     */
+    public function comptables()
+    {
+        return $this->hasMany(Comptable::class, 'finance_id');
+    }
 }

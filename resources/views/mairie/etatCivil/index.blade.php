@@ -89,6 +89,14 @@
                                     </td>
                                     <td style="text-align: center">
                                         <div class="d-flex justify-content-center">
+                                            <!-- Bouton Mise à jour Mot de passe -->
+                                            <button type="button" 
+                                            class="btn btn-sm btn-light rounded-pill me-2" 
+                                            data-bs-toggle="tooltip" title="Demander la mise à jour du mot de passe"
+                                            onclick="confirmPasswordReset('{{ $etatCivil->id }}', '{{ $etatCivil->email }}')">
+                                                <i class="fas fa-key text-primary"></i>
+                                            </button>
+                                            
                                             <!-- Bouton Modifier -->
                                             <a href="{{ route('etat-civil.edit', $etatCivil->id) }}" 
                                             class="btn btn-sm btn-light rounded-pill me-2" 
@@ -96,16 +104,10 @@
                                                 <i class="fas fa-edit text-warning"></i>
                                             </a>
                                             
-                                            <!-- Formulaire de suppression -->
-                                            {{-- <form action="{{ route('etat-civil.destroy', $etatCivil->id) }}" method="POST" class="d-inline">
+                                            <!-- Formulaire de réinitialisation -->
+                                            <form id="reset-password-form-{{ $etatCivil->id }}" action="{{ route('mairie.state.reset_password', $etatCivil->id) }}" method="POST" style="display: none;">
                                                 @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-light rounded-pill" 
-                                                        data-bs-toggle="tooltip" title="Supprimer"
-                                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce responsable?')">
-                                                    <i class="fas fa-trash text-danger"></i>
-                                                </button>
-                                            </form> --}}
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -114,11 +116,74 @@
                         </table>
                     </div>
 
+                    <!-- ═══════════════════════════════════════════════════════════════
+                         AGENTS ENREGISTRÉS PAR CE SERVICE D'ÉTAT CIVIL
+                         ═══════════════════════════════════════════════════════════════ -->
+                    @foreach($etatCivils as $etatCivil)
+                        @if($etatCivil->agents->count() > 0)
+                            <div class="mt-5">
+                                <h5 class="fw-bold text-primary mb-3">
+                                    <i class="fas fa-user-tie me-2"></i>
+                                    Agents enregistrés par <span class="text-dark">{{ $etatCivil->name_respo }}</span>
+                                    <span class="badge bg-primary rounded-pill ms-2">{{ $etatCivil->agents->count() }}</span>
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="border-0 ps-4 rounded-start-15" style="text-align: center">Agent</th>
+                                                <th class="border-0" style="text-align: center">Email</th>
+                                                <th class="border-0" style="text-align: center">Contact</th>
+                                                <th class="border-0" style="text-align: center">Commune</th>
+                                                <th class="border-0 rounded-end-15" style="text-align: center">Inscrit le</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($etatCivil->agents as $agent)
+                                                <tr>
+                                                    <td class="ps-4">
+                                                        <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                                                            <div class="avatar-sm">
+                                                                <div class="avatar-title bg-light rounded-circle text-primary fw-bold">
+                                                                    {{ strtoupper(substr($agent->name ?? 'A', 0, 1) . substr($agent->prenom ?? '', 0, 1)) }}
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0 fw-semibold">{{ $agent->name }} {{ $agent->prenom }}</h6>
+                                                                <small class="text-muted">Agent État Civil</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td style="text-align: center">{{ $agent->email ?? '—' }}</td>
+                                                    <td style="text-align: center">{{ $agent->contact ?? '—' }}</td>
+                                                    <td style="text-align: center">
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                                                            {{ $agent->commune ?? '—' }}
+                                                        </span>
+                                                    </td>
+                                                    <td style="text-align: center">
+                                                        <small class="text-muted">{{ $agent->created_at?->format('d/m/Y H:i') ?? '—' }}</small>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-info mt-4 mb-0" style="border-radius: 12px;">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>{{ $etatCivil->name_respo }}</strong> n'a encore enregistré aucun agent.
+                            </div>
+                        @endif
+                    @endforeach
+
                     <!-- Pagination -->
                     <div class="d-flex justify-content-between align-items-center mt-4">
                         <div class="text-muted">
-                            Affichage de <span class="fw-semibold">{{ $etatCivils->firstItem() }}</span> à 
-                            <span class="fw-semibold">{{ $etatCivils->lastItem() }}</span> sur 
+                            Affichage de <span class="fw-semibold">{{ $etatCivils->firstItem() }}</span> à
+                            <span class="fw-semibold">{{ $etatCivils->lastItem() }}</span> sur
                             <span class="fw-semibold">{{ $etatCivils->total() }}</span> résultats
                         </div>
                         <nav aria-label="Page navigation">
@@ -271,6 +336,23 @@
 </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  function confirmPasswordReset(id, email) {
+    Swal.fire({
+      title: 'Mettre à jour le mot de passe ?',
+      text: "Un e-mail contenant un code OTP de confirmation sera envoyé à " + email + ".",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#6777ef',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Oui, envoyer!',
+      cancelButtonText: 'Annuler'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('reset-password-form-' + id).submit();
+      }
+    });
+  }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initialiser les tooltips Bootstrap
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))

@@ -28,6 +28,10 @@ class LivraisonDelivery extends Controller
         foreach ($modeles as $modele) {
             $classeModele = "App\\Models\\$modele";
             $demandesModele = $classeModele::where('livreur_id', $livreur->id)
+                ->where(function ($query) {
+                    $query->whereNull('statut_livraison')
+                          ->orWhere('statut_livraison', '!=', 'livré');
+                })
                 ->with('user','livreur') // Si vous avez une relation avec l'utilisateur
                 ->get()
                 ->map(function($item) use ($modele) {

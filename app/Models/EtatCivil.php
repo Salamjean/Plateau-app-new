@@ -23,6 +23,14 @@ class EtatCivil extends Authenticatable
 
     public function mairie()
     {
-        return $this->belongsTo(Mairie::class, 'mairie_id'); 
+        return $this->belongsTo(Mairie::class, 'mairie_id');
+    }
+
+    /**
+     * Agents enregistrés par ce service d'état civil.
+     */
+    public function agents()
+    {
+        return $this->hasMany(Agent::class, 'etat_civil_id');
     }
 }

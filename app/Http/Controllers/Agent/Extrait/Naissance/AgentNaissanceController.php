@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use PDF;
 use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Log;
+use App\Services\YellikaSmsService;
 
 class AgentNaissanceController extends Controller
 {
@@ -180,6 +181,21 @@ class AgentNaissanceController extends Controller
                 $pushBody,
                 ['type' => 'tracking', 'reference' => $naissance->reference, 'url' => 'plateauapps://demande?reference=' . $naissance->reference]
             ));
+        }
+
+        // SMS notification when marked as completed
+        if ($user && $naissance->etat === 'terminé' && $ancienEtat !== 'terminé') {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande d'extrait de naissance (Réf: {$naissance->reference}) a été traitée.";
+            if ($naissance->livraison_code) {
+                $message .= " Code de livraison : " . $naissance->livraison_code . ".";
+            }
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de fin de traitement (naissance) : " . $e->getMessage());
+            }
         }
 
         // Redirection en fonction de l'état

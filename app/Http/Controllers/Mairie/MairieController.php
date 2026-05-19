@@ -9,6 +9,7 @@ use App\Models\Mariage;
 use App\Models\Naissance;
 use App\Models\ResetCodePasswordMairie;
 use App\Notifications\SendEmailToMairieAfterRegistrationNotification;
+use App\Notifications\SendEmailToMairieForPasswordResetNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -93,10 +94,13 @@ class MairieController extends Controller
         ]);
 
         try {
+            Log::info("Début de l'enregistrement d'une nouvelle mairie", ['name' => $request->name, 'email' => $request->email]);
+            
             // Récupérer le vendor connecté
             $vendor = Auth::guard('admin')->user();
 
             if (!$vendor) {
+                Log::warning("Enregistrement annulé : Impossible de récupérer les informations de l'administrateur connecté.");
                 return redirect()->back()->withErrors(['error' => 'Impossible de récupérer les informations du mairie.']);
             }
 
@@ -106,23 +110,28 @@ class MairieController extends Controller
             $vendor->email = $request->email;
             $vendor->password = Hash::make('password');
             $vendor->save();
+            Log::info("Mairie créée en base de données avec succès", ['id' => $vendor->id, 'name' => $vendor->name, 'email' => $vendor->email]);
 
             // Envoi de l'e-mail de vérification
             ResetCodePasswordMairie::where('email', $vendor->email)->delete();
             $code = rand(1000, 4000);
+            Log::info("Code OTP de validation généré", ['email' => $vendor->email, 'code' => $code]);
 
             ResetCodePasswordMairie::create([
                 'code' => $code,
                 'email' => $vendor->email,
             ]);
+            Log::info("OTP sauvegardé avec succès dans reset_code_password_mairies");
 
+            Log::info("Début de l'envoi de l'email de validation", ['to' => $vendor->email]);
             Notification::route('mail', $vendor->email)
                 ->notify(new SendEmailToMairieAfterRegistrationNotification($code, $vendor->email));
+            Log::info("E-mail de validation envoyé avec succès par le serveur SMTP", ['to' => $vendor->email]);
 
             return redirect()->route('admin.index')
                 ->with('success', 'Mairie enregistré avec succès.');
         } catch (\Exception $e) {
-            Log::error('Erreur lors de l\'enregistrement du vendor: ' . $e->getMessage(), [
+            Log::error('Erreur critique lors de l\'enregistrement de la mairie: ' . $e->getMessage(), [
                 'request' => $request->all(),
                 'exception' => $e,
             ]);
@@ -158,5 +167,42 @@ class MairieController extends Controller
 
         // Rediriger vers la page précédente avec un message de succès
         return redirect()->route('admin.index')->with('success', 'Le montant a été ' . ($action === 'ajouter' ? 'ajouté' : 'retiré') . ' avec succès.');
-}
+    }
+
+    public function requestPasswordReset($id)
+    {
+        Log::info("Début du traitement de demande de réinitialisation de mot de passe par clé", ['mairie_id' => $id]);
+        try {
+            $mairie = Mairie::findOrFail($id);
+            Log::info("Mairie cible trouvée", ['id' => $mairie->id, 'name' => $mairie->name, 'email' => $mairie->email]);
+
+            // Générer un code OTP de réinitialisation
+            ResetCodePasswordMairie::where('email', $mairie->email)->delete();
+            $code = rand(1000, 4000);
+            Log::info("Code OTP de réinitialisation généré", ['email' => $mairie->email, 'code' => $code]);
+
+            ResetCodePasswordMairie::create([
+                'code' => $code,
+                'email' => $mairie->email,
+            ]);
+            Log::info("OTP sauvegardé avec succès dans reset_code_password_mairies");
+
+            // Envoyer la notification par e-mail
+            Log::info("Début de l'envoi de l'email de réinitialisation", ['to' => $mairie->email]);
+            Notification::route('mail', $mairie->email)
+                ->notify(new SendEmailToMairieForPasswordResetNotification($code, $mairie->email));
+            Log::info("E-mail de réinitialisation envoyé avec succès par le serveur SMTP", ['to' => $mairie->email]);
+
+            return redirect()->route('admin.index')
+                ->with('success', 'Demande de mise à jour du mot de passe envoyée avec succès par email à ' . $mairie->email);
+        } catch (\Exception $e) {
+            Log::error('Erreur critique lors de la demande de réinitialisation de mot de passe de la mairie: ' . $e->getMessage(), [
+                'mairie_id' => $id,
+                'exception' => $e
+            ]);
+
+            return redirect()->route('admin.index')
+                ->with('error', 'Une erreur est survenue lors de l\'envoi du code de réinitialisation : ' . $e->getMessage());
+        }
+    }
 }

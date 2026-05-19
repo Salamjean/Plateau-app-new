@@ -239,7 +239,7 @@
                               <th>Nombre de caissié</th>
                               <th>Nombre d'hôpital</th>
                               <th>Solde restant</th>
-                              <th class="text-center">Archivé</th>
+                              <th class="text-center">Actions</th>
                           </tr>
                       </thead>
                       <tbody>
@@ -252,12 +252,18 @@
                                   <td>{{ $doctorCount[$mairie->name] ?? 0 }}</td>
                                   <td>{{ number_format($soldeRestantParCommune[$mairie->name], 0, ',', ' ') ?? 0 }} FCFA</td>
                                   <td class="text-center">
-                                      <button type="button" class="delete" onclick="confirmArchive('{{ $mairie->id }}')">
+                                      <button type="button" class="eye me-2" onclick="confirmPasswordReset('{{ $mairie->id }}', '{{ $mairie->email }}')" title="Demander la mise à jour du mot de passe">
+                                          <i class="fas fa-key"></i>
+                                      </button>
+                                      <button type="button" class="delete" onclick="confirmArchive('{{ $mairie->id }}')" title="Archiver">
                                           <i class="fas fa-folder"></i>
                                       </button>
                                       <form id="archive-form-{{ $mairie->id }}" action="{{ route('mairie.archive', $mairie->id) }}" method="POST" style="display: none;">
                                           @csrf
                                           @method('DELETE')
+                                      </form>
+                                      <form id="reset-password-form-{{ $mairie->id }}" action="{{ route('admin.mairie.reset_password', $mairie->id) }}" method="POST" style="display: none;">
+                                          @csrf
                                       </form>
                                   </td>
                               </tr>
@@ -287,6 +293,23 @@
     }).then((result) => {
       if (result.isConfirmed) {
         document.getElementById('archive-form-' + vendorId).submit();
+      }
+    });
+  }
+
+  function confirmPasswordReset(mairieId, mairieEmail) {
+    Swal.fire({
+      title: 'Demander la mise à jour du mot de passe ?',
+      text: "Un e-mail contenant un code OTP de confirmation sera envoyé à " + mairieEmail + ".",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#6777ef',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Oui, envoyer!',
+      cancelButtonText: 'Annuler'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('reset-password-form-' + mairieId).submit();
       }
     });
   }

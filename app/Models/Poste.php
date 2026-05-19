@@ -38,4 +38,12 @@ class Poste extends Authenticatable
     {
         $this->update(['archived_at' => now()]);
     }
+
+    /**
+     * Livreurs enregistrés par ce service de livraison.
+     */
+    public function livreurs()
+    {
+        return $this->hasMany(Livreur::class, 'poste_id');
+    }
 }

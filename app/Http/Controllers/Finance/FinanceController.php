@@ -7,9 +7,11 @@ use App\Http\Requests\FinanceRequest;
 use App\Models\Finance;
 use App\Models\ResetCodePasswordFinance;
 use App\Notifications\SendEmailToFinanceAfterRegistrationNotification;
+use App\Notifications\SendEmailToFinanceForPasswordResetNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,6 +21,9 @@ class FinanceController extends Controller
         $mairie = Auth::guard('mairie')->user();
         $finances = Finance::whereNull('archived_at')
                 ->where('mairie_id', $mairie->id)
+                ->with(['comptables' => function ($q) {
+                    $q->whereNull('archived_at')->orderBy('created_at', 'desc');
+                }])
                 ->paginate(10);
 
         return view('mairie.finance.index',compact('finances'));
@@ -138,6 +143,44 @@ class FinanceController extends Controller
             return redirect()->route('finance.edit', $id)
                 ->with('error', 'Une erreur est survenue lors de la modification.')
                 ->withInput();
+        }
+    }
+
+    public function requestPasswordReset($id)
+    {
+        Log::info("Début du traitement de demande de réinitialisation de mot de passe par clé pour Finance (Régie)", ['finance_id' => $id]);
+        try {
+            $finance = Finance::findOrFail($id);
+            Log::info("Finance cible trouvé", ['id' => $finance->id, 'name_respo' => $finance->name_respo, 'email' => $finance->email]);
+
+            // Générer un code OTP de réinitialisation (avec l'ID à la fin comme dans le store)
+            ResetCodePasswordFinance::where('email', $finance->email)->delete();
+            $code1 = rand(1000, 4000);
+            $code = $code1.''.$finance->id;
+            Log::info("Code OTP de réinitialisation généré pour Finance", ['email' => $finance->email, 'code' => $code]);
+
+            ResetCodePasswordFinance::create([
+                'code' => $code,
+                'email' => $finance->email,
+            ]);
+            Log::info("OTP sauvegardé avec succès dans reset_code_password_finances");
+
+            // Envoyer la notification par e-mail
+            Log::info("Début de l'envoi de l'email de réinitialisation Finance", ['to' => $finance->email]);
+            Notification::route('mail', $finance->email)
+                ->notify(new SendEmailToFinanceForPasswordResetNotification($code, $finance->email));
+            Log::info("E-mail de réinitialisation Finance envoyé avec succès", ['to' => $finance->email]);
+
+            return redirect()->route('mairie.finance.index')
+                ->with('success', 'Demande de mise à jour du mot de passe envoyée avec succès par email à ' . $finance->email);
+        } catch (\Exception $e) {
+            Log::error('Erreur critique lors de la demande de réinitialisation de mot de passe de Finance: ' . $e->getMessage(), [
+                'finance_id' => $id,
+                'exception' => $e
+            ]);
+
+            return redirect()->route('mairie.finance.index')
+                ->with('error', 'Une erreur est survenue lors de l\'envoi du code de réinitialisation : ' . $e->getMessage());
         }
     }
 }

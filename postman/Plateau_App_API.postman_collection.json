@@ -1,0 +1,555 @@
+{
+  "info": {
+    "_postman_id": "plateau-app-api-2026",
+    "name": "Plateau App API",
+    "description": "Collection complète des endpoints API de Plateau App.\n\n**Comment l'utiliser :**\n1. Importer cette collection dans Postman\n2. Définir `base_url` dans les variables (par défaut: http://127.0.0.1:8000)\n3. Se connecter via `Auth Utilisateur > Login` (ou `Auth Livreur > Login`) — le token est stocké automatiquement\n4. Les autres requêtes utilisent automatiquement `{{user_token}}` ou `{{livreur_token}}`\n\n**Variables importantes :**\n- `base_url` : URL du backend\n- `user_token` : Bearer token utilisateur (auto-rempli au login)\n- `livreur_token` : Bearer token livreur (auto-rempli au login)\n- `pending_token` : token temporaire pour Google/Apple (PAS pour Phone)\n- `demande_reference` : référence d'une demande pour les recherches\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Utilisateur",
+      "item": [
+        {
+          "name": "Register (email + password)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/register", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "register"]},
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"REDFIELD\",\n  \"prenom\": \"Luise\",\n  \"email\": \"test@example.com\",\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"commune\": \"plateau\",\n  \"push_notification\": \"fcm_token_optional\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Register Email",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/register-email", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "register-email"]},
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"test2@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.token) { pm.collectionVariables.set('user_token', data.data.token); console.log('user_token stocké : ' + data.data.token); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/login", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "login"]},
+            "body": {"mode": "raw", "raw": "{\n  \"login_identifier\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"push_notification\": \"fcm_token_optional\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/logout", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "logout"]}
+          }
+        },
+        {
+          "name": "Get Connected User",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/user", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "user"]}
+          }
+        },
+        {
+          "name": "Deactivate Account",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/deactivate", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "deactivate"]}
+          }
+        },
+        {
+          "name": "Toggle Push Notification",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/toggle-push-notification", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "toggle-push-notification"]},
+            "body": {"mode": "raw", "raw": "{\n  \"push_notification\": \"new_fcm_token_or_null\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Password Reset",
+      "item": [
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/forgot-password", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "forgot-password"]},
+            "body": {"mode": "raw", "raw": "{\n  \"login_identifier\": \"test@example.com\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Verify Reset Code",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/verify-reset-code", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "verify-reset-code"]},
+            "body": {"mode": "raw", "raw": "{\n  \"login_identifier\": \"test@example.com\",\n  \"code\": \"123456\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/reset-password", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "reset-password"]},
+            "body": {"mode": "raw", "raw": "{\n  \"login_identifier\": \"test@example.com\",\n  \"code\": \"123456\",\n  \"password\": \"newpassword123\",\n  \"password_confirmation\": \"newpassword123\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth Social (OTP / Google / Apple)",
+      "description": "Flow d'inscription téléphone SIMPLIFIÉ (pas de pending_token) :\n1. send-otp\n2. verify-otp (marque OTP comme vérifié en cache)\n3. finalize-profile/phone (envoie indicatif+contact+name+prenom+password → crée le user)",
+      "item": [
+        {
+          "name": "1. Send OTP (téléphone)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/send-otp", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "send-otp"]},
+            "body": {"mode": "raw", "raw": "{\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "2. Verify OTP (téléphone)",
+          "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.token) { pm.collectionVariables.set('user_token', data.data.token); console.log('Compte existant → user_token stocké'); }", "if (data?.data?.is_new_user) { console.log('Nouveau compte → passer à finalize-profile/phone avec indicatif+contact+infos'); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/verify-otp", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "verify-otp"]},
+            "body": {"mode": "raw", "raw": "{\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\",\n  \"otp\": \"123456\"\n}", "options": {"raw": {"language": "json"}}},
+            "description": "Si compte existe → token directement retourné.\nSi nouveau → réponse 'is_new_user: true' + marque otp_verified_{phone} en cache (60 min)."
+          }
+        },
+        {
+          "name": "Register Minimal (validation OTP uniquement)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/register-minimal", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "register-minimal"]},
+            "body": {"mode": "raw", "raw": "{\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\"\n}", "options": {"raw": {"language": "json"}}},
+            "description": "⚠ Cet endpoint ne crée PLUS de User. Il vérifie seulement que l'OTP est validé pour ce numéro.\nLe User est créé uniquement par /finalize-profile/phone."
+          }
+        },
+        {
+          "name": "Google Auth",
+          "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.pending_token) { pm.collectionVariables.set('pending_token', data.data.pending_token); }", "if (data?.data?.token) { pm.collectionVariables.set('user_token', data.data.token); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/google", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "google"]},
+            "body": {"mode": "raw", "raw": "{\n  \"id_token\": \"GOOGLE_FIREBASE_ID_TOKEN_ICI\",\n  \"action\": \"login\",\n  \"push_notification\": \"fcm_token_optional\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Apple Auth",
+          "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.pending_token) { pm.collectionVariables.set('pending_token', data.data.pending_token); }", "if (data?.data?.token) { pm.collectionVariables.set('user_token', data.data.token); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/apple", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "apple"]},
+            "body": {"mode": "raw", "raw": "{\n  \"identity_token\": \"APPLE_IDENTITY_TOKEN_JWT_ICI\",\n  \"name\": \"REDFIELD\",\n  \"prenom\": \"Luise\",\n  \"action\": \"login\",\n  \"push_notification\": \"fcm_token_optional\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Finalize Profile — Google",
+          "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.token) { pm.collectionVariables.set('user_token', data.data.token); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/finalize-profile/google", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "finalize-profile", "google"]},
+            "body": {"mode": "raw", "raw": "{\n  \"pending_token\": \"{{pending_token}}\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\",\n  \"NNI\": \"\",\n  \"diaspora\": false,\n  \"pays_residence\": \"\",\n  \"push_notification\": \"\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "Finalize Profile — Apple",
+          "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.token) { pm.collectionVariables.set('user_token', data.data.token); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/finalize-profile/apple", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "finalize-profile", "apple"]},
+            "body": {"mode": "raw", "raw": "{\n  \"pending_token\": \"{{pending_token}}\",\n  \"name\": \"REDFIELD\",\n  \"prenom\": \"Luise\",\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\",\n  \"NNI\": \"\",\n  \"diaspora\": false,\n  \"pays_residence\": \"\",\n  \"push_notification\": \"\"\n}", "options": {"raw": {"language": "json"}}}
+          }
+        },
+        {
+          "name": "3. Finalize Profile — Phone (NOUVEAU flow sans pending_token)",
+          "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.token) { pm.collectionVariables.set('user_token', data.data.token); console.log('User créé et user_token stocké : ' + data.data.token); }"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/utilisateurs/finalize-profile/phone", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "finalize-profile", "phone"]},
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\",\n  \"name\": \"REDFIELD\",\n  \"prenom\": \"Luise\",\n  \"email\": \"redfield@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"NNI\": \"\",\n  \"diaspora\": false,\n  \"pays_residence\": \"\",\n  \"push_notification\": \"\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "description": "⚠ NOUVEAU FLOW : plus de pending_token requis.\n\nLe backend vérifie que `otp_verified_{indicatif+contact}` existe en cache (créé par verify-otp).\nSi OK → crée le User en DB + retourne Bearer token.\n\n**MODE 1 (nouveau compte)** :\n- Envoyer : indicatif, contact, name, prenom, email, password, password_confirmation\n- L'OTP doit avoir été validé via /verify-otp avant\n\n**MODE 2 (compte existant à compléter)** :\n- Envoyer : Bearer token Authorization + name, prenom (les autres champs optionnels)\n- Pas besoin d'indicatif/contact"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profil Utilisateur",
+      "item": [
+        {"name": "Get Profil", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil"]}}},
+        {"name": "Update Profile Picture", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/photo", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "photo"]}, "body": {"mode": "formdata", "formdata": [{"key": "profile_picture", "type": "file", "src": []}]}}},
+        {"name": "Delete Profile Picture", "request": {"method": "DELETE", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/photo", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "photo"]}}},
+        {"name": "Update Informations", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/informations", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "informations"]}, "body": {"mode": "raw", "raw": "{\n  \"name\": \"REDFIELD\",\n  \"prenom\": \"Luise\",\n  \"email\": \"newemail@example.com\",\n  \"indicatif\": \"+225\",\n  \"contact\": \"0700000001\",\n  \"commune\": \"plateau\",\n  \"CMU\": \"\",\n  \"diaspora\": false,\n  \"current_password\": \"password123\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Update Password", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/password", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "password"]}, "body": {"mode": "raw", "raw": "{\n  \"current_password\": \"password123\",\n  \"new_password\": \"newpassword456\",\n  \"new_password_confirmation\": \"newpassword456\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Request Email OTP", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/request-email-otp", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "request-email-otp"]}, "body": {"mode": "raw", "raw": "{\n  \"email\": \"nouveau@example.com\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Update Email (avec OTP)", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/update-email", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "update-email"]}, "body": {"mode": "raw", "raw": "{\n  \"otp\": \"123456\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Request Phone OTP (classique)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/request-phone-otp", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "request-phone-otp"]}, "body": {"mode": "raw", "raw": "{\n  \"indicatif\": \"+225\",\n  \"contact\": \"0711111111\",\n  \"current_password\": \"password123\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Request Phone OTP Social", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/social/request-phone-otp", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "social", "request-phone-otp"]}, "body": {"mode": "raw", "raw": "{\n  \"indicatif\": \"+225\",\n  \"contact\": \"0711111111\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Verify Email OTP (social)", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/verify-email-otp", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "verify-email-otp"]}, "body": {"mode": "raw", "raw": "{\n  \"otp\": \"123456\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Update Phone (avec OTP)", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/profil/update-phone", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "profil", "update-phone"]}, "body": {"mode": "raw", "raw": "{\n  \"otp\": \"123456\"\n}", "options": {"raw": {"language": "json"}}}}}
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {"name": "Liste notifications", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/notifications", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "notifications"]}}},
+        {"name": "Marquer tout comme lu", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/notifications/mark-all-read", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "notifications", "mark-all-read"]}}},
+        {"name": "Marquer une notification comme lue", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/notifications/1/mark-read", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "notifications", "1", "mark-read"]}}},
+        {"name": "Test push notification", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/notifications/test-push", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "notifications", "test-push"]}}}
+      ]
+    },
+    {
+      "name": "Demandes Naissance (individuelle)",
+      "item": [
+        {"name": "Liste mes demandes", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance"]}}},
+        {
+          "name": "Créer une demande individuelle",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance"]},
+            "body": {"mode": "formdata", "formdata": [
+              {"key": "type", "value": "simple", "type": "text"},
+              {"key": "pour", "value": "Moi", "type": "text"},
+              {"key": "name", "value": "KOUAME", "type": "text"},
+              {"key": "prenom", "value": "Pierre", "type": "text"},
+              {"key": "number", "value": "123/2024", "type": "text"},
+              {"key": "DateR", "value": "1990-03-15", "type": "text"},
+              {"key": "commune", "value": "plateau", "type": "text"},
+              {"key": "commune_naissance", "value": "Plateau", "type": "text"},
+              {"key": "qty_simple", "value": "1", "type": "text"},
+              {"key": "qty_integral", "value": "0", "type": "text"},
+              {"key": "nom_prenoms_pere", "value": "KOUAME Joseph", "type": "text"},
+              {"key": "nom_prenoms_mere", "value": "YAO Marie", "type": "text"},
+              {"key": "CNI", "type": "file", "src": []},
+              {"key": "choix_option", "value": "retrait", "type": "text"},
+              {"key": "payment_method", "value": "wave", "type": "text"},
+              {"key": "montant_timbre", "value": "500", "type": "text"},
+              {"key": "montant_livraison", "value": "1500", "type": "text"},
+              {"key": "nom_destinataire", "value": "KOUAME", "type": "text"},
+              {"key": "prenom_destinataire", "value": "Pierre", "type": "text"},
+              {"key": "email_destinataire", "value": "destinataire@example.com", "type": "text"},
+              {"key": "contact_destinataire", "value": "0700000000", "type": "text"},
+              {"key": "adresse_livraison", "value": "Rue 12, Cocody", "type": "text"},
+              {"key": "ville", "value": "Abidjan", "type": "text"},
+              {"key": "commune_livraison", "value": "Cocody", "type": "text"},
+              {"key": "quartier", "value": "Riviera", "type": "text"},
+              {"key": "code_postal", "value": "01", "type": "text"}
+            ]}
+          }
+        },
+        {"name": "Retry Payment", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/1/retry-payment", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "1", "retry-payment"]}, "body": {"mode": "raw", "raw": "{\n  \"payment_method\": \"wave\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Relancer demande", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/1/relancer", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "1", "relancer"]}}},
+        {"name": "Modifier (après rejet)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/1/modifier", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "1", "modifier"]}, "body": {"mode": "formdata", "formdata": [{"key": "name", "value": "Nouveau nom", "type": "text"}, {"key": "CNI", "type": "file", "src": []}]}}},
+        {"name": "Champs à modifier", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/1/champs-a-modifier", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "1", "champs-a-modifier"]}}},
+        {"name": "Supprimer demande", "request": {"method": "DELETE", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/1", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "1"]}}},
+        {"name": "Statut paiement (public)", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/naissance/payment-status/{{demande_reference}}", "host": ["{{base_url}}"], "path": ["api", "naissance", "payment-status", "{{demande_reference}}"]}}}
+      ]
+    },
+    {
+      "name": "Demandes Mariage (individuelle)",
+      "item": [
+        {"name": "Liste mes demandes", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage"]}}},
+        {"name": "Créer une demande individuelle", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage"]}, "body": {"mode": "formdata", "formdata": [
+          {"key": "typeDemande", "value": "extraitSimple", "type": "text"},
+          {"key": "nomEpoux", "value": "KOUASSI", "type": "text"},
+          {"key": "prenomEpoux", "value": "Jean", "type": "text"},
+          {"key": "dateNaissanceEpoux", "value": "1985-06-12", "type": "text"},
+          {"key": "lieuNaissanceEpoux", "value": "Abidjan", "type": "text"},
+          {"key": "commune_mariage", "value": "Plateau", "type": "text"},
+          {"key": "commune", "value": "plateau", "type": "text"},
+          {"key": "qty_simple", "value": "1", "type": "text"},
+          {"key": "qty_integral", "value": "0", "type": "text"},
+          {"key": "pieceIdentite", "type": "file", "src": []},
+          {"key": "extraitMariage", "type": "file", "src": []},
+          {"key": "choix_option", "value": "retrait", "type": "text"},
+          {"key": "payment_method", "value": "wave", "type": "text"}
+        ]}}},
+        {"name": "Retry Payment", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage/1/retry-payment", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage", "1", "retry-payment"]}, "body": {"mode": "raw", "raw": "{\n  \"payment_method\": \"wave\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Relancer demande", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage/1/relancer", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage", "1", "relancer"]}}},
+        {"name": "Modifier (après rejet)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage/1/modifier", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage", "1", "modifier"]}, "body": {"mode": "formdata", "formdata": [{"key": "nomEpoux", "value": "Nouveau nom", "type": "text"}]}}},
+        {"name": "Champs à modifier", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage/1/champs-a-modifier", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage", "1", "champs-a-modifier"]}}},
+        {"name": "Supprimer demande", "request": {"method": "DELETE", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage/1", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage", "1"]}}},
+        {"name": "Statut paiement (public)", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/mariage/payment-status/{{demande_reference}}", "host": ["{{base_url}}"], "path": ["api", "mariage", "payment-status", "{{demande_reference}}"]}}}
+      ]
+    },
+    {
+      "name": "Demandes Décès (individuelle)",
+      "item": [
+        {"name": "Liste mes demandes", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces"]}}},
+        {"name": "Créer une demande individuelle", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces"]}, "body": {"mode": "formdata", "formdata": [
+          {"key": "type", "value": "simple", "type": "text"},
+          {"key": "name", "value": "TRAORE Adama", "type": "text"},
+          {"key": "numberR", "value": "789/2024", "type": "text"},
+          {"key": "dateR", "value": "2024-05-20", "type": "text"},
+          {"key": "commune_deces", "value": "Plateau", "type": "text"},
+          {"key": "communeD", "value": "plateau", "type": "text"},
+          {"key": "nom_prenoms_pere", "value": "TRAORE Issa", "type": "text"},
+          {"key": "nom_prenoms_mere", "value": "DIABATE Aminata", "type": "text"},
+          {"key": "qty_simple", "value": "1", "type": "text"},
+          {"key": "qty_integral", "value": "0", "type": "text"},
+          {"key": "CNIdfnt", "type": "file", "src": []},
+          {"key": "CNIdcl", "type": "file", "src": []},
+          {"key": "choix_option", "value": "retrait", "type": "text"},
+          {"key": "payment_method", "value": "wave", "type": "text"}
+        ]}}},
+        {"name": "Retry Payment", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces/1/retry-payment", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces", "1", "retry-payment"]}, "body": {"mode": "raw", "raw": "{\n  \"payment_method\": \"wave\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Relancer demande", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces/1/relancer", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces", "1", "relancer"]}}},
+        {"name": "Modifier (après rejet)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces/1/modifier", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces", "1", "modifier"]}, "body": {"mode": "formdata", "formdata": [{"key": "name", "value": "Nouveau nom", "type": "text"}]}}},
+        {"name": "Champs à modifier", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces/1/champs-a-modifier", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces", "1", "champs-a-modifier"]}}},
+        {"name": "Supprimer demande", "request": {"method": "DELETE", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces/1", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces", "1"]}}},
+        {"name": "Statut paiement (public)", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/deces/payment-status/{{demande_reference}}", "host": ["{{base_url}}"], "path": ["api", "deces", "payment-status", "{{demande_reference}}"]}}}
+      ]
+    },
+    {
+      "name": "Demandes GROUPÉES Naissance",
+      "description": "Panier multi-actes : N actes (simples et/ou intégraux) pour N personnes potentiellement différentes. Chaque ligne avec ses propres infos et CNI.",
+      "item": [
+        {
+          "name": "Créer demande groupée Naissance (2 simples + 3 intégraux)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "X-Requested-With", "value": "XMLHttpRequest"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/groupee", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "groupee"]},
+            "body": {"mode": "formdata", "formdata": [
+              {"key": "qty_simple", "value": "2", "type": "text"},
+              {"key": "qty_integral", "value": "3", "type": "text"},
+              {"key": "lignes[0][type_document]", "value": "simple", "type": "text"},
+              {"key": "lignes[0][name]", "value": "KOUAME", "type": "text"},
+              {"key": "lignes[0][prenom]", "value": "Pierre", "type": "text"},
+              {"key": "lignes[0][commune_naissance]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[0][number]", "value": "001/2020", "type": "text"},
+              {"key": "lignes[0][DateR]", "value": "2020-01-15", "type": "text"},
+              {"key": "lignes[0][nom_prenoms_pere]", "value": "KOUAME Jean", "type": "text"},
+              {"key": "lignes[0][nom_prenoms_mere]", "value": "YAO Marie", "type": "text"},
+              {"key": "lignes[0][CNI]", "type": "file", "src": []},
+              {"key": "lignes[1][type_document]", "value": "simple", "type": "text"},
+              {"key": "lignes[1][name]", "value": "KOUAME", "type": "text"},
+              {"key": "lignes[1][prenom]", "value": "Paul", "type": "text"},
+              {"key": "lignes[1][commune_naissance]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[1][CNI]", "type": "file", "src": []},
+              {"key": "lignes[2][type_document]", "value": "extrait_integral", "type": "text"},
+              {"key": "lignes[2][name]", "value": "KOUAME", "type": "text"},
+              {"key": "lignes[2][prenom]", "value": "Sophie", "type": "text"},
+              {"key": "lignes[2][commune_naissance]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[2][nom_prenoms_pere]", "value": "KOUAME Jean", "type": "text"},
+              {"key": "lignes[2][nom_prenoms_mere]", "value": "YAO Marie", "type": "text"},
+              {"key": "lignes[2][CNI]", "type": "file", "src": []},
+              {"key": "lignes[3][type_document]", "value": "extrait_integral", "type": "text"},
+              {"key": "lignes[3][name]", "value": "KOUAME", "type": "text"},
+              {"key": "lignes[3][prenom]", "value": "Marc", "type": "text"},
+              {"key": "lignes[3][commune_naissance]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[3][nom_prenoms_pere]", "value": "KOUAME Jean", "type": "text"},
+              {"key": "lignes[3][nom_prenoms_mere]", "value": "YAO Marie", "type": "text"},
+              {"key": "lignes[3][CNI]", "type": "file", "src": []},
+              {"key": "lignes[4][type_document]", "value": "extrait_integral", "type": "text"},
+              {"key": "lignes[4][name]", "value": "KOUAME", "type": "text"},
+              {"key": "lignes[4][prenom]", "value": "Eric", "type": "text"},
+              {"key": "lignes[4][commune_naissance]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[4][nom_prenoms_pere]", "value": "KOUAME Jean", "type": "text"},
+              {"key": "lignes[4][nom_prenoms_mere]", "value": "YAO Marie", "type": "text"},
+              {"key": "lignes[4][CNI]", "type": "file", "src": []},
+              {"key": "choix_option", "value": "Retrait sur place", "type": "text"},
+              {"key": "nom_destinataire", "value": "KOUAME Jean", "type": "text"},
+              {"key": "prenom_destinataire", "value": "Jean", "type": "text"},
+              {"key": "email_destinataire", "value": "destinataire@example.com", "type": "text"},
+              {"key": "contact_destinataire", "value": "0700000000", "type": "text"},
+              {"key": "adresse_livraison", "value": "Cocody Riviera Bonoumin", "type": "text"},
+              {"key": "code_postal", "value": "01", "type": "text"},
+              {"key": "ville", "value": "Abidjan", "type": "text"},
+              {"key": "commune_livraison", "value": "Cocody", "type": "text"},
+              {"key": "quartier", "value": "Riviera", "type": "text"},
+              {"key": "date_livraison", "value": "2026-06-01", "type": "text"},
+              {"key": "heure_livraison", "value": "10:00", "type": "text"},
+              {"key": "payment_method", "value": "wave", "type": "text"},
+              {"key": "mtn_number", "value": "0700000000", "type": "text"}
+            ]},
+            "description": "Crée une demande groupée naissance pour 5 personnes (2 simples + 3 intégrales).\n\nRéférence générée : GRN-xxxx"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demandes GROUPÉES Mariage",
+      "item": [
+        {
+          "name": "Créer demande groupée Mariage",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "X-Requested-With", "value": "XMLHttpRequest"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/mariage/groupee", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "mariage", "groupee"]},
+            "body": {"mode": "formdata", "formdata": [
+              {"key": "qty_simple", "value": "1", "type": "text"},
+              {"key": "qty_integral", "value": "1", "type": "text"},
+              {"key": "lignes[0][type_document]", "value": "simple", "type": "text"},
+              {"key": "lignes[0][commune_mariage]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[0][CMU]", "value": "", "type": "text"},
+              {"key": "lignes[0][pieceIdentite]", "type": "file", "src": []},
+              {"key": "lignes[0][extraitMariage]", "type": "file", "src": []},
+              {"key": "lignes[1][type_document]", "value": "extrait_integral", "type": "text"},
+              {"key": "lignes[1][commune_mariage]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[1][nomEpoux]", "value": "OUATTARA", "type": "text"},
+              {"key": "lignes[1][prenomEpoux]", "value": "Marie", "type": "text"},
+              {"key": "lignes[1][dateNaissanceEpoux]", "value": "1990-03-22", "type": "text"},
+              {"key": "lignes[1][lieuNaissanceEpoux]", "value": "Bouake", "type": "text"},
+              {"key": "lignes[1][pieceIdentite]", "type": "file", "src": []},
+              {"key": "lignes[1][extraitMariage]", "type": "file", "src": []},
+              {"key": "choix_option", "value": "Retrait sur place", "type": "text"},
+              {"key": "payment_method", "value": "wave", "type": "text"}
+            ]},
+            "description": "Crée une demande groupée mariage.\nRéférence générée : GRM-xxxx"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demandes GROUPÉES Décès",
+      "item": [
+        {
+          "name": "Créer demande groupée Décès",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "X-Requested-With", "value": "XMLHttpRequest"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}],
+            "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/deces/groupee", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "deces", "groupee"]},
+            "body": {"mode": "formdata", "formdata": [
+              {"key": "qty_simple", "value": "1", "type": "text"},
+              {"key": "qty_integral", "value": "1", "type": "text"},
+              {"key": "lignes[0][type_document]", "value": "simple", "type": "text"},
+              {"key": "lignes[0][name]", "value": "TRAORE Adama", "type": "text"},
+              {"key": "lignes[0][numberR]", "value": "789/2024", "type": "text"},
+              {"key": "lignes[0][dateR]", "value": "2024-05-20", "type": "text"},
+              {"key": "lignes[0][commune_deces]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[0][nom_prenoms_pere]", "value": "TRAORE Issa", "type": "text"},
+              {"key": "lignes[0][nom_prenoms_mere]", "value": "DIABATE Aminata", "type": "text"},
+              {"key": "lignes[0][CNIdfnt]", "type": "file", "src": []},
+              {"key": "lignes[0][CNIdcl]", "type": "file", "src": []},
+              {"key": "lignes[0][married]", "value": "non", "type": "text"},
+              {"key": "lignes[0][DecesHorsS]", "value": "non", "type": "text"},
+              {"key": "lignes[1][type_document]", "value": "extrait_integral", "type": "text"},
+              {"key": "lignes[1][name]", "value": "KONE Mariam", "type": "text"},
+              {"key": "lignes[1][numberR]", "value": "120/2023", "type": "text"},
+              {"key": "lignes[1][dateR]", "value": "2023-11-05", "type": "text"},
+              {"key": "lignes[1][commune_deces]", "value": "Plateau", "type": "text"},
+              {"key": "lignes[1][nom_prenoms_pere]", "value": "KONE Abou", "type": "text"},
+              {"key": "lignes[1][nom_prenoms_mere]", "value": "BAKAYOKO Awa", "type": "text"},
+              {"key": "lignes[1][CNIdfnt]", "type": "file", "src": []},
+              {"key": "lignes[1][CNIdcl]", "type": "file", "src": []},
+              {"key": "lignes[1][married]", "value": "oui", "type": "text"},
+              {"key": "lignes[1][documentMariage]", "type": "file", "src": []},
+              {"key": "lignes[1][DecesHorsS]", "value": "non", "type": "text"},
+              {"key": "choix_option", "value": "Retrait sur place", "type": "text"},
+              {"key": "payment_method", "value": "wave", "type": "text"}
+            ]},
+            "description": "Crée une demande groupée décès.\n\n**Champs spéciaux :**\n- married : 'oui'/'non' → si 'oui', documentMariage requis\n- DecesHorsS : 'oui'/'non' → si 'oui', RequisPolice requis\n\nRéférence générée : GRD-xxxx"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rendez-vous",
+      "item": [
+        {"name": "Liste mes RDV", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/rendezvous", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "rendezvous"]}}},
+        {"name": "Créer un RDV", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/rendezvous", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "rendezvous"]}, "body": {"mode": "raw", "raw": "{\n  \"nom_epoux\": \"KOUASSI\",\n  \"prenom_epoux\": \"Jean\",\n  \"date_naissance_epoux\": \"1985-06-12\",\n  \"lieu_naissance_epoux\": \"Abidjan\",\n  \"nom_epouse\": \"OUATTARA\",\n  \"prenom_epouse\": \"Sandra\",\n  \"date_naissance_epouse\": \"1990-03-22\",\n  \"lieu_naissance_epouse\": \"Bouake\",\n  \"adresse\": \"Cocody Riviera\",\n  \"telephone\": \"0700000000\",\n  \"email\": \"contact@example.com\",\n  \"date_mariage_souhaitee\": \"2026-12-31\",\n  \"heure_souhaitee\": \"10:00\",\n  \"motif\": \"Mariage civil\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Annuler RDV", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/rendezvous/1/cancel", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "rendezvous", "1", "cancel"]}}},
+        {"name": "Statistiques RDV (par ID)", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/rendezvous/statistiques/1", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "rendezvous", "statistiques", "1"]}}},
+        {"name": "Statistiques RDV (toutes)", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/rendezvous/statistiques", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "rendezvous", "statistiques"]}}},
+        {"name": "Détails RDV", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/rendezvous/1/details", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "rendezvous", "1", "details"]}}}
+      ]
+    },
+    {
+      "name": "Statistiques & Suivi",
+      "item": [
+        {"name": "Statistiques par statut", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/statistiques", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "statistiques"]}}},
+        {"name": "Liste toutes mes demandes", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/toutes", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "toutes"]}}},
+        {"name": "Historique paiements", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/paiements", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "paiements"]}}},
+        {"name": "Détail paiement par transaction", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/paiements/detail/AN1234X2024", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "paiements", "detail", "AN1234X2024"]}}},
+        {"name": "Suivi par référence (POST)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/suivi-reference", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "suivi-reference"]}, "body": {"mode": "raw", "raw": "{\n  \"reference\": \"AN1234X2024\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Get demande spécifique", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/1", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "1"]}}},
+        {"name": "Suivi demande (timeline)", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{user_token}}"}], "url": {"raw": "{{base_url}}/api/utilisateurs/demandes/naissance/1/suivi", "host": ["{{base_url}}"], "path": ["api", "utilisateurs", "demandes", "naissance", "1", "suivi"]}}},
+        {"name": "Recherche par référence (PUBLIC)", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/demandes/recherche?reference={{demande_reference}}", "host": ["{{base_url}}"], "path": ["api", "demandes", "recherche"], "query": [{"key": "reference", "value": "{{demande_reference}}"}]}}}
+      ]
+    },
+    {
+      "name": "Auth Livreur",
+      "item": [
+        {"name": "Define Access (vérif email)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/livreur/define-access", "host": ["{{base_url}}"], "path": ["api", "livreur", "define-access"]}, "body": {"mode": "raw", "raw": "{\n  \"email\": \"livreur@example.com\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Submit Define Access", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/livreur/submit-define-access", "host": ["{{base_url}}"], "path": ["api", "livreur", "submit-define-access"]}, "body": {"mode": "formdata", "formdata": [
+          {"key": "email", "value": "livreur@example.com", "type": "text"},
+          {"key": "code", "value": "123456", "type": "text"},
+          {"key": "password", "value": "password123", "type": "text"},
+          {"key": "confirme_password", "value": "password123", "type": "text"},
+          {"key": "profile_picture", "type": "file", "src": []}
+        ]}}},
+        {"name": "Login", "event": [{"listen": "test", "script": {"exec": ["const data = pm.response.json();", "if (data?.data?.token) { pm.collectionVariables.set('livreur_token', data.data.token); console.log('livreur_token stocké'); }"], "type": "text/javascript"}}], "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/livreur/login", "host": ["{{base_url}}"], "path": ["api", "livreur", "login"]}, "body": {"mode": "raw", "raw": "{\n  \"email\": \"livreur@example.com\",\n  \"password\": \"password123\",\n  \"push_notification\": \"fcm_token_optional\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Logout", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/logout", "host": ["{{base_url}}"], "path": ["api", "livreur", "logout"]}}},
+        {"name": "Forgot Password", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/livreur/forgot-password", "host": ["{{base_url}}"], "path": ["api", "livreur", "forgot-password"]}, "body": {"mode": "raw", "raw": "{\n  \"email\": \"livreur@example.com\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Verify Reset Code", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/livreur/verify-reset-code", "host": ["{{base_url}}"], "path": ["api", "livreur", "verify-reset-code"]}, "body": {"mode": "raw", "raw": "{\n  \"email\": \"livreur@example.com\",\n  \"code\": \"123456\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Reset Password", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/livreur/reset-password", "host": ["{{base_url}}"], "path": ["api", "livreur", "reset-password"]}, "body": {"mode": "raw", "raw": "{\n  \"email\": \"livreur@example.com\",\n  \"code\": \"123456\",\n  \"password\": \"newpassword123\",\n  \"confirme_password\": \"newpassword123\"\n}", "options": {"raw": {"language": "json"}}}}}
+      ]
+    },
+    {
+      "name": "Livreur — Livraisons",
+      "item": [
+        {"name": "Liste des livraisons en cours", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/livraisons", "host": ["{{base_url}}"], "path": ["api", "livreur", "livraisons"]}}},
+        {"name": "Historique des livraisons", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/livraisons/historique", "host": ["{{base_url}}"], "path": ["api", "livreur", "livraisons", "historique"]}}},
+        {"name": "Statistiques générales", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/livraisons/statistiques/general", "host": ["{{base_url}}"], "path": ["api", "livreur", "livraisons", "statistiques", "general"]}}},
+        {"name": "Détail d'une livraison", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/livraisons/naissance/1", "host": ["{{base_url}}"], "path": ["api", "livreur", "livraisons", "naissance", "1"]}}},
+        {"name": "Valider une livraison", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/livraisons/valider", "host": ["{{base_url}}"], "path": ["api", "livreur", "livraisons", "valider"]}, "body": {"mode": "raw", "raw": "{\n  \"reference\": \"AN1234X2024\",\n  \"demande_id\": 1,\n  \"demande_type\": \"naissance\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Vérifier une référence", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/livraisons/verifier-reference", "host": ["{{base_url}}"], "path": ["api", "livreur", "livraisons", "verifier-reference"]}, "body": {"mode": "raw", "raw": "{\n  \"reference\": \"AN1234X2024\"\n}", "options": {"raw": {"language": "json"}}}}}
+      ]
+    },
+    {
+      "name": "Livreur — Profil",
+      "item": [
+        {"name": "Get Profil Livreur", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/profil", "host": ["{{base_url}}"], "path": ["api", "livreur", "profil"]}}},
+        {"name": "Update Photo", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/profil/photo", "host": ["{{base_url}}"], "path": ["api", "livreur", "profil", "photo"]}, "body": {"mode": "formdata", "formdata": [{"key": "profile_picture", "type": "file", "src": []}]}}},
+        {"name": "Delete Photo", "request": {"method": "DELETE", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/profil/photo", "host": ["{{base_url}}"], "path": ["api", "livreur", "profil", "photo"]}}},
+        {"name": "Update Informations", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/profil/informations", "host": ["{{base_url}}"], "path": ["api", "livreur", "profil", "informations"]}, "body": {"mode": "raw", "raw": "{\n  \"name\": \"DIALLO\",\n  \"prenom\": \"Mamadou\",\n  \"contact\": \"0700000000\",\n  \"commune\": \"plateau\",\n  \"communeM\": \"plateau\",\n  \"cas_urgence\": \"0711111111\",\n  \"disponible\": true\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Update Password", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/profil/password", "host": ["{{base_url}}"], "path": ["api", "livreur", "profil", "password"]}, "body": {"mode": "raw", "raw": "{\n  \"current_password\": \"password123\",\n  \"new_password\": \"newpassword456\",\n  \"confirm_password\": \"newpassword456\"\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "Update Disponibilité", "request": {"method": "PUT", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{livreur_token}}"}], "url": {"raw": "{{base_url}}/api/livreur/profil/disponibilite", "host": ["{{base_url}}"], "path": ["api", "livreur", "profil", "disponibilite"]}, "body": {"mode": "raw", "raw": "{\n  \"disponible\": true\n}", "options": {"raw": {"language": "json"}}}}}
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {"name": "Admin Login", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/admin/login", "host": ["{{base_url}}"], "path": ["api", "admin", "login"]}, "body": {"mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}", "options": {"raw": {"language": "json"}}}}}
+      ]
+    },
+    {
+      "name": "Webhooks (paiements)",
+      "item": [
+        {"name": "Wave Webhook (test)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}, {"key": "wave-signature", "value": "t=1234567890,v1=signature_hash"}], "url": {"raw": "{{base_url}}/api/webhooks/wave/notify", "host": ["{{base_url}}"], "path": ["api", "webhooks", "wave", "notify"]}, "body": {"mode": "raw", "raw": "{\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"id\": \"cos-xxxxxxxx\",\n    \"client_reference\": \"AN1234X2024\",\n    \"amount\": 2000,\n    \"currency\": \"XOF\",\n    \"when_completed\": \"2026-05-15T12:00:00Z\"\n  }\n}", "options": {"raw": {"language": "json"}}}}},
+        {"name": "MTN Webhook (test)", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}], "url": {"raw": "{{base_url}}/api/webhooks/mtn/notify", "host": ["{{base_url}}"], "path": ["api", "webhooks", "mtn", "notify"]}, "body": {"mode": "raw", "raw": "{\n  \"financialTransactionId\": \"123456789\",\n  \"externalId\": \"AN1234X2024\",\n  \"amount\": \"2000\",\n  \"currency\": \"XOF\",\n  \"status\": \"SUCCESSFUL\"\n}", "options": {"raw": {"language": "json"}}}}}
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://127.0.0.1:8000", "type": "string"},
+    {"key": "user_token", "value": "", "type": "string"},
+    {"key": "livreur_token", "value": "", "type": "string"},
+    {"key": "pending_token", "value": "", "type": "string"},
+    {"key": "demande_reference", "value": "AN1234X2024", "type": "string"}
+  ]
+}

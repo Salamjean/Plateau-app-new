@@ -11,7 +11,16 @@
       "Bash(Get-Content \"C:\\\\Users\\\\THEWAYNE\\\\Plateau-app-new\\\\storage\\\\logs\\\\laravel.log\" -Tail 80)",
       "Bash(php -r ' *)",
       "Bash(xargs -I{} echo {})",
-      "Bash(xargs -0 -I{} echo \"--- {} ---\")"
+      "Bash(xargs -0 -I{} echo \"--- {} ---\")",
+      "Bash(php -l app/Http/Controllers/Api/Authenticate/OtpController.php)",
+      "Bash(php -l app/Http/Controllers/Api/Authenticate/RegisterController.php)",
+      "Bash(php -l app/Http/Controllers/Api/Authenticate/ProfileCompletionController.php)",
+      "Bash(php -r \"json_decode\\(file_get_contents\\('postman/Plateau_App_API.postman_collection.json'\\)\\); echo \\(json_last_error\\(\\) === JSON_ERROR_NONE ? 'JSON valide' : json_last_error_msg\\(\\)\\);\")",
+      "Bash(php -l app/Models/EtatCivil.php)",
+      "Bash(php -l app/Models/Finance.php)",
+      "Bash(php -l app/Models/Poste.php)",
+      "Bash(php -l app/Http/Controllers/EtatCivil/EtatCivilController.php)",
+      "Bash(php -l app/Http/Controllers/Finance/FinanceController.php)"
     ]
   }
 }

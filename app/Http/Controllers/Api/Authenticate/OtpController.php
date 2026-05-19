@@ -142,16 +142,17 @@ class OtpController extends Controller
                 ]);
             }
 
-            // Nouveau numéro → stocker en Cache, PAS en base
-            $pendingToken = Str::uuid()->toString();
-
-            Cache::put('pending_phone_' . $pendingToken, [
+            // Nouveau numéro → marquer le numéro comme OTP-vérifié (60 min)
+            // ⚠ AUCUNE création de User en base à ce stade.
+            //   Le User ne sera créé qu'à l'étape finalize-profile/phone.
+            //   Plus de pending_token : on identifie le numéro par indicatif+contact.
+            Cache::put('otp_verified_' . $phone, [
                 'indicatif'         => $indicatif,
                 'contact'           => $contact,
                 'phone_verified_at' => now()->toDateTimeString(),
             ], now()->addHours(1));
 
-            Log::info('OTP vérifié - Nouveau compte en attente de finalisation', [
+            Log::info('OTP vérifié - Numéro autorisé pour finalisation', [
                 'indicatif' => $indicatif,
                 'contact'   => $contact,
             ]);
@@ -160,9 +161,8 @@ class OtpController extends Controller
                 'success' => true,
                 'message' => 'Numéro vérifié. Veuillez finaliser votre inscription.',
                 'data'    => [
-                    'is_new_user'   => true,
-                    'pending_token' => $pendingToken,
-                    'user'          => [
+                    'is_new_user' => true,
+                    'user'        => [
                         'indicatif' => $indicatif,
                         'contact'   => $contact,
                     ],

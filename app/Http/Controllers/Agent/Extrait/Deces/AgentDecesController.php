@@ -17,6 +17,7 @@ use PDF;
 use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\YellikaSmsService;
 
 class AgentDecesController extends Controller
 {
@@ -182,6 +183,21 @@ class AgentDecesController extends Controller
                 $pushBody,
                 ['type' => 'tracking', 'reference' => $deces->reference, 'url' => 'plateauapps://demande?reference=' . $deces->reference]
             ));
+        }
+
+        // SMS notification when marked as completed
+        if ($user && $deces->etat === 'terminé' && $ancienEtat !== 'terminé') {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande d'extrait de décès (Réf: {$deces->reference}) a été traitée.";
+            if ($deces->livraison_code) {
+                $message .= " Code de livraison : " . $deces->livraison_code . ".";
+            }
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de fin de traitement (décès) : " . $e->getMessage());
+            }
         }
 
         // Redirection en fonction de l'état

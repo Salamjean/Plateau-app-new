@@ -7,9 +7,11 @@ use App\Http\Requests\etatCivilRequest;
 use App\Models\EtatCivil;
 use App\Models\ResetCodePasswordEtatCivil;
 use App\Notifications\SendEmailToEtatCivilAfterRegistrationNotification;
+use App\Notifications\SendEmailToEtatCivilForPasswordResetNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,6 +22,9 @@ class EtatCivilController extends Controller
 
         $etatCivils = EtatCivil::whereNull('archived_at')
                 ->where('mairie_id', $mairie->id)
+                ->with(['agents' => function ($q) {
+                    $q->whereNull('archived_at')->orderBy('created_at', 'desc');
+                }])
                 ->paginate(10);
         return view('mairie.etatCivil.index',compact('etatCivils'));
     }
@@ -138,6 +143,44 @@ class EtatCivilController extends Controller
             return redirect()->route('etat-civil.edit', $id)
                 ->with('error', 'Une erreur est survenue lors de la modification.')
                 ->withInput();
+        }
+    }
+
+    public function requestPasswordReset($id)
+    {
+        Log::info("Début du traitement de demande de réinitialisation de mot de passe par clé pour EtatCivil", ['etat_civil_id' => $id]);
+        try {
+            $etatCivil = EtatCivil::findOrFail($id);
+            Log::info("EtatCivil cible trouvé", ['id' => $etatCivil->id, 'name_respo' => $etatCivil->name_respo, 'email' => $etatCivil->email]);
+
+            // Générer un code OTP de réinitialisation (avec l'ID à la fin comme dans le store)
+            ResetCodePasswordEtatCivil::where('email', $etatCivil->email)->delete();
+            $code1 = rand(1000, 4000);
+            $code = $code1.''.$etatCivil->id;
+            Log::info("Code OTP de réinitialisation généré pour EtatCivil", ['email' => $etatCivil->email, 'code' => $code]);
+
+            ResetCodePasswordEtatCivil::create([
+                'code' => $code,
+                'email' => $etatCivil->email,
+            ]);
+            Log::info("OTP sauvegardé avec succès dans reset_code_password_etat_civils");
+
+            // Envoyer la notification par e-mail
+            Log::info("Début de l'envoi de l'email de réinitialisation EtatCivil", ['to' => $etatCivil->email]);
+            Notification::route('mail', $etatCivil->email)
+                ->notify(new SendEmailToEtatCivilForPasswordResetNotification($code, $etatCivil->email));
+            Log::info("E-mail de réinitialisation EtatCivil envoyé avec succès", ['to' => $etatCivil->email]);
+
+            return redirect()->route('mairie.state.index')
+                ->with('success', 'Demande de mise à jour du mot de passe envoyée avec succès par email à ' . $etatCivil->email);
+        } catch (\Exception $e) {
+            Log::error('Erreur critique lors de la demande de réinitialisation de mot de passe de EtatCivil: ' . $e->getMessage(), [
+                'etat_civil_id' => $id,
+                'exception' => $e
+            ]);
+
+            return redirect()->route('mairie.state.index')
+                ->with('error', 'Une erreur est survenue lors de l\'envoi du code de réinitialisation : ' . $e->getMessage());
         }
     }
 }

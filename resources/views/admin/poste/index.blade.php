@@ -89,6 +89,14 @@
                                     </td>
                                     <td style="text-align: center">
                                         <div class="d-flex justify-content-center">
+                                            <!-- Bouton Mise à jour Mot de passe -->
+                                            <button type="button" 
+                                            class="btn btn-sm btn-light rounded-pill me-2" 
+                                            data-bs-toggle="tooltip" title="Demander la mise à jour du mot de passe"
+                                            onclick="confirmPasswordReset('{{ $etatCivil->id }}', '{{ $etatCivil->email }}')">
+                                                <i class="fas fa-key text-primary"></i>
+                                            </button>
+                                            
                                             <!-- Bouton Modifier -->
                                             <a href="{{ route('post.edit', $etatCivil->id) }}" 
                                             class="btn btn-sm btn-light rounded-pill me-2" 
@@ -96,16 +104,10 @@
                                                 <i class="fas fa-edit text-warning"></i>
                                             </a>
                                             
-                                            <!-- Formulaire de suppression -->
-                                            {{-- <form action="{{ route('etat-civil.destroy', $etatCivil->id) }}" method="POST" class="d-inline">
+                                            <!-- Formulaire de réinitialisation -->
+                                            <form id="reset-password-form-{{ $etatCivil->id }}" action="{{ route('mairie.post.reset_password', $etatCivil->id) }}" method="POST" style="display: none;">
                                                 @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-light rounded-pill" 
-                                                        data-bs-toggle="tooltip" title="Supprimer"
-                                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce responsable?')">
-                                                    <i class="fas fa-trash text-danger"></i>
-                                                </button>
-                                            </form> --}}
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -114,11 +116,86 @@
                         </table>
                     </div>
 
+                    <!-- ═══════════════════════════════════════════════════════════════
+                         LIVREURS ENREGISTRÉS PAR CE SERVICE DE LIVRAISON
+                         ═══════════════════════════════════════════════════════════════ -->
+                    @foreach($postes as $poste)
+                        @if($poste->livreurs->count() > 0)
+                            <div class="mt-5">
+                                <h5 class="fw-bold text-primary mb-3">
+                                    <i class="fas fa-motorcycle me-2"></i>
+                                    Livreurs enregistrés par <span class="text-dark">{{ $poste->name }} {{ $poste->prenom }}</span>
+                                    <span class="badge bg-primary rounded-pill ms-2">{{ $poste->livreurs->count() }}</span>
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="border-0 ps-4 rounded-start-15" style="text-align: center">Livreur</th>
+                                                <th class="border-0" style="text-align: center">Email</th>
+                                                <th class="border-0" style="text-align: center">Contact</th>
+                                                <th class="border-0" style="text-align: center">Commune</th>
+                                                <th class="border-0" style="text-align: center">Disponible</th>
+                                                <th class="border-0 rounded-end-15" style="text-align: center">Inscrit le</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($poste->livreurs as $livreur)
+                                                <tr>
+                                                    <td class="ps-4">
+                                                        <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                                                            <div class="avatar-sm">
+                                                                <div class="avatar-title bg-light rounded-circle text-primary fw-bold">
+                                                                    {{ strtoupper(substr($livreur->name ?? 'L', 0, 1) . substr($livreur->prenom ?? '', 0, 1)) }}
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0 fw-semibold">{{ $livreur->name }} {{ $livreur->prenom }}</h6>
+                                                                <small class="text-muted">Livreur</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td style="text-align: center">{{ $livreur->email ?? '—' }}</td>
+                                                    <td style="text-align: center">{{ $livreur->contact ?? '—' }}</td>
+                                                    <td style="text-align: center">
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                                                            {{ $livreur->commune ?? '—' }}
+                                                        </span>
+                                                    </td>
+                                                    <td style="text-align: center">
+                                                        @if($livreur->disponible)
+                                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill">
+                                                                <i class="fas fa-circle me-1 small"></i>Disponible
+                                                            </span>
+                                                        @else
+                                                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">
+                                                                <i class="fas fa-circle me-1 small"></i>Indisponible
+                                                            </span>
+                                                        @endif
+                                                    </td>
+                                                    <td style="text-align: center">
+                                                        <small class="text-muted">{{ $livreur->created_at?->format('d/m/Y H:i') ?? '—' }}</small>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-info mt-4 mb-0" style="border-radius: 12px;">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>{{ $poste->name }} {{ $poste->prenom }}</strong> n'a encore enregistré aucun livreur.
+                            </div>
+                        @endif
+                    @endforeach
+
                     <!-- Pagination -->
                     <div class="d-flex justify-content-between align-items-center mt-4">
                         <div class="text-muted">
-                            Affichage de <span class="fw-semibold">{{ $postes->firstItem() }}</span> à 
-                            <span class="fw-semibold">{{ $postes->lastItem() }}</span> sur 
+                            Affichage de <span class="fw-semibold">{{ $postes->firstItem() }}</span> à
+                            <span class="fw-semibold">{{ $postes->lastItem() }}</span> sur
                             <span class="fw-semibold">{{ $postes->total() }}</span> résultats
                         </div>
                         <nav aria-label="Page navigation">
@@ -271,6 +348,23 @@
 </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  function confirmPasswordReset(id, email) {
+    Swal.fire({
+      title: 'Mettre à jour le mot de passe ?',
+      text: "Un e-mail contenant un code OTP de confirmation sera envoyé à " + email + ".",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#6777ef',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Oui, envoyer!',
+      cancelButtonText: 'Annuler'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        document.getElementById('reset-password-form-' + id).submit();
+      }
+    });
+  }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initialiser les tooltips Bootstrap
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))

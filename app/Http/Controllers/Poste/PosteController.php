@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Poste;
 use App\Models\ResetCodePasswordPoste;
 use App\Notifications\SendEmailToPosteAfterRegistrationNotification;
+use App\Notifications\SendEmailToPosteForPasswordResetNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,6 +20,9 @@ class PosteController extends Controller
         $mairie = Auth::guard('mairie')->user();
 
         $postes = Poste::whereNull('archived_at')
+                ->with(['livreurs' => function ($q) {
+                    $q->whereNull('archived_at')->orderBy('created_at', 'desc');
+                }])
                 ->paginate(10);
         return view('admin.poste.index',compact('postes'));
     }
@@ -138,6 +143,44 @@ class PosteController extends Controller
             return redirect()->route('post.edit', $id)
                 ->with('error', 'Une erreur est survenue lors de la modification.')
                 ->withInput();
+        }
+    }
+
+    public function requestPasswordReset($id)
+    {
+        Log::info("Début du traitement de demande de réinitialisation de mot de passe par clé pour Poste (Livraison)", ['poste_id' => $id]);
+        try {
+            $poste = Poste::findOrFail($id);
+            Log::info("Poste cible trouvé", ['id' => $poste->id, 'name' => $poste->name, 'email' => $poste->email]);
+
+            // Générer un code OTP de réinitialisation (avec l'ID à la fin comme dans le store)
+            ResetCodePasswordPoste::where('email', $poste->email)->delete();
+            $code1 = rand(1000, 4000);
+            $code = $code1.''.$poste->id;
+            Log::info("Code OTP de réinitialisation généré pour Poste", ['email' => $poste->email, 'code' => $code]);
+
+            ResetCodePasswordPoste::create([
+                'code' => $code,
+                'email' => $poste->email,
+            ]);
+            Log::info("OTP sauvegardé avec succès dans reset_code_password_postes");
+
+            // Envoyer la notification par e-mail
+            Log::info("Début de l'envoi de l'email de réinitialisation Poste", ['to' => $poste->email]);
+            Notification::route('mail', $poste->email)
+                ->notify(new SendEmailToPosteForPasswordResetNotification($code, $poste->email));
+            Log::info("E-mail de réinitialisation Poste envoyé avec succès", ['to' => $poste->email]);
+
+            return redirect()->route('post.index')
+                ->with('success', 'Demande de mise à jour du mot de passe envoyée avec succès par email à ' . $poste->email);
+        } catch (\Exception $e) {
+            Log::error('Erreur critique lors de la demande de réinitialisation de mot de passe de Poste: ' . $e->getMessage(), [
+                'poste_id' => $id,
+                'exception' => $e
+            ]);
+
+            return redirect()->route('post.index')
+                ->with('error', 'Une erreur est survenue lors de l\'envoi du code de réinitialisation : ' . $e->getMessage());
         }
     }
 }

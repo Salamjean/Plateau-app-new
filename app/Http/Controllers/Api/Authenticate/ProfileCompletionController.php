@@ -492,50 +492,64 @@ class ProfileCompletionController extends Controller
      */
     public function finalizeProfilePhone(Request $request): JsonResponse
     {
-        // Accepter les deux conventions (snake_case et camelCase) côté backend
-        if (!$request->filled('pending_token') && $request->filled('pendingToken')) {
-            $request->merge(['pending_token' => $request->input('pendingToken')]);
+        // 1. Détermination du mode :
+        //    - MODE 1 (nouveau compte) : si indicatif + contact fournis ET pas de Bearer valide
+        //                                → on vérifie le cache OTP `otp_verified_{phone}`
+        //    - MODE 2 (compte existant) : si Bearer token Sanctum valide → mode update
+        //
+        //    ⚠ Plus de pending_token nécessaire — on s'appuie uniquement sur le cache OTP.
+
+        $authUser  = auth('sanctum')->user();
+        $hasPhone  = $request->filled('indicatif') && $request->filled('contact');
+        $isNewUser = !$authUser && $hasPhone;
+
+        if (!$authUser && !$isNewUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Non autorisé. Fournissez indicatif + contact (nouveau compte) ou un Bearer token valide.'
+            ], 401);
         }
 
-        $hasPendingToken = $request->filled('pending_token');
+        $otpVerifiedData = null;
+        $phoneKey        = null;
 
-        $authUser    = null;
-        $pendingData = null;
+        if ($isNewUser) {
+            $indicatifClean = preg_replace('/[^0-9]/', '', $request->indicatif);
+            $contactClean   = preg_replace('/[^0-9]/', '', $request->contact);
+            $phoneKey       = $indicatifClean . $contactClean;
+            $otpVerifiedData = Cache::get('otp_verified_' . $phoneKey);
 
-        if ($hasPendingToken) {
-            $pendingData = Cache::get('pending_phone_' . $request->pending_token);
-            if (!$pendingData) {
+            if (!$otpVerifiedData && !config('app.debug')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Session expirée ou invalide. Veuillez recommencer la vérification par SMS.'
-                ], 400);
-            }
-        } else {
-            $authUser = auth('sanctum')->user();
-            if (!$authUser) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Non autorisé. Fournissez un pending_token ou un Bearer token valide.'
-                ], 401);
+                    'message' => 'Le numéro n\'a pas été vérifié par OTP. Veuillez recommencer l\'étape SMS.'
+                ], 403);
             }
         }
 
-        $emailUniqueRule = $hasPendingToken
+        // 2. Validation des champs
+        $emailUniqueRule = $isNewUser
             ? 'nullable|email|unique:users,email'
             : 'nullable|email|unique:users,email,' . ($authUser?->id ?? 0);
 
+        $contactUniqueRule = $isNewUser
+            ? 'required|string|max:20|unique:users,contact'
+            : 'nullable|string|max:20';
+
         $validator = Validator::make($request->all(), [
-            'pending_token'     => 'nullable|string',
             'name'              => 'required|string|max:255',
             'prenom'            => 'required|string|max:255',
+            'indicatif'         => $isNewUser ? 'required|string|max:10' : 'nullable|string|max:10',
+            'contact'           => $contactUniqueRule,
             'NNI'               => 'nullable|string|max:50',
             'email'             => $emailUniqueRule,
-            'password'          => 'required|string|min:8|confirmed',
+            'password'          => $isNewUser ? 'required|string|min:8|confirmed' : 'nullable|string|min:8|confirmed',
             'diaspora'          => 'nullable|boolean',
             'pays_residence'    => 'nullable|string|max:255',
             'push_notification' => 'nullable|string|max:255',
         ], [
-            'email.unique' => 'Cette adresse email est déjà utilisée par un autre compte.',
+            'email.unique'   => 'Cette adresse email est déjà utilisée par un autre compte.',
+            'contact.unique' => 'Ce numéro est déjà associé à un compte. Veuillez vous connecter.',
         ]);
 
         if ($validator->fails()) {
@@ -547,43 +561,40 @@ class ProfileCompletionController extends Controller
         }
 
         try {
-            // ── MODE 1 : Nouveau compte depuis le Cache ───────────────────────
-            if ($hasPendingToken) {
-                $existing = User::where('contact', $pendingData['contact'])
-                    ->where('indicatif', $pendingData['indicatif'])
-                    ->whereNotNull('name')
+            // ── MODE 1 : Création du nouveau compte (OTP vérifié) ───────────────
+            if ($isNewUser) {
+                // Vérifier qu'aucun compte finalisé n'existe avec ce numéro
+                $existing = User::where('contact', $request->contact)
+                    ->where('indicatif', $request->indicatif)
+                    ->whereNotNull('password')
                     ->first();
 
                 if ($existing) {
-                    Cache::forget('pending_phone_' . $request->pending_token);
-                    $token = $existing->createToken('user-api-token')->plainTextToken;
                     return response()->json([
-                        'success' => true,
-                        'message' => 'Compte déjà existant — connexion effectuée.',
-                        'data'    => [
-                            'token'      => $token,
-                            'token_type' => 'Bearer',
-                            'user'       => $this->formatUser($existing),
-                        ]
-                    ], 200);
+                        'success' => false,
+                        'message' => 'Un compte existe déjà avec ce numéro. Veuillez vous connecter.'
+                    ], 409);
                 }
 
                 $user = User::create([
                     'name'              => $request->name,
                     'prenom'            => $request->prenom,
                     'email'             => $request->email,
-                    'indicatif'         => $pendingData['indicatif'],
-                    'contact'           => $pendingData['contact'],
+                    'indicatif'         => $request->indicatif,
+                    'contact'           => $request->contact,
                     'commune'           => 'plateau',
                     'password'          => Hash::make($request->password),
                     'NNI'               => $request->NNI,
                     'diaspora'          => $request->boolean('diaspora'),
                     'pays_residence'    => $request->pays_residence,
-                    'phone_verified_at' => $pendingData['phone_verified_at'],
+                    'phone_verified_at' => $otpVerifiedData['phone_verified_at'] ?? now(),
                     'push_notification' => $request->push_notification,
                 ]);
 
-                Cache::forget('pending_phone_' . $request->pending_token);
+                // Nettoyer le cache OTP — vérification consommée
+                if ($phoneKey) {
+                    Cache::forget('otp_verified_' . $phoneKey);
+                }
 
                 Log::info('Phone Auth - Nouveau compte créé et finalisé', [
                     'user_id'   => $user->id,
@@ -606,11 +617,16 @@ class ProfileCompletionController extends Controller
 
             // ── MODE 2 : Mise à jour d'un compte existant ────────────────────
             $updateData = [
-                'name'     => $request->name,
-                'prenom'   => $request->prenom,
-                'password' => Hash::make($request->password),
+                'name'   => $request->name,
+                'prenom' => $request->prenom,
             ];
 
+            // Le mot de passe est optionnel en MODE 2
+            if ($request->filled('password')) {
+                $updateData['password'] = Hash::make($request->password);
+            }
+            if ($request->filled('indicatif'))         $updateData['indicatif']         = $request->indicatif;
+            if ($request->filled('contact'))           $updateData['contact']           = $request->contact;
             if ($request->filled('email'))             $updateData['email']             = $request->email;
             if ($request->filled('NNI'))               $updateData['NNI']               = $request->NNI;
             if ($request->has('diaspora'))             $updateData['diaspora']          = $request->boolean('diaspora');

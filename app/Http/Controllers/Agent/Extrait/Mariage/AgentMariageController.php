@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use PDF;
 use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Log;
+use App\Services\YellikaSmsService;
 
 class AgentMariageController extends Controller
 {
@@ -203,6 +204,21 @@ class AgentMariageController extends Controller
                 $pushBody,
                 ['type' => 'tracking', 'reference' => $mariage->reference, 'url' => 'plateauapps://demande?reference=' . $mariage->reference]
             ));
+        }
+
+        // SMS notification when marked as completed
+        if ($user && $mariage->etat === 'terminé' && $ancienEtat !== 'terminé') {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande d'extrait de mariage (Réf: {$mariage->reference}) a été traitée.";
+            if ($mariage->livraison_code) {
+                $message .= " Code de livraison : " . $mariage->livraison_code . ".";
+            }
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de fin de traitement (mariage) : " . $e->getMessage());
+            }
         }
 
         // Redirection en fonction de l'état
