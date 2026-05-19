@@ -134,6 +134,7 @@ class DemandeDecesController extends Controller
 
             // 4. Création de la demande
             $deces = new Deces();
+            $deces->type = $request->input('typeDemande'); // Harmonisation (simple, integrale, groupee)
             $deces->name = $request->name;
             $deces->numberR = $request->numberR;
             $deces->dateR = $request->dateR ? Carbon::parse($request->dateR)->format('Y-m-d') : null;
@@ -142,8 +143,8 @@ class DemandeDecesController extends Controller
             $qtySimple = (int) $request->input('qty_simple', 0);
             $qtyIntegral = (int) $request->input('qty_integral', 0);
             if ($qtySimple === 0 && $qtyIntegral === 0) {
-                $type = $request->input('type');
-                if ($type === 'extrait_integral') {
+                $type = $request->input('typeDemande');
+                if ($type === 'integrale') {
                     $qtyIntegral = 1;
                 } else {
                     $qtySimple = 1;

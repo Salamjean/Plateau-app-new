@@ -102,6 +102,7 @@ class DemandeMariageController extends Controller
 
             // 4. Création de la demande (Spécifique au Mariage)
             $mariage = new Mariage();
+            $mariage->type = $request->input('typeDemande'); // Harmonisation (simple, integrale, groupee)
             $mariage->nomEpoux = $request->nomEpoux;
             $mariage->prenomEpoux = $request->prenomEpoux;
             $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;
@@ -111,8 +112,8 @@ class DemandeMariageController extends Controller
             $qtySimple = (int) $request->input('qty_simple', 0);
             $qtyIntegral = (int) $request->input('qty_integral', 0);
             if ($qtySimple === 0 && $qtyIntegral === 0) {
-                $type = $request->input('type', 'extrait_mariage');
-                if ($type === 'extrait_integral') {
+                $type = $request->input('typeDemande');
+                if ($type === 'integrale') {
                     $qtyIntegral = 1;
                 } else {
                     $qtySimple = 1;
