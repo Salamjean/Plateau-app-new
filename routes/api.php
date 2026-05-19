@@ -94,6 +94,8 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
         Route::prefix('demandes/naissance')->group(function () {
             Route::get('/', [DemandeNaissanceController::class, 'index']);
             Route::post('/', [DemandeNaissanceController::class, 'store']);
+            // Demande groupée (Simple + Intégral / Simple seul / Intégral seul avec quantités)
+            Route::post('/groupee', [\App\Http\Controllers\User\Extrait\Naissance\NaissanceGroupeController::class, 'store']);
             Route::post('/{naissance}/retry-payment', [DemandeNaissanceController::class, 'retryPayment']);
             Route::post('/{naissance}/relancer', [DemandeNaissanceController::class, 'relancerDemande']);
             Route::post('/{naissance}/modifier', [DemandeNaissanceController::class, 'modifierDemande']);
@@ -105,6 +107,8 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
         Route::prefix('demandes/mariage')->group(function () {
             Route::get('/', [DemandeMariageController::class, 'index']);
             Route::post('/', [DemandeMariageController::class, 'store']);
+            // Demande groupée
+            Route::post('/groupee', [\App\Http\Controllers\User\Extrait\Mariage\MariageGroupeController::class, 'store']);
             Route::post('/{mariage}/retry-payment', [DemandeMariageController::class, 'retryPayment']);
             Route::post('/{mariage}/relancer', [DemandeMariageController::class, 'relancerDemande']);
             Route::post('/{mariage}/modifier', [DemandeMariageController::class, 'modifierDemande']);
@@ -116,6 +120,8 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
         Route::prefix('demandes/deces')->group(function () {
             Route::get('/', [DemandeDecesController::class, 'index']);
             Route::post('/', [DemandeDecesController::class, 'store']);
+            // Demande groupée
+            Route::post('/groupee', [\App\Http\Controllers\User\Extrait\Deces\DecesGroupeController::class, 'store']);
             Route::post('/{deces}/retry-payment', [DemandeDecesController::class, 'retryPayment']);
             Route::post('/{deces}/relancer', [DemandeDecesController::class, 'relancerDemande']);
             Route::post('/{deces}/modifier', [DemandeDecesController::class, 'modifierDemande']);
