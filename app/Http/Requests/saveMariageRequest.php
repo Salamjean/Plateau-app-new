@@ -22,21 +22,21 @@ class saveMariageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pieceIdentite' => ' required|mimes:png,jpg,jpeg,pdf|max:25600',
-            'extraitMariage' => 'required|mimes:png,jpg,jpeg,pdf|max:25600',
+            'pieceIdentite' => 'required|mimes:png,jpg,jpeg,pdf|max:25600',
+            'extraitMariage' => 'nullable|mimes:png,jpg,jpeg,pdf|max:25600',
             'commune_mariage' => 'required|string|max:255',
         ];
     }
 
-    public function messages() 
+    public function messages()
     {
         return [
-            'pieceIdentite.required' => 'La CNI est obligatoire.',
-            'extraitMariage.required' => 'L\'extrait de mariage obligatoire.',
-            'pieceIdentite.mimes' => 'Le format de l\'image doit être PNG, JPG ou JPEG.',
-            'pieceIdentite.max' => 'La taille de l\'image ne doit pas dépasser 1000Ko.',
-            'extraitMariage.mimes' => 'Le format de l\'image doit être PNG, JPG ou JPEG.',
-            'extraitMariage.max' => 'La taille de l\'image ne doit pas dépasser 1000Ko.',
+            'pieceIdentite.required' => 'La pièce d\'identité est obligatoire.',
+            'commune_mariage.required' => 'La commune de mariage est obligatoire.',
+            'pieceIdentite.mimes' => 'Le format de la pièce d\'identité doit être PNG, JPG, JPEG ou PDF.',
+            'pieceIdentite.max' => 'La taille de la pièce d\'identité ne doit pas dépasser 25Mo.',
+            'extraitMariage.mimes' => 'Le format de l\'ancien acte doit être PNG, JPG, JPEG ou PDF.',
+            'extraitMariage.max' => 'La taille de l\'ancien acte ne doit pas dépasser 25Mo.',
         ];
     }
 }

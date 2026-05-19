@@ -719,7 +719,7 @@
                                             <button type="button" class="qty-btn" onclick="updateMQtyIntegral(-1)"
                                                 id="mQtyIntegralMinus" disabled>-</button>
                                             <input type="number" name="qty_integral" id="qty_integral" class="qty-input"
-                                                value="1" min="1" max="20" readonly>
+                                                value="0" min="0" max="20" readonly>
                                             <button type="button" class="qty-btn"
                                                 onclick="updateMQtyIntegral(1)">+</button>
                                         </div>
@@ -797,18 +797,22 @@
 
                     function updateMQtySimple(delta) {
                         const input = document.getElementById('qty_simple');
-                        let val = Math.max(1, Math.min(20, (parseInt(input.value) || 1) + delta));
+                        const typeVal = document.querySelector('input[name="typeDemande"]:checked').value;
+                        const minVal = (typeVal === 'simple' || typeVal === 'groupee') ? 1 : 0;
+                        let val = Math.max(minVal, Math.min(20, (parseInt(input.value) || 0) + delta));
                         input.value = val;
-                        document.getElementById('mQtySimpleMinus').disabled = val <= 1;
-                        document.getElementById('qty-card-simple').classList.toggle('has-value', val > 1);
+                        document.getElementById('mQtySimpleMinus').disabled = val <= minVal;
+                        document.getElementById('qty-card-simple').classList.toggle('has-value', val > 0);
                     }
 
                     function updateMQtyIntegral(delta) {
                         const input = document.getElementById('qty_integral');
-                        let val = Math.max(1, Math.min(20, (parseInt(input.value) || 1) + delta));
+                        const typeVal = document.querySelector('input[name="typeDemande"]:checked').value;
+                        const minVal = (typeVal === 'integrale' || typeVal === 'groupee') ? 1 : 0;
+                        let val = Math.max(minVal, Math.min(20, (parseInt(input.value) || 0) + delta));
                         input.value = val;
-                        document.getElementById('mQtyIntegralMinus').disabled = val <= 1;
-                        document.getElementById('qty-card-integral').classList.toggle('has-value', val > 1);
+                        document.getElementById('mQtyIntegralMinus').disabled = val <= minVal;
+                        document.getElementById('qty-card-integral').classList.toggle('has-value', val > 0);
                     }
 
                     function onMariageContinue() {
@@ -1032,7 +1036,7 @@
                 }
 
                 const typeVal = document.querySelector('input[name="typeDemande"]:checked').value;
-                if (typeVal === 'copieIntegrale' || typeVal === 'simpleIntegrale') {
+                if (typeVal === 'integrale' || typeVal === 'groupee') {
                     const nom = document.getElementById('nomEpoux');
                     const prenom = document.getElementById('prenomEpoux');
                     if (!nom.value.trim()) {
@@ -1072,8 +1076,8 @@
                 const typeVal = document.querySelector('input[name="typeDemande"]:checked').value;
                 const qtySimple = parseInt(document.getElementById('qty_simple').value) || 0;
                 const qtyIntegral = parseInt(document.getElementById('qty_integral').value) || 0;
-                const totalTimbres = typeVal === 'simpleIntegrale' ? qtySimple + qtyIntegral :
-                    typeVal === 'copieIntegrale' ? qtyIntegral :
+                const totalTimbres = typeVal === 'groupee' ? qtySimple + qtyIntegral :
+                    typeVal === 'integrale' ? qtyIntegral :
                     qtySimple;
                 const montantTimbreUnitaire = 500;
                 const montantLivraison = 1500;
@@ -1134,8 +1138,8 @@
             const typeVal = document.querySelector('input[name="typeDemande"]:checked').value;
             const qtySimple = parseInt(document.getElementById('qty_simple').value) || 0;
             const qtyIntegral = parseInt(document.getElementById('qty_integral').value) || 0;
-            const quantite = typeVal === 'simpleIntegrale' ? qtySimple + qtyIntegral :
-                typeVal === 'copieIntegrale' ? qtyIntegral :
+            const quantite = typeVal === 'groupee' ? qtySimple + qtyIntegral :
+                typeVal === 'integrale' ? qtyIntegral :
                 qtySimple;
             const montantTimbreUnitaire = 500;
             const montantLivraison = 1500;
@@ -1248,7 +1252,7 @@
 
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
                                     <span style="color: #555;">Exemplaires:</span>
-                                    <span style="font-weight: 700">${typeVal === 'simpleIntegrale' ? qtySimple + ' simple + ' + qtyIntegral + ' intégrale' : quantite}</span>
+                                    <span style="font-weight: 700">${typeVal === 'groupee' ? qtySimple + ' simple + ' + qtyIntegral + ' intégrale' : quantite}</span>
                                 </div>
                                 ${originalTimbreHtml}
                                 ${freeTimbresHtml}
@@ -1373,8 +1377,13 @@
             document.querySelectorAll('.payment-method-btn').forEach(btn => {
                 btn.style.border = '1px solid #edf2f7';
                 btn.style.backgroundColor = 'white';
+                btn.classList.remove('active-payment');
+                btn.classList.add('opacity-50');
             });
             const activeBtn = document.getElementById('btn-pay-' + method);
+            activeBtn.classList.add('active-payment');
+            activeBtn.classList.remove('opacity-50');
+
             if (method === 'wave') {
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';

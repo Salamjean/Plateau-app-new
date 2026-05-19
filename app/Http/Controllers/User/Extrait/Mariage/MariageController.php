@@ -105,10 +105,17 @@ class MariageController extends Controller
         // Récupérer les quantités simple et intégrale
         $qtySimple = (int) $request->input('qty_simple', 0);
         $qtyIntegral = (int) $request->input('qty_integral', 0);
-        if ($qtySimple === 0 && $qtyIntegral === 0) {
-            $qtySimple = 1;
-        }
+
         $totalQuantity = $qtySimple + $qtyIntegral;
+
+        if ($totalQuantity === 0) {
+            $totalQuantity = 1;
+            if ($request->typeDemande === 'integrale') {
+                $qtyIntegral = 1;
+            } else {
+                $qtySimple = 1;
+            }
+        }
 
         // Enregistrement de l'objet Mariage
         $mariage = new Mariage();
@@ -117,6 +124,10 @@ class MariageController extends Controller
         $mariage->prenomEpoux = $request->prenomEpoux;
         $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;
         $mariage->lieuNaissanceEpoux = $request->lieuNaissanceEpoux;
+        $mariage->nomEpouse = $request->nomEpouse;
+        $mariage->prenomEpouse = $request->prenomEpouse;
+        $mariage->dateNaissanceEpouse = $request->dateNaissanceEpouse;
+        $mariage->lieuNaissanceEpouse = $request->lieuNaissanceEpouse;
         $mariage->qty_simple = $qtySimple;
         $mariage->qty_integral = $qtyIntegral;
         $mariage->quantite = $totalQuantity;

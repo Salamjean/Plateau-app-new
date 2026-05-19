@@ -65,7 +65,8 @@ class DemandeMariageController extends Controller
             'qty_integral' => 'nullable|integer|min:0|max:10',
             'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
             'pieceIdentite' => 'required',
-            'extraitMariage' => 'required',
+            'extraitMariage' => 'nullable',
+            'commune_mariage' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -107,19 +108,27 @@ class DemandeMariageController extends Controller
             $mariage->prenomEpoux = $request->prenomEpoux;
             $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;
             $mariage->lieuNaissanceEpoux = $request->lieuNaissanceEpoux;
+            $mariage->nomEpouse = $request->nomEpouse;
+            $mariage->prenomEpouse = $request->prenomEpouse;
+            $mariage->dateNaissanceEpouse = $request->dateNaissanceEpouse;
+            $mariage->lieuNaissanceEpouse = $request->lieuNaissanceEpouse;
+            $mariage->commune_mariage = $request->commune_mariage;
 
             // Calcul des quantités
             $qtySimple = (int) $request->input('qty_simple', 0);
             $qtyIntegral = (int) $request->input('qty_integral', 0);
-            if ($qtySimple === 0 && $qtyIntegral === 0) {
+
+            $totalQuantity = $qtySimple + $qtyIntegral;
+
+            if ($totalQuantity === 0) {
                 $type = $request->input('typeDemande');
                 if ($type === 'integrale') {
                     $qtyIntegral = 1;
                 } else {
                     $qtySimple = 1;
                 }
+                $totalQuantity = 1;
             }
-            $totalQuantity = $qtySimple + $qtyIntegral;
 
             $mariage->qty_simple = $qtySimple;
             $mariage->qty_integral = $qtyIntegral;
