@@ -132,12 +132,12 @@ class ProfileCompletionController extends Controller
             if ($hasPendingToken) {
                 // Vérifier si le compte a déjà été créé (double appel)
                 $existing = User::where('google_id', $pendingData['google_id'])
-                                ->orWhere(function ($q) use ($pendingData) {
-                                    if (!empty($pendingData['email'])) {
-                                        $q->where('email', $pendingData['email']);
-                                    }
-                                })
-                                ->first();
+                    ->orWhere(function ($q) use ($pendingData) {
+                        if (!empty($pendingData['email'])) {
+                            $q->where('email', $pendingData['email']);
+                        }
+                    })
+                    ->first();
 
                 if ($existing) {
                     $this->forgetGooglePendingCache($request->pending_token, $pendingData);
@@ -218,7 +218,6 @@ class ProfileCompletionController extends Controller
                     'user'       => $this->formatUser($authUser),
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur finalizeProfileGoogle: ' . $e->getMessage());
             return response()->json([
@@ -345,12 +344,12 @@ class ProfileCompletionController extends Controller
             // ── MODE 1 : Nouveau compte depuis le Cache ───────────────────────
             if ($hasPendingToken) {
                 $existing = User::where('apple_id', $pendingData['apple_id'])
-                                ->orWhere(function ($q) use ($pendingData) {
-                                    if (!empty($pendingData['email'])) {
-                                        $q->where('email', $pendingData['email']);
-                                    }
-                                })
-                                ->first();
+                    ->orWhere(function ($q) use ($pendingData) {
+                        if (!empty($pendingData['email'])) {
+                            $q->where('email', $pendingData['email']);
+                        }
+                    })
+                    ->first();
 
                 if ($existing) {
                     $this->forgetApplePendingCache($request->pending_token, $pendingData);
@@ -431,7 +430,6 @@ class ProfileCompletionController extends Controller
                     'user'       => $this->formatUser($authUser),
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur finalizeProfileApple: ' . $e->getMessage());
             return response()->json([
@@ -494,6 +492,11 @@ class ProfileCompletionController extends Controller
      */
     public function finalizeProfilePhone(Request $request): JsonResponse
     {
+        // Accepter les deux conventions (snake_case et camelCase) côté backend
+        if (!$request->filled('pending_token') && $request->filled('pendingToken')) {
+            $request->merge(['pending_token' => $request->input('pendingToken')]);
+        }
+
         $hasPendingToken = $request->filled('pending_token');
 
         $authUser    = null;
@@ -547,9 +550,9 @@ class ProfileCompletionController extends Controller
             // ── MODE 1 : Nouveau compte depuis le Cache ───────────────────────
             if ($hasPendingToken) {
                 $existing = User::where('contact', $pendingData['contact'])
-                                ->where('indicatif', $pendingData['indicatif'])
-                                ->whereNotNull('name')
-                                ->first();
+                    ->where('indicatif', $pendingData['indicatif'])
+                    ->whereNotNull('name')
+                    ->first();
 
                 if ($existing) {
                     Cache::forget('pending_phone_' . $request->pending_token);
@@ -631,7 +634,6 @@ class ProfileCompletionController extends Controller
                     'user'       => $this->formatUser($authUser),
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Erreur finalizeProfilePhone: ' . $e->getMessage());
             return response()->json([
