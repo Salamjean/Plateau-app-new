@@ -225,17 +225,20 @@
                             <label class="form-label">État</label>
                             <select name="etat" class="form-select">
                                 <option value="">Tous</option>
-                                <option value="en attente" {{ request('etat') == 'en attente' ? 'selected' : '' }}>En attente
+                                <option value="en attente" {{ request('etat') == 'en attente' ? 'selected' : '' }}>En
+                                    attente
                                 </option>
                                 <option value="réçu" {{ request('etat') == 'réçu' ? 'selected' : '' }}>Reçu</option>
-                                <option value="terminé" {{ request('etat') == 'terminé' ? 'selected' : '' }}>Terminé</option>
+                                <option value="terminé" {{ request('etat') == 'terminé' ? 'selected' : '' }}>Terminé
+                                </option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-2">
                             <label class="form-label">Livraison</label>
                             <select name="livraison" class="form-select">
                                 <option value="">Tous</option>
-                                <option value="livré" {{ request('livraison') == 'livré' ? 'selected' : '' }}>Livré</option>
+                                <option value="livré" {{ request('livraison') == 'livré' ? 'selected' : '' }}>Livré
+                                </option>
                                 <option value="en cours" {{ request('livraison') == 'en cours' ? 'selected' : '' }}>En cours
                                 </option>
                                 <option value="non livré" {{ request('livraison') == 'non livré' ? 'selected' : '' }}>Non
@@ -246,7 +249,7 @@
                             <button type="submit" class="btn btn-filter w-100">
                                 <i class="fas fa-filter me-2"></i>Filtrer
                             </button>
-                            @if(request()->has('etat') || request()->has('type') || request()->has('livraison'))
+                            @if (request()->has('etat') || request()->has('type') || request()->has('livraison'))
                                 <a href="{{ route('etat_civil.request.death') }}" class="btn btn-outline-secondary ms-2">
                                     <i class="fas fa-times"></i>
                                 </a>
@@ -272,9 +275,9 @@
                                     <th style="text-align: center">Référence</th>
                                     <th style="text-align: center">Demandeur</th>
                                     <th style="text-align: center">Défunt</th>
-                                    <th style="text-align: center">Registre</th>
-                                    <th style="text-align: center">Parents</th>
-                                    <th style="text-align: center">Type</th>
+                                    <th style="text-align: center">Quantité</th>
+                                    <th style="text-align: center">Type de demande</th>
+                                    <th style="text-align: center">Détails Quantité</th>
                                     <th style="text-align: center">Date de demande</th>
                                     <th style="text-align: center">État</th>
                                     <th style="text-align: center">Mode de retrait</th>
@@ -297,28 +300,40 @@
                                         </td>
                                         <td>
                                             <div class="fw-bold text-center">{{ $dece->name }} {{ $dece->prenom }}</div>
+                                        </td>
+                                        <td>
                                             <div class="text-center">{{ $dece->quantite }} copie(s)</div>
                                         </td>
-                                        <td>
-                                            <div class="small text-center">
-                                                N°: {{ $dece->numberR ?? '--' }}<br>
-                                                Le: {{ $dece->dateR ?? '--' }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="small text-center">
-                                                P: {{ $dece->nom_prenoms_pere ?? '--' }}<br>
-                                                M: {{ $dece->nom_prenoms_mere ?? '--' }}
-                                            </div>
-                                        </td>
                                         <td style="text-align: center">
-                                            @if($dece->type == 'extraitSimple')
-                                                <span class="badge bg-info">Extrait Simple</span>
-                                            @elseif($dece->type == 'copieIntegrale')
-                                                <span class="badge bg-primary">Copie Intégrale</span>
+                                            @if ($dece->type == 'simple')
+                                                <span class="badge badge-normal">
+                                                    <i class="fas fa-file-alt me-1"></i> Extrait simple
+                                                </span>
+                                            @elseif($dece->type == 'integrale')
+                                                <span class="badge badge-urgent">
+                                                    <i class="fas fa-file-contract me-1"></i> Copie Intégrale
+                                                </span>
+                                            @elseif($dece->type == 'groupee')
+                                                <span class="badge bg-purple text-white"
+                                                    style="background-color: #6f42c1; border-radius: 20px; padding: 0.5rem 0.75rem;">
+                                                    <i class="fas fa-copy me-1"></i> Simple + Intégrale
+                                                </span>
                                             @else
                                                 <span class="badge bg-secondary">{{ $dece->type }}</span>
                                             @endif
+                                        </td>
+                                        <td style="text-align: center">
+                                            <small class="text-muted">
+                                                @if ($dece->qty_simple > 0)
+                                                    {{ $dece->qty_simple }} Simple
+                                                @endif
+                                                @if ($dece->qty_simple > 0 && $dece->qty_integral > 0)
+                                                    +
+                                                @endif
+                                                @if ($dece->qty_integral > 0)
+                                                    {{ $dece->qty_integral }} Intégrale
+                                                @endif
+                                            </small>
                                         </td>
                                         <td style="text-align: center">
                                             <div class="text-muted">
@@ -329,7 +344,7 @@
                                             </small>
                                         </td>
                                         <td style="text-align: center">
-                                            @if($dece->etat == 'en attente')
+                                            @if ($dece->etat == 'en attente')
                                                 <span class="badge badge-pending">
                                                     <span class="status-indicator status-pending"></span> En attente
                                                 </span>
@@ -344,15 +359,15 @@
                                             @endif
                                         </td>
                                         <td style="text-align: center">
-                                            @if($dece->choix_option == 'livraison')
+                                            @if ($dece->choix_option == 'livraison')
                                                 <span class="badge badge-normal">
                                                     <i class="fas fa-truck me-1"></i> Livraison
                                                 </span>
-                                                @if($dece->date_livraison)
+                                                @if ($dece->date_livraison)
                                                     <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">
                                                         <i class="fas fa-calendar-alt"></i>
                                                         {{ \Carbon\Carbon::parse($dece->date_livraison)->format('d/m/Y') }}
-                                                        @if($dece->heure_livraison)
+                                                        @if ($dece->heure_livraison)
                                                             <br><i class="fas fa-clock"></i>
                                                             {{ \Carbon\Carbon::parse($dece->heure_livraison)->format('H:i') }}
                                                         @endif
@@ -363,7 +378,7 @@
                                                     <i class="fas fa-home me-1"></i>Retrait sur place
                                                 </span>
                                             @endif
-                                            @if($dece->statut_livraison == 'livré')
+                                            @if ($dece->statut_livraison == 'livré')
                                                 <span class="badge badge-delivered">
                                                     <i class="fas fa-check-circle me-1"></i> Livré
                                                 </span>
@@ -378,8 +393,8 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-center">{{ $dece->agent->name ?? "Non" }}
-                                                {{ $dece->agent->prenom ?? " attribuer" }}</div>
+                                            <div class="fw-bold text-center">{{ $dece->agent->name ?? 'Non' }}
+                                                {{ $dece->agent->prenom ?? ' attribuer' }}</div>
                                         </td>
                                     </tr>
                                 @empty
@@ -387,7 +402,8 @@
                                         <td colspan="8" class="text-center py-4">
                                             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                             <h5 class="text-muted">Aucune demande trouvée</h5>
-                                            <p class="text-muted">Aucune demande d'extrait de dece n'a été enregistrée pour le
+                                            <p class="text-muted">Aucune demande d'extrait de dece n'a été enregistrée pour
+                                                le
                                                 moment.</p>
                                         </td>
                                     </tr>
@@ -397,17 +413,18 @@
                     </div>
 
                     <!-- Pagination -->
-                    @if($deces->hasPages())
+                    @if ($deces->hasPages())
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted">
                                 Affichage de <strong>{{ $deces->firstItem() }}</strong> à
-                                <strong>{{ $deces->lastItem() }}</strong> sur <strong>{{ $deces->total() }}</strong> résultats
+                                <strong>{{ $deces->lastItem() }}</strong> sur <strong>{{ $deces->total() }}</strong>
+                                résultats
                             </div>
 
                             <nav aria-label="Page navigation">
                                 <ul class="pagination mb-0">
                                     <!-- Première page -->
-                                    @if($deces->onFirstPage())
+                                    @if ($deces->onFirstPage())
                                         <li class="page-item disabled">
                                             <span class="page-link">
                                                 <i class="fas fa-angle-double-left"></i>
@@ -422,7 +439,7 @@
                                     @endif
 
                                     <!-- Page précédente -->
-                                    @if($deces->onFirstPage())
+                                    @if ($deces->onFirstPage())
                                         <li class="page-item disabled">
                                             <span class="page-link">
                                                 <i class="fas fa-chevron-left"></i>
@@ -430,7 +447,8 @@
                                         </li>
                                     @else
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $deces->previousPageUrl() }}" aria-label="Précédent">
+                                            <a class="page-link" href="{{ $deces->previousPageUrl() }}"
+                                                aria-label="Précédent">
                                                 <i class="fas fa-chevron-left"></i>
                                             </a>
                                         </li>
@@ -454,29 +472,30 @@
                                         }
                                     @endphp
 
-                                    @if($start > 1)
+                                    @if ($start > 1)
                                         <li class="page-item">
                                             <a class="page-link" href="{{ $deces->url(1) }}">1</a>
                                         </li>
-                                        @if($start > 2)
+                                        @if ($start > 2)
                                             <li class="page-item disabled">
                                                 <span class="page-link">...</span>
                                             </li>
                                         @endif
                                     @endif
 
-                                    @for($i = $start; $i <= $end; $i++)
+                                    @for ($i = $start; $i <= $end; $i++)
                                         <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                                            @if($i == $current)
+                                            @if ($i == $current)
                                                 <span class="page-link">{{ $i }}</span>
                                             @else
-                                                <a class="page-link" href="{{ $deces->url($i) }}">{{ $i }}</a>
+                                                <a class="page-link"
+                                                    href="{{ $deces->url($i) }}">{{ $i }}</a>
                                             @endif
                                         </li>
                                     @endfor
 
-                                    @if($end < $last)
-                                        @if($end < $last - 1)
+                                    @if ($end < $last)
+                                        @if ($end < $last - 1)
                                             <li class="page-item disabled">
                                                 <span class="page-link">...</span>
                                             </li>
@@ -487,9 +506,10 @@
                                     @endif
 
                                     <!-- Page suivante -->
-                                    @if($deces->hasMorePages())
+                                    @if ($deces->hasMorePages())
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $deces->nextPageUrl() }}" aria-label="Suivant">
+                                            <a class="page-link" href="{{ $deces->nextPageUrl() }}"
+                                                aria-label="Suivant">
                                                 <i class="fas fa-chevron-right"></i>
                                             </a>
                                         </li>
@@ -502,9 +522,10 @@
                                     @endif
 
                                     <!-- Dernière page -->
-                                    @if($deces->hasMorePages())
+                                    @if ($deces->hasMorePages())
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $deces->url($last) }}" aria-label="Dernière page">
+                                            <a class="page-link" href="{{ $deces->url($last) }}"
+                                                aria-label="Dernière page">
                                                 <i class="fas fa-angle-double-right"></i>
                                             </a>
                                         </li>
@@ -526,16 +547,16 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             // Script pour les interactions utilisateur
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 // Animation pour les cartes de statistiques
                 const statCards = document.querySelectorAll('.stat-card');
                 statCards.forEach(card => {
-                    card.addEventListener('mouseenter', function () {
+                    card.addEventListener('mouseenter', function() {
                         this.style.transform = 'translateY(-5px)';
                         this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.12)';
                     });
 
-                    card.addEventListener('mouseleave', function () {
+                    card.addEventListener('mouseleave', function() {
                         this.style.transform = 'translateY(0)';
                         this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
                     });

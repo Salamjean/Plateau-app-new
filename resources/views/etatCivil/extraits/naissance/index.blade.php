@@ -285,8 +285,8 @@
                                     <th style="text-align: center">Référence</th>
                                     <th style="text-align: center">Quantité</th>
                                     <th style="text-align: center">Nom & Prénom</th>
-                                    <th style="text-align: center">Parents</th>
-                                    <th style="text-align: center">Type</th>
+                                    <th style="text-align: center">Type de demande</th>
+                                    <th style="text-align: center">Détails Quantité</th>
                                     <th style="text-align: center">Date de demande</th>
                                     <th style="text-align: center">État</th>
                                     <th style="text-align: center">Mode de retrait</th>
@@ -309,26 +309,34 @@
                                                 {{ $naissance->prenom }}
                                             </div>
                                         </td>
-                                        <td>
-                                            <div class="small text-center">
-                                                P: {{ $naissance->nom_prenoms_pere ?? '--' }}<br>
-                                                M: {{ $naissance->nom_prenoms_mere ?? '--' }}
-                                            </div>
-                                        </td>
                                         <td style="text-align: center">
                                             @if ($naissance->type == 'simple')
                                                 <span class="badge badge-normal">
-                                                    <i class="fas fa-clock me-1"></i> Copie Simple
-                                                </span>
-                                            @elseif($naissance->type == 'groupee')
-                                                <span class="badge bg-success text-white">
-                                                    <i class="fas fa-copy me-1"></i> Simple + Intégral
+                                                    <i class="fas fa-file-alt me-1"></i> Extrait simple
                                                 </span>
                                             @elseif($naissance->type == 'integrale')
                                                 <span class="badge badge-urgent">
-                                                    <i class="fas fa-bolt me-1"></i> Copie Integrale
+                                                    <i class="fas fa-file-contract me-1"></i> Copie Intégrale
+                                                </span>
+                                            @elseif($naissance->type == 'groupee')
+                                                <span class="badge bg-purple text-white"
+                                                    style="background-color: #6f42c1; border-radius: 20px; padding: 0.5rem 0.75rem;">
+                                                    <i class="fas fa-copy me-1"></i> Simple + Intégrale
                                                 </span>
                                             @endif
+                                        </td>
+                                        <td style="text-align: center">
+                                            <small class="text-muted">
+                                                @if ($naissance->qty_simple > 0)
+                                                    {{ $naissance->qty_simple }} Simple
+                                                @endif
+                                                @if ($naissance->qty_simple > 0 && $naissance->qty_integral > 0)
+                                                    +
+                                                @endif
+                                                @if ($naissance->qty_integral > 0)
+                                                    {{ $naissance->qty_integral }} Intégrale
+                                                @endif
+                                            </small>
                                         </td>
                                         <td style="text-align: center">
                                             <div class="text-muted">
