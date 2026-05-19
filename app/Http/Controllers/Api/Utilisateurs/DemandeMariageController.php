@@ -136,7 +136,7 @@ class DemandeMariageController extends Controller
 
             $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
             $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
-            $mariage->commune = $commune;
+            $mariage->commune = "plateau";
             $mariage->choix_option = $request->choix_option;
             $mariage->user_id = $user->id;
             $mariage->reference = $reference;
