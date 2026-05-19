@@ -112,6 +112,7 @@ class MariageController extends Controller
 
         // Enregistrement de l'objet Mariage
         $mariage = new Mariage();
+        $mariage->type = $request->typeDemande;
         $mariage->nomEpoux = $request->nomEpoux;
         $mariage->prenomEpoux = $request->prenomEpoux;
         $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;
@@ -247,7 +248,6 @@ class MariageController extends Controller
 
                         Log::error('Échec CinetPay: ' . $response->body());
                         return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur de génération du lien CinetPay.');
-
                     } catch (\Exception $e) {
                         Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
                         return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur interne de paiement.');

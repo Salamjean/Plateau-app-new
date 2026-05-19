@@ -820,8 +820,8 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="type" value="extrait_integral"
-                                    {{ old('type') === 'extrait_integral' ? 'checked' : '' }} onchange="onTypeChange(this)">
+                                <input type="radio" name="type" value="integrale"
+                                    {{ old('type') === 'integrale' ? 'checked' : '' }} onchange="onTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-contract"></i>
                                     <h6>Acte intégral</h6>
@@ -1099,7 +1099,7 @@
             const type = input.value;
             const isGroupee = type === 'groupee';
             const isSimple = type === 'simple';
-            const isIntegral = type === 'extrait_integral';
+            const isIntegral = type === 'integrale';
 
             const cardSimple = document.getElementById('sq-card-simple');
             const cardIntegral = document.getElementById('sq-card-integral');
@@ -1267,11 +1267,14 @@
                 if (typeVal === 'groupee') {
                     if (!pere.value.trim()) {
                         isValid = false;
-                        displayClientError(pere, "Pour une copie intégrale (Simple + Intégral), les informations du père sont obligatoires.");
+                        displayClientError(pere,
+                            "Pour une copie intégrale (Simple + Intégral), les informations du père sont obligatoires.");
                     }
                     if (!mere.value.trim()) {
                         isValid = false;
-                        displayClientError(mere, "Pour une copie intégrale (Simple + Intégral), les informations de la mère sont obligatoires.");
+                        displayClientError(mere,
+                            "Pour une copie intégrale (Simple + Intégral), les informations de la mère sont obligatoires."
+                            );
                     }
                     if (!number.value.trim() || !dateR.value.trim()) {
                         isValid = false;
@@ -1283,7 +1286,8 @@
 
                     if (!hasRegistry && !hasParents) {
                         isValid = false;
-                        displayClientError(number, "Veuillez fournir soit le registre (N° et Date), soit les deux parents.");
+                        displayClientError(number,
+                        "Veuillez fournir soit le registre (N° et Date), soit les deux parents.");
                     }
                 }
             } else if (step === 3) {
@@ -1372,15 +1376,18 @@
             if (typeVal === 'groupee') {
                 if (!nomPrenomsPere) {
                     isValid = false;
-                    displayClientError(document.getElementById('nom_prenoms_pere'), "Pour une copie intégrale (Simple + Intégral), les informations du père sont obligatoires.");
+                    displayClientError(document.getElementById('nom_prenoms_pere'),
+                        "Pour une copie intégrale (Simple + Intégral), les informations du père sont obligatoires.");
                 }
                 if (!nomPrenomsMere) {
                     isValid = false;
-                    displayClientError(document.getElementById('nom_prenoms_mere'), "Pour une copie intégrale (Simple + Intégral), les informations de la mère sont obligatoires.");
+                    displayClientError(document.getElementById('nom_prenoms_mere'),
+                        "Pour une copie intégrale (Simple + Intégral), les informations de la mère sont obligatoires.");
                 }
                 if (!number || !dateR) {
                     isValid = false;
-                    displayClientError(document.getElementById('number'), "Le numéro et la date de registre sont obligatoires.");
+                    displayClientError(document.getElementById('number'),
+                        "Le numéro et la date de registre sont obligatoires.");
                 }
             } else {
                 const hasRegistryInfo = number && dateR;

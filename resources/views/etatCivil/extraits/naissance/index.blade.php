@@ -225,10 +225,12 @@
                             <label class="form-label">État</label>
                             <select name="etat" class="form-select">
                                 <option value="">Tous</option>
-                                <option value="en attente" {{ request('etat') == 'en attente' ? 'selected' : '' }}>En attente
+                                <option value="en attente" {{ request('etat') == 'en attente' ? 'selected' : '' }}>En
+                                    attente
                                 </option>
                                 <option value="réçu" {{ request('etat') == 'réçu' ? 'selected' : '' }}>Reçu</option>
-                                <option value="terminé" {{ request('etat') == 'terminé' ? 'selected' : '' }}>Terminé</option>
+                                <option value="terminé" {{ request('etat') == 'terminé' ? 'selected' : '' }}>Terminé
+                                </option>
                             </select>
                         </div>
                         <div class="col-md-3 mb-2">
@@ -237,14 +239,16 @@
                                 <option value="">Tous</option>
                                 <option value="simple" {{ request('type') == 'simple' ? 'selected' : '' }}>Copie Simple
                                 </option>
-                                <option value="extrait_integral" {{ request('type') == 'extrait_integral' ? 'selected' : '' }}>Copie Integrale</option>
+                                <option value="integrale" {{ request('type') == 'integrale' ? 'selected' : '' }}>Copie
+                                    Integrale</option>
                             </select>
                         </div>
                         <div class="col-md-3 mb-2">
                             <label class="form-label">Livraison</label>
                             <select name="livraison" class="form-select">
                                 <option value="">Tous</option>
-                                <option value="livré" {{ request('livraison') == 'livré' ? 'selected' : '' }}>Livré</option>
+                                <option value="livré" {{ request('livraison') == 'livré' ? 'selected' : '' }}>Livré
+                                </option>
                                 <option value="en cours" {{ request('livraison') == 'en cours' ? 'selected' : '' }}>En cours
                                 </option>
                                 <option value="non livré" {{ request('livraison') == 'non livré' ? 'selected' : '' }}>Non
@@ -255,7 +259,7 @@
                             <button type="submit" class="btn btn-filter w-100">
                                 <i class="fas fa-filter me-2"></i>Filtrer
                             </button>
-                            @if(request()->has('etat') || request()->has('type') || request()->has('livraison'))
+                            @if (request()->has('etat') || request()->has('type') || request()->has('livraison'))
                                 <a href="{{ route('etat_civil.request.birth') }}" class="btn btn-outline-secondary ms-2">
                                     <i class="fas fa-times"></i>
                                 </a>
@@ -301,7 +305,8 @@
                                             <div class="text-center">{{ $naissance->quantite }} copie(s)</div>
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-center">{{ $naissance->name }} {{ $naissance->prenom }}
+                                            <div class="fw-bold text-center">{{ $naissance->name }}
+                                                {{ $naissance->prenom }}
                                             </div>
                                         </td>
                                         <td>
@@ -311,7 +316,7 @@
                                             </div>
                                         </td>
                                         <td style="text-align: center">
-                                            @if($naissance->type == 'simple')
+                                            @if ($naissance->type == 'simple')
                                                 <span class="badge badge-normal">
                                                     <i class="fas fa-clock me-1"></i> Copie Simple
                                                 </span>
@@ -319,7 +324,7 @@
                                                 <span class="badge bg-success text-white">
                                                     <i class="fas fa-copy me-1"></i> Simple + Intégral
                                                 </span>
-                                            @else
+                                            @elseif($naissance->type == 'integrale')
                                                 <span class="badge badge-urgent">
                                                     <i class="fas fa-bolt me-1"></i> Copie Integrale
                                                 </span>
@@ -334,7 +339,7 @@
                                             </small>
                                         </td>
                                         <td style="text-align: center">
-                                            @if($naissance->etat == 'en attente')
+                                            @if ($naissance->etat == 'en attente')
                                                 <span class="badge badge-pending">
                                                     <span class="status-indicator status-pending"></span> En attente
                                                 </span>
@@ -349,7 +354,7 @@
                                             @endif
                                         </td>
                                         <td style="text-align: center">
-                                            @if($naissance->choix_option == 'livraison')
+                                            @if ($naissance->choix_option == 'livraison')
                                                 <span class="badge badge-normal">
                                                     <i class="fas fa-truck me-1"></i> Livraison
                                                 </span>
@@ -358,7 +363,7 @@
                                                     <i class="fas fa-home me-1"></i>Retrait sur place
                                                 </span>
                                             @endif
-                                            @if($naissance->statut_livraison == 'livré')
+                                            @if ($naissance->statut_livraison == 'livré')
                                                 <span class="badge badge-delivered">
                                                     <i class="fas fa-check-circle me-1"></i> Livré
                                                 </span>
@@ -373,8 +378,8 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-center">{{ $naissance->agent->name ?? "Non" }}
-                                                {{ $naissance->agent->prenom ?? " attribuer"}}</div>
+                                            <div class="fw-bold text-center">{{ $naissance->agent->name ?? 'Non' }}
+                                                {{ $naissance->agent->prenom ?? ' attribuer' }}</div>
                                         </td>
                                     </tr>
                                 @empty
@@ -382,7 +387,8 @@
                                         <td colspan="11" class="text-center py-4">
                                             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                             <h5 class="text-muted">Aucune demande trouvée</h5>
-                                            <p class="text-muted">Aucune demande d'extrait de naissance n'a été enregistrée pour
+                                            <p class="text-muted">Aucune demande d'extrait de naissance n'a été enregistrée
+                                                pour
                                                 le moment.</p>
                                         </td>
                                     </tr>
@@ -392,18 +398,19 @@
                     </div>
 
                     <!-- Pagination -->
-                    @if($naissances->hasPages())
+                    @if ($naissances->hasPages())
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted">
                                 Affichage de <strong>{{ $naissances->firstItem() }}</strong> à
-                                <strong>{{ $naissances->lastItem() }}</strong> sur <strong>{{ $naissances->total() }}</strong>
+                                <strong>{{ $naissances->lastItem() }}</strong> sur
+                                <strong>{{ $naissances->total() }}</strong>
                                 résultats
                             </div>
 
                             <nav aria-label="Page navigation">
                                 <ul class="pagination mb-0">
                                     <!-- Première page -->
-                                    @if($naissances->onFirstPage())
+                                    @if ($naissances->onFirstPage())
                                         <li class="page-item disabled">
                                             <span class="page-link">
                                                 <i class="fas fa-angle-double-left"></i>
@@ -411,14 +418,15 @@
                                         </li>
                                     @else
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $naissances->url(1) }}" aria-label="Première page">
+                                            <a class="page-link" href="{{ $naissances->url(1) }}"
+                                                aria-label="Première page">
                                                 <i class="fas fa-angle-double-left"></i>
                                             </a>
                                         </li>
                                     @endif
 
                                     <!-- Page précédente -->
-                                    @if($naissances->onFirstPage())
+                                    @if ($naissances->onFirstPage())
                                         <li class="page-item disabled">
                                             <span class="page-link">
                                                 <i class="fas fa-chevron-left"></i>
@@ -426,7 +434,8 @@
                                         </li>
                                     @else
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $naissances->previousPageUrl() }}" aria-label="Précédent">
+                                            <a class="page-link" href="{{ $naissances->previousPageUrl() }}"
+                                                aria-label="Précédent">
                                                 <i class="fas fa-chevron-left"></i>
                                             </a>
                                         </li>
@@ -450,42 +459,45 @@
                                         }
                                     @endphp
 
-                                    @if($start > 1)
+                                    @if ($start > 1)
                                         <li class="page-item">
                                             <a class="page-link" href="{{ $naissances->url(1) }}">1</a>
                                         </li>
-                                        @if($start > 2)
+                                        @if ($start > 2)
                                             <li class="page-item disabled">
                                                 <span class="page-link">...</span>
                                             </li>
                                         @endif
                                     @endif
 
-                                    @for($i = $start; $i <= $end; $i++)
+                                    @for ($i = $start; $i <= $end; $i++)
                                         <li class="page-item {{ $i == $current ? 'active' : '' }}">
-                                            @if($i == $current)
+                                            @if ($i == $current)
                                                 <span class="page-link">{{ $i }}</span>
                                             @else
-                                                <a class="page-link" href="{{ $naissances->url($i) }}">{{ $i }}</a>
+                                                <a class="page-link"
+                                                    href="{{ $naissances->url($i) }}">{{ $i }}</a>
                                             @endif
                                         </li>
                                     @endfor
 
-                                    @if($end < $last)
-                                        @if($end < $last - 1)
+                                    @if ($end < $last)
+                                        @if ($end < $last - 1)
                                             <li class="page-item disabled">
                                                 <span class="page-link">...</span>
                                             </li>
                                         @endif
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $naissances->url($last) }}">{{ $last }}</a>
+                                            <a class="page-link"
+                                                href="{{ $naissances->url($last) }}">{{ $last }}</a>
                                         </li>
                                     @endif
 
                                     <!-- Page suivante -->
-                                    @if($naissances->hasMorePages())
+                                    @if ($naissances->hasMorePages())
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $naissances->nextPageUrl() }}" aria-label="Suivant">
+                                            <a class="page-link" href="{{ $naissances->nextPageUrl() }}"
+                                                aria-label="Suivant">
                                                 <i class="fas fa-chevron-right"></i>
                                             </a>
                                         </li>
@@ -498,9 +510,10 @@
                                     @endif
 
                                     <!-- Dernière page -->
-                                    @if($naissances->hasMorePages())
+                                    @if ($naissances->hasMorePages())
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $naissances->url($last) }}" aria-label="Dernière page">
+                                            <a class="page-link" href="{{ $naissances->url($last) }}"
+                                                aria-label="Dernière page">
                                                 <i class="fas fa-angle-double-right"></i>
                                             </a>
                                         </li>
@@ -522,16 +535,16 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             // Script pour les interactions utilisateur
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 // Animation pour les cartes de statistiques
                 const statCards = document.querySelectorAll('.stat-card');
                 statCards.forEach(card => {
-                    card.addEventListener('mouseenter', function () {
+                    card.addEventListener('mouseenter', function() {
                         this.style.transform = 'translateY(-5px)';
                         this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.12)';
                     });
 
-                    card.addEventListener('mouseleave', function () {
+                    card.addEventListener('mouseleave', function() {
                         this.style.transform = 'translateY(0)';
                         this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
                     });

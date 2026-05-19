@@ -695,7 +695,7 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="type" value="integral" onchange="onDecesTypeChange(this)">
+                                <input type="radio" name="type" value="integrale" onchange="onDecesTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-contract"></i>
                                     <h6>Copie intégrale</h6>
@@ -703,8 +703,7 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="type" value="simpleIntegrale"
-                                    onchange="onDecesTypeChange(this)">
+                                <input type="radio" name="type" value="groupee" onchange="onDecesTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-copy"></i>
                                     <h6>Simple + Intégrale</h6>
@@ -1062,7 +1061,7 @@
             const cardInteg = document.getElementById('qty-card-deces-integral');
             const sectionLbl = document.getElementById('qty-label-deces-section');
 
-            if (input.value === 'simpleIntegrale') {
+            if (input.value === 'groupee') {
                 cardSimple.style.display = '';
                 cardInteg.style.display = '';
                 cardSimple.classList.add('has-value');
@@ -1070,7 +1069,7 @@
                 rowDeces.className = 'quantity-cards-row dual-card';
                 if (sectionLbl) sectionLbl.innerHTML =
                     '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies de chaque type ?';
-            } else if (input.value === 'integral') {
+            } else if (input.value === 'integrale') {
                 cardSimple.style.display = 'none';
                 cardSimple.classList.remove('has-value');
                 cardInteg.style.display = '';

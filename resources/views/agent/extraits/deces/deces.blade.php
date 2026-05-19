@@ -706,13 +706,14 @@
                                     </td>
                                     <td style="text-align: center">
                                         @if ($dece->type == 'simple')
-                                            <span class="badge bg-info">Extrait Simple</span>
-                                        @elseif($dece->type == 'extrait_integral' || $dece->type == 'integrale')
-                                            <span class="badge bg-primary">Copie Intégrale</span>
-                                        @elseif($dece->type == 'simpleIntegrale' || $dece->type == 'groupee')
+                                            <span class="badge bg-info text-white">Copie Simple</span>
+                                        @elseif($dece->type == 'groupee' || $dece->type == 'simpleIntegrale')
                                             <span class="badge bg-success text-white">Simple + Intégral</span>
+                                        @elseif($dece->type == 'integrale' || $dece->type == 'extrait_integral')
+                                            <span class="badge bg-primary text-white">Copie Intégrale</span>
                                         @else
-                                            <span class="badge bg-secondary">{{ $dece->type }}</span>
+                                            <span
+                                                class="badge bg-secondary text-white">{{ ucfirst($dece->type ?: 'Simple') }}</span>
                                         @endif
                                     </td>
                                     <td style="text-align: center" data-label="Demandeur">
@@ -849,9 +850,9 @@
                                     </td>
                                     <td style="text-align: center" data-label="Actions">
                                         <!-- Bouton pour voir les détails -->
-                                        <button class="btn-action btn-icon" style="background-color: #17a2b8; cursor: pointer;"
-                                            data-task="{{ json_encode($dece) }}"
-                                            onclick="showRequestDetails(this)"
+                                        <button class="btn-action btn-icon"
+                                            style="background-color: #17a2b8; cursor: pointer;"
+                                            data-task="{{ json_encode($dece) }}" onclick="showRequestDetails(this)"
                                             title="Voir les détails de la demande">
                                             <i class="fas fa-eye"></i>
                                         </button>
@@ -1084,19 +1085,20 @@
         // Fonction pour afficher tous les détails de la demande
         function showRequestDetails(deceOrElement) {
             let dece = deceOrElement;
-            if (deceOrElement && (deceOrElement.dataset || (deceOrElement.getAttribute && deceOrElement.getAttribute('data-task')))) {
+            if (deceOrElement && (deceOrElement.dataset || (deceOrElement.getAttribute && deceOrElement.getAttribute(
+                    'data-task')))) {
                 const raw = deceOrElement.dataset.task || deceOrElement.getAttribute('data-task');
                 if (raw) {
                     try {
                         dece = typeof raw === 'string' ? JSON.parse(raw) : raw;
-                    } catch(e) {
+                    } catch (e) {
                         console.error("Error parsing dece JSON:", e);
                     }
                 }
             } else if (typeof deceOrElement === 'string') {
                 try {
                     dece = JSON.parse(deceOrElement);
-                } catch(e) {}
+                } catch (e) {}
             }
             const user = (dece && dece.user) || {};
             const documentType = dece.type === 'simple' ? 'Copie Simple' : (dece.type === 'simpleIntegrale' || dece.type ===
@@ -1174,7 +1176,7 @@
                     });
                 }
                 if (!docs.length)
-                return `<div style="text-align:center;padding:24px;color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:2rem;margin-bottom:8px;display:block;"></i><p style="margin:0;font-size:0.85rem;">Aucun document joint</p></div>`;
+                    return `<div style="text-align:center;padding:24px;color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:2rem;margin-bottom:8px;display:block;"></i><p style="margin:0;font-size:0.85rem;">Aucun document joint</p></div>`;
                 return docs.map(d => `
           <div style="display:flex;align-items:center;gap:14px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px;">
             <div style="width:60px;height:60px;border-radius:8px;overflow:hidden;background:white;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -1238,18 +1240,18 @@
           </div>
           <div class="dp-panel" id="dpPD-livraison">
             ${dece.choix_option === 'livraison' ? `
-                <div class="dp-section">
-                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${dece.nom_destinataire||'--'}</span></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${dece.contact_destinataire||'--'}</span></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${dece.email_destinataire||'--'}</span></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${dece.adresse_livraison||'--'}</span></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${dece.ville||'--'}</span></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${dece.commune_livraison||'--'}</span></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${dece.quartier||'--'}</span></div>
-                  <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${dece.code_postal||'--'}</span></div>
-                </div>
-                ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                    <div class="dp-section">
+                      <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${dece.nom_destinataire||'--'}</span></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${dece.contact_destinataire||'--'}</span></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${dece.email_destinataire||'--'}</span></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${dece.adresse_livraison||'--'}</span></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${dece.ville||'--'}</span></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${dece.commune_livraison||'--'}</span></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${dece.quartier||'--'}</span></div>
+                      <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${dece.code_postal||'--'}</span></div>
+                    </div>
+                    ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
           </div>
           <div class="dp-panel" id="dpPD-docs">
             <div class="dp-section">
@@ -1274,8 +1276,13 @@
                     var tabs = document.querySelectorAll('#dpTabsD .dp-tab');
                     tabs.forEach(function(t) {
                         t.addEventListener('click', function() {
-                            tabs.forEach(function(x) { x.classList.remove('dp-active'); });
-                            document.querySelectorAll('#dpTabsD ~ .dp-panel').forEach(function(p) { p.classList.remove('dp-active'); });
+                            tabs.forEach(function(x) {
+                                x.classList.remove('dp-active');
+                            });
+                            document.querySelectorAll('#dpTabsD ~ .dp-panel').forEach(function(
+                                p) {
+                                p.classList.remove('dp-active');
+                            });
                             t.classList.add('dp-active');
                             var panel = document.getElementById(t.dataset.panel);
                             if (panel) panel.classList.add('dp-active');
@@ -1422,38 +1429,286 @@
     </script>
     <style>
         /* Styles pour le popup de détails des demandes */
-        .dp-wrap{font-family:'Inter','Segoe UI',system-ui,sans-serif;color:#1e293b;}
-        .dp-hero{background:linear-gradient(135deg,#1977cc 0%,#0d47a1 100%);padding:24px 28px 20px;position:relative;overflow:hidden;}
-        .dp-hero::before{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:rgba(255,255,255,0.06);border-radius:50%;}
-        .dp-hero::after{content:'';position:absolute;bottom:-40px;left:-30px;width:120px;height:120px;background:rgba(255,255,255,0.04);border-radius:50%;}
-        .dp-hero-icon{width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:1.3rem;color:white;position:relative;z-index:1;backdrop-filter:blur(4px);}
-        .dp-hero-title{color:white;font-size:1.25rem;font-weight:800;margin:0 0 6px;position:relative;z-index:1;}
-        .dp-hero-meta{color:rgba(255,255,255,0.75);font-size:0.78rem;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:relative;z-index:1;}
-        .dp-status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);position:absolute;top:18px;right:18px;z-index:2;backdrop-filter:blur(4px);}
-        .dp-tabs{display:flex;background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:0 16px;}
-        .dp-tab{padding:11px 16px;font-size:0.8rem;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:6px;user-select:none;white-space:nowrap;}
-        .dp-tab:hover{color:#1977cc;}
-        .dp-tab.dp-active{color:#1977cc;border-bottom-color:#1977cc;}
-        .dp-panel{display:none;padding:16px;}
-        .dp-panel.dp-active{display:block;}
-        .dp-section{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px;}
-        .dp-section-head{display:flex;align-items:center;gap:10px;padding:11px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0;}
-        .dp-section-icon{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#1977cc,#0d47a1);display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;flex-shrink:0;}
-        .dp-section-title{font-weight:700;font-size:0.88rem;color:#0f172a;}
-        .dp-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 16px;gap:12px;transition:background .15s;}
-        .dp-row:hover{background:#f8fafc;}
-        .dp-label{color:#64748b;font-size:0.8rem;font-weight:500;min-width:120px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-        .dp-label i{width:13px;color:#94a3b8;font-size:0.75rem;}
-        .dp-value{color:#0f172a;font-size:0.8rem;font-weight:600;text-align:right;word-break:break-word;}
-        .dp-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;text-transform:uppercase;}
-        .dp-alert{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;}
-        .dp-alert-icon{color:#ef4444;font-size:1rem;margin-top:2px;flex-shrink:0;}
-        .dp-alert-title{color:#991b1b;font-weight:700;font-size:0.8rem;margin-bottom:2px;}
-        .dp-alert-text{color:#b91c1c;font-size:0.78rem;}
-        .dp-pickup{display:inline-flex;align-items:center;gap:8px;background:#eff6ff;color:#1d4ed8;padding:10px 16px;border-radius:10px;font-weight:600;font-size:0.85rem;border:1px solid #bfdbfe;}
-        .dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-        @media(max-width:600px){.dp-grid{grid-template-columns:1fr}.dp-label{min-width:90px}}
-        .request-details-popup{padding:0!important;border-radius:16px!important;overflow:hidden!important;}
+        .dp-wrap {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #1e293b;
+        }
+
+        .dp-hero {
+            background: linear-gradient(135deg, #1977cc 0%, #0d47a1 100%);
+            padding: 24px 28px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dp-hero::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 160px;
+            height: 160px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+        }
+
+        .dp-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+        }
+
+        .dp-hero-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+            color: white;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(4px);
+        }
+
+        .dp-hero-title {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin: 0 0 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dp-hero-meta {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.78rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dp-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            z-index: 2;
+            backdrop-filter: blur(4px);
+        }
+
+        .dp-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 16px;
+        }
+
+        .dp-tab {
+            padding: 11px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .dp-tab:hover {
+            color: #1977cc;
+        }
+
+        .dp-tab.dp-active {
+            color: #1977cc;
+            border-bottom-color: #1977cc;
+        }
+
+        .dp-panel {
+            display: none;
+            padding: 16px;
+        }
+
+        .dp-panel.dp-active {
+            display: block;
+        }
+
+        .dp-section {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .dp-section-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .dp-section-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            background: linear-gradient(135deg, #1977cc, #0d47a1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .dp-section-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #0f172a;
+        }
+
+        .dp-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 16px;
+            gap: 12px;
+            transition: background .15s;
+        }
+
+        .dp-row:hover {
+            background: #f8fafc;
+        }
+
+        .dp-label {
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 500;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .dp-label i {
+            width: 13px;
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
+
+        .dp-value {
+            color: #0f172a;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .dp-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .dp-alert {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .dp-alert-icon {
+            color: #ef4444;
+            font-size: 1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .dp-alert-title {
+            color: #991b1b;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+        }
+
+        .dp-alert-text {
+            color: #b91c1c;
+            font-size: 0.78rem;
+        }
+
+        .dp-pickup {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid #bfdbfe;
+        }
+
+        .dp-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media(max-width:600px) {
+            .dp-grid {
+                grid-template-columns: 1fr
+            }
+
+            .dp-label {
+                min-width: 90px
+            }
+        }
+
+        .request-details-popup {
+            padding: 0 !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+        }
+
         /* Styles pour la modal d'image */
         .image-modal-popup {
             border-radius: 12px;

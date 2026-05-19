@@ -652,7 +652,7 @@
 
                         <div class="type-cards-grid">
                             <label class="type-option-card">
-                                <input type="radio" name="typeDemande" value="extraitSimple" checked
+                                <input type="radio" name="typeDemande" value="simple" checked
                                     onchange="onMariageTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-alt"></i>
@@ -661,7 +661,7 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="typeDemande" value="copieIntegrale"
+                                <input type="radio" name="typeDemande" value="integrale"
                                     onchange="onMariageTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-contract"></i>
@@ -670,7 +670,7 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="typeDemande" value="simpleIntegrale"
+                                <input type="radio" name="typeDemande" value="groupee"
                                     onchange="onMariageTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-copy"></i>
@@ -747,7 +747,7 @@
                         const qtyIntegral = document.getElementById('qty_integral');
                         const label = document.getElementById('qty-label-mariage');
 
-                        if (val === 'simpleIntegrale') {
+                        if (val === 'groupee') {
                             cardSimple.style.display = '';
                             cardIntegral.style.display = '';
                             cardSimple.classList.add('has-value');
@@ -762,7 +762,7 @@
                             row.classList.remove('single-card');
                             if (label) label.innerHTML =
                                 '<i class="fas fa-layer-group" style="color:var(--primary);"></i> Combien de copies de chaque type ?';
-                        } else if (val === 'extraitSimple') {
+                        } else if (val === 'simple') {
                             cardSimple.style.display = '';
                             cardIntegral.style.display = 'none';
                             cardSimple.classList.add('has-value');
@@ -777,7 +777,7 @@
                             row.classList.add('single-card');
                             if (label) label.innerHTML =
                                 '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?';
-                        } else if (val === 'copieIntegrale') {
+                        } else if (val === 'integrale') {
                             cardSimple.style.display = 'none';
                             cardIntegral.style.display = '';
                             cardSimple.classList.remove('has-value');
@@ -983,8 +983,8 @@
         document.querySelectorAll('input[name="typeDemande"]').forEach(function(radio) {
             radio.addEventListener('change', function() {
                 const infoEpoux = document.getElementById('infoEpoux');
-                infoEpoux.style.display = (this.value === 'copieIntegrale' || this.value ===
-                    'simpleIntegrale') ? 'block' : 'none';
+                infoEpoux.style.display = (this.value === 'integrale' || this.value ===
+                    'groupee') ? 'block' : 'none';
             });
         });
 

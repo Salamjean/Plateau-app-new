@@ -82,7 +82,7 @@ class NaissanceGroupeController extends Controller
             'CNI' => 'required_without:lignes|file|mimes:jpeg,png,jpg,pdf|max:5120',
 
             'lignes' => 'nullable|array|min:1|max:20',
-            'lignes.*.type_document' => 'required_with:lignes|in:simple,extrait_integral',
+            'lignes.*.type_document' => 'required_with:lignes|in:simple,integrale',
             'lignes.*.name' => 'required_with:lignes|string|max:255',
             'lignes.*.prenom' => 'required_with:lignes|string|max:255',
             'lignes.*.commune_naissance' => 'required_with:lignes|string|max:255',
@@ -215,7 +215,7 @@ class NaissanceGroupeController extends Controller
                 for ($i = 0; $i < $qtyIntegral; $i++) {
                     $preparedLignes[] = [
                         'position' => $position++,
-                        'type_document' => 'extrait_integral',
+                        'type_document' => 'integrale',
                         'name' => $request->input('name'),
                         'prenom' => $request->input('prenom'),
                         'commune_naissance' => $request->input('commune_naissance'),
