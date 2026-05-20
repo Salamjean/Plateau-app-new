@@ -534,7 +534,10 @@
             .form-glass-card {
                 padding: 1.5rem;
                 border-radius: 20px;
-                margin: 0 -5px;
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                background: #fff;
             }
 
             .form-header-box h2 {
@@ -543,11 +546,24 @@
 
             .stepper-container {
                 margin-bottom: 2rem;
+                gap: 5px;
+            }
+
+            .stepper-container::before {
+                top: 15px;
             }
 
             .step-label {
-                font-size: 0.6rem;
+                font-size: 0.55rem;
                 text-align: center;
+                display: none;
+            }
+
+            .step-item.active .step-label {
+                display: block;
+                position: absolute;
+                top: 45px;
+                width: 80px;
             }
 
             .step-number {
@@ -560,8 +576,13 @@
                 font-size: 0.9rem;
             }
 
-            .delivery-card-grid {
-                grid-template-columns: 1fr;
+            .delivery-card-grid,
+            .type-cards-grid,
+            .quantity-cards-row,
+            .quantity-cards-row.single-card,
+            .type-cards-grid.grid-2,
+            .type-cards-grid.grid-3 {
+                grid-template-columns: 1fr !important;
                 gap: 1rem;
             }
 
@@ -572,6 +593,8 @@
             .btn-step {
                 padding: 0.7rem 1.2rem;
                 font-size: 0.9rem;
+                flex: 1;
+                justify-content: center;
             }
 
             input[type="date"] {
@@ -1274,7 +1297,7 @@
                         isValid = false;
                         displayClientError(mere,
                             "Pour une copie intégrale (Simple + Intégral), les informations de la mère sont obligatoires."
-                            );
+                        );
                     }
                     if (!number.value.trim() || !dateR.value.trim()) {
                         isValid = false;
@@ -1287,7 +1310,7 @@
                     if (!hasRegistry && !hasParents) {
                         isValid = false;
                         displayClientError(number,
-                        "Veuillez fournir soit le registre (N° et Date), soit les deux parents.");
+                            "Veuillez fournir soit le registre (N° et Date), soit les deux parents.");
                     }
                 }
             } else if (step === 3) {
@@ -1303,7 +1326,7 @@
                     icon: 'error',
                     title: 'Champs manquants',
                     text: 'Veuillez remplir les informations obligatoires.',
-                    confirmButtonColor: '#1977cc'
+                    confirmButtonColor: '#1f4083'
                 });
             }
             return isValid;
@@ -1540,7 +1563,7 @@
                     icon: 'error',
                     title: 'Erreur de Validation',
                     text: 'Veuillez corriger les erreurs dans le formulaire avant de continuer.',
-                    confirmButtonColor: '#1977cc'
+                    confirmButtonColor: '#1f4083'
                 });
             }
         });
@@ -1625,14 +1648,14 @@
     `;
 
             Swal.fire({
-                title: '<div class="flex items-center justify-center p-2"><i class="fas fa-truck text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1977cc;">DÉTAILS DE LIVRAISON</span></div>',
+                title: '<div class="flex items-center justify-center p-2"><i class="fas fa-truck text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1f4083;">DÉTAILS DE LIVRAISON</span></div>',
                 width: '800px',
                 html: `
             <div style="display: flex; flex-wrap: wrap; gap: 20px; text-align: left; max-height: 70vh; overflow-y: auto; padding: 10px;">
 
                 <!-- Formulaire (Partie gauche) -->
                 <div style="flex: 1 1 400px;">
-                    <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍 Vos coordonnées</h4>
+                    <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍 Vos coordonnées</h4>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
@@ -1691,7 +1714,7 @@
                 <!-- Résumé et Paiement (Partie droite) -->
                 <div style="flex: 1 1 250px; display: flex; flex-direction: column; gap: 15px;">
                     <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6;">
-                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #cce3f6; padding-bottom: 5px;">🧾 Résumé</h4>
+                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #cce3f6; padding-bottom: 5px;">🧾 Résumé</h4>
 
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
                             <span style="color: #555;">Exemplaires:</span>
@@ -1705,13 +1728,13 @@
                             <span style="font-weight: 700">${montantLivraison} FCFA</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; border-top: 2px dashed #b8d4ed; padding-top: 8px; margin-top: 8px;">
-                            <span style="color: #1977cc; font-weight: 800; font-size: 0.9rem;">TOTAL:</span>
-                            <span style="color: #1977cc; font-weight: 800; font-size: 1.1rem;">${montantTotal} FCFA</span>
+                            <span style="color: #1f4083; font-weight: 800; font-size: 0.9rem;">TOTAL:</span>
+                            <span style="color: #1f4083; font-weight: 800; font-size: 1.1rem;">${montantTotal} FCFA</span>
                         </div>
                     </div>
 
                     <div>
-                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1977cc; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
+                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
                                 <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
@@ -1739,7 +1762,7 @@
                 showCancelButton: true,
                 confirmButtonText: `Payer`,
                 cancelButtonText: 'Annuler',
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 focusConfirm: false,
                 preConfirm: () => {
                     const nom_destinataire = document.getElementById('swal-nom_destinataire').value;
@@ -1950,7 +1973,7 @@
                             html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
                             icon: 'info',
                             confirmButtonText: 'Fermer',
-                            confirmButtonColor: '#1977cc',
+                            confirmButtonColor: '#1f4083',
                             allowOutsideClick: false
                         }).then(() => {
                             window.location.href = "{{ route('user.extrait.index') }}";

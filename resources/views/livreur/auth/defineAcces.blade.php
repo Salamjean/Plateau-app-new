@@ -14,12 +14,12 @@
 
 <style>
   :root {
-    --primary-color: #1977cc;
-    --primary-light: #1977cc;
-    --primary-dark: #1977cc;
+    --primary-color: #1f4083;
+    --primary-light: #1f4083;
+    --primary-dark: #1f4083;
     --light-color: #ffffff;
     --dark-color: #212529;
-    --gray-color: #1977cc;
+    --gray-color: #1f4083;
     --error-color: #010101;
     --success-color: #28a745;
     --transition-speed: 0.3s;

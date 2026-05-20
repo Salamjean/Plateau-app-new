@@ -1,612 +1,368 @@
-@extends('home.layouts.tamplate')
+@extends('home.layouts.main')
+
 @section('content')
-    <div class="extrait-page">
+    <div class="service-detail-page">
         <!-- Hero Section -->
-        <section class="extrait-hero">
-            <div class="extrait-container">
-                <h1>Extraits de Naissance</h1>
-                <p>Obtenez votre extrait de naissance en ligne - Service officiel de la Mairie du Plateau</p>
+        <section class="service-hero">
+            <div class="container text-center">
+                <div class="badge-service mb-3" data-aos="fade-down">
+                    <span class="badge rounded-pill bg-white bg-opacity-25 text-white px-3 py-2 fw-700">
+                        <i class="bi bi-file-earmark-person me-1"></i> ÉTAT CIVIL
+                    </span>
+                </div>
+                <h1 class="display-3 fw-900 text-white mb-4" data-aos="fade-up">Extraits de Naissance</h1>
+                <p class="lead text-white-50 mx-auto" style="max-width: 700px;" data-aos="fade-up" data-aos-delay="100">
+                    Obtenez vos actes de naissance officiels en quelques clics. Un service rapide et sécurisé proposé par la
+                    Mairie du Plateau.
+                </p>
             </div>
         </section>
 
-        <!-- Navigation Tabs -->
-        <section class="extrait-tabs">
-            <div class="extrait-container">
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="simple-integral">Demande simple ou intégral</button>
+        <!-- Main Content -->
+        <section class="py-5" style="margin-top: -60px;">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <!-- Navigation Tabs -->
+                        <div class="tabs-modern mb-5" data-aos="fade-up">
+                            <button class="tab-link active" onclick="openTab(event, 'copie-simple')">
+                                <i class="bi bi-file-text me-2"></i>Copie Simple (Extrait)
+                            </button>
+                            <button class="tab-link" onclick="openTab(event, 'copie-integrale')">
+                                <i class="bi bi-file-earmark-text me-2"></i>Copie Intégrale
+                            </button>
+                        </div>
+
+                        <!-- Tab Content: Copie Simple -->
+                        <div id="copie-simple" class="tab-pane active" data-aos="fade-up">
+                            <div class="card-modern">
+                                <div class="card-top-bar" style="background: #1f4083;"></div>
+                                <div class="p-5">
+                                    <div class="row g-5">
+                                        <div class="col-md-7">
+                                            <h2 class="fw-900 text-primary mb-4">Copie Simple (Extrait)</h2>
+                                            <p class="text-muted fs-5 mb-4">Pour obtenir un extrait d'acte de naissance
+                                                standard contenant les informations essentielles.</p>
+
+                                            <div class="alert-modern mb-4">
+                                                <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                                                <div>
+                                                    <span class="fw-800 d-block text-primary">Usage courant</span>
+                                                    <span class="small text-muted">Ce document est généralement suffisant
+                                                        pour la plupart des démarches administratives courantes.</span>
+                                                </div>
+                                            </div>
+
+                                            <h4 class="fw-800 mb-3 text-dark">Informations à fournir :</h4>
+                                            <ul class="list-unstyled custom-list">
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Nom et prénoms
+                                                    complets de l'intéressé</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Date et lieu de
+                                                    naissance</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Numéro d'acte et
+                                                    année du registre (si possible)</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Nom et prénoms des
+                                                    parents</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="price-card p-4 rounded-4 text-center glass-effect">
+                                                <span class="text-uppercase fw-800 text-muted small">Tarif Officiel</span>
+                                                <h2 class="display-5 fw-900 text-primary my-2">500 FCFA</h2>
+                                                <p class="small text-muted mb-4">Par exemplaire (hors frais de timbre)</p>
+                                                <a href="{{ route('user.dashboard') }}"
+                                                    class="btn btn-primary w-100 py-3 rounded-3 fw-800">
+                                                    COMMANDER MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab Content: Copie Intégrale -->
+                        <div id="copie-integrale" class="tab-pane">
+                            <div class="card-modern">
+                                <div class="card-top-bar" style="background: #1f4083;"></div>
+                                <div class="p-5">
+                                    <div class="row g-5">
+                                        <div class="col-md-7">
+                                            <h2 class="fw-900 text-primary mb-4">Copie Intégrale</h2>
+                                            <p class="text-muted fs-5 mb-4">Une reproduction complète de l'acte original
+                                                avec toutes les mentions marginales.</p>
+
+                                            <div class="alert-modern info mb-4">
+                                                <i class="bi bi-file-earmark-check-fill text-primary fs-4"></i>
+                                                <div>
+                                                    <span class="fw-800 d-block text-primary">Détails Complets</span>
+                                                    <span class="small text-muted">Indispensable pour certaines démarches
+                                                        comme le mariage ou l'obtention de la nationalité.</span>
+                                                </div>
+                                            </div>
+
+                                            <h4 class="fw-800 mb-3 text-dark">Documents requis :</h4>
+                                            <ul class="list-unstyled custom-list">
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Références
+                                                    complètes de l'acte original</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Justificatif
+                                                    d'identité du demandeur</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Preuve de lien de
+                                                    parenté (si demande pour un tiers)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="price-card p-4 rounded-4 text-center glass-effect">
+                                                <span class="text-uppercase fw-800 text-muted small">Tarif Officiel</span>
+                                                <h2 class="display-5 fw-900 text-primary my-2">500 FCFA</h2>
+                                                <p class="small text-muted mb-4">Par exemplaire (hors frais de timbre)</p>
+                                                <a href="{{ route('user.dashboard') }}"
+                                                    class="btn btn-primary w-100 py-3 rounded-3 fw-800">
+                                                    COMMANDER MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
-
-        <!-- Tab Content -->
-        <div class="extrait-container">
-            <!-- Avec Certificat Médical -->
-            <div class="tab-content " id="avec-certificat">
-                <div class="extrait-card">
-                    <div class="card-header">
-                        <h2>Extrait avec certificat médical</h2>
-                        <p>Pour les nouveau-nés avec certificat médical de naissance</p>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="info-alert">
-                            <i class="fas fa-info-circle"></i>
-                            <div>
-                                <strong>Important :</strong> Vous devez disposer d'un certificat médical de naissance
-                                délivré par l'hôpital ou la maternité.
-                            </div>
-                        </div>
-
-                        <div class="description">
-                            <p>Pour faire une demande d'extrait de naissance pour votre enfant, un certificat médical de
-                                naissance est nécessaire. Ce document officiel est délivré par l'hôpital ou la maternité où
-                                a eu lieu l'accouchement.</p>
-                        </div>
-
-                        <div class="requirements">
-                            <h3><i class="fas fa-file-alt"></i> Documents requis</h3>
-                            <div class="requirements-grid">
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Nom et prénoms complets du nouveau-né</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Nom et prénom du père</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Date de naissance du père</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Copie de la pièce d'identité du père</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Certificat médical de naissance original</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Timbre fiscal (500 FCFA par copie)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="action-btn">
-                            <a href="{{ route('user.dashboard') }}" class="btn-primary">
-                                <i class="fas fa-paper-plane"></i> Démarrer la demande
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Simple ou Intégral -->
-            <div class="tab-content active" id="simple-integral">
-                <div class="extrait-card">
-                    <div class="card-header">
-                        <h2>Extrait simple ou intégral</h2>
-                        <p>Pour les personnes déjà enregistrées à l'état civil</p>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="info-alert">
-                            <i class="fas fa-info-circle"></i>
-                            <div>
-                                <strong>À savoir :</strong> Choisissez le type d'extrait en fonction de vos besoins
-                                administratifs.
-                            </div>
-                        </div>
-
-                        <div class="description">
-                            <p>Un acte de naissance peut donner lieu à la délivrance de 2 documents différents : <strong>la
-                                    copie intégrale</strong> et <strong>l'extrait simple</strong>. La copie intégrale
-                                comporte des informations complètes sur la personne concernée (nom, prénoms, date et lieu de
-                                naissance), des informations sur ses parents et les mentions marginales lorsqu'elles
-                                existent. L'extrait simple contient uniquement les informations de base sur la personne
-                                concernée.</p>
-                        </div>
-
-                        <div class="requirements">
-                            <h3><i class="fas fa-list-check"></i> Documents requis</h3>
-                            <div class="requirements-grid">
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Nom et prénoms de la personne concernée</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Numéro de registre</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Date du registre</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Commune de naissance</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Copie de la pièce d'identité</span>
-                                </div>
-                                <div class="requirement-item">
-                                    <div class="requirement-icon">
-                                        <i class="fas fa-check"></i>
-                                    </div>
-                                    <span>Timbre fiscal (500 FCFA par copie)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="action-btn">
-                            <a href="{{ route('user.dashboard') }}" class="btn-primary">
-                                <i class="fas fa-paper-plane"></i> Démarrer la demande
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- FAQ Section -->
-        <section class="faq-section">
-            <div class="extrait-container">
-                <h2>Questions Fréquentes</h2>
-                <div class="faq-grid">
-                    <div class="faq-item">
-                        <h3>Quelle est la différence entre un extrait simple et une copie intégrale ?</h3>
-                        <p>L'extrait simple contient les informations de base (nom, prénoms, date et lieu de naissance)
-                            tandis que la copie intégrale inclut également des informations sur les parents et les mentions
-                            marginales.</p>
+        <section class="py-5 bg-light">
+            <div class="container py-5">
+                <h2 class="text-center fw-900 text-primary mb-5">Questions Fréquentes</h2>
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-4">
+                        <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition">
+                            <h4 class="fw-800 text-primary mb-3">Quel est le délai ?</h4>
+                            <p class="text-muted mb-0">Le traitement prend généralement 24h à 48h ouvrées après validation
+                                de votre paiement.</p>
+                        </div>
                     </div>
-                    <div class="faq-item">
-                        <h3>Combien de temps faut-il pour obtenir un extrait de naissance ?</h3>
-                        <p>Le traitement d'une demande en ligne prend généralement 24 à 48 heures. Vous recevrez une
-                            notification dès que votre document sera prêt.</p>
+                    <div class="col-md-4">
+                        <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition">
+                            <h4 class="fw-800 text-primary mb-3">Puis-je être livré ?</h4>
+                            <p class="text-muted mb-0">Oui, nous proposons une livraison sécurisée à domicile ou à votre
+                                bureau partout en Côte d'Ivoire.</p>
+                        </div>
                     </div>
-                    <div class="faq-item">
-                        <h3>Où puis-je obtenir un timbre fiscal ?</h3>
-                        <p>Les timbres fiscaux sont disponibles dans les bureaux de poste, les trésoreries et certaines
-                            administrations.</p>
+                    <div class="col-md-4">
+                        <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition">
+                            <h4 class="fw-800 text-primary mb-3">Quels sont les tarifs ?</h4>
+                            <p class="text-muted mb-0">L'extrait coûte 500 FCFA l'unité, auxquels s'ajoutent les frais de
+                                timbre et de livraison éventuelle.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
-
-        <style>
-            :root {
-                --primary-color: #1977cc;
-                --primary-light: #e8f2fc;
-                --secondary-color: #f8f9fa;
-                --text-color: #333;
-                --light-text: #6c757d;
-                --white: #ffffff;
-                --success-color: #28a745;
-                --info-color: #17a2b8;
-                --border-radius: 12px;
-                --box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-                --transition: all 0.3s ease;
-            }
-
-            .extrait-page {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background-color: var(--white);
-                color: var(--text-color);
-                line-height: 1.6;
-            }
-
-            .extrait-container {
-                width: 100%;
-                max-width: 1000px;
-                margin: 0 auto;
-                padding: 0 20px;
-            }
-
-            /* Hero Section */
-            .extrait-hero {
-                background: linear-gradient(rgba(25, 119, 204, 0.5), rgba(25, 119, 204, 0.9)), url('{{asset('assets/assets/img/logo plateau.png')}}');
-                background-size: cover;
-                background-position: center;
-                color: var(--white);
-                padding: 80px 0;
-                text-align: center;
-            }
-
-            .extrait-hero h1 {
-                font-size: 2.8rem;
-                margin-bottom: 20px;
-                font-weight: 700;
-                color: white;
-            }
-
-            .extrait-hero p {
-                font-size: 1.3rem;
-                max-width: 700px;
-                margin: 0 auto;
-                opacity: 0.9;
-            }
-
-            /* Tabs Navigation */
-            .extrait-tabs {
-                background-color: var(--secondary-color);
-                padding: 30px 0;
-            }
-
-            .tabs {
-                display: flex;
-                justify-content: center;
-                gap: 20px;
-            }
-
-            .tab-btn {
-                background: var(--white);
-                border: 2px solid var(--primary-color);
-                color: var(--primary-color);
-                padding: 15px 30px;
-                border-radius: 50px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 1.1rem;
-                transition: var(--transition);
-            }
-
-            .tab-btn:hover,
-            .tab-btn.active {
-                background: var(--primary-color);
-                color: var(--white);
-                transform: translateY(-2px);
-            }
-
-            /* Tab Content */
-            .tab-content {
-                display: none;
-                padding: 50px 0;
-            }
-
-            .tab-content.active {
-                display: block;
-            }
-
-            /* Card Styles */
-            .extrait-card {
-                background: var(--white);
-                border-radius: var(--border-radius);
-                overflow: hidden;
-                box-shadow: var(--box-shadow);
-                transition: var(--transition);
-            }
-
-            .extrait-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-            }
-
-            .card-header {
-                background: linear-gradient(135deg, var(--primary-color), #125daa);
-                color: var(--white);
-                padding: 30px;
-                text-align: center;
-            }
-
-            .card-header h2 {
-                font-size: 2rem;
-                color: white;
-                margin-bottom: 10px;
-            }
-
-            .card-header p {
-                font-size: 1.1rem;
-                opacity: 0.9;
-            }
-
-            .card-body {
-                padding: 30px;
-            }
-
-            /* Info Alert */
-            .info-alert {
-                display: flex;
-                align-items: flex-start;
-                background-color: var(--primary-light);
-                border-left: 4px solid var(--info-color);
-                padding: 20px;
-                border-radius: 8px;
-                margin-bottom: 30px;
-            }
-
-            .info-alert i {
-                color: var(--info-color);
-                font-size: 1.5rem;
-                margin-right: 15px;
-                margin-top: 2px;
-            }
-
-            .info-alert strong {
-                color: var(--info-color);
-            }
-
-            /* Description */
-            .description {
-                margin-bottom: 30px;
-            }
-
-            .description p {
-                font-size: 1.1rem;
-                line-height: 1.7;
-                color: var(--text-color);
-            }
-
-            /* Requirements */
-            .requirements {
-                margin-bottom: 40px;
-            }
-
-            .requirements h3 {
-                color: var(--primary-color);
-                font-size: 1.5rem;
-                margin-bottom: 20px;
-                display: flex;
-                align-items: center;
-            }
-
-            .requirements h3 i {
-                margin-right: 10px;
-            }
-
-            .requirements-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 15px;
-            }
-
-            .requirement-item {
-                display: flex;
-                align-items: center;
-                padding: 15px;
-                background-color: var(--secondary-color);
-                border-radius: 8px;
-                transition: var(--transition);
-            }
-
-            .requirement-item:hover {
-                background-color: var(--primary-light);
-                transform: translateX(5px);
-            }
-
-            .requirement-icon {
-                width: 30px;
-                height: 30px;
-                background-color: var(--success-color);
-                color: var(--white);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-right: 15px;
-                flex-shrink: 0;
-            }
-
-            /* Action Button */
-            .action-btn {
-                text-align: center;
-            }
-
-            .btn-primary {
-                display: inline-block;
-                background-color: var(--primary-color);
-                color: var(--white);
-                padding: 16px 40px;
-                border-radius: 50px;
-                text-decoration: none;
-                font-weight: 600;
-                font-size: 1.1rem;
-                transition: var(--transition);
-            }
-
-            .btn-primary:hover {
-                background-color: #125daa;
-                transform: translateY(-3px);
-                box-shadow: 0 10px 20px rgba(25, 119, 204, 0.3);
-            }
-
-            .btn-primary i {
-                margin-right: 10px;
-            }
-
-            /* FAQ Section */
-            .faq-section {
-                background-color: var(--secondary-color);
-                padding: 80px 0;
-            }
-
-            .faq-section h2 {
-                text-align: center;
-                margin-bottom: 50px;
-                color: var(--primary-color);
-                font-size: 2.2rem;
-            }
-
-            .faq-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 30px;
-            }
-
-            .faq-item {
-                background: var(--white);
-                border-radius: var(--border-radius);
-                padding: 25px;
-                box-shadow: var(--box-shadow);
-            }
-
-            .faq-item h3 {
-                color: var(--primary-color);
-                margin-bottom: 15px;
-                font-size: 1.2rem;
-            }
-
-            /* Contact Section */
-            .contact-section {
-                padding: 80px 0;
-            }
-
-            .contact-card {
-                background: linear-gradient(135deg, var(--primary-color), #125daa);
-                color: var(--white);
-                padding: 60px 50px;
-                border-radius: var(--border-radius);
-                text-align: center;
-            }
-
-            .contact-card h2 {
-                margin-bottom: 15px;
-                font-size: 2rem;
-            }
-
-            .contact-card>p {
-                margin-bottom: 50px;
-                font-size: 1.1rem;
-                opacity: 0.9;
-            }
-
-            .contact-methods {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 40px;
-            }
-
-            .contact-method {
-                padding: 20px;
-            }
-
-            .contact-method i {
-                font-size: 2.5rem;
-                margin-bottom: 20px;
-                color: var(--white);
-                opacity: 0.9;
-            }
-
-            .contact-method h3 {
-                margin-bottom: 15px;
-                font-size: 1.3rem;
-            }
-
-            .contact-method p {
-                opacity: 0.9;
-                line-height: 1.6;
-            }
-
-            /* Responsive Design */
-            @media (max-width: 768px) {
-                .tabs {
-                    flex-direction: column;
-                    align-items: center;
-                }
-
-                .tab-btn {
-                    width: 100%;
-                    max-width: 300px;
-                    text-align: center;
-                }
-
-                .requirements-grid {
-                    grid-template-columns: 1fr;
-                }
-
-                .faq-grid {
-                    grid-template-columns: 1fr;
-                }
-
-                .contact-methods {
-                    grid-template-columns: 1fr;
-                }
-
-                .contact-card {
-                    padding: 40px 20px;
-                }
-
-                .extrait-hero h1 {
-                    font-size: 2.2rem;
-                }
-
-                .extrait-hero p {
-                    font-size: 1.1rem;
-                }
-            }
-
-            @media (max-width: 576px) {
-                .card-header {
-                    padding: 20px;
-                }
-
-                .card-header h2 {
-                    font-size: 1.6rem;
-                }
-
-                .card-body {
-                    padding: 20px;
-                }
-
-                .info-alert {
-                    flex-direction: column;
-                    text-align: center;
-                }
-
-                .info-alert i {
-                    margin-right: 0;
-                    margin-bottom: 10px;
-                }
-
-                .btn-primary {
-                    width: 100%;
-                    text-align: center;
-                }
-            }
-        </style>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const tabBtns = document.querySelectorAll('.tab-btn');
-                const tabContents = document.querySelectorAll('.tab-content');
-
-                tabBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        // Remove active class from all buttons and contents
-                        tabBtns.forEach(b => b.classList.remove('active'));
-                        tabContents.forEach(c => c.classList.remove('active'));
-
-                        // Add active class to clicked button
-                        btn.classList.add('active');
-
-                        // Show corresponding content
-                        const tabId = btn.getAttribute('data-tab');
-                        document.getElementById(tabId).classList.add('active');
-                    });
-                });
-            });
-        </script>
+    </div>
 @endsection
+
+@push('styles')
+    <style>
+        .service-hero {
+            background: linear-gradient(rgba(31, 64, 131, 0.9), rgba(31, 64, 131, 0.8)), url('{{ asset('assets/assets/img/Plateau-immeuble.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            padding: 180px 0 120px;
+            border-radius: 0 0 80px 80px;
+        }
+
+        .text-primary {
+            color: #1f4083 !important;
+        }
+
+        .bg-primary {
+            background-color: #1f4083 !important;
+        }
+
+        .btn-primary {
+            background-color: #1f4083 !important;
+            border-color: #1f4083 !important;
+        }
+
+        .fw-900 {
+            font-weight: 900;
+        }
+
+        .fw-800 {
+            font-weight: 800;
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        .tabs-modern {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-link {
+            border: none;
+            background: transparent;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 700;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .tab-link.active {
+            background: #1f4083;
+            color: white;
+        }
+
+        .card-modern {
+            background: white;
+            border-radius: 35px;
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(15, 23, 42, 0.08);
+            border: 1px solid #f1f5f9;
+            position: relative;
+        }
+
+        .card-top-bar {
+            height: 10px;
+            width: 100%;
+        }
+
+        .alert-modern {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(31, 64, 131, 0.05);
+            border-radius: 15px;
+        }
+
+        .alert-modern.warning {
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .custom-list li {
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .price-card {
+            border: 2px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .faq-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 991px) {
+            .service-hero {
+                padding: 120px 0 60px !important;
+                border-radius: 0 0 40px 40px;
+            }
+
+            .display-3 {
+                font-size: 2.5rem !important;
+            }
+
+            .tabs-modern {
+                flex-direction: column;
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .tab-link {
+                width: 100%;
+                padding: 12px 20px;
+                text-align: center;
+            }
+
+            .card-modern {
+                border-radius: 25px;
+                margin-top: -40px !important;
+            }
+
+            .p-5 {
+                padding: 1.5rem !important;
+            }
+
+            .row.g-5 {
+                --bs-gutter-y: 2rem;
+            }
+
+            .price-card {
+                padding: 1.5rem !important;
+            }
+
+            .alert-modern {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .display-3 {
+                font-size: 2rem !important;
+            }
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabContent, tabLinks;
+            tabContent = document.getElementsByClassName("tab-pane");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+                tabContent[i].classList.remove("active");
+            }
+            tabLinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.className += " active";
+        }
+    </script>
+@endpush

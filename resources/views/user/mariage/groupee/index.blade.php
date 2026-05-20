@@ -3,7 +3,7 @@
 @section('content')
     <style>
         :root {
-            --primary: #1977cc;
+            --primary: #1f4083;
             --primary-light: #e8f1fb;
             --text-navy: #1a2b4a;
         }

@@ -141,7 +141,7 @@ class AgentDecesController extends Controller
         if ($deces->etat === 'rejetée' && $request->motif_champs) {
             $champsModifies = $request->motif_champs;
         }
-        
+
         ActionHistory::logAction(
             'deces',
             $deces->id,
@@ -197,6 +197,18 @@ class AgentDecesController extends Controller
                 $yellikaSmsService->sendSms($phoneNumber, $message);
             } catch (\Exception $e) {
                 Log::error("Erreur lors de l'envoi du SMS de fin de traitement (décès) : " . $e->getMessage());
+            }
+        }
+
+        // SMS notification when marked as rejected
+        if ($user && $deces->etat === 'rejetée' && $ancienEtat !== 'rejetée') {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande d'extrait de décès (Réf: {$deces->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de rejet (décès) : " . $e->getMessage());
             }
         }
 
@@ -278,11 +290,11 @@ class AgentDecesController extends Controller
         if ($deces->reference !== $request->reference) {
             return response()->json(['error' => 'Référence incorrecte'], 400);
         }
-        
+
         // Sauvegarder l'ancien statut
         $ancienStatut = $deces->statut_livraison ?? 'en attente';
         $user = $deces->user;
-        
+
         $deces->statut_livraison = $request->statut_livraison;
         $deces->save();
 
@@ -326,6 +338,4 @@ class AgentDecesController extends Controller
             ->setOption('isRemoteEnabled', true);
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }
-
-
 }

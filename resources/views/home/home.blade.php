@@ -1,295 +1,319 @@
-@extends('home.layouts.tamplate')
+@extends('home.layouts.main')
+
 @section('content')
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="container hero-container">
+            <div class="row align-items-center">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="badge-premium mb-3">
+                        <span class="badge rounded-pill bg-white text-primary px-3 py-2 fw-800 shadow-sm">
+                            <i class="bi bi-patch-check-fill me-1"></i> PORTAIL OFFICIEL
+                        </span>
+                    </div>
+                    <h1 class="display-1 fw-900 mb-4" style="line-height: 1.1; color: #1f4083;">
+                        Vos Actes Civils<br>
+                        <span class="text-secondary">Simplifiés.</span>
+                    </h1>
+                    <p class="lead text-muted mb-5 fs-5">
+                        La Mairie du Plateau se digitalise pour vous. Commandez, suivez et recevez vos documents
+                        administratifs sans vous déplacer.
+                    </p>
 
- <main class="main">
+                    <div class="search-box-wrapper mb-5" data-aos="fade-up" data-aos-delay="200">
+                        <form action="{{ route('recherche.demande') }}" method="POST"
+                            class="d-flex p-2 bg-white rounded-4 shadow-lg border">
+                            @csrf
+                            <input type="text" name="reference_naissance" class="form-control border-0 px-4 py-3 fw-600"
+                                placeholder="Entrez votre numéro de suivi..." required>
+                            <button type="submit" class="btn btn-primary rounded-3 px-5 fw-800">Suivre</button>
+                        </form>
+                    </div>
 
-    <!-- Hero Section -->
-    <section id="hero" class="hero section light-background">
-
-      <img src="{{asset('assets/assets/img/C.jpg')}}"  alt="" data-aos="fade-in">
-
-      <div class="container position-relative">
-
-        <div class="welcome position-relative" data-aos="fade-down" data-aos-delay="100">
-          <h2>BIENVENUE À LA MAIRIE DU PLATEAU</h2>
-          <p>Vous pouvez désormais faire votre demandes d'actes civils à la mairie du plateau en ligne </p>
-        </div><!-- End Welcome -->
-
-        <div class="content row gy-4">
-          <div class="col-lg-4 d-flex align-items-stretch">
-            <div class="why-box" data-aos="zoom-out" data-aos-delay="200">
-              <h3>Comment faire une demande d'acte civil</h3>
-              <p>
-                Pour faire une demande d'acte civil vous devez être en possession des informations suivantes : 
-              </p>
-            </div>
-          </div><!-- End Why Box -->
-
-          <div class="col-lg-8 d-flex align-items-stretch">
-            <div class="d-flex flex-column justify-content-center">
-              <div class="row gy-4">
-
-                <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="300">
-                    <i class="bi bi-clipboard-data"></i>
-                    <h4>Acte de naissance</h4>
-                    <p>- Connaitre le numéro de registre</p>
-                    <p>- Connaitre la date de registre</p>
-                    <p>- Avoir une copie de l'extrait</p>
-                  </div>
-                </div><!-- End Icon Box -->
-
-                <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="400">
-                    <i class="bi bi-gem"></i>
-                    <h4>Acte de décès</h4>
-                    <p>- Connaitre le numéro de registre</p>
-                    <p>- Connaitre la date de registre</p>
-                    <p>- Avoir une copie de l'extrait</p>
-                  </div>
-                </div><!-- End Icon Box -->
-
-                <div class="col-xl-4 d-flex align-items-stretch">
-                  <div class="icon-box" data-aos="zoom-out" data-aos-delay="500">
-                    <i class="bi bi-inboxes"></i>
-                    <h4>Acte de mariage</h4>
-                    <p>- Connaitre le numéro de registre</p>
-                    <p>- Connaitre la date de registre</p>
-                    <p>- Avoir une copie de l'extrait</p>
-                  </div>
-                </div><!-- End Icon Box -->
-
-              </div>
-            </div>
-          </div>
-        </div><!-- End  Content-->
-
-      </div>
-
-    </section><!-- /Hero Section -->
-
-    <!-- About Section -->
-    <section id="about" class="about section">
-
-      <div class="container">
-
-        <div class="row gy-4 gx-5">
-
-          <div class="col-lg-6 position-relative align-self-start" data-aos="fade-up" data-aos-delay="200">
-            <img src="{{asset('assets/assets/img/Plateau-immeuble.jpg')}}" class="img-fluid" alt="">
-            <a href="{{asset('assets/assets/img/CÔTE D IVOIRE _ LE QUARTIER DES AFFAIRES, Plateau, Abidjan.mp4')}}" class="glightbox pulsating-play-btn"></a>
-          </div>
-
-          <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100">
-            <h3>Présentation</h3>
-            <p>
-              Entouré d'eau, Le Plateau est le quartier d'affaires animé de la ville, où se trouvent des bâtiments gouvernementaux et des immeubles de bureaux, ainsi que la cathédrale Saint-Paul, qui comprend une tour moderne en forme de croix. Des sculptures, des céramiques et des statues sont exposées au sein du musée des Civilisations de Côte d'Ivoire, et le stade Félix-Houphouët-Boigny accueille des meetings d'athlétisme et des matchs de football internationaux. Quelques boulangeries et restaurants haut de gamme sont également parsemés dans le quartier.
-            </p>
-            <ul>
-              <li>
-                <i class="fa-solid fa-vial-circle-check"></i>
-                <div>
-                  <h5>Etat Civil</h5>
-                  <p>Retrouvez toutes les démarches liées à l'état civil : naissance, mariage, décès…</p>
+                    <div class="d-flex flex-wrap gap-4 align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="icon-circle-sm bg-success text-white">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <span class="fw-700 text-dark small">Service 24h/7j</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="icon-circle-sm bg-primary text-white">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </div>
+                            <span class="fw-700 text-dark small">Paiement Sécurisé</span>
+                        </div>
+                    </div>
                 </div>
-              </li>
-              <li>
-                <i class="fa-solid fa-pump-medical"></i>
-                <div>
-                  <h5>Légalisation et Certification</h5>
-                  <p>Il existe des imprimer à prendre sur place pour vous aider</p>
+
+                <div class="col-lg-6" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="hero-image-stack">
+                        <img src="{{ asset('assets/assets/img/Plateau-immeuble.jpg') }}"
+                            class="img-fluid rounded-5 main-img" alt="Mairie">
+                        <div class="floating-card p-4 rounded-4 shadow-lg bg-white bg-opacity-75 backdrop-blur">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="stats-icon bg-warning text-white rounded-3 p-2">
+                                    <i class="bi bi-people-fill fs-3"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fw-900 mb-0">+50,000</h4>
+                                    <p class="text-muted small mb-0">Demandes traitées</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </li>
-              <li>
-                <i class="fa-solid fa-home"></i>
-                <div>
-                  <h5>Réservation de Salle</h5>
-                  <p>Vous pouvez avoir des salles pour vos evenements</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES QUICK START -->
+    <section class="services-section py-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Naissance -->
+                <div class="col-md-4" data-aos="fade-up">
+                    <div class="service-card-new p-5 text-center transition">
+                        <div class="icon-wrapper mb-4 mx-auto">
+                            <i class="bi bi-journal-plus fs-1" style="color: #1f4083;"></i>
+                        </div>
+                        <h4 class="fw-900 mb-3" style="color: #1f4083;">Naissance</h4>
+                        <p class="text-muted mb-4">Commandez vos extraits d'acte de naissance ou copies intégrales en ligne.
+                        </p>
+                        <a href="{{ route('home.birth') }}" class="btn btn-outline-primary px-4 rounded-pill fw-800"
+                            style="border-color: #1f4083; color: #1f4083;">COMMANDER</a>
+                    </div>
                 </div>
-              </li>
-            </ul>
-          </div>
 
+                <!-- Mariage -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="service-card-new p-5 text-center featured transition" style="background-color: #1f4083;">
+                        <div class="icon-wrapper mb-4 mx-auto">
+                            <i class="bi bi-heart-fill text-white fs-1"></i>
+                        </div>
+                        <h4 class="fw-900 mb-3 text-white">Mariage</h4>
+                        <p class="text-white text-opacity-75 mb-4">Réservez votre date de célébration et demandez vos
+                            certificats.</p>
+                        <a href="{{ route('home.wedding') }}" class="btn btn-light px-4 rounded-pill fw-800"
+                            style="color: #1f4083;">DÉCOUVRIR</a>
+                    </div>
+                </div>
+
+                <!-- Décès -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="service-card-new p-5 text-center transition">
+                        <div class="icon-wrapper mb-4 mx-auto">
+                            <i class="bi bi-file-earmark-diff text-danger fs-1"></i>
+                        </div>
+                        <h4 class="fw-900 mb-3" style="color: #1f4083;">Décès</h4>
+                        <p class="text-muted mb-4">Démarches simplifiées pour l'obtention des actes de décès officiels.</p>
+                        <a href="{{ route('home.death') }}"
+                            class="btn btn-outline-danger px-4 rounded-pill fw-800">COMMENCER</a>
+                    </div>
+                </div>
+            </div>
         </div>
-
-      </div>
-
-    </section><!-- /About Section -->
-
-    <!-- Services Section -->
-    <section id="services" class="services section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Services</h2>
-        <p>Vous pouvez avoir une aperçu de nous services</p>
-      </div><!-- End Section Title -->
-
-      <div class="container">
-
-        <div class="row gy-4">
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-heartbeat"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Etat Civil</h3>
-              </a>
-              <p>Obtenez vos documents d'état civil (acte de naissance, mariage, décès) et effectuez toutes les démarches administratives liées à votre situation familiale.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-pills"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Légalisation et Certification</h3>
-              </a>
-              <p>Authentification et légalisation de vos documents officiels pour leur donner valeur légale à l'étranger ou dans les administrations concernées.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-hospital-user"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Certificat de Vie et d'Entretien</h3>
-              </a>
-              <p>Attestation officielle prouvant votre existence et votre situation financière, souvent requise pour les pensions ou allocations.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-dna"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Certificat de non remariage et Non divorce</h3>
-              </a>
-              <p>Document attestant de votre situation matrimoniale actuelle, nécessaire pour certaines procédures administratives ou juridiques.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-notes-medical"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Couverture Maladie Universelle</h3>
-              </a>
-              <p>Accédez à la protection sociale et aux soins médicaux grâce à la CMU. Inscription et renouvellement de votre couverture santé.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="fas fa-users"></i>
-              </div>
-              <a href="#" class="stretched-link">
-                <h3>Déclaration d'une Activité</h3>
-              </a>
-              <p>Enregistrement officiel de votre activité professionnelle, qu'il s'agisse d'une entreprise, d'un commerce ou d'une profession libérale.</p>
-            </div>
-          </div><!-- End Service Item -->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Services Section -->
-
-    <!-- Gallery Section -->
-    <section id="gallery" class="gallery section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Gallery</h2>
-        <p>Plateau en quelques images.</p>
-      </div><!-- End Section Title -->
-
-      <div class="container-fluid" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row g-0">
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assets/assets/img/im1.jpg')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assets/assets/img/im1.jpg')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assets/assets/img/im2.jpg')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assets/assets/img/im2.jpg')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assets/assets/img/im10.png')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assets/assets/img/im10.png')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assets/assets/img/im16.jpg')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assets/assets/img/im16.jpg')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assets/assets/img/im15.jpg')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assets/assets/img/im15.jpg')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assets/assets/img/im12.jpg')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assets/assets/img/im12.jpg')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assets/assets/img/im13.jpg')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assets/assets/img/im13.jpg')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-          <div class="col-lg-3 col-md-4">
-            <div class="gallery-item">
-              <a href="{{asset('assetsMairie/images/samples/1280x768/4.jpg')}}" class="glightbox" data-gallery="images-gallery">
-                <img src="{{asset('assetsMairie/images/samples/1280x768/4.jpg')}}" alt="" class="img-fluid">
-              </a>
-            </div>
-          </div><!-- End Gallery Item -->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Gallery Section -->
-
-  </main>
-
+    </section>
 @endsection
+
+@push('styles')
+    <style>
+        /* --- FONT WEIGHTS --- */
+        .fw-600 {
+            font-weight: 600;
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        .fw-800 {
+            font-weight: 800;
+        }
+
+        .fw-900 {
+            font-weight: 900;
+        }
+
+        .btn-primary {
+            background-color: #1f4083;
+            border-color: #1f4083;
+        }
+
+        .btn-primary:hover {
+            background-color: #162e5f;
+            border-color: #162e5f;
+        }
+
+        .text-primary {
+            color: #1f4083 !important;
+        }
+
+        .bg-primary {
+            background-color: #1f4083 !important;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero-section {
+            padding: 160px 0 100px;
+            background: #f8fafc;
+            overflow: hidden;
+        }
+
+        .hero-container {
+            position: relative;
+        }
+
+        .icon-circle-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .hero-image-stack {
+            position: relative;
+            padding-right: 40px;
+        }
+
+        .main-img {
+            box-shadow: 0 50px 100px -20px rgba(15, 23, 42, 0.15);
+            border: 10px solid white;
+        }
+
+        .floating-card {
+            position: absolute;
+            bottom: -30px;
+            right: 0;
+            min-width: 240px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .backdrop-blur {
+            backdrop-filter: blur(10px);
+        }
+
+        /* --- SERVICE CARDS --- */
+        .services-section {
+            background: white;
+            margin-top: -50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .service-card-new {
+            background: white;
+            border-radius: 30px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+        }
+
+        .service-card-new.featured {
+            background: var(--primary);
+            box-shadow: 0 30px 60px rgba(31, 64, 131, 0.2);
+        }
+
+        .service-card-new.featured .icon-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: #f1f5f9;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transition {
+            transition: all 0.4s ease;
+        }
+
+        .service-card-new:hover {
+            transform: translateY(-15px);
+        }
+
+        .service-card-new.featured:hover {
+            box-shadow: 0 40px 80px rgba(31, 64, 131, 0.3);
+        }
+
+        @media (max-width: 991px) {
+            .hero-section {
+                text-align: center;
+                padding-top: 120px;
+                padding-bottom: 60px;
+            }
+
+            .display-1 {
+                font-size: 3.2rem !important;
+            }
+
+            .hero-image-stack {
+                margin-top: 50px;
+                padding-right: 0;
+            }
+
+            .floating-card {
+                right: 50% !important;
+                transform: translateX(50%) !important;
+                bottom: -20px !important;
+                min-width: 200px !important;
+                display: block !important;
+            }
+
+            .d-flex.flex-wrap.gap-4 {
+                justify-content: center;
+            }
+
+            .search-box-wrapper form {
+                flex-direction: column;
+                gap: 10px;
+                background: transparent !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            .search-box-wrapper input {
+                border-radius: 15px !important;
+                text-align: center;
+                border: 1px solid #e2e8f0 !important;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            }
+
+            .search-box-wrapper button {
+                width: 100%;
+                padding: 15px !important;
+            }
+
+            .services-section {
+                margin-top: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .display-1 {
+                font-size: 2.5rem !important;
+            }
+
+            .service-card-new {
+                padding: 30px !important;
+                border-radius: 25px;
+            }
+
+            .icon-wrapper {
+                width: 60px;
+                height: 60px;
+            }
+
+            .icon-wrapper i {
+                font-size: 1.5rem !important;
+            }
+        }
+    </style>
+@endpush

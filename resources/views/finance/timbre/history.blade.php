@@ -71,7 +71,7 @@
                                 <i class="fas fa-minus-circle"></i>
                             </div>
                         </div>
-                        <div class="stat-card " style="background-color: #1977cc">
+                        <div class="stat-card " style="background-color: #1f4083">
                             <div class="stat-content">
                                 <h6>Stock Actuel</h6>
                                 <h3>{{ number_format($solde_actuel, 0, ',', ' ') }} timbres</h3>
@@ -196,9 +196,9 @@
     :root {
         --primary: #ff8800;
         --primary-light: #4895ef;
-        --secondary: #1977cc;
+        --secondary: #1f4083;
         --success: #ff8800;
-        --danger: #1977cc;
+        --danger: #1f4083;
         --warning: #ffd166;
         --info: black;
         --dark: #2b2d42;
@@ -392,7 +392,7 @@
     }
 
     .data-table th {
-        background: #1977cc;
+        background: #1f4083;
         padding: 1rem;
         text-align: center;
         font-weight: 600;

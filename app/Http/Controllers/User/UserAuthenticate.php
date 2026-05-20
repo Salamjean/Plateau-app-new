@@ -20,8 +20,9 @@ use Illuminate\Http\Request;
 
 class UserAuthenticate extends Controller
 {
-    public function login(){
-         // Vérifier si l'utilisateur est déjà authentifié
+    public function login()
+    {
+        // Vérifier si l'utilisateur est déjà authentifié
         if (auth('web')->check()) {
             return redirect()->route('user.dashboard');
         }
@@ -31,7 +32,7 @@ class UserAuthenticate extends Controller
     public function handleLogin(UserLoginRequest $request): RedirectResponse
     {
         $credentials = $request->only('password');
-        
+
         if ($request->filled('email')) {
             $credentials['email'] = $request->email;
         } else {
@@ -52,8 +53,9 @@ class UserAuthenticate extends Controller
         return redirect()->intended(route('user.dashboard', false))->with('success', 'Bienvenue sur votre page!');
     }
 
-    
-    public function register(){
+
+    public function register()
+    {
         return view('user.auth.register');
     }
 
@@ -66,7 +68,7 @@ class UserAuthenticate extends Controller
                 $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
                 Log::info('Profile picture stored at: ' . $profilePicturePath);
             }
-            
+
             $user = new User();
             $user->name = $request->name;
             $user->prenom = $request->prenom;
@@ -77,7 +79,7 @@ class UserAuthenticate extends Controller
             $user->CMU = $request->CMU;
             $user->password = Hash::make($request->password);
             $user->profile_picture = $profilePicturePath;
-            
+
             // Gestion de la diaspora
             $user->diaspora = $request->has('diaspora') ? true : false;
             if ($user->diaspora) {
@@ -85,7 +87,7 @@ class UserAuthenticate extends Controller
                 $user->ville_residence = $request->ville_residence;
                 $user->adresse_etrangere = $request->adresse_etrangere;
             }
-            
+
             $user->save();
 
             // Envoi de l'email de confirmation
@@ -98,10 +100,9 @@ class UserAuthenticate extends Controller
             }
 
             return redirect()->route('login')->with('success', 'Votre compte a été créé avec succès. Un email de confirmation vous a été envoyé.');
-
         } catch (\Exception $e) {
             Log::error('Error during registration: ' . $e->getMessage());
-            
+
             // Ajout (inspiré de votre API) : Supprimer l'image si la création échoue
             if (isset($profilePicturePath) && Storage::disk('public')->exists($profilePicturePath)) {
                 Storage::disk('public')->delete($profilePicturePath);
@@ -112,9 +113,10 @@ class UserAuthenticate extends Controller
         }
     }
 
-    public function history() {
+    public function history()
+    {
         $userId = Auth::user()->id;
-        
+
         $historique = DB::table('naissances')
             ->leftJoin('agents', 'naissances.agent_id', '=', 'agents.id')
             ->select(
@@ -129,7 +131,7 @@ class UserAuthenticate extends Controller
                 'agents.prenom as agent_prenom'
             )
             ->where('naissances.user_id', $userId)
-            
+
             ->unionAll(
                 DB::table('deces')
                     ->leftJoin('agents', 'deces.agent_id', '=', 'agents.id')
@@ -163,19 +165,84 @@ class UserAuthenticate extends Controller
                     )
                     ->where('mariages.user_id', $userId)
             )
-            
+
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return view('user.history', compact('historique'));
+    }
+
+    public function pendingCollections()
+    {
+        $userId = Auth::user()->id;
+
+        $historique = DB::table('naissances')
+            ->leftJoin('agents', 'naissances.agent_id', '=', 'agents.id')
+            ->select(
+                'naissances.id',
+                'naissances.reference',
+                'naissances.type as demande_type',
+                'naissances.etat',
+                'naissances.statut_livraison',
+                'naissances.created_at',
+                DB::raw("'naissance' as table_name"),
+                'agents.name as agent_nom',
+                'agents.prenom as agent_prenom'
+            )
+            ->where('naissances.user_id', $userId)
+            ->where('naissances.etat', 'terminé')
+
+            ->unionAll(
+                DB::table('deces')
+                    ->leftJoin('agents', 'deces.agent_id', '=', 'agents.id')
+                    ->select(
+                        'deces.id',
+                        'deces.reference',
+                        DB::raw("'Décès' as demande_type"),
+                        'deces.etat',
+                        'deces.statut_livraison',
+                        'deces.created_at',
+                        DB::raw("'deces' as table_name"),
+                        'agents.name as agent_nom',
+                        'agents.prenom as agent_prenom'
+                    )
+                    ->where('deces.user_id', $userId)
+                    ->where('deces.etat', 'terminé')
+            )
+
+            ->unionAll(
+                DB::table('mariages')
+                    ->leftJoin('agents', 'mariages.agent_id', '=', 'agents.id')
+                    ->select(
+                        'mariages.id',
+                        'mariages.reference',
+                        DB::raw("'Mariage' as demande_type"),
+                        'mariages.etat',
+                        'mariages.statut_livraison',
+                        'mariages.created_at',
+                        DB::raw("'mariage' as table_name"),
+                        'agents.name as agent_nom',
+                        'agents.prenom as agent_prenom'
+                    )
+                    ->where('mariages.user_id', $userId)
+                    ->where('mariages.etat', 'terminé')
+            )
+
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $title = "Retraits & Livraisons";
+        $subtitle = "Prêt pour le retrait ou en attente de livraison.";
+
+        return view('user.history', compact('historique', 'title', 'subtitle'));
     }
 
     public function getDemandeDetails($type, $id)
     {
         $userId = Auth::user()->id;
-        
+
         try {
-            switch($type) {
+            switch ($type) {
                 case 'naissance':
                     $demande = Naissance::with('agent')->where('user_id', $userId)->findOrFail($id);
                     break;
@@ -188,19 +255,42 @@ class UserAuthenticate extends Controller
                 default:
                     return response()->json(['error' => 'Type de demande non trouvé'], 404);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'demande' => $demande,
                 'type' => $type
             ]);
-            
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['error' => 'Demande non trouvée'], 404);
         }
     }
 
-    public function profil(){
+    public function showDemandeDetails($type, $id)
+    {
+        $userId = Auth::user()->id;
+        try {
+            switch ($type) {
+                case 'naissance':
+                    $demande = Naissance::with(['agent', 'user'])->where('user_id', $userId)->findOrFail($id);
+                    break;
+                case 'deces':
+                    $demande = Deces::with(['agent', 'user'])->where('user_id', $userId)->findOrFail($id);
+                    break;
+                case 'mariage':
+                    $demande = Mariage::with(['agent', 'user'])->where('user_id', $userId)->findOrFail($id);
+                    break;
+                default:
+                    return redirect()->back()->with('error', 'Type de demande non trouvé');
+            }
+            return view('user.demande_details', compact('demande', 'type'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Demande non trouvée');
+        }
+    }
+
+    public function profil()
+    {
         return view('user.auth.profil');
     }
 
@@ -236,7 +326,7 @@ class UserAuthenticate extends Controller
             }
 
             $user = Auth::user();
-            
+
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'prenom' => 'required|string|max:255',
@@ -272,7 +362,7 @@ class UserAuthenticate extends Controller
 
             // Gestion de la diaspora
             $user->diaspora = $request->has('diaspora') ? true : false;
-            
+
             if ($user->diaspora) {
                 $user->pays_residence = $validated['pays_residence'];
                 $user->ville_residence = $validated['ville_residence'];
@@ -290,7 +380,6 @@ class UserAuthenticate extends Controller
             session()->forget('password_verified');
 
             return redirect()->route('user.profil')->with('success', 'Profil mis à jour avec succès!');
-
         } catch (\Exception $e) {
             Log::error('Error during profile update: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Erreur lors de la mise à jour. Veuillez réessayer.'])->withInput();

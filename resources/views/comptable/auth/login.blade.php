@@ -10,9 +10,9 @@
     <title>Régie - login</title>
     <style>
         :root {
-            --primary-color: #1977cc;
-            --secondary-color: #1977cc;
-            --accent-color: #4895ef;
+            --primary-color: #1f4083;
+            --secondary-color: #1f4083;
+            --accent-color: #1f4083;
             --error-color: #f72585;
             --success-color: #4cc9f0;
             --light-color: #f8f9fa;

@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
+    <link rel="shortcut icon" href="{{ asset('assets/assets/img/logo plateau.png') }}" />
     <title>Inscription - Plateau App</title>
     <style>
         :root {
-            --primary-color: #1a66ff;
-            --secondary-color: #1a66ff;
-            --accent-color: #4895ef;
+            --primary-color: #1f4083;
+            --secondary-color: #1f4083;
+            --accent-color: #1f4083;
             --error-color: #f72585;
             --success-color: #4cc9f0;
             --light-color: #f8f9fa;
@@ -35,13 +36,13 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e0eaff 100%);
+            background: linear-gradient(135deg, #f0f4ff 0%, #1f4083 100%);
             padding: 20px;
         }
 
         .form-container {
             background-color: white;
-            padding: 40px;
+            padding: 30px;
             width: 100%;
             max-width: 500px;
             border-radius: 24px;
@@ -51,8 +52,15 @@
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .back-btn {
@@ -82,12 +90,12 @@
 
         .illustration {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
 
         .illustration-circle {
-            width: 130px;
-            height: 130px;
+            width: 100px;
+            height: 100px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -107,7 +115,7 @@
 
         .form-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .title {
@@ -134,11 +142,11 @@
         .subtitle {
             color: var(--text-muted);
             font-size: 0.95rem;
-            margin-top: 15px;
+            margin-top: 5px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .form-label {
@@ -146,7 +154,7 @@
             font-size: 0.95rem;
             font-weight: 700;
             color: #1a1a1a;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .input-wrapper {
@@ -217,8 +225,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .separator {
@@ -231,14 +244,20 @@
             font-weight: 600;
         }
 
-        .separator::before, .separator::after {
+        .separator::before,
+        .separator::after {
             content: '';
             flex: 1;
             border-bottom: 1.5px solid #f1f3f5;
         }
 
-        .separator::before { margin-right: 15px; }
-        .separator::after { margin-left: 15px; }
+        .separator::before {
+            margin-right: 15px;
+        }
+
+        .separator::after {
+            margin-left: 15px;
+        }
 
         .social-btns {
             display: flex;
@@ -290,6 +309,7 @@
             .form-container {
                 padding: 30px 20px;
             }
+
             .social-btn {
                 font-size: 0.85rem;
                 padding: 0 5px;
@@ -297,6 +317,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="form-container">
         <!-- Bouton Retour -->
@@ -306,7 +327,7 @@
 
         <div class="illustration">
             <div class="illustration-circle">
-                <img src="{{asset('assets/assets/img/logo plateau.png')}}" alt="Logo Plateau">
+                <img src="{{ asset('assets/assets/img/logo plateau.png') }}" alt="Logo Plateau">
             </div>
         </div>
 
@@ -316,13 +337,15 @@
         </div>
 
         @if (Session::get('error'))
-            <div class="error-message animate__animated animate__shakeX" style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
+            <div class="error-message animate__animated animate__shakeX"
+                style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
                 <i class="fas fa-exclamation-circle"></i> {{ Session::get('error') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="error-message animate__animated animate__shakeX" style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
+            <div class="error-message animate__animated animate__shakeX"
+                style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
                 <i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}
             </div>
         @endif
@@ -346,14 +369,16 @@
                     <label class="form-label">Code de vérification</label>
                     <div class="input-wrapper">
                         <i class="fas fa-shield-alt input-icon"></i>
-                        <input class="input-field" type="text" id="otp_code" placeholder="Entrez les 6 chiffres" maxlength="6">
+                        <input class="input-field" type="text" id="otp_code" placeholder="Entrez les 6 chiffres"
+                            maxlength="6">
                     </div>
                 </div>
                 <button type="button" class="submit-btn" id="btnVerifyOtp">
                     Valider et continuer <i class="fas fa-arrow-right"></i>
                 </button>
                 <p style="text-align: center; margin-top: 15px; font-size: 0.85rem;">
-                    Pas reçu ? <a href="javascript:void(0)" id="resendOtp" style="color: var(--primary-color); font-weight: 700;">Renvoyer</a>
+                    Pas reçu ? <a href="javascript:void(0)" id="resendOtp"
+                        style="color: var(--primary-color); font-weight: 700;">Renvoyer</a>
                 </p>
             </div>
         </div>
@@ -362,18 +387,22 @@
 
         <div class="social-btns">
             <button type="button" class="social-btn google-btn" id="googlePhoneBtn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="22">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                    width="22">
                 Google
             </button>
 
             <button type="button" class="social-btn apple-btn" id="applePhoneBtn">
-                <svg width="20" height="20" viewBox="0 0 814 1000" fill="white"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46.5 700 0 571.8 0 449.3c0-152.5 99.5-233.1 197.3-233.1 69.1 0 126.4 45.3 170 45.3 42.1 0 108.5-47.9 188.2-47.9 30.1 0 108.2 2.6 168.6 80.6zm-80.6-171.4c31.5-38.5 53.9-89.2 53.9-139.9 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.1-55.1 134.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 134.7-69.7z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 814 1000" fill="white">
+                    <path
+                        d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46.5 700 0 571.8 0 449.3c0-152.5 99.5-233.1 197.3-233.1 69.1 0 126.4 45.3 170 45.3 42.1 0 108.5-47.9 188.2-47.9 30.1 0 108.2 2.6 168.6 80.6zm-80.6-171.4c31.5-38.5 53.9-89.2 53.9-139.9 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.1-55.1 134.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 134.7-69.7z" />
+                </svg>
                 Apple
             </button>
         </div>
 
         <div class="form-footer">
-            <p>Déjà inscrit ? <a href="{{route('login')}}">Se connecter</a></p>
+            <p>Déjà inscrit ? <a href="{{ route('login') }}">Se connecter</a></p>
         </div>
     </div>
 
@@ -392,30 +421,38 @@
                     const indicatif = document.getElementById('otp_indicatif').value;
                     const contact = document.getElementById('otp_contact').value;
 
-                    if(!contact) return Swal.fire('Oups', 'Veuillez saisir votre numéro', 'warning');
+                    if (!contact) return Swal.fire('Oups', 'Veuillez saisir votre numéro', 'warning');
 
                     this.disabled = true;
                     this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
 
                     fetch("{{ route('user.auth.otp.send') }}", {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
-                        body: JSON.stringify({ indicatif, contact })
-                    }).then(r => r.json())
-                    .then(data => {
-                        if(data.success) {
-                            Swal.fire('Succès', data.message, 'success');
-                            otpBox.style.display = 'block';
-                            btnSendOtp.style.display = 'none';
-                        } else {
-                            Swal.fire('Erreur', data.message || 'Erreur inconnue', 'error');
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                            },
+                            body: JSON.stringify({
+                                indicatif,
+                                contact
+                            })
+                        }).then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Succès', data.message, 'success');
+                                otpBox.style.display = 'block';
+                                btnSendOtp.style.display = 'none';
+                            } else {
+                                Swal.fire('Erreur', data.message || 'Erreur inconnue', 'error');
+                                this.disabled = false;
+                                this.innerHTML =
+                                    '<i class="fas fa-paper-plane"></i> Recevoir le code par SMS';
+                            }
+                        }).catch(() => {
                             this.disabled = false;
-                            this.innerHTML = '<i class="fas fa-paper-plane"></i> Recevoir le code par SMS';
-                        }
-                    }).catch(() => {
-                        this.disabled = false;
-                        this.innerHTML = '<i class="fas fa-paper-plane"></i> Recevoir le code par SMS';
-                    });
+                            this.innerHTML =
+                                '<i class="fas fa-paper-plane"></i> Recevoir le code par SMS';
+                        });
                 });
             }
 
@@ -425,28 +462,36 @@
                     const contact = document.getElementById('otp_contact').value;
                     const otp = document.getElementById('otp_code').value;
 
-                    if(!otp) return Swal.fire('Oups', 'Veuillez saisir le code reçu', 'warning');
+                    if (!otp) return Swal.fire('Oups', 'Veuillez saisir le code reçu', 'warning');
 
                     this.disabled = true;
                     this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
 
                     fetch("{{ route('user.auth.otp.verify') }}", {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
-                        body: JSON.stringify({ indicatif, contact, otp })
-                    }).then(r => r.json())
-                    .then(data => {
-                        if(data.success) {
-                            window.location.href = data.redirect;
-                        } else {
-                            Swal.fire('Erreur', data.message, 'error');
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                            },
+                            body: JSON.stringify({
+                                indicatif,
+                                contact,
+                                otp
+                            })
+                        }).then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = data.redirect;
+                            } else {
+                                Swal.fire('Erreur', data.message, 'error');
+                                this.disabled = false;
+                                this.innerHTML =
+                                    'Valider et continuer <i class="fas fa-arrow-right"></i>';
+                            }
+                        }).catch(() => {
                             this.disabled = false;
                             this.innerHTML = 'Valider et continuer <i class="fas fa-arrow-right"></i>';
-                        }
-                    }).catch(() => {
-                        this.disabled = false;
-                        this.innerHTML = 'Valider et continuer <i class="fas fa-arrow-right"></i>';
-                    });
+                        });
                 });
             }
 
@@ -472,26 +517,40 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (!auth) return Swal.fire('Erreur', 'Firebase non configuré', 'error');
-                    
-                    const provider = providerName === 'google' ? new firebase.auth.GoogleAuthProvider() : new firebase.auth.OAuthProvider('apple.com');
-                    if (providerName === 'apple') { provider.addScope('email'); provider.addScope('name'); }
+
+                    const provider = providerName === 'google' ? new firebase.auth.GoogleAuthProvider() :
+                        new firebase.auth.OAuthProvider('apple.com');
+                    if (providerName === 'apple') {
+                        provider.addScope('email');
+                        provider.addScope('name');
+                    }
 
                     auth.signInWithPopup(provider).then((result) => {
-                        Swal.fire({ title: 'Vérification...', allowOutsideClick: false, showConfirmButton: false, willOpen: () => Swal.showLoading() });
-                        return result.user.getIdToken();
-                    }).then((idToken) => {
-                        return fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
-                            body: JSON.stringify({ id_token: idToken })
+                            Swal.fire({
+                                title: 'Vérification...',
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                                willOpen: () => Swal.showLoading()
+                            });
+                            return result.user.getIdToken();
+                        }).then((idToken) => {
+                            return fetch(endpoint, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                                },
+                                body: JSON.stringify({
+                                    id_token: idToken
+                                })
+                            });
+                        }).then(r => r.json())
+                        .then(data => {
+                            if (data.success) window.location.href = data.redirect;
+                            else Swal.fire('Erreur', data.message, 'error');
+                        }).catch(() => {
+                            Swal.fire('Erreur', 'Action annulée ou erreur réseau', 'error');
                         });
-                    }).then(r => r.json())
-                    .then(data => {
-                        if (data.success) window.location.href = data.redirect;
-                        else Swal.fire('Erreur', data.message, 'error');
-                    }).catch(() => {
-                        Swal.fire('Erreur', 'Action annulée ou erreur réseau', 'error');
-                    });
                 });
             }
 
@@ -500,4 +559,5 @@
         });
     </script>
 </body>
+
 </html>

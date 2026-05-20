@@ -162,7 +162,7 @@ class AgentMariageController extends Controller
         if ($mariage->etat === 'rejetée' && $request->motif_champs) {
             $champsModifies = $request->motif_champs;
         }
-        
+
         ActionHistory::logAction(
             'mariage',
             $mariage->id,
@@ -218,6 +218,18 @@ class AgentMariageController extends Controller
                 $yellikaSmsService->sendSms($phoneNumber, $message);
             } catch (\Exception $e) {
                 Log::error("Erreur lors de l'envoi du SMS de fin de traitement (mariage) : " . $e->getMessage());
+            }
+        }
+
+        // SMS notification when marked as rejected
+        if ($user && $mariage->etat === 'rejetée' && $ancienEtat !== 'rejetée') {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande d'extrait de mariage (Réf: {$mariage->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de rejet (mariage) : " . $e->getMessage());
             }
         }
 
@@ -307,7 +319,7 @@ class AgentMariageController extends Controller
         // Sauvegarder l'ancien statut
         $ancienStatut = $mariage->statut_livraison ?? 'en attente';
         $user = $mariage->user;
-        
+
         // Mettre à jour le statut de livraison
         $mariage->statut_livraison = $request->statut_livraison;
         $mariage->save();
@@ -354,5 +366,4 @@ class AgentMariageController extends Controller
 
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }
-
 }

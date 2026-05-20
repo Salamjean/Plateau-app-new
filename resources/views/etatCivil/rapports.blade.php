@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
           {{ $statsDetaillees['deces']['total'] }},
           {{ $statsDetaillees['mariages']['total'] }}
         ],
-        backgroundColor: ['#1977cc', '#6c757d', '#ff0000']
+        backgroundColor: ['#1f4083', '#6c757d', '#ff0000']
       }]
     }
   });
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
           {{ $statsDetaillees['deces']['taux_completion'] }},
           {{ $statsDetaillees['mariages']['taux_completion'] }}
         ],
-        backgroundColor: ['#1977cc', '#6c757d', '#ff0000']
+        backgroundColor: ['#1f4083', '#6c757d', '#ff0000']
       }]
     }
   });
@@ -204,7 +204,7 @@ function exportReport() {
         `,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#1977cc',
+        confirmButtonColor: '#1f4083',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Exporter',
         cancelButtonText: 'Annuler',

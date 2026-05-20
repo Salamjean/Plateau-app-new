@@ -10,11 +10,11 @@
     <title>Post login</title>
     <style>
         :root {
-            --primary-color: #1977cc;
-            --secondary-color: #1977cc;
-            --accent-color: #1977cc;
+            --primary-color: #1f4083;
+            --secondary-color: #1f4083;
+            --accent-color: #1f4083;
             --error-color: #f72585;
-            --success-color: #1977cc;
+            --success-color: #1f4083;
             --light-color: #f8f9fa;
             --dark-color: #212529;
             --transition-speed: 0.3s;
@@ -96,7 +96,7 @@
         }
 
         .subtitle {
-            color: #1977cc;
+            color: #1f4083;
             font-size: 0.9rem;
         }
 
@@ -111,7 +111,7 @@
             left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #1977cc;
+            color: #1f4083;
             transition: all var(--transition-speed) ease;
             z-index: 2;
         }
@@ -131,12 +131,12 @@
         }
 
         .input-field:focus {
-            border-color: #1977cc;
+            border-color: #1f4083;
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
         }
 
         .input-field:focus ~ .input-icon {
-            color:#1977cc;
+            color:#1f4083;
         }
 
         .input-label {
@@ -166,14 +166,14 @@
             right: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #1977cc;
+            color: #1f4083;
             cursor: pointer;
             transition: all var(--transition-speed) ease;
             z-index: 2;
         }
 
         .password-toggle:hover {
-            color:#1977cc;
+            color:#1f4083;
         }
 
         .submit-btn {

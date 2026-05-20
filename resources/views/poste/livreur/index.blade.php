@@ -1,650 +1,427 @@
 @extends('poste.layouts.template')
 
 @section('content')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #1f4083;
+            --secondary: #ea8c51;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --bg-light: #f8fafc;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
 
-<style>
-  :root {
-    --primary-color: #1977cc;
-    --primary-light: #1977cc;
-    --secondary-color: #ea8c51;
-    --secondary-light: #fde16d;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --info-color: #17a2b8;
-    --light-color: #f8f9fa;
-    --dark-color: #343a40;
-    --border-radius: 10px;
-    --box-shadow: 0 5px 15px rgba(6, 99, 78, 0.1);
-    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
 
-  body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-  }
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-  /* Styles pour les cartes de statistiques */
-  .stats-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 25px;
-    padding: 0 20px;
-  }
+        .page-title i {
+            background: rgba(31, 64, 131, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+            color: var(--primary);
+        }
 
-  .stat-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    box-shadow: var(--box-shadow);
-    transition: var(--transition);
-    border-top: 4px solid var(--primary-color);
-    display: flex;
-    flex-direction: column;
-  }
+        .btn-add {
+            background: var(--primary);
+            color: white !important;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none !important;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(31, 64, 131, 0.2);
+        }
 
-  .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(6, 99, 78, 0.15);
-  }
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(31, 64, 131, 0.3);
+            background: #163266;
+        }
 
-  .stat-card.secondary {
-    border-top-color: var(--secondary-color);
-  }
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
 
-  .stat-card.success {
-    border-top-color: var(--success-color);
-  }
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
 
-  .stat-title {
-    color: #6c757d;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-  }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
 
-  .stat-value {
-    color: var(--dark-color);
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
+        .stat-info .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
 
-  .stat-icon {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-    align-self: flex-end;
-  }
+        .stat-info .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
 
-  .stat-card .stat-icon {
-    color: var(--primary-color);
-  }
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+        }
 
-  .stat-card.secondary .stat-icon {
-    color: var(--secondary-color);
-  }
+        /* Table Customization */
+        .card-table {
+            background: white;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid #f1f5f9;
+            overflow: hidden;
+        }
 
-  .stat-card.success .stat-icon {
-    color: var(--success-color);
-  }
+        .table {
+            margin: 0;
+            width: 100%;
+        }
 
-  .card {
-    border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    transition: var(--transition);
-    margin-bottom: 25px;
-    background-color: white;
-    overflow: hidden;
-    margin: 0 20px;
-  }
+        .table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #f1f5f9;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+        }
 
-  .archive-btn {
-      color: var(--warning-color);
-  }
+        .table tbody tr:hover {
+            background-color: #fcfcfd;
+        }
 
-  .archive-btn:hover {
-      background-color: rgba(255, 193, 7, 0.1);
-  }
+        .table td {
+            padding: 1.25rem 1.5rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
 
-  .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(6, 99, 78, 0.15);
-  }
+        .livreur-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-  .card-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-    color: white;
-    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
-    padding: 15px 20px;
-    font-weight: 600;
-    border-bottom: none;
-    position: relative;
-    overflow: hidden;
-  }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            position: relative;
+            background: #f1f5f9;
+            color: var(--primary);
+        }
 
-  .card-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: var(--secondary-color);
-  }
+        .avatar .status-dot {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
 
-  .table-responsive {
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  }
+        .livreur-name {
+            font-weight: 700;
+            color: var(--text-main);
+            display: block;
+            font-size: 0.95rem;
+        }
 
-  .table {
-    margin-bottom: 0;
-    background-color: white;
-  }
+        .livreur-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
 
-  .table thead th {
-    background-color: #f1f8f5;
-    color: var(--primary-color);
-    font-weight: 600;
-    border: none;
-    padding: 12px 15px;
-    vertical-align: middle;
-    border-bottom: 2px solid var(--secondary-light);
-  }
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
 
-  .table tbody tr {
-    transition: var(--transition);
-  }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+        }
 
-  .table tbody tr:hover {
-    background-color: rgba(249, 207, 3, 0.05);
-  }
+        .contact-item i {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
 
-  .table tbody td {
-    padding: 12px 15px;
-    vertical-align: middle;
-    border-top: 1px solid rgba(0, 0, 0, 0.03);
-  }
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
 
-  .status-badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    display: inline-block;
-    min-width: 100px;
-    text-align: center;
-  }
+        .bg-success-lite {
+            background: #ecfdf5;
+            color: #059669;
+        }
 
-  .search-box {
-    position: relative;
-    margin-bottom: 20px;
-    max-width: 300px;
-  }
+        .bg-danger-lite {
+            background: #fef2f2;
+            color: #dc2626;
+        }
 
-  .search-box input {
-    padding-left: 40px;
-    border-radius: 20px;
-    border: 1px solid #ddd;
-    box-shadow: none;
-    transition: var(--transition);
-  }
+        .solde-badge {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
 
-  .search-box input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(6, 99, 78, 0.1);
-  }
+        .actions-cell {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
 
-  .search-box i {
-    position: absolute;
-    left: 15px;
-    top: 10px;
-    color: var(--primary-color);
-  }
+        .btn-action {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            text-decoration: none !important;
+        }
 
-  .page-title {
-    color: var(--primary-color);
-    font-weight: 700;
-    margin-bottom: 20px;
-    position: relative;
-    display: inline-block;
-  }
+        .btn-edit {
+            background: #eff6ff;
+            color: #2563eb;
+        }
 
-  .page-title::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 50px;
-    height: 3px;
-    background: var(--secondary-color);
-  }
+        .btn-edit:hover {
+            background: #2563eb;
+            color: white;
+        }
 
-  .empty-state {
-    text-align: center;
-    padding: 40px 0;
-    color: #6c757d;
-  }
+        .btn-money {
+            background: #fff7ed;
+            color: #ea580c;
+        }
 
-  .empty-state i {
-    font-size: 50px;
-    margin-bottom: 15px;
-    color: var(--secondary-color);
-  }
+        .btn-money:hover {
+            background: #ea580c;
+            color: white;
+        }
 
-  /* Boutons d'action */
-  .action-btn {
-    border: none;
-    background: none;
-    padding: 5px;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-    cursor: pointer;
-  }
+        .btn-archive {
+            background: #fef2f2;
+            color: #dc2626;
+        }
 
-  .edit-btn {
-    color: var(--primary-color);
-  }
+        .btn-archive:hover {
+            background: #dc2626;
+            color: white;
+        }
 
-  .edit-btn:hover {
-    background-color: rgba(6, 99, 78, 0.1);
-    color: var(--primary-light);
-  }
+        .empty-state {
+            padding: 5rem 2rem;
+            text-align: center;
+        }
 
-  .delete-btn {
-    color: var(--danger-color);
-  }
+        .empty-state i {
+            font-size: 5rem;
+            color: #e2e8f0;
+            margin-bottom: 1.5rem;
+        }
+    </style>
 
-  .delete-btn:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-  }
-
-  .payment-btn {
-    color: var(--info-color);
-  }
-
-  .payment-btn:hover {
-    background-color: rgba(23, 162, 184, 0.1);
-  }
-
-  /* Badge pour les états */
-  .badge-agent {
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  /* Animation des icônes */
-  i.fas {
-    transition: var(--transition);
-  }
-
-  .action-btn:hover i.fas {
-    transform: scale(1.1);
-  }
-
-  .badge {
-      display: inline-block;
-      padding: 0.35em 0.7em;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 12px;
-      color: #fff;
-      transition: transform 0.2s, box-shadow 0.2s;
-      cursor: default;
-  }
-
-  .badge-available {
-      background-color: #28a745; /* vert */
-      box-shadow: 0 2px 6px rgba(40, 167, 69, 0.4);
-  }
-
-  .badge-unavailable {
-      background-color: #dc3545; /* rouge */
-      box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
-  }
-
-  .badge-info {
-      background-color: #17a2b8; /* bleu info */
-      box-shadow: 0 2px 6px rgba(23, 162, 184, 0.4);
-  }
-
-  .badge-primary {
-      background-color: #007bff; /* bleu primary */
-      box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
-  }
-
-  .badge-success {
-      background-color: #28a745; /* vert success */
-      box-shadow: 0 2px 6px rgba(40, 167, 69, 0.4);
-  }
-
-  /* Effet au survol */
-  .badge:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Style pour SweetAlert */
-  .swal2-popup {
-    border-radius: var(--border-radius) !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-  }
-
-  .swal2-title {
-    color: var(--primary-color) !important;
-  }
-
-  .swal2-confirm {
-    background-color: var(--primary-color) !important;
-  }
-
-  .swal2-cancel {
-    background-color: var(--secondary-color) !important;
-    color: var(--primary-color) !important;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .stats-container {
-      grid-template-columns: 1fr;
-    }
-    
-    .table-responsive {
-      border: 1px solid rgba(6, 99, 78, 0.1);
-    }
-    
-    .table thead {
-      display: none;
-    }
-    
-    .table tbody tr {
-      display: block;
-      margin-bottom: 15px;
-      border: 1px solid rgba(6, 99, 78, 0.1);
-      border-radius: var(--border-radius);
-      box-shadow: 0 2px 5px rgba(6, 99, 78, 0.05);
-    }
-    
-    .table tbody td {
-      display: block;
-      text-align: right;
-      padding-left: 50%;
-      position: relative;
-      border-top: 1px solid rgba(6, 99, 78, 0.05);
-    }
-    
-    .table tbody td::before {
-      content: attr(data-label);
-      position: absolute;
-      left: 15px;
-      width: 45%;
-      padding-right: 10px;
-      font-weight: 600;
-      text-align: left;
-      color: var(--primary-color);
-    }
-    
-    .search-box {
-      max-width: 100%;
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .page-title {
-      font-size: 1.5rem;
-    }
-  }
-</style>
-
-<div class="container-fluid">
-  <!-- Notifications SweetAlert -->
-  <div class="row" style="width:100%; justify-content:center">
-    @if (Session::get('success1'))
-      <script>
-        Swal.fire({
-          icon: 'success',
-          title: 'Suppression réussie',
-          text: '{{ Session::get('success1') }}',
-          showConfirmButton: true,
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'custom-swal-popup',
-            confirmButton: 'btn-swal-confirm'
-          }
-        });
-      </script>
-    @endif
-
-    @if (Session::get('success'))
-      <script>
-        Swal.fire({
-          icon: 'success',
-          title: 'Action réussie',
-          text: '{{ Session::get('success') }}',
-          showConfirmButton: true,
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'custom-swal-popup',
-            confirmButton: 'btn-swal-confirm'
-          }
-        });
-      </script>
-    @endif
-
-    @if (Session::get('error'))
-      <script>
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: '{{ Session::get('error') }}',
-          showConfirmButton: true,
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'custom-swal-popup',
-            confirmButton: 'btn-swal-confirm'
-          }
-        });
-      </script>
-    @endif
-  </div>
-
-  <!-- En-tête de page -->
-  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="page-title"><i class="fas fa-truck me-2"></i>Liste des livreurs</h1>
-  </div>
-
-  <!-- Cartes de statistiques -->
-  <div class="stats-container">
-    <div class="stat-card">
-      <i class="fas fa-users stat-icon"></i>
-      <div class="stat-title">Total des livreurs</div>
-      <div class="stat-value">{{ $livreurs->count() }}</div>
-    </div>
-    
-    <div class="stat-card secondary">
-      <i class="fas fa-money-bill-wave stat-icon"></i>
-      <div class="stat-title">Total des livraisons</div>
-      <div class="stat-value">{{ number_format($totalMontantLivraisons, 0, ',', ' ') }} FCFA</div>
-    </div>
-    
-    <div class="stat-card">
-      <i class="fas fa-box stat-icon"></i>
-      <div class="stat-title">Colis livrés</div>
-      <div class="stat-value">{{ $totalColisLivre }}</div>
+    <div class="page-header">
+        <h2 class="page-title">
+            <i class="material-icons">diversity_3</i>
+            Effectifs Livreurs
+        </h2>
+        <a href="{{ route('delivery.create') }}" class="btn-add">
+            <i class="material-icons">person_add</i>
+            Nouveau livreur
+        </a>
     </div>
 
-    <div class="stat-card warning">
-      <i class="fas fa-archive stat-icon"></i>
-      <div class="stat-title">Livreurs archivés</div>
-      {{-- <div class="stat-value">0</div> --}}
-      <div class="stat-value">{{ $livreursArchives ?? 0 }}</div>
-  </div>
-{{-- 
-    <div class="stat-card success">
-      <i class="fas fa-wallet stat-icon"></i>
-      <div class="stat-title">Solde disponible total</div>
-      <div class="stat-value">{{ number_format($totalSoldeDisponible, 0, ',', ' ') }} FCFA</div>
-    </div> --}}
-  </div>
-
-  <!-- Tableau des livreurs -->
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="card">
-        <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-center">
-          <h6 class="m-0 font-weight-bold"><i class="fas fa-list me-2"></i>Gestion des livreurs</h6>
-          <div class="search-box mt-2 mt-md-0">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput1" class="form-control" placeholder="Rechercher...">
-          </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Total Livreurs</span>
+                <div class="stat-value">{{ $livreurs->count() }}</div>
+            </div>
+            <div class="stat-icon" style="background: rgba(31, 64, 131, 0.1); color: var(--primary);">
+                <i class="material-icons">groups</i>
+            </div>
         </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <span class="stat-label">En Service</span>
+                <div class="stat-value">{{ $livreurs->where('disponible', '1')->count() }}</div>
+            </div>
+            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                <i class="material-icons">sensors</i>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Solde Cumul�</span>
+                <div class="stat-value">{{ number_format($livreurs->sum('solde'), 0, ',', ' ') }} <small
+                        style="font-size: 0.8rem;">F</small></div>
+            </div>
+            <div class="stat-icon" style="background: rgba(234, 140, 81, 0.1); color: var(--secondary);">
+                <i class="material-icons">wallet</i>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-table">
         <div class="table-responsive">
-          <table class="table align-items-center" id="dataTable1">
-            <thead>
-              <tr class="text-center">
-                <th class="text-center">Nom</th>
-                <th class="text-center">Prénoms</th>
-                <th class="text-center">Email</th>
-                <th class="text-center">Contact</th>
-                <th class="text-center">Lieu de résidence</th>
-                <th class="text-center">En cas d'urgence</th>
-                <th class="text-center">Disponibilité</th>
-                {{-- <th class="text-center">Total Livraisons</th> --}}
-                <th class="text-center">Colis Livrés</th>
-                {{-- <th class="text-center">Solde Disponible</th> --}}
-                <th class="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse ($livreurs as $livreur)
-                <tr class="text-center">
-                  <td class="text-center">{{ $livreur->name }}</td>
-                  <td class="text-center">{{ $livreur->prenom }}</td>
-                  <td class="text-center">{{ $livreur->email }}</td>
-                  <td class="text-center">{{ $livreur->contact }}</td>
-                  <td class="text-center">{{ $livreur->commune }}</td>
-                  <td class="text-center">{{ $livreur->cas_urgence }}</td>
-                  <td class="text-center">
-                      <span class="badge {{ $livreur->disponible ? 'badge-success' : 'badge-unavailable' }}">
-                          {{ $livreur->disponible ? 'Disponible' : 'Indisponible' }}
-                      </span>
-                  </td>
-                  {{-- <td class="text-center">
-                    <span class="badge badge-info">
-                      {{ number_format($livreur->montant_total ?? 0, 0, ',', ' ') }} FCFA
-                    </span>
-                  </td> --}}
-                  <td class="text-center">
-                    <span class="badge badge-primary">
-                      {{ $livreur->total_livraisons ?? 0 }}
-                    </span>
-                  </td>
-                  {{-- <td class="text-center">
-                    <span class="badge {{ $livreur->solde_disponible > 0 ? 'badge-success' : 'badge-unavailable' }}">
-                      {{ number_format($livreur->solde_disponible ?? 0, 0, ',', ' ') }} FCFA
-                    </span>
-                  </td> --}}
-                  <td class="text-center">
-                  <div class="d-flex justify-content-center">
-                     <!-- Bouton de versement -->
-                      {{-- <button class="action-btn payment-btn me-2" title="Faire un versement"
-                              @if($livreur->solde_disponible <= 0) style="opacity: 0.5; cursor: not-allowed;" @endif>
-                        <a href="{{ route('poste.livreur.versement', $livreur->id) }}" 
-                           @if($livreur->solde_disponible <= 0) onclick="return false;" @endif>
-                          <i class="fas fa-money-bill-wave"></i>
-                        </a>
-                      </button> --}}
-                    <!-- Bouton Modifier -->
-                    <button class="action-btn edit-btn me-2" title="Modifier">
-                      <a href="{{ route('poste.livreur.edit', $livreur->id) }}">
-                        <i class="fas fa-edit"></i>
-                      </a>
-                    </button>
-                    
-                    <!-- Bouton Archiver -->
-                    @if ($livreur->archived_at == null)
-                      <form action="{{ route('poste.livreur.archive', $livreur->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('PUT')
-                        <button type="button" class="action-btn archive-btn me-2" title="Archiver" 
-                          onclick="confirmArchive('{{ $livreur->id }}', '{{ $livreur->name }} {{ $livreur->prenom }}')">
-                          <i class="fas fa-archive"></i>
-                        </button>
-                      </form>
-                    @endif
-                  </div>
-                </td>
-                 
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="9" class="text-center py-4">
-                    <div class="empty-state">
-                      <i class="fas fa-truck-loading"></i>
-                      <h5>Aucun livreur enregistré</h5>
-                      <p class="text-muted">Commencez par ajouter un nouveau livreur</p>
-                    </div>
-                  </td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Livreur</th>
+                        <th>Coordonn�es</th>
+                        <th>Zone d'activit�</th>
+                        <th>Statut</th>
+                        <th>Solde</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($livreurs as $livreur)
+                        <tr>
+                            <td>
+                                <div class="livreur-info">
+                                    <div class="avatar">
+                                        {{ substr($livreur->nom, 0, 1) }}{{ substr($livreur->prenom, 0, 1) }}
+                                        <div class="status-dot"
+                                            style="background: {{ $livreur->disponible == '1' ? 'var(--success)' : 'var(--danger)' }};">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="livreur-name">{{ $livreur->nom }} {{ $livreur->prenom }}</span>
+                                        <span class="livreur-email">{{ $livreur->email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="contact-info">
+                                    <div class="contact-item"><i class="material-icons">phone</i> {{ $livreur->telephone }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="contact-info">
+                                    <div class="contact-item"><i class="material-icons">location_city</i>
+                                        {{ $livreur->ville }}</div>
+                                    <div class="contact-item text-muted" style="font-size: 0.75rem;">
+                                        {{ $livreur->commune }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span
+                                    class="status-badge {{ $livreur->disponible == '1' ? 'bg-success-lite' : 'bg-danger-lite' }}">
+                                    {{ $livreur->disponible == '1' ? 'ACTIF' : 'INACTIF' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="solde-badge">{{ number_format($livreur->solde, 0, ',', ' ') }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="actions-cell">
+                                    <a href="{{ route('poste.livreur.edit', $livreur->id) }}" class="btn-action btn-edit"
+                                        title="Modifier">
+                                        <i class="material-icons">edit</i>
+                                    </a>
+                                    <a href="{{ route('poste.livreur.versement', $livreur->id) }}"
+                                        class="btn-action btn-money" title="Versement">
+                                        <i class="material-icons">payments</i>
+                                    </a>
+                                    <form action="{{ route('poste.livreur.archive', $livreur->id) }}" method="POST"
+                                        style="display:inline;" onsubmit="return confirm('Archiver ce livreur ?')">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn-action btn-archive" title="Archiver">
+                                            <i class="material-icons">archive</i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="material-icons">hail</i>
+                                    <h3>Aucun livreur</h3>
+                                    <p class="text-muted">Commencez par ajouter votre premier livreur pour votre section
+                                        Courrier.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-      </div>
     </div>
-  </div>
-</div>
-
-<script>
- // Fonction de confirmation d'archivage
-  function confirmArchive(id, nomLivreur) {
-      Swal.fire({
-          title: 'Confirmer l\'archivage',
-          html: `Êtes-vous sûr de vouloir archiver le livreur <strong>${nomLivreur}</strong> ?<br><br>
-                <small class="text-muted">Le livreur sera désactivé mais conservé dans les archives.</small>`,
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#ffc107',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Oui, archiver',
-          cancelButtonText: 'Annuler',
-          customClass: {
-              popup: 'custom-swal-popup'
-          }
-      }).then((result) => {
-          if (result.isConfirmed) {
-              // Soumettre le formulaire d'archivage
-              document.querySelector(`form[action*="${id}"]`).submit();
-          }
-      });
-  }
-
-  // Fonction de recherche dans le tableau
-  document.getElementById('searchInput1').addEventListener('keyup', function() {
-    const input = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#dataTable1 tbody tr');
-    
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(input) ? '' : 'none';
-    });
-  });
-</script>
-
 @endsection

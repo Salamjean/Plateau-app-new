@@ -1,56 +1,50 @@
-<header id="header" class="header sticky-top">
-    <div class="topbar d-flex align-items-center">
-      <div class="container d-flex justify-content-center justify-content-md-between">
-        <div class="contact-info d-flex align-items-center">
-          <i class="bi bi-envelope d-flex align-items-center"><a href="mailto:contact@plateau.com">contact@plateau.com</a></i>
-          <i class="bi bi-phone d-flex align-items-center ms-4"><span>+225 07 095 005 01</span></i>
-        </div>
-        <div class="social-links d-none d-md-flex align-items-center">
-          <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
-          <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
-          <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-          <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
-        </div>
-      </div>
-    </div><!-- End Top Bar -->
-
-    <div class="branding d-flex align-items-center">
-
-      <div class="container position-relative d-flex align-items-center justify-content-between">
-        <a href="{{route('home')}}" class="logo d-flex align-items-center me-auto">
-          <!-- Uncomment the line below if you also wish to use an image logo -->
-          <!-- <img src="assets/img/logo.png" alt=""> -->
-          <h1 class="sitename">Plateau Apps</h1>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+            <img src="{{ asset('assets/assets/img/logo plateau.png') }}" alt="Mairie du Plateau">
+            <div class="brand-text d-none d-sm-block">
+                <span class="d-block fw-800 fs-6 text-white text-uppercase"
+                    style="line-height: 1.1; letter-spacing: 1px;">PLATEAU-APPS</span>
+            </div>
         </a>
 
-        <nav id="navmenu" class="navmenu">
-          <ul>
-            <li><a href="{{route('home')}}" class="active">Accueil<br></a></li>
-            <li><a href="{{route('about.demande')}}">A propos de nous</a></li>
-            <li><a href="{{route('service.demande')}}">Services</a></li>
-            <li><a href="{{route('department.demande')}}">Departements</a></li>
-            <li class="dropdown"><a href="#"><span>Actes civils</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-              <ul>
-                <li><a href="{{route('home.birth')}}">Acte de naissance</a></li>
-                <li><a href="{{route('home.death')}}">Acte de décès</a></li>
-                <li class="dropdown"><a href="#"><span>Mariage</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                  <ul>
-                    <li><a href="{{route('home.wedding')}}">Acte de mariage</a></li>
-                    <li><a href="{{route('home.rendezvous')}}">Rendez-vous</a></li>
-                  </ul>
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <i class="bi bi-list text-white fs-1"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav mx-auto text-center py-4 py-lg-0">
+                <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">ACCUEIL</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('about.demande') }}">A Propos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="actesDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        ACTES CIVILS
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-lg p-3" aria-labelledby="actesDropdown"
+                        style="border-radius: 15px;">
+                        <li><a class="dropdown-item fw-600 py-2" href="{{ route('home.birth') }}"><i
+                                    class="bi bi-person-plus me-2 text-primary"></i>Naissance</a></li>
+                        <li><a class="dropdown-item fw-600 py-2" href="{{ route('home.wedding') }}"><i
+                                    class="bi bi-heart me-2 text-danger"></i>Mariage</a></li>
+                        <li><a class="dropdown-item fw-600 py-2" href="{{ route('home.death') }}"><i
+                                    class="bi bi-person-dash me-2 text-muted"></i>Décès</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item fw-600 py-2" href="{{ route('recherche.demande') }}"><i
+                                    class="bi bi-search me-2 text-secondary"></i>Suivre ma demande</a></li>
+                    </ul>
                 </li>
-              </ul>
-            </li>
-             <li><a href="{{route('home.contact')}}">Contactez-nous</a></li>
-             <li><a href="{{route('recherche.demande')}}">Suivre ma demande</a></li>
-          </ul>
-          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-        </nav>
-
-        <a class="cta-btn" href="{{route('login')}}">Se connecter</a>
-
-      </div>
-
+                <li class="nav-item"><a class="nav-link" href="{{ route('service.demande') }}">SERVICES</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ route('home.contact') }}">CONTACT</a></li>
+            </ul>
+            <div class="d-flex align-items-center justify-content-center gap-4 mt-3 mt-lg-0">
+                <a href="{{ route('login') }}" class="btn-portal w-100 w-lg-auto text-center">MON ESPACE</a>
+            </div>
+        </div>
     </div>
-
-  </header>
+</nav>

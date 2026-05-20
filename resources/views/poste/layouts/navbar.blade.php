@@ -1,4 +1,4 @@
-<header class="mdc-top-app-bar" style="background-color: #1977cc">
+<header class="mdc-top-app-bar" style="background-color: #1f4083">
         <div class="mdc-top-app-bar__row">
           <div class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
             <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button sidebar-toggler text-white">menu</button>

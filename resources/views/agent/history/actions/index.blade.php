@@ -219,7 +219,7 @@ function showMotif(id) {
     html: motifContent,
     width: 600,
     confirmButtonText: 'Fermer',
-    confirmButtonColor: '#1977cc'
+    confirmButtonColor: '#1f4083'
   });
 }
 </script>
@@ -245,7 +245,7 @@ function showMotif(id) {
 }
 
 .badge-naiss {
-  background: linear-gradient(135deg, #17a2b8, #138496) !important;
+  background: linear-gradient(135deg, #1f4083 , #1f4083 ) !important;
 }
 
 .badge-mariage {
@@ -265,14 +265,14 @@ function showMotif(id) {
 }
 
 .pagination .page-link {
-  color: #1977cc;
+  color: #1f4083;
   border-radius: 5px;
   margin: 0 3px;
 }
 
 .pagination .page-item.active .page-link {
-  background-color: #1977cc;
-  border-color: #1977cc;
+  background-color: #1f4083;
+  border-color: #1f4083;
 }
 
 /* Badges pour Action */
@@ -294,7 +294,7 @@ function showMotif(id) {
 }
 
 .badge-action-recu {
-  background: linear-gradient(135deg, #17a2b8, #138496);
+  background: linear-gradient(135deg, #1f4083 , #138496);
 }
 
 .badge-action-termine {
@@ -324,7 +324,7 @@ function showMotif(id) {
 }
 
 .badge-etat-recu {
-  background: linear-gradient(135deg, #17a2b8, #138496);
+  background: linear-gradient(135deg, #1f4083 , #138496);
 }
 
 .badge-etat-attente {
@@ -360,7 +360,7 @@ function showMotif(id) {
 
 .page-btn {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #1977cc, #1565c0);
+  background: linear-gradient(135deg, #1f4083, #1565c0);
   color: white;
   border-radius: 6px;
   text-decoration: none;
@@ -403,13 +403,13 @@ function showMotif(id) {
 
 .page-num:hover {
   background: #e9ecef;
-  color: #1977cc;
+  color: #1f4083;
 }
 
 .page-num.active {
-  background: linear-gradient(135deg, #1977cc, #1565c0);
+  background: linear-gradient(135deg, #1f4083, #1565c0);
   color: white;
-  border-color: #1977cc;
+  border-color: #1f4083;
 }
 </style>
 @endsection

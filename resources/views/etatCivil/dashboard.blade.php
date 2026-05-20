@@ -124,7 +124,7 @@
           {
             label: 'Naissances',
             data: {!! json_encode($demandesParMois['naissances']) !!},
-            borderColor: '#1977cc',
+            borderColor: '#1f4083',
             backgroundColor: 'rgba(255, 136, 0, 0.1)',
             tension: 0.4,
             fill: true
@@ -183,7 +183,7 @@
             {{ $statutsNaissance['en_attente'] }}
           ],
           backgroundColor: [
-            '#1977cc',
+            '#1f4083',
             '#6c757d',
             '#ff0000'
           ],

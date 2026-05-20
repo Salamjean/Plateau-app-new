@@ -181,9 +181,9 @@
         --primary-color: #ff8800;
         --primary-light: #ffaa40;
         --primary-dark: #cc6d00;
-        --secondary-color: #1977cc;
-        --secondary-light: #1977cc;
-        --secondary-dark: #1977cc;
+        --secondary-color: #1f4083;
+        --secondary-light: #1f4083;
+        --secondary-dark: #1f4083;
         --light-color: #ffffff;
         --dark-color: #212529;
         --gray-color: #6c757d;

@@ -1,162 +1,261 @@
-@extends('home.layouts.tamplate')
+@extends('home.layouts.main')
+
 @section('content')
-
-<div class="container py-5" >
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header bg-white text-center py-4">
-                    <div class="icon-container mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="#1977cc" class="bi bi-clipboard-check" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
-                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
-                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
-                        </svg>
-                    </div>
-                    <h1 class="h3 mb-2 fw-bold" style="color: #1977cc">Suivi de votre demande</h1>
-                    <p class="mb-0 text-muted">Vérifiez l'état d'avancement de votre demande en temps réel</p>
+    <div class="search-tracking-page">
+        <!-- Hero Section -->
+        <section class="service-hero">
+            <div class="container text-center">
+                <div class="badge-service mb-3" data-aos="fade-down">
+                    <span class="badge rounded-pill bg-white bg-opacity-25 text-white px-3 py-2 fw-700">
+                        <i class="bi bi-search me-1"></i> SUIVI EN LIGNE
+                    </span>
                 </div>
-                
-                <div class="card-body px-4 px-md-5 py-4">
-                    <form method="POST" action="{{ route('recherche.demande') }}" class="needs-validation" novalidate>
-                        @csrf
+                <h1 class="display-3 fw-900 text-white mb-4" data-aos="fade-up">Suivre ma demande</h1>
+                <p class="lead text-white-50 mx-auto" style="max-width: 700px;" data-aos="fade-up" data-aos-delay="100">
+                    Saisissez votre numéro de référence pour consulter l'avancement de votre dossier administratif.
+                </p>
+            </div>
+        </section>
 
-                        <div class="mb-4">
-                            <label for="reference_naissance" class="form-label fw-medium text-dark mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#1977cc" class="bi bi-search me-2" viewBox="0 0 16 16">
-                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                                </svg>
-                                Numéro de référence
-                            </label>
-                            <input type="text" 
-                                   class="form-control form-control-lg py-3 px-4" 
-                                   id="reference_naissance" 
-                                   name="reference_naissance" 
-                                   placeholder="Ex: REF12345678"
-                                   required
-                                   style="border-radius: 12px; border: 2px solid #e9ecef; transition: all 0.3s;">
-                            <div class="invalid-feedback">
-                                Veuillez saisir votre référence.
+        <!-- Search Content -->
+        <section class="py-5">
+            <div class="container pb-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-7">
+                        <div class="search-card overflow-hidden" data-aos="zoom-in">
+                            <div class="card-top-bar bg-primary" style="height: 8px;"></div>
+                            <div class="p-4 p-md-5">
+                                <div class="text-center mb-5">
+                                    <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3"
+                                        style="width: 80px; height: 80px; border-radius: 25px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-search fs-2"></i>
+                                    </div>
+                                    <h3 class="fw-800 text-dark">Suivi de dossier</h3>
+                                    <p class="text-muted">Accédez aux informations en temps réel</p>
+                                </div>
+
+                                <form method="POST" action="{{ route('recherche.demande') }}" class="needs-validation">
+                                    @csrf
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label
+                                                class="form-label fw-700 text-dark small text-uppercase tracking-wider">Référence
+                                                de la demande</label>
+                                            <span class="badge bg-light text-primary border rounded-pill px-3">Format :
+                                                REFXXXXXX</span>
+                                        </div>
+                                        <input type="text" class="form-control form-control-luxe"
+                                            id="reference_naissance" name="reference_naissance"
+                                            placeholder="Entrez votre numéro de référence..." required>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary w-100 fw-800 shadow-sm pulse-soft">
+                                        RECHERCHER MON DOSSIER <i class="bi bi-arrow-right ms-2"></i>
+                                    </button>
+                                </form>
+
+                                <div id="resultat-recherche" class="mt-5">
+                                    @if (isset($etatDemande))
+                                        <hr class="my-5 opacity-10">
+                                        <div class="result-display fade-in">
+                                            @if ($etatDemande)
+                                                <div class="status-box p-4 rounded-4 bg-light">
+                                                    <div class="d-flex align-items-center mb-4">
+                                                        <div class="status-badge bg-primary text-white p-3 rounded-4 me-3">
+                                                            <i class="bi bi-file-earmark-check fs-3"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="fw-800 mb-0 text-primary">Dossier trouvé</h5>
+                                                            <p class="text-muted small mb-0">Réf:
+                                                                {{ request('reference_naissance') }}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row g-3">
+                                                        <div class="col-md-6">
+                                                            <div class="p-3 bg-white rounded-3 border">
+                                                                <span class="text-muted small fw-600 d-block mb-1">ÉTAT DU
+                                                                    DOSSIER</span>
+                                                                <span class="fw-800 text-primary">{{ $etatDemande }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="p-3 bg-white rounded-3 border">
+                                                                <span class="text-muted small fw-600 d-block mb-1">MODE DE
+                                                                    LIVRAISON</span>
+                                                                <span class="fw-800 text-dark">{{ $statutDemande }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mt-4">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span class="fw-700 small">Progression</span>
+                                                            <span class="badge bg-primary fw-800">85%</span>
+                                                        </div>
+                                                        <div class="progress rounded-pill bg-white shadow-sm"
+                                                            style="height: 12px; border: 1px solid #eee;">
+                                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                                                style="width: 85%"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <div class="text-center p-5 rounded-4 bg-danger bg-opacity-10">
+                                                    <i class="bi bi-search-heart text-danger display-4 mb-3 d-block"></i>
+                                                    <h5 class="fw-800 text-danger">AUCUNE RÉFÉRENCE TROUVÉE</h5>
+                                                    <p class="text-muted mb-0">Vérifiez votre numéro de suivi ou contactez
+                                                        le support technique de la mairie.</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
-                            <small class="text-muted mt-2 d-block">
-                                Cette référence vous a été communiquée lors du dépôt de votre demande.
-                            </small>
                         </div>
-
-                        <button type="submit" class="btn btn-lg w-100 py-3 rounded-3 shadow-sm fw-medium text-white border-0" style="background-color: #1977cc">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-search me-2" viewBox="0 0 16 16">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                            </svg>
-                            Vérifier l'état
-                        </button>
-                    </form>
-
-                    <div id="resultat-recherche" class="mt-4">
-                        @if(isset($etatDemande))
-                            <div class="text-center">
-                                <h4 class="mb-4" style="color: #1977cc">Résultat de votre recherche</h4>
-                                @if($etatDemande)
-                                    <div class="alert border-0 rounded-3 p-4 shadow-sm" style="background-color: rgba(25, 119, 204, 0.1);" role="alert">
-                                        <div class="d-flex align-items-center justify-content-center mb-3">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#1977cc" class="bi bi-check-circle-fill me-3" viewBox="0 0 16 16">
-                                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                                            </svg>
-                                            <h5 class="mb-0" style="color: #1977cc">Référence: {{ request('reference_naissance') }}</h5>
-                                        </div>
-                                        <hr>
-                                        <p class="fw-medium mb-1">État actuel:</p>
-                                        <p class="h4 fw-bold mb-3" style="color: #1977cc">{{ $etatDemande }}</p>
-                                        <div class="progress mt-3" style="height: 10px; border-radius: 10px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 95%; background-color: #1977cc;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="fw-medium mb-1 mt-4">Livraison:</p>
-                                        <p class="h4 fw-bold mb-3" style="color: #1977cc">{{ $statutDemande }}</p>
-                                    </div>
-                                @else
-                                    <div class="alert border-0 rounded-3 p-4 shadow-sm" style="background-color: rgba(255, 193, 7, 0.1);" role="alert">
-                                        <div class="d-flex align-items-center justify-content-center mb-3">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#fd7e14" class="bi bi-exclamation-triangle-fill me-3" viewBox="0 0 16 16">
-                                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                                            </svg>
-                                            <h5 class="mb-0" style="color: #fd7e14">Référence non trouvée</h5>
-                                        </div>
-                                        <hr>
-                                        <p class="fw-medium">
-                                            Aucune demande trouvée pour <strong>"{{ request('reference_naissance') }}"</strong>.
-                                            <br>Veuillez vérifier votre référence ou contacter notre support.
-                                        </p>
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
-</div>
-
-<style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .card {
-        border: none;
-        transition: transform 0.3s ease;
-    }
-    .card:hover {
-        transform: translateY(-5px);
-    }
-    .form-control {
-        border: 2px solid #e9ecef;
-    }
-    .form-control:focus {
-        border-color: #1977cc;
-        box-shadow: 0 0 0 0.25rem rgba(25, 119, 204, 0.25);
-    }
-    .btn {
-        transition: all 0.3s;
-    }
-    .btn:hover {
-        background-color: #1565b8 !important;
-        transform: translateY(-2px);
-    }
-    .icon-container {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        background-color: rgba(25, 119, 204, 0.1);
-    }
-    .progress {
-        border-radius: 10px;
-    }
-    .invalid-feedback {
-        font-size: 0.9rem;
-    }
-</style>
-
-<script>
-    // Validation du formulaire côté client
-    (function() {
-        'use strict'
-        
-        const forms = document.querySelectorAll('.needs-validation')
-        
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
-</script>
-
 @endsection
+
+@push('styles')
+    <style>
+        .service-hero {
+            background: linear-gradient(rgba(31, 64, 131, 0.95), rgba(31, 64, 131, 0.85)), url('{{ asset('assets/assets/img/Plateau-immeuble.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            padding: 200px 0 140px;
+            border-radius: 0 0 100px 100px;
+        }
+
+        .text-primary {
+            color: #1f4083 !important;
+        }
+
+        .bg-primary {
+            background-color: #1f4083 !important;
+        }
+
+        .btn-primary {
+            background-color: #1f4083 !important;
+            border-color: #1f4083 !important;
+            padding: 15px 30px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(31, 64, 131, 0.2);
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-top: -100px;
+        }
+
+        .form-control-luxe {
+            background: #f8fafc !important;
+            border: 2px solid #f1f5f9 !important;
+            border-radius: 15px !important;
+            padding: 18px 25px !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-luxe:focus {
+            background: #fff !important;
+            border-color: #1f4083 !important;
+            box-shadow: 0 0 0 5px rgba(31, 64, 131, 0.1) !important;
+        }
+
+        .status-tracker {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .status-dot {
+            width: 15px;
+            height: 15px;
+            background: #cbd5e1;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .status-active .status-dot {
+            background: #1f4083;
+            box-shadow: 0 0 0 4px rgba(31, 64, 131, 0.2);
+        }
+
+        .fw-900 {
+            font-weight: 900;
+        }
+
+        .fw-800 {
+            font-weight: 800;
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .pulse-soft {
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @media (max-width: 991px) {
+            .service-hero {
+                padding: 120px 0 60px;
+                border-radius: 0 0 40px 40px;
+            }
+
+            .display-3 {
+                font-size: 2.22rem !important;
+            }
+
+            .search-card {
+                border-radius: 25px;
+                margin-top: -40px;
+            }
+
+            .p-4.p-md-5 {
+                padding: 1.5rem !important;
+            }
+
+            .icon-circle {
+                width: 60px !important;
+                height: 60px !important;
+            }
+
+            .form-control-luxe {
+                padding: 15px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .display-3 {
+                font-size: 2rem !important;
+            }
+        }
+    </style>
+@endpush

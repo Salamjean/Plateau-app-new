@@ -140,9 +140,9 @@ class FinanceDashboard extends Controller
         $totalTimbresDebites = $total;
 
         // Récupérer les demandes récentes
-        $demandesNaissance = Naissance::where('commune', $finance->communeM)->latest()->take(5)->get();
-        $demandesDeces = Deces::where('commune', $finance->communeM)->latest()->take(5)->get();
-        $demandesMariage = Mariage::where('commune', $finance->communeM)->latest()->take(5)->get();
+        $demandesNaissance = Naissance::where('commune', $finance->communeM)->latest()->take(3)->get();
+        $demandesDeces = Deces::where('commune', $finance->communeM)->latest()->take(3)->get();
+        $demandesMariage = Mariage::where('commune', $finance->communeM)->latest()->take(3)->get();
 
         // Récupérer les statistiques par période pour le graphique
         $now = Carbon::now();

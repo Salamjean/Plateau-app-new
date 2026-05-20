@@ -5,9 +5,9 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
   :root {
-    --primary-color: #1977cc;
-    --primary-light: #1977cc;
-    --primary-dark: #1977cc;
+    --primary-color: #1f4083;
+    --primary-light: #1f4083;
+    --primary-dark: #1f4083;
     --secondary-color: #ffffff;
     --success-color: #28a745;
     --warning-color: #ffc107;

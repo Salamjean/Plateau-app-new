@@ -22,7 +22,7 @@
             overflow: hidden;
         }
         .header {
-            background-color: #1977cc;
+            background-color: #1f4083;
             padding: 25px;
             text-align: center;
         }
@@ -44,7 +44,7 @@
         }
         .button {
             display: inline-block;
-            background-color: #1977cc;
+            background-color: #1f4083;
             color: #ffffff !important; /* Important pour forcer la couleur sur certains clients mail */
             padding: 15px 30px;
             border-radius: 5px;

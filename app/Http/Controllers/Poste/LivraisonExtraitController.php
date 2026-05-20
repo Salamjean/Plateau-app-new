@@ -188,52 +188,60 @@ class LivraisonExtraitController extends Controller
 
     public function assignerLivreur(Request $request)
     {
+        Log::info('Assignation livreur debut', $request->all());
+
         $request->validate([
             'livreur_id' => 'required|exists:livreurs,id',
             'demandes' => 'required|array'
         ]);
 
         try {
+            $updatedCount = 0;
             foreach ($request->demandes as $demande) {
-                $modelClass = "App\\Models\\" . Str::studly($demande['type']);
+                // On cherche par référence car le front envoie 'reference'
+                $ref = $demande['reference'];
+                $type = $demande['type'];
                 
+                // Mapper les types français aux noms de modèles
+                $typeMap = [
+                    'Naissance' => 'Naissance',
+                    'Décès' => 'Deces',
+                    'Mariage' => 'Mariage'
+                ];
+                
+                $realType = $typeMap[$type] ?? $type;
+                $modelClass = "App\\Models\\" . Str::studly($realType);
+            
                 if (class_exists($modelClass)) {
-                    // <-- MODIFICATION : On ne fait pas un 'update' groupé, on 'find'
-                    $item = $modelClass::find($demande['id']);
+                    $item = $modelClass::where('reference', $ref)->first();
                     
-                    // On vérifie que la demande existe ET qu'elle est bien 'terminé'
-                    if ($item && $item->etat === 'terminé') {
-                        // On met à jour les champs et on sauvegarde
+                    if ($item) {
                         $item->livreur_id = $request->livreur_id;
-                        $item->statut_livraison = 'en cours'; // Le statut est mis à jour ici
+                        $item->statut_livraison = 'en cours';
                         $item->save();
+                        $updatedCount++;
 
                         // Notification push + DB
-                        $item->load('user');
                         $user = $item->user;
-                        $modelName = strtolower($this->getTypeDemande($demande['type']));
-
                         if ($user) {
                             $user->notify(new GeneralPushNotification(
                                 'Documents en cours de livraison',
-                                "Votre acte de {$modelName} a été confié à un livreur et est en cours de livraison.",
-                                ['type' => 'livraison_en_cours', 'reference' => $item->reference, 'url' => 'plateauapps://demande?reference=' . $item->reference]
+                                "Votre acte de " . strtolower($realType) . " a été confié à un livreur.",
+                                ['type' => 'livraison_en_cours', 'reference' => $item->reference]
                             ));
                         }
+                    } else {
+                        Log::warning("Colis non trouvé: $ref ($modelClass)");
                     }
+                } else {
+                    Log::error("Classe non trouvée: $modelClass");
                 }
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Colis assignées avec succès'
-            ]);
+            return back()->with('success', "$updatedCount colis assignés avec succès.");
         } catch (\Exception $e) {
             Log::error('Erreur assignation livreur: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'assignation'
-            ], 500);
+            return back()->with('error', 'Erreur lors de l\'assignation : ' . $e->getMessage());
         }
     }
 

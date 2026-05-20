@@ -14,8 +14,8 @@
 
 <style>
   :root {
-    --primary-color: #1977cc;
-    --primary-light: #1977cc;
+    --primary-color: #1f4083;
+    --primary-light: #1f4083;
     --primary-dark: #28a745;
     --light-color: #ffffff;
     --dark-color: #212529;
@@ -132,7 +132,7 @@
   .auth-btn {
     width: 100%;
     height: 50px;
-    background-color: #1977cc;
+    background-color: #1f4083;
     color: white;
     border: none;
     border-radius: 10px;

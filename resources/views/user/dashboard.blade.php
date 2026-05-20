@@ -95,7 +95,7 @@
                     </div>
                     <div class="d-flex flex-wrap gap-2 justify-content-end mt-2 mt-sm-0">
                         <div class="d-flex align-items-center mr-3 mb-2">
-                            <span style="width: 10px; height: 10px; background: #1977cc; border-radius: 50%; display: block; margin-right: 6px;"></span>
+                            <span style="width: 10px; height: 10px; background: #1f4083; border-radius: 50%; display: block; margin-right: 6px;"></span>
                             <small class="text-grey font-weight-bold">Naissance</small>
                         </div>
                         <div class="d-flex align-items-center mr-3 mb-2">
@@ -195,7 +195,7 @@
                     {
                         label: 'Naissances',
                         data: naissancesData,
-                        borderColor: '#1977cc',
+                        borderColor: '#1f4083',
                         backgroundColor: blueGrad,
                         fill: true,
                         tension: 0.4,
@@ -273,7 +273,7 @@
                         </div>
                     `,
                     confirmButtonText: 'C\'est génial ! 🚀',
-                    confirmButtonColor: '#1977cc',
+                    confirmButtonColor: '#1f4083',
                     borderRadius: '30px',
                     backdrop: `rgba(25, 119, 204, 0.2)`
                 }).then(() => {

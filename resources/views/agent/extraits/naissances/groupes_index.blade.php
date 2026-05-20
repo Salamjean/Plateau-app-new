@@ -5,7 +5,7 @@
 <style>
     .groupes-container { padding: 2rem; max-width: 1400px; margin: 0 auto; }
     .page-header {
-        background: linear-gradient(135deg, #1977cc 0%, #4facfe 100%);
+        background: linear-gradient(135deg, #1f4083 0%, #4facfe 100%);
         color: #fff; padding: 2rem; border-radius: 20px; margin-bottom: 2rem;
         box-shadow: 0 10px 30px rgba(25,119,204,0.2);
         display: flex; justify-content: space-between; align-items: center;
@@ -19,7 +19,7 @@
     .groupe-card {
         background: #fff; border-radius: 18px; padding: 1.5rem;
         margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        border-left: 5px solid #1977cc; transition: 0.3s;
+        border-left: 5px solid #1f4083; transition: 0.3s;
     }
     .groupe-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
     .groupe-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
@@ -48,7 +48,7 @@
     .demandeur-info { display: flex; align-items: center; gap: 12px; }
     .demandeur-avatar {
         width: 45px; height: 45px; border-radius: 50%;
-        background: linear-gradient(135deg, #1977cc, #4facfe); color: #fff;
+        background: linear-gradient(135deg, #1f4083, #4facfe); color: #fff;
         display: flex; align-items: center; justify-content: center;
         font-weight: 700; font-size: 1rem;
     }
@@ -58,7 +58,7 @@
         align-items: center; gap: 8px; border: none; cursor: pointer;
         font-size: 0.9rem;
     }
-    .btn-traiter { background: #1977cc; color: #fff; }
+    .btn-traiter { background: #1f4083; color: #fff; }
     .btn-traiter:hover { background: #0d4a85; color: #fff; transform: translateX(3px); }
     .btn-voir { background: #f4f7fe; color: #2b3674; }
     .btn-voir:hover { background: #e2e8f0; }

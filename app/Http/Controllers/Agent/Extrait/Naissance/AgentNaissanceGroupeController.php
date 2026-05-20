@@ -14,8 +14,8 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Services\YellikaSmsService;
 
 /**
  * Gère le traitement par l'agent des demandes groupées d'actes de naissance.
@@ -41,7 +41,7 @@ class AgentNaissanceGroupeController extends Controller
             ->paye()
             ->where(function ($q) {
                 $q->whereNull('statut_livraison')
-                  ->orWhere('statut_livraison', '!=', 'livré');
+                    ->orWhere('statut_livraison', '!=', 'livré');
             })
             ->where('etat', '!=', 'rejetée')
             ->with(['user', 'lignes'])
@@ -132,7 +132,6 @@ class AgentNaissanceGroupeController extends Controller
             DB::commit();
 
             return redirect()->route('agent.demandes.naissance.groupes.index')->with('success', $messageSuccess);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Erreur traitement groupe naissance ' . $groupe->reference . ' : ' . $e->getMessage());
@@ -166,6 +165,19 @@ class AgentNaissanceGroupeController extends Controller
         $groupe->etat = 'rejetée';
         $groupe->agent_id = $agent->id;
         $groupe->save();
+
+        // Envoi SMS
+        $user = $groupe->user;
+        if ($user) {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande groupée d'extraits de naissance (Réf: {$groupe->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de rejet (naissance groupe) : " . $e->getMessage());
+            }
+        }
     }
 
     /**

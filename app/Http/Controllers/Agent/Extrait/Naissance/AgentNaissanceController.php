@@ -114,7 +114,7 @@ class AgentNaissanceController extends Controller
         // Récupérer l'utilisateur et l'ancien état AVANT le save
         $user = $naissance->user;
         $ancienEtat = $naissance->getOriginal('etat') ?? 'nouveau';
-        
+
         $naissance->save();
 
         // =================================================================
@@ -139,7 +139,7 @@ class AgentNaissanceController extends Controller
         if ($naissance->etat === 'rejetée' && $request->motif_champs) {
             $champsModifies = $request->motif_champs;
         }
-        
+
         ActionHistory::logAction(
             'naissance',
             $naissance->id,
@@ -195,6 +195,18 @@ class AgentNaissanceController extends Controller
                 $yellikaSmsService->sendSms($phoneNumber, $message);
             } catch (\Exception $e) {
                 Log::error("Erreur lors de l'envoi du SMS de fin de traitement (naissance) : " . $e->getMessage());
+            }
+        }
+
+        // SMS notification when marked as rejected
+        if ($user && $naissance->etat === 'rejetée' && $ancienEtat !== 'rejetée') {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande d'extrait de naissance (Réf: {$naissance->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de rejet (naissance) : " . $e->getMessage());
             }
         }
 
@@ -364,10 +376,10 @@ class AgentNaissanceController extends Controller
 
         // Sauvegarder l'ancien statut
         $ancienStatut = $naissance->statut_livraison ?? 'en attente';
-        
+
         // Récupérer l'utilisateur associé à la demande
         $user = $naissance->user;
-        
+
         // Mettre à jour le statut de livraison
         $naissance->statut_livraison = $request->statut_livraison;
         $naissance->save();
@@ -414,5 +426,4 @@ class AgentNaissanceController extends Controller
 
         return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }
-
 }

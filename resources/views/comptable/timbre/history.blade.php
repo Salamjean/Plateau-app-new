@@ -43,7 +43,7 @@
                                     <i class="fas fa-calendar-week"></i>
                                 </div>
                             </div>
-                            <div class="stat-card" style="background-color: #1977cc">
+                            <div class="stat-card" style="background-color: #1f4083">
                                 <div class="stat-content">
                                     <h6>Ce mois</h6>
                                     <h3>{{ number_format($stats['this_month'], 0, ',', ' ') }} timbres</h3>
@@ -179,11 +179,11 @@
 
     <style>
         :root {
-            --primary: #1977cc;
-            --primary-light: #4895ef;
-            --secondary: #1977cc;
+            --primary: #1f4083;
+            --primary-light: #1f4083;
+            --secondary: #1f4083;
             --success: #ff8800;
-            --danger: #1977cc;
+            --danger: #1f4083;
             --warning: #ffd166;
             --info: black;
             --dark: #2b2d42;
@@ -372,7 +372,7 @@
         }
 
         .data-table th {
-            background: #1977cc;
+            background: #1f4083;
             padding: 1rem;
             text-align: center;
             font-weight: 600;
@@ -434,7 +434,7 @@
             width: 42px;
             height: 42px;
             border-radius: 50%;
-            background-color: #1977cc;
+            background-color: #1f4083;
             color: white;
             display: flex;
             align-items: center;

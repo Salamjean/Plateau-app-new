@@ -291,7 +291,7 @@ class DecesController extends Controller
 
         $phoneNumber = $user->indicatif . $user->contact;
         $message = "Bonjour {$user->name}, votre demande d'extrait de décès a bien été transmise à la mairie du plateau. Référence: {$deces->reference}
-Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com";
         $yellikaSmsService->sendSms($phoneNumber, $message);
 
         // Envoi de l'email de confirmation

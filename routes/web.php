@@ -124,7 +124,7 @@ Route::middleware('admin')->prefix('admin')->group(function () {
         Route::post('/web/toggle', [MaintenanceController::class, 'toggleWebMaintenance'])->name('admin.maintenance.web.toggle');
         Route::post('/api/toggle', [MaintenanceController::class, 'toggleApiMaintenance'])->name('admin.maintenance.api.toggle');
         Route::post('/free-requests/toggle', [MaintenanceController::class, 'toggleFreeRequestsMode'])->name('admin.maintenance.free_requests.toggle');
-        
+
         // Bypass maintenance
         Route::get('/bypass', [MaintenanceController::class, 'bypass'])->name('admin.maintenance.bypass');
         Route::get('/bypass/clear', [MaintenanceController::class, 'clearBypass'])->name('admin.maintenance.bypass.clear');
@@ -142,6 +142,7 @@ Route::prefix('mairie')->group(function () {
 
 Route::middleware('mairie')->prefix('mairie')->group(function () {
     Route::get('/dashboard', [MairieDashboard::class, 'dashboard'])->name('mairie.dashboard');
+    Route::get('/ventes-timbre', [MairieDashboard::class, 'salesTimbre'])->name('mairie.timbres.index');
     Route::get('/logout', [MairieDashboard::class, 'logout'])->name('mairie.logout');
 
     //Les routes pour la liste des demandes 
@@ -557,7 +558,9 @@ Route::middleware('auth')->prefix('user')->group(function () {
 
     //la route de gestion des historiques 
     Route::get('/history/ends', [UserAuthenticate::class, 'history'])->name('user.history');
+    Route::get('/pending-collections', [UserAuthenticate::class, 'pendingCollections'])->name('user.pending.collections');
     Route::get('/demande-details/{type}/{id}', [UserAuthenticate::class, 'getDemandeDetails'])->name('demande.details.json');
+    Route::get('/demande-details-view/{type}/{id}', [UserAuthenticate::class, 'showDemandeDetails'])->name('demande.details.view');
     // Remplacez les anciennes routes de profil par celles-ci
     // Routes pour la gestion du profil utilisateur
     Route::get('/profile', [ProfiluserController::class, 'show'])->name('user.profile.show');

@@ -94,12 +94,74 @@ class MairieDashboard extends Controller
             'selectedMonthHops',
             'selectedYearHops',
         ));
-
     }
 
     public function logout()
     {
         Auth::guard('mairie')->logout();
         return redirect()->route('mairie.login');
+    }
+
+    public function salesTimbre(Request $request)
+    {
+        $mairie = Auth::guard('mairie')->user();
+
+        // On récupère les ventes de timbres liées à cette mairie
+        $finances = \App\Models\Finance::where('mairie_id', $mairie->id)->get();
+        $financeIds = $finances->pluck('id');
+        $comptables = \App\Models\Comptable::whereIn('finance_id', $financeIds)->get();
+        $comptableIds = $comptables->pluck('id');
+
+        $query = \App\Models\Timbre::where(function ($q) use ($financeIds, $comptableIds) {
+            $q->whereIn('finance_id', $financeIds)
+                ->orWhereIn('comptable_id', $comptableIds);
+        })->where('nombre_timbre', '<', 0); // Uniquement les ventes
+
+        // Filtrage par mois
+        $selectedMonth = $request->input('month');
+        if ($selectedMonth) {
+            $query->whereMonth('created_at', $selectedMonth);
+            $query->whereYear('created_at', date('Y'));
+        }
+
+        // Filtrage par comptable
+        $selectedComptable = $request->input('comptable_id');
+        if ($selectedComptable) {
+            $query->where('comptable_id', $selectedComptable);
+        }
+
+        // Statistiques (sur la requête filtrée pour certaines, ou globales si nécessaire)
+        // Note: On clone pour garder les stats globales ou filtrées selon le besoin
+        // Ici on va garder les stats globales pour les cartes, mais la liste sera filtrée
+        $statsQuery = clone $query;
+
+        $totalTimbresVendus = abs((clone $query)->sum('nombre_timbre'));
+        $totalRecettes = $totalTimbresVendus * 500;
+
+        $ventesAujourdhui = abs((clone $query)->whereDate('created_at', today())->sum('nombre_timbre'));
+        $ventesMois = abs((clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('nombre_timbre'));
+
+        // Statistiques du stock (Solde) - Toujours global à la mairie
+        $soldeMontant = $mairie->solde ?? 0;
+        $soldeTimbres = $soldeMontant > 0 ? floor($soldeMontant / 500) : 0;
+
+        // Liste des transactions filtrées
+        $ventes = $query->with(['finance', 'comptable'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return view('mairie.ventes_timbre', compact(
+            'mairie',
+            'ventes',
+            'totalTimbresVendus',
+            'totalRecettes',
+            'ventesAujourdhui',
+            'ventesMois',
+            'soldeMontant',
+            'soldeTimbres',
+            'comptables',
+            'selectedMonth',
+            'selectedComptable'
+        ));
     }
 }

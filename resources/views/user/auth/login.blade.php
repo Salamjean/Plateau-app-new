@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
+    <link rel="shortcut icon" href="{{ asset('assets/assets/img/logo plateau.png') }}" />
     <title>Connexion - Plateau App</title>
     <style>
         :root {
-            --primary-color: #1a66ff;
-            --secondary-color: #1a66ff;
-            --accent-color: #4895ef;
+            --primary-color: #1f4083;
+            --secondary-color: #1f4083;
+            --accent-color: #1f4083;
             --error-color: #f72585;
             --success-color: #4cc9f0;
             --light-color: #f8f9fa;
@@ -35,13 +36,13 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e0eaff 100%);
+            background: linear-gradient(135deg, #f0f4ff 0%, #1f4083 100%);
             padding: 20px;
         }
 
         .form-container {
             background-color: white;
-            padding: 40px;
+            padding: 30px;
             width: 100%;
             max-width: 500px;
             border-radius: 24px;
@@ -51,8 +52,15 @@
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .back-btn {
@@ -82,12 +90,12 @@
 
         .illustration {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
 
         .illustration-circle {
-            width: 130px;
-            height: 130px;
+            width: 100px;
+            height: 100px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -113,7 +121,7 @@
 
         .form-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .title {
@@ -140,11 +148,11 @@
         .subtitle {
             color: var(--text-muted);
             font-size: 1rem;
-            margin-top: 15px;
+            margin-top: 5px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .form-label {
@@ -152,7 +160,7 @@
             font-size: 0.95rem;
             font-weight: 700;
             color: #1a1a1a;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .input-wrapper {
@@ -200,8 +208,8 @@
 
         .forgot-password {
             text-align: right;
-            margin-top: 10px;
-            margin-bottom: 25px;
+            margin-top: 5px;
+            margin-bottom: 15px;
         }
 
         .forgot-password a {
@@ -239,20 +247,26 @@
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 30px 0;
+            margin: 20px 0;
             color: #adb5bd;
             font-size: 0.85rem;
             font-weight: 600;
         }
 
-        .separator::before, .separator::after {
+        .separator::before,
+        .separator::after {
             content: '';
             flex: 1;
             border-bottom: 1.5px solid #f1f3f5;
         }
 
-        .separator::before { margin-right: 15px; }
-        .separator::after { margin-left: 15px; }
+        .separator::before {
+            margin-right: 15px;
+        }
+
+        .separator::after {
+            margin-left: 15px;
+        }
 
         .social-btns {
             display: flex;
@@ -284,7 +298,7 @@
         .google-btn:hover {
             background: #f8f9fa;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .apple-btn {
@@ -296,12 +310,12 @@
         .apple-btn:hover {
             background: #1a1a1a;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .form-footer {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 20px;
             font-size: 0.95rem;
             color: var(--text-muted);
         }
@@ -321,9 +335,11 @@
             .form-container {
                 padding: 30px 20px;
             }
+
             .title {
                 font-size: 1.8rem;
             }
+
             .social-btn {
                 font-size: 0.85rem;
                 padding: 0 5px;
@@ -331,6 +347,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="form-container">
         <!-- Bouton Retour -->
@@ -340,36 +357,39 @@
 
         <div class="illustration">
             <div class="illustration-circle">
-                <img src="{{asset('assets/assets/img/logo plateau.png')}}" alt="Logo Plateau">
+                <img src="{{ asset('assets/assets/img/logo plateau.png') }}" alt="Logo Plateau">
             </div>
         </div>
 
         <div class="form-header">
-            <h1 class="title">Bon retour !</h1>
+            <h1 class="title">Connexion</h1>
             <p class="subtitle">Heureux de vous revoir parmi nous</p>
         </div>
 
         @if (Session::get('success'))
-            <div class="success-message animate__animated animate__fadeIn" style="color: var(--success-color); text-align: center; margin-bottom: 15px;">
+            <div class="success-message animate__animated animate__fadeIn"
+                style="color: var(--success-color); text-align: center; margin-bottom: 15px;">
                 <i class="fas fa-check-circle"></i> {{ Session::get('success') }}
             </div>
         @endif
 
         @if (Session::get('error'))
-            <div class="error-message animate__animated animate__shakeX" style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
+            <div class="error-message animate__animated animate__shakeX"
+                style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
                 <i class="fas fa-exclamation-circle"></i> {{ Session::get('error') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="error-message animate__animated animate__shakeX" style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
+            <div class="error-message animate__animated animate__shakeX"
+                style="color: var(--error-color); text-align: center; margin-bottom: 15px;">
                 <i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}
             </div>
         @endif
 
         <!-- Section Téléphone -->
         <div id="phone-section">
-            <form method="POST" action="{{route('user.handleLogin')}}">
+            <form method="POST" action="{{ route('user.handleLogin') }}">
                 @csrf
                 <input type="hidden" name="indicatif" value="+225">
 
@@ -377,7 +397,8 @@
                     <label class="form-label">Numéro de téléphone</label>
                     <div class="input-wrapper">
                         <i class="fas fa-mobile-alt input-icon"></i>
-                        <input name="contact" class="input-field" type="tel" placeholder="Ex: 0700000000" required value="{{ old('contact') }}">
+                        <input name="contact" class="input-field" type="tel" placeholder="Ex: 0700000000" required
+                            value="{{ old('contact') }}">
                     </div>
                 </div>
 
@@ -385,7 +406,8 @@
                     <label class="form-label">Mot de passe</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock input-icon"></i>
-                        <input class="input-field" type="password" name="password" id="password" placeholder="Entrez votre mot de passe" required>
+                        <input class="input-field" type="password" name="password" id="password"
+                            placeholder="Entrez votre mot de passe" required>
                         <i class="fas fa-eye password-toggle" id="togglePassword"></i>
                     </div>
                 </div>
@@ -404,18 +426,22 @@
 
         <div class="social-btns">
             <button type="button" class="social-btn google-btn" id="googleLoginBtn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="22">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                    width="22">
                 Google
             </button>
 
             <button type="button" class="social-btn apple-btn" id="appleLoginBtn">
-                <svg width="20" height="20" viewBox="0 0 814 1000" fill="white"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46.5 700 0 571.8 0 449.3c0-152.5 99.5-233.1 197.3-233.1 69.1 0 126.4 45.3 170 45.3 42.1 0 108.5-47.9 188.2-47.9 30.1 0 108.2 2.6 168.6 80.6zm-80.6-171.4c31.5-38.5 53.9-89.2 53.9-139.9 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.1-55.1 134.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 134.7-69.7z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 814 1000" fill="white">
+                    <path
+                        d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46.5 700 0 571.8 0 449.3c0-152.5 99.5-233.1 197.3-233.1 69.1 0 126.4 45.3 170 45.3 42.1 0 108.5-47.9 188.2-47.9 30.1 0 108.2 2.6 168.6 80.6zm-80.6-171.4c31.5-38.5 53.9-89.2 53.9-139.9 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.1-55.1 134.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 134.7-69.7z" />
+                </svg>
                 Apple
             </button>
         </div>
 
         <div class="form-footer">
-            <p>Vous n'avez pas de compte ? <a href="{{route('user.register')}}">S'inscrire</a></p>
+            <p>Vous n'avez pas de compte ? <a href="{{ route('user.register') }}">S'inscrire</a></p>
         </div>
     </div>
 
@@ -435,7 +461,7 @@
             }
         });
     </script>
-    
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -472,25 +498,37 @@
                 provider.addScope('name');
 
                 auth.signInWithPopup(provider).then((result) => {
-                    Swal.fire({ title: 'Vérification...', text: 'Veuillez patienter', allowOutsideClick: false, showConfirmButton: false, willOpen: () => Swal.showLoading() });
-                    return result.user.getIdToken();
-                }).then((idToken) => {
-                    return fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}", 'ngrok-skip-browser-warning': 'true' },
-                        body: JSON.stringify({ id_token: idToken })
+                        Swal.fire({
+                            title: 'Vérification...',
+                            text: 'Veuillez patienter',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            willOpen: () => Swal.showLoading()
+                        });
+                        return result.user.getIdToken();
+                    }).then((idToken) => {
+                        return fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                                'ngrok-skip-browser-warning': 'true'
+                            },
+                            body: JSON.stringify({
+                                id_token: idToken
+                            })
+                        });
+                    }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = data.redirect;
+                        } else {
+                            Swal.fire('Erreur', data.message || 'Authentification Apple échouée', 'error');
+                        }
+                    }).catch((error) => {
+                        if (error.code === 'auth/popup-closed-by-user') return;
+                        Swal.fire('Erreur', 'Impossible de se connecter avec Apple.', 'error');
                     });
-                }).then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = data.redirect;
-                    } else {
-                        Swal.fire('Erreur', data.message || 'Authentification Apple échouée', 'error');
-                    }
-                }).catch((error) => {
-                    if (error.code === 'auth/popup-closed-by-user') return;
-                    Swal.fire('Erreur', 'Impossible de se connecter avec Apple.', 'error');
-                });
             });
         }
         handleApple('appleLoginBtn', '/user/auth/apple');
@@ -502,40 +540,43 @@
                 return;
             }
             const provider = new firebase.auth.GoogleAuthProvider();
-            
+
             auth.signInWithPopup(provider).then((result) => {
-                Swal.fire({
-                    title: 'Vérification...',
-                    text: 'Veuillez patienter',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    willOpen: () => {
-                        Swal.showLoading();
+                    Swal.fire({
+                        title: 'Vérification...',
+                        text: 'Veuillez patienter',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    return result.user.getIdToken();
+                }).then((idToken) => {
+                    return fetch("/user/auth/google", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                            'ngrok-skip-browser-warning': 'true'
+                        },
+                        body: JSON.stringify({
+                            id_token: idToken
+                        })
+                    });
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        Swal.fire('Erreur', data.message || 'Authentification Google échouée', 'error');
                     }
+                }).catch((error) => {
+                    if (error.code === 'auth/popup-closed-by-user') return;
+                    Swal.fire('Erreur', 'Impossible de se connecter avec Google.', 'error');
                 });
-                return result.user.getIdToken();
-            }).then((idToken) => {
-                return fetch("/user/auth/google", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}",
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify({ id_token: idToken })
-                });
-            }).then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = data.redirect;
-                } else {
-                    Swal.fire('Erreur', data.message || 'Authentification Google échouée', 'error');
-                }
-            }).catch((error) => {
-                if (error.code === 'auth/popup-closed-by-user') return;
-                Swal.fire('Erreur', 'Impossible de se connecter avec Google.', 'error');
-            });
         });
     </script>
 </body>
+
 </html>

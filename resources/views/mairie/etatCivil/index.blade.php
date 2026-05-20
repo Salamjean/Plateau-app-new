@@ -124,7 +124,7 @@
                             <div class="mt-5">
                                 <h5 class="fw-bold text-primary mb-3">
                                     <i class="fas fa-user-tie me-2"></i>
-                                    Agents enregistrés par <span class="text-dark">{{ $etatCivil->name_respo }}</span>
+                                    Agents enregistrés </span>
                                     <span class="badge bg-primary rounded-pill ms-2">{{ $etatCivil->agents->count() }}</span>
                                 </h5>
                                 <div class="table-responsive">
@@ -216,8 +216,8 @@
 
 <style>
     :root {
-        --primary: #1977cc;
-        --secondary: #1977cc;
+        --primary: #1f4083;
+        --secondary: #1f4083;
         --light-bg: #f8f9fa;
     }
     

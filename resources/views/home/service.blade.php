@@ -1,505 +1,282 @@
-@extends('home.layouts.tamplate')
+@extends('home.layouts.main')
+
 @section('content')
-<div class="services-page">
-    <!-- Hero Section -->
-    <section class="services-hero">
-        <div class="services-container">
-            <h1>Services de la Mairie du Plateau</h1>
-            <p>Découvrez tous les services administratifs offerts aux citoyens et aux entreprises de la commune du Plateau</p>
-        </div>
-    </section>
-
-    <!-- Services Navigation -->
-    <section class="services-nav">
-        <div class="services-container">
-            <div class="nav-tabs">
-                <button class="nav-tab active" data-category="all">Tous les services</button>
-                <button class="nav-tab" data-category="citoyens">Services aux citoyens</button>
-                <button class="nav-tab" data-category="entreprises">Services aux entreprises</button>
-                <button class="nav-tab" data-category="urbanisme">Urbanisme</button>
-                <button class="nav-tab" data-category="etat-civil">État civil</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Grid -->
-    <section class="services-grid-section">
-        <div class="services-container">
-            <h2 class="section-title">Nos Services</h2>
-            
-            <div class="services-grid">
-                <!-- Service Card 1 -->
-                <div class="service-card" data-category="etat-civil">
-                    <div class="service-icon">
-                        <i class="fas fa-id-card"></i>
-                    </div>
-                    <h3>État Civil</h3>
-                    <p>Délivrance d'actes de naissance, de mariage, de décès et autres documents d'état civil.</p>
-                    <ul class="service-features">
-                        <li>Acte de naissance</li>
-                        <li>Acte de mariage</li>
-                        <li>Acte de décès</li>
-                        <li>Livret de famille</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
+    <div class="services-list-page">
+        <!-- Hero Section -->
+        <section class="service-hero">
+            <div class="container text-center">
+                <div class="badge-service mb-3" data-aos="fade-down">
+                    <span class="badge rounded-pill bg-white bg-opacity-25 text-white px-3 py-2 fw-700">
+                        <i class="bi bi-grid me-1"></i> CATALOGUE
+                    </span>
                 </div>
+                <h1 class="display-3 fw-900 text-white mb-4" data-aos="fade-up">Nos Services Municipaux</h1>
+                <p class="lead text-white-50 mx-auto mb-5" style="max-width: 700px;" data-aos="fade-up" data-aos-delay="100">
+                    Trouvez facilement le service dont vous avez besoin parmi notre catalogue administratif complet.
+                </p>
 
-                <!-- Service Card 2 -->
-                <div class="service-card" data-category="urbanisme">
-                    <div class="service-icon">
-                        <i class="fas fa-building"></i>
+                <!-- Search Bar -->
+                <div class="col-lg-8 mx-auto" data-aos="fade-up" data-aos-delay="200">
+                    <div class="search-wrapper p-2 bg-white rounded-pill shadow-lg d-flex align-items-center">
+                        <i class="bi bi-search text-primary ms-3"></i>
+                        <input type="text" class="form-control border-0 shadow-none ps-3"
+                            placeholder="Quel service recherchez-vous ? (ex: Acte de naissance, Mariage...)"
+                            id="serviceSearch">
+                        <button class="btn btn-primary rounded-pill px-4 py-2 fw-700 ms-2">Rechercher</button>
                     </div>
-                    <h3>Urbanisme et Permis de Construire</h3>
-                    <p>Demandes de permis de construire, certificats d'urbanisme et autorisations diverses.</p>
-                    <ul class="service-features">
-                        <li>Permis de construire</li>
-                        <li>Certificat d'urbanisme</li>
-                        <li>Autorisation de travaux</li>
-                        <li>Lotissement</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
-                </div>
-
-                <!-- Service Card 3 -->
-                <div class="service-card" data-category="citoyens">
-                    <div class="service-icon">
-                        <i class="fas fa-passport"></i>
-                    </div>
-                    <h3>Pièces d'Identité</h3>
-                    <p>Demande et renouvellement de cartes nationales d'identité et autres documents officiels.</p>
-                    <ul class="service-features">
-                        <li>Carte nationale d'identité</li>
-                        <li>Passeport</li>
-                        <li>Attestation d'identité</li>
-                        <li>Certificat de nationalité</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
-                </div>
-
-                <!-- Service Card 4 -->
-                <div class="service-card" data-category="entreprises">
-                    <div class="service-icon">
-                        <i class="fas fa-file-contract"></i>
-                    </div>
-                    <h3>Activités Commerciales</h3>
-                    <p>Immatriculation des entreprises, licences commerciales et autorisations d'exploitation.</p>
-                    <ul class="service-features">
-                        <li>Immatriculation au registre du commerce</li>
-                        <li>Licence commerciale</li>
-                        <li>Autorisation d'exploitation</li>
-                        <li>Patente</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
-                </div>
-
-                <!-- Service Card 5 -->
-                <div class="service-card" data-category="citoyens">
-                    <div class="service-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <h3>Logement Social</h3>
-                    <p>Programmes d'accès au logement social et accompagnement des demandeurs.</p>
-                    <ul class="service-features">
-                        <li>Demande de logement social</li>
-                        <li>Programmes d'accession</li>
-                        <li>Aides au logement</li>
-                        <li>Rénovation urbaine</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
-                </div>
-
-                <!-- Service Card 6 -->
-                <div class="service-card" data-category="citoyens">
-                    <div class="service-icon">
-                        <i class="fas fa-hand-holding-heart"></i>
-                    </div>
-                    <h3>Action Sociale</h3>
-                    <p>Aides sociales, accompagnement des personnes vulnérables et programmes solidaires.</p>
-                    <ul class="service-features">
-                        <li>Aides sociales</li>
-                        <li>Accompagnement des personnes âgées</li>
-                        <li>Soutien aux familles</li>
-                        <li>Insertion professionnelle</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
-                </div>
-
-                <!-- Service Card 7 -->
-                <div class="service-card" data-category="urbanisme">
-                    <div class="service-icon">
-                        <i class="fas fa-tree"></i>
-                    </div>
-                    <h3>Environnement et Propreté</h3>
-                    <p>Services de collecte des déchets, entretien des espaces verts et protection de l'environnement.</p>
-                    <ul class="service-features">
-                        <li>Collecte des déchets</li>
-                        <li>Entretien des espaces verts</li>
-                        <li>Protection de l'environnement</li>
-                        <li>Sensibilisation écologique</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
-                </div>
-
-                <!-- Service Card 8 -->
-                <div class="service-card" data-category="citoyens">
-                    <div class="service-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <h3>Éducation et Jeunesse</h3>
-                    <p>Services dédiés à l'éducation, aux activités périscolaires et à l'épanouissement de la jeunesse.</p>
-                    <ul class="service-features">
-                        <li>Inscription scolaire</li>
-                        <li>Activités périscolaires</li>
-                        <li>Accueil de loisirs</li>
-                        <li>Bourses et aides</li>
-                    </ul>
-                    <a href="#" class="service-btn">En savoir plus</a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- How-to Section -->
-    <section class="how-to-section">
-        <div class="services-container">
-            <h2 class="section-title">Comment accéder à nos services</h2>
-            <div class="how-to-steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Préparez vos documents</h3>
-                    <p>Rassemblez les pièces justificatives nécessaires selon le service demandé.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Prenez rendez-vous</h3>
-                    <p>Utilisez notre plateforme en ligne ou contactez-nous par téléphone.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Rendez-vous en mairie</h3>
-                    <p>Présentez-vous avec vos documents aux guichets dédiés.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Recevez votre dossier</h3>
-                    <p>Votre demande est traitée dans les délais impartis.</p>
+        <!-- Services Grid -->
+        <section class="py-5 bg-white">
+            <div class="container py-5">
+                <div class="row g-4" id="servicesGrid">
+                    <!-- État Civil -->
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up">
+                        <div class="service-card-new p-4 rounded-4 border-0 shadow-sm h-100 transition">
+                            <div class="icon-box mb-4 text-primary bg-primary bg-opacity-10 rounded-4 d-inline-flex align-items-center justify-content-center"
+                                style="width: 70px; height: 70px;">
+                                <i class="bi bi-card-checklist fs-2"></i>
+                            </div>
+                            <h4 class="fw-800 text-primary mb-3 text-uppercase">État Civil</h4>
+                            <p class="text-muted small mb-4">Gérez vos actes de naissance, mariage et décès en quelques
+                                clics.</p>
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-2"><a href="{{ route('home.birth') }}"
+                                        class="text-decoration-none text-muted"><i
+                                            class="bi bi-chevron-right me-2 text-primary"></i>Naissance</a></li>
+                                <li class="mb-2"><a href="{{ route('home.wedding') }}"
+                                        class="text-decoration-none text-muted"><i
+                                            class="bi bi-chevron-right me-2 text-primary"></i>Mariage</a></li>
+                                <li class="mb-2"><a href="{{ route('home.death') }}"
+                                        class="text-decoration-none text-muted"><i
+                                            class="bi bi-chevron-right me-2 text-primary"></i>Décès</a></li>
+                            </ul>
+                            <a href="{{ route('user.dashboard') }}"
+                                class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-700">Accéder au service</a>
+                        </div>
+                    </div>
+
+                    <!-- Urbanisme -->
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                        <div class="service-card-new p-4 rounded-4 border-0 shadow-sm h-100 transition">
+                            <div class="icon-box mb-4 text-primary bg-primary bg-opacity-10 rounded-4 d-inline-flex align-items-center justify-content-center"
+                                style="width: 70px; height: 70px;">
+                                <i class="bi bi-houses fs-2"></i>
+                            </div>
+                            <h4 class="fw-800 text-primary mb-3 text-uppercase">Urbanisme</h4>
+                            <p class="text-muted small mb-4">Permis de construire et autorisations de travaux pour vos
+                                projets.</p>
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Permis de construire
+                                </li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Certificat
+                                    d'urbanisme</li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Audit foncier</li>
+                            </ul>
+                            <a href="{{ route('user.dashboard') }}"
+                                class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-700">Accéder au service</a>
+                        </div>
+                    </div>
+
+                    <!-- Citoyenneté -->
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                        <div class="service-card-new p-4 rounded-4 border-0 shadow-sm h-100 transition">
+                            <div class="icon-box mb-4 text-primary bg-primary bg-opacity-10 rounded-4 d-inline-flex align-items-center justify-content-center"
+                                style="width: 70px; height: 70px;">
+                                <i class="bi bi-person-badge fs-2"></i>
+                            </div>
+                            <h4 class="fw-800 text-primary mb-3 text-uppercase">Citoyenneté</h4>
+                            <p class="text-muted small mb-4">Identité, résidence et documents administratifs courants.</p>
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Certificat de
+                                    résidence</li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Carte d'identité
+                                </li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Recensement</li>
+                            </ul>
+                            <a href="{{ route('user.dashboard') }}"
+                                class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-700">Accéder au service</a>
+                        </div>
+                    </div>
+
+                    <!-- Économie -->
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                        <div class="service-card-new p-4 rounded-4 border-0 shadow-sm h-100 transition">
+                            <div class="icon-box mb-4 text-primary bg-primary bg-opacity-10 rounded-4 d-inline-flex align-items-center justify-content-center"
+                                style="width: 70px; height: 70px;">
+                                <i class="bi bi-briefcase fs-2"></i>
+                            </div>
+                            <h4 class="fw-800 text-primary mb-3 text-uppercase">Économie</h4>
+                            <p class="text-muted small mb-4">Services aux entreprises et commerçants du Plateau.</p>
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Licences
+                                    commerciales</li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Patentes</li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Marchés publics
+                                </li>
+                            </ul>
+                            <a href="{{ route('user.dashboard') }}"
+                                class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-700">Accéder au service</a>
+                        </div>
+                    </div>
+
+                    <!-- Social -->
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                        <div class="service-card-new p-4 rounded-4 border-0 shadow-sm h-100 transition">
+                            <div class="icon-box mb-4 text-primary bg-primary bg-opacity-10 rounded-4 d-inline-flex align-items-center justify-content-center"
+                                style="width: 70px; height: 70px;">
+                                <i class="bi bi-heart fs-2"></i>
+                            </div>
+                            <h4 class="fw-800 text-primary mb-3 text-uppercase">Social</h4>
+                            <p class="text-muted small mb-4">Aide sociale et accompagnement des familles.</p>
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Bourses d'études
+                                </li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Logement social
+                                </li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Aide alimentaire
+                                </li>
+                            </ul>
+                            <a href="{{ route('user.dashboard') }}"
+                                class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-700">Accéder au service</a>
+                        </div>
+                    </div>
+
+                    <!-- Culture -->
+                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
+                        <div class="service-card-new p-4 rounded-4 border-0 shadow-sm h-100 transition">
+                            <div class="icon-box mb-4 text-primary bg-primary bg-opacity-10 rounded-4 d-inline-flex align-items-center justify-content-center"
+                                style="width: 70px; height: 70px;">
+                                <i class="bi bi-music-note-beamed fs-2"></i>
+                            </div>
+                            <h4 class="fw-800 text-primary mb-3 text-uppercase">Culture & Sport</h4>
+                            <p class="text-muted small mb-4">Activités culturelles, sportives et de loisirs.</p>
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Médiathèque</li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Stades & Gymnaises
+                                </li>
+                                <li class="mb-2"><i class="bi bi-chevron-right me-2 text-primary"></i>Événements</li>
+                            </ul>
+                            <a href="{{ route('user.dashboard') }}"
+                                class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-700">Accéder au service</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
-
-<style>
-    :root {
-        --primary-color: #1977cc;
-        --primary-light: #e8f2fc;
-        --secondary-color: #f8f9fa;
-        --text-color: #333;
-        --light-text: #6c757d;
-        --white: #ffffff;
-        --border-radius: 8px;
-        --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .services-page {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--white);
-        color: var(--text-color);
-        line-height: 1.6;
-    }
-    
-    .services-container {
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-    
-    /* Hero Section */
-    .services-hero {
-        background: linear-gradient(rgba(25, 119, 204, 0.5), rgba(25, 119, 204, 0.9)), url('{{asset('assets/assets/img/A.jpg')}}');
-        background-size: cover;
-        background-position: center;
-        color: var(--white);
-        padding: 80px 0;
-        text-align: center;
-    }
-    
-    .services-hero h1 {
-        color: white;
-        font-size: 2.5rem;
-        margin-bottom: 20px;
-    }
-    
-    .services-hero p {
-        font-size: 1.2rem;
-        max-width: 700px;
-        margin: 0 auto;
-    }
-    
-    /* Services Navigation */
-    .services-nav {
-        background-color: var(--secondary-color);
-        padding: 30px 0;
-    }
-    
-    .nav-tabs {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-    }
-    
-    .nav-tab {
-        background: var(--white);
-        border: 2px solid var(--primary-color);
-        color: var(--primary-color);
-        padding: 10px 20px;
-        border-radius: 50px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s;
-    }
-    
-    .nav-tab:hover, .nav-tab.active {
-        background: var(--primary-color);
-        color: var(--white);
-    }
-    
-    /* Section Title */
-    .section-title {
-        text-align: center;
-        margin-bottom: 50px;
-        color: var(--primary-color);
-        position: relative;
-    }
-    
-    .section-title:after {
-        content: '';
-        display: block;
-        width: 70px;
-        height: 3px;
-        background: var(--primary-color);
-        margin: 15px auto;
-    }
-    
-    /* Services Grid */
-    .services-grid-section {
-        padding: 80px 0;
-    }
-    
-    .services-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 30px;
-    }
-    
-    .service-card {
-        background: var(--white);
-        border-radius: var(--border-radius);
-        overflow: hidden;
-        box-shadow: var(--box-shadow);
-        transition: transform 0.3s;
-        padding: 30px;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-    
-    .service-card:hover {
-        transform: translateY(-10px);
-    }
-    
-    .service-icon {
-        font-size: 2.5rem;
-        color: var(--primary-color);
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    
-    .service-card h3 {
-        margin-bottom: 15px;
-        color: var(--primary-color);
-        text-align: center;
-    }
-    
-    .service-card p {
-        margin-bottom: 20px;
-        flex-grow: 1;
-    }
-    
-    .service-features {
-        margin-bottom: 25px;
-        flex-grow: 1;
-    }
-    
-    .service-features li {
-        margin-bottom: 8px;
-        position: relative;
-        padding-left: 20px;
-    }
-    
-    .service-features li:before {
-        content: "•";
-        color: var(--primary-color);
-        font-weight: bold;
-        position: absolute;
-        left: 0;
-    }
-    
-    .service-btn {
-        display: block;
-        text-align: center;
-        background: var(--primary-color);
-        color: var(--white);
-        padding: 12px 20px;
-        border-radius: var(--border-radius);
-        text-decoration: none;
-        font-weight: 600;
-        transition: background 0.3s;
-    }
-    
-    .service-btn:hover {
-        background: #125daa;
-    }
-    
-    /* How-to Section */
-    .how-to-section {
-        background-color: var(--secondary-color);
-        padding: 80px 0;
-    }
-    
-    .how-to-steps {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
-    }
-    
-    .step {
-        text-align: center;
-        padding: 30px;
-        background: var(--white);
-        border-radius: var(--border-radius);
-        box-shadow: var(--box-shadow);
-    }
-    
-    .step-number {
-        width: 50px;
-        height: 50px;
-        background: var(--primary-color);
-        color: var(--white);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin: 0 auto 20px;
-    }
-    
-    .step h3 {
-        margin-bottom: 15px;
-        color: var(--primary-color);
-    }
-    
-    /* Contact Section */
-    .services-contact {
-        padding: 80px 0;
-    }
-    
-    .contact-card {
-        background: linear-gradient(to right, var(--primary-color), #125daa);
-        color: var(--white);
-        padding: 50px;
-        border-radius: var(--border-radius);
-        text-align: center;
-    }
-    
-    .contact-card h2 {
-        margin-bottom: 15px;
-    }
-    
-    .contact-card > p {
-        margin-bottom: 40px;
-        font-size: 1.1rem;
-    }
-    
-    .contact-methods {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
-    }
-    
-    .contact-method {
-        padding: 20px;
-    }
-    
-    .contact-method i {
-        font-size: 2.5rem;
-        margin-bottom: 15px;
-        color: var(--white);
-    }
-    
-    .contact-method h3 {
-        margin-bottom: 10px;
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .nav-tabs {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .nav-tab {
-            width: 100%;
-            max-width: 250px;
-            text-align: center;
-        }
-        
-        .services-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .how-to-steps {
-            grid-template-columns: 1fr;
-        }
-        
-        .contact-methods {
-            grid-template-columns: 1fr;
-        }
-        
-        .contact-card {
-            padding: 30px 20px;
-        }
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabs = document.querySelectorAll('.nav-tab');
-        const services = document.querySelectorAll('.service-card');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs
-                tabs.forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                
-                const category = tab.getAttribute('data-category');
-                
-                // Show/hide services based on category
-                services.forEach(service => {
-                    if (category === 'all' || service.getAttribute('data-category') === category) {
-                        service.style.display = 'flex';
-                    } else {
-                        service.style.display = 'none';
-                    }
-                });
-            });
-        });
-    });
-</script>
+        </section>
+    </div>
 @endsection
+
+@push('styles')
+    <style>
+        .service-hero {
+            background: linear-gradient(rgba(31, 64, 131, 0.95), rgba(31, 64, 131, 0.85)), url('{{ asset('assets/assets/img/Plateau-immeuble.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            padding: 180px 0 100px;
+            border-radius: 0 0 80px 80px;
+        }
+
+        .text-primary {
+            color: #1f4083 !important;
+        }
+
+        .bg-primary {
+            background-color: #1f4083 !important;
+        }
+
+        .btn-primary {
+            background-color: #1f4083 !important;
+            border-color: #1f4083 !important;
+        }
+
+        .btn-outline-primary {
+            color: #1f4083 !important;
+            border-color: #1f4083 !important;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #1f4083 !important;
+            color: white !important;
+        }
+
+        .fw-900 {
+            font-weight: 900;
+        }
+
+        .fw-800 {
+            font-weight: 800;
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        .search-wrapper {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-wrapper:focus-within {
+            transform: scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .service-card-new {
+            background: #fdfdfd;
+            border: 1px solid #f0f0f0 !important;
+        }
+
+        .service-card-new:hover {
+            transform: translateY(-10px);
+            background: white;
+            box-shadow: 0 25px 50px rgba(31, 64, 131, 0.1) !important;
+            border-color: #1f4083 !important;
+        }
+
+        .icon-box i {
+            transition: transform 0.3s ease;
+        }
+
+        .service-card-new:hover .icon-box i {
+            transform: scale(1.2);
+        }
+
+        @media (max-width: 991px) {
+            .service-hero {
+                padding: 120px 0 60px;
+                border-radius: 0 0 40px 40px;
+            }
+
+            .display-3 {
+                font-size: 2.5rem !important;
+            }
+
+            .search-wrapper {
+                margin-top: 20px;
+                flex-direction: column;
+                border-radius: 20px !important;
+                padding: 15px !important;
+            }
+
+            .search-wrapper input {
+                width: 100%;
+                text-align: center;
+                margin: 10px 0;
+            }
+
+            .search-wrapper button {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .display-3 {
+                font-size: 2rem !important;
+            }
+        }
+    </style>
+@endpush

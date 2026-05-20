@@ -12,12 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1977cc;
-            --primary-light: #1977cc;
-            --primary-dark: #1977cc;
-            --secondary-color: #1977cc;
-            --secondary-light: #1977cc;
-            --secondary-dark: #1977cc;
+            --primary-color: #1f4083;
+            --primary-light: #1f4083;
+            --primary-dark: #1f4083;
+            --secondary-color: #1f4083;
+            --secondary-light: #1f4083;
+            --secondary-dark: #1f4083;
             --light-color: #ffffff;
             --dark-color: #212529;
             --gray-color: #6c757d;
@@ -526,7 +526,7 @@
             icon: 'success',
             title: 'Succès !',
             text: '{{ session('success') }}',
-            confirmButtonColor: '#1977cc',
+            confirmButtonColor: '#1f4083',
             confirmButtonText: 'OK',
             background: 'white'
         });
@@ -537,7 +537,7 @@
             icon: 'error',
             title: 'Erreur !',
             text: '{{ session('error') }}',
-            confirmButtonColor: '#1977cc',
+            confirmButtonColor: '#1f4083',
             confirmButtonText: 'OK',
             background: 'white'
         });
@@ -562,7 +562,7 @@
                 this.parentElement.style.borderColor = '#dc3545';
             } else {
                 this.setCustomValidity('');
-                this.parentElement.style.borderColor = '#1977cc';
+                this.parentElement.style.borderColor = '#1f4083';
             }
         });
         
@@ -585,7 +585,7 @@
                 html: `Êtes-vous sûr de vouloir ajouter <b>${new Intl.NumberFormat('fr-FR').format(nombreTimbre)}</b> timbre(s) pour un total de <b>${new Intl.NumberFormat('fr-FR').format(cost)} FCFA</b> ?`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Oui, confirmer',
                 cancelButtonText: 'Annuler',
@@ -615,7 +615,7 @@
                 icon: type,
                 title: 'Attention',
                 text: message,
-                confirmButtonColor: type === 'error' ? '#1977cc' : '#1977cc',
+                confirmButtonColor: type === 'error' ? '#1f4083' : '#1f4083',
                 confirmButtonText: 'OK',
                 background: 'white'
             });

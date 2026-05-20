@@ -5,7 +5,7 @@
 
     <style>
         :root {
-            --primary: #1977cc;
+            --primary: #1f4083;
             --primary-light: #eef5fc;
             --success: #28a745;
             --warning: #f59e0b;
@@ -460,7 +460,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($allMariages as $mariage)
+                        @forelse ($allMariages as $mariage)
                             <tr>
                                 <td class="text-center">
                                     <span class="fw-bold">{{ $mariage->reference }}</span>
@@ -480,7 +480,6 @@
                                         <span class="badge-type badge-type-simple"><i class="fas fa-file-alt"></i>
                                             Simple</span>
                                     @else
-                                        {{-- Fallback pour les anciennes données basées sur typeDemande ou la logique de champs --}}
                                         @if ($mariage->typeDemande === 'simpleIntegrale' || $mariage->typeDemande === 'groupee')
                                             <span class="badge-type badge-type-both"><i class="fas fa-layer-group"></i>
                                                 Simple + Intégrale</span>
@@ -561,6 +560,12 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex gap-2 justify-content-center">
+                                        <a href="{{ route('demande.details.view', ['type' => 'mariage', 'id' => $mariage->id]) }}"
+                                            class="btn-action shadow-sm" title="Détails"
+                                            style="background: #eef5fc; color: #1f4083;">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
                                         @if ($mariage->peut_modifier)
                                             <button
                                                 onclick="showModificationPopup('{{ $mariage->id }}', {{ json_encode($mariage) }})"
@@ -579,7 +584,16 @@
                                     </div>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="9" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+                                        <p class="text-grey mb-0">Aucune demande de mariage effectuée</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -688,7 +702,7 @@
                 html: formHtml,
                 showCancelButton: true,
                 confirmButtonText: 'Enregistrer',
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 preConfirm: () => new FormData(document.getElementById('modificationForm'))
             }).then((result) => {
                 if (result.isConfirmed) {

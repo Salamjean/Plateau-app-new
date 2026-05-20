@@ -1,298 +1,208 @@
-@extends('home.layouts.tamplate')
+@extends('home.layouts.main')
 
 @section('content')
-<div class="about-page">
-    <!-- Hero Section -->
-    <section class="about-hero">
-        <div class="about-container">
-            <h1>À Propos de la Mairie du Plateau</h1>
-            <p>Découvrez l'institution au service des citoyens de la commune du Plateau, cœur administratif et économique d'Abidjan</p>
-        </div>
-    </section>
+    <div class="about-page">
+        <!-- Hero Section -->
+        <section class="about-hero">
+            <div class="container text-center">
+                <h1 class="display-3 fw-900 text-white mb-4">À Propos de la Mairie</h1>
+                <p class="lead text-white-50 mx-auto" style="max-width: 700px;">Découvrez l'institution au service des
+                    citoyens de la commune du Plateau, cœur administratif et économique d'Abidjan.</p>
+            </div>
+        </section>
 
-    <!-- About Section -->
-    <section class="about-section">
-        <div class="about-container">
-            <h2 class="section-title">Notre Histoire</h2>
-            <div class="about-content">
-                <div class="about-text">
-                    <p>La Mairie du Plateau représente l'autorité administrative de la commune centrale d'Abidjan, cœur économique de la Côte d'Ivoire. Depuis sa création, notre institution n'a cessé d'évoluer pour répondre aux besoins croissants de la population et des entreprises qui font du Plateau un centre d'activité dynamique.</p>
-                    <p>Notre mission quotidienne est de garantir le bon fonctionnement des services publics, d'assurer le développement urbain harmonieux de la commune et de faciliter la vie des administrés à travers des services accessibles et efficaces.</p>
-                    <p>Avec une équipe dévouée et professionnelle, la Mairie du Plateau s'engage à moderniser continuellement ses services tout en préservant le patrimoine historique et culturel de cette commune emblématique.</p>
-                </div>
-                <div class="about-image">
-                    <img src="{{asset('assets/assets/img/equipemairie.jpg')}}" alt="Bâtiment de la Mairie du Plateau">
+        <!-- Content Sections... (rest of the file stays same but within section.about-content etc) -->
+        <section class="py-md-5 py-3">
+            <div class="container py-md-5">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-6">
+                        <h2 class="fw-900 text-primary mb-4">Notre Histoire</h2>
+                        <p class="text-muted fs-5">La Mairie du Plateau représente l'autorité administrative de la commune
+                            centrale d'Abidjan, cœur économique de la Côte d'Ivoire. Depuis sa création, notre institution
+                            n'a cessé d'évoluer pour répondre aux besoins croissants de la population.</p>
+                        <p class="text-muted fs-5">Notre mission quotidienne est de garantir le bon fonctionnement des
+                            services publics et d'assurer le développement urbain harmonieux de la commune.</p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="about-img-wrapper">
+                            <img src="{{ asset('assets/assets/img/Plateau-immeuble.jpg') }}"
+                                class="img-fluid rounded-5 shadow-lg" alt="Mairie">
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Mission & Vision Section -->
-    <section class="mission-vision">
-        <div class="about-container">
-            <h2 class="section-title">Notre Mission et Vision</h2>
-            <div class="mv-container">
-                <div class="mv-card">
-                    <div class="mv-icon">
-                        <i class="fas fa-bullseye"></i>
+        <!-- Mission, Vision & Valeurs -->
+        <section class="py-5 bg-light" style="border-radius: 60px;">
+            <div class="container py-5">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div
+                            class="mission-card h-100 p-5 bg-white rounded-5 shadow-sm border-top border-primary border-5 transition">
+                            <div class="icon-circle bg-primary-light text-primary mb-4">
+                                <i class="bi bi-bullseye fs-1"></i>
+                            </div>
+                            <h3 class="fw-900 text-primary mb-3">Notre Mission</h3>
+                            <p class="text-muted leading-relaxed">Offrir des services administratifs de qualité aux citoyens
+                                et aux entreprises, assurer un développement urbain durable, et maintenir un environnement
+                                favorable aux activités économiques et sociales dans la commune du Plateau.</p>
+                        </div>
                     </div>
-                    <h3>Notre Mission</h3>
-                    <p>Offrir des services administratifs de qualité aux citoyens et aux entreprises, assurer un développement urbain durable, et maintenir un environnement favorable aux activités économiques et sociales dans la commune du Plateau.</p>
-                </div>
-                <div class="mv-card">
-                    <div class="mv-icon">
-                        <i class="fas fa-eye"></i>
+                    <div class="col-md-4">
+                        <div
+                            class="mission-card h-100 p-5 bg-white rounded-5 shadow-sm border-top border-secondary border-5 transition">
+                            <div class="icon-circle bg-secondary-light text-secondary mb-4">
+                                <i class="bi bi-eye fs-1"></i>
+                            </div>
+                            <h3 class="fw-900 text-secondary mb-3">Notre Vision</h3>
+                            <p class="text-muted leading-relaxed">Faire du Plateau une commune moderne, inclusive et
+                                durable, qui préserve son patrimoine tout en s'adaptant aux défis contemporains, et qui sert
+                                de modèle de gouvernance locale en Côte d'Ivoire.</p>
+                        </div>
                     </div>
-                    <h3>Notre Vision</h3>
-                    <p>Faire du Plateau une commune moderne, inclusive et durable, qui préserve son patrimoine tout en s'adaptant aux défis contemporains, et qui sert de modèle de gouvernance locale en Côte d'Ivoire.</p>
-                </div>
-                <div class="mv-card">
-                    <div class="mv-icon">
-                        <i class="fas fa-chart-line"></i>
+                    <div class="col-md-4">
+                        <div
+                            class="mission-card h-100 p-5 bg-white rounded-5 shadow-sm border-top border-warning border-5 transition">
+                            <div class="icon-circle bg-warning-light text-warning mb-4">
+                                <i class="bi bi-shield-heart fs-1"></i>
+                            </div>
+                            <h3 class="fw-900 text-warning mb-3">Nos Valeurs</h3>
+                            <p class="text-muted leading-relaxed">Intégrité, transparence, innovation et service public. Ces
+                                valeurs guident chacune de nos actions et nous aident à construire une administration proche
+                                des citoyens et efficace.</p>
+                        </div>
                     </div>
-                    <h3>Nos Valeurs</h3>
-                    <p>Intégrité, transparence, innovation et service public. Ces valeurs guident chacune de nos actions et nous aident à construire une administration proche des citoyens et efficace dans ses missions.</p>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Team Section -->
-    <section class="team-section">
-        <div class="about-container">
-            <h2 class="section-title">Notre Équipe</h2>
-            <div class="team-container">
-                <div class="team-member">
-                    <div class="team-img">
-                        <img src="{{asset('assets/assets/img/maire.jpeg')}}" alt="Maire">
-                    </div>
-                    <h3>M. Jacques Gabriel Ehouo</h3>
-                    <p>Maire du Plateau</p>
-                </div>
-                <div class="team-member">
-                    <div class="team-img">
-                        <img src="{{asset('assets/assets/img/Avato.png')}}" alt="Premier adjoint">
-                    </div>
-                    <h3>M. Prénom Nom</h3>
-                    <p>Premier Adjoint</p>
-                </div>
-                <div class="team-member">
-                    <div class="team-img">
-                        <img src="{{asset('assets/assets/img/Avato.png')}}" alt="Directeur administratif">
-                    </div>
-                    <h3>M. Prénom Nom</h3>
-                    <p>Directeur Administratif</p>
-                </div>
-                <div class="team-member">
-                    <div class="team-img">
-                        <img src="{{asset('assets/assets/img/Avato.png')}}" alt="Responsable services urbains">
-                    </div>
-                    <h3>M. Prénom Nom</h3>
-                    <p>Directeur Etat civil</p>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
-
-<style>
-    :root {
-        --primary-color: #1977cc;
-        --secondary-color: #f8f9fa;
-        --text-color: #333;
-        --light-text: #6c757d;
-        --white: #ffffff;
-    }
-    
-    .about-page {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--white);
-        color: var(--text-color);
-        line-height: 1.6;
-    }
-    
-    .about-container {
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-    
-    /* Hero Section */
-    .about-hero {
-        background: linear-gradient(rgba(25, 119, 204, 0.5), rgba(25, 119, 204, 0.9)), url('{{asset('assets/assets/img/mairiee.jpg')}}');
-        background-size: cover;
-        background-position: center;
-        color: var(--white);
-        padding: 80px 0;
-        text-align: center;
-    }
-    
-    .about-hero h1 {
-        font-size: 2.5rem;
-        color: white;
-        margin-bottom: 20px;
-    }
-    
-    .about-hero p {
-        font-size: 1.2rem;
-        max-width: 700px;
-        margin: 0 auto;
-    }
-    
-    /* About Section */
-    .about-section {
-        padding: 80px 0;
-    }
-    
-    .section-title {
-        text-align: center;
-        margin-bottom: 50px;
-        color: var(--primary-color);
-        position: relative;
-    }
-    
-    .section-title:after {
-        content: '';
-        display: block;
-        width: 70px;
-        height: 3px;
-        background: var(--primary-color);
-        margin: 15px auto;
-    }
-    
-    .about-content {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 50px;
-    }
-    
-    .about-text {
-        flex: 1;
-        min-width: 300px;
-        padding-right: 30px;
-    }
-    
-    .about-image {
-        flex: 1;
-        min-width: 300px;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .about-image img {
-        width: 100%;
-        height: auto;
-        display: block;
-        transition: transform 0.5s;
-    }
-    
-    .about-image img:hover {
-        transform: scale(1.03);
-    }
-    
-    /* Mission & Vision */
-    .mission-vision {
-        background-color: var(--secondary-color);
-        padding: 80px 0;
-    }
-    
-    .mv-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-    }
-    
-    .mv-card {
-        flex: 1;
-        min-width: 300px;
-        background: var(--white);
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s;
-    }
-    
-    .mv-card:hover {
-        transform: translateY(-10px);
-    }
-    
-    .mv-icon {
-        font-size: 2.5rem;
-        color: var(--primary-color);
-        margin-bottom: 20px;
-    }
-    
-    .mv-card h3 {
-        margin-bottom: 15px;
-        color: var(--primary-color);
-    }
-    
-    /* Team Section */
-    .team-section {
-        padding: 80px 0;
-    }
-    
-    .team-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px;
-        justify-content: center;
-    }
-    
-    .team-member {
-        flex: 0 0 calc(25% - 30px);
-        min-width: 250px;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    
-    .team-img {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        overflow: hidden;
-        margin: 0 auto 20px;
-        border: 5px solid var(--secondary-color);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .team-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .team-member h3 {
-        margin-bottom: 5px;
-        color: var(--primary-color);
-    }
-    
-    .team-member p {
-        color: var(--light-text);
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .about-content {
-            flex-direction: column;
-        }
-        
-        .about-text {
-            padding-right: 0;
-            margin-bottom: 30px;
-        }
-        
-        .mv-container, .team-container {
-            flex-direction: column;
-        }
-        
-        .team-member {
-            flex: 0 0 100%;
-        }
-    }
-</style>
+        </section>
+    </div>
 @endsection
+
+@push('styles')
+    <style>
+        .about-hero {
+            background: linear-gradient(rgba(31, 64, 131, 0.9), rgba(31, 64, 131, 0.8)), url('{{ asset('assets/assets/img/Plateau-immeuble.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            padding: 180px 0 100px;
+            border-radius: 0 0 80px 80px;
+        }
+
+        .fw-900 {
+            font-weight: 900;
+        }
+
+        .text-primary {
+            color: #1f4083 !important;
+        }
+
+        .border-primary {
+            border-color: #1f4083 !important;
+        }
+
+        .mission-card {
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .mission-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bg-primary-light {
+            background-color: rgba(31, 64, 131, 0.1);
+        }
+
+        .bg-secondary-light {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .bg-warning-light {
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+
+        .leading-relaxed {
+            line-height: 1.6;
+        }
+
+        .about-img-wrapper {
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Responsive Improvements */
+        @media (max-width: 991px) {
+            .about-hero {
+                padding: 100px 15px 40px;
+                border-radius: 0 0 30px 30px;
+                margin-bottom: 0;
+                background-attachment: scroll;
+                background-position: center top;
+            }
+
+            .display-3 {
+                font-size: 2rem !important;
+            }
+
+            .py-md-5.py-3 {
+                padding-top: 0.5rem !important;
+                padding-bottom: 1rem !important;
+            }
+
+            .container.py-md-5 {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+
+            .about-img-wrapper {
+                margin-top: 10px;
+                padding: 0;
+                text-align: center;
+            }
+
+            .about-img-wrapper img {
+                width: 100%;
+                max-width: 500px;
+                height: auto;
+                object-fit: cover;
+                border-radius: 20px !important;
+            }
+
+            /* Fix horizontal scroll */
+            .row {
+                margin-right: -15px;
+                margin-left: -15px;
+            }
+
+            .container {
+                padding-right: 20px;
+                padding-left: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .display-3 {
+                font-size: 2.2rem !important;
+            }
+
+            .mission-card {
+                padding: 30px !important;
+            }
+
+            .section-title {
+                font-size: 1.8rem !important;
+            }
+        }
+    </style>
+@endpush

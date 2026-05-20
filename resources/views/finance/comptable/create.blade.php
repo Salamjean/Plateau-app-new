@@ -40,14 +40,14 @@
                         <!-- Step 1: Personal Information -->
                         <div class="step-content" id="step1">
                             <div class="mb-4">
-                                <h4 class="border-bottom pb-2" style="color:#1977cc"><i class="fas fa-user-circle me-2"></i>Informations Personnelles</h4>
+                                <h4 class="border-bottom pb-2" style="color:#1f4083"><i class="fas fa-user-circle me-2"></i>Informations Personnelles</h4>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="name" class="form-label">Nom<span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required 
                                                placeholder="Nom du registraire">
                                         @error('name')
@@ -58,7 +58,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="prenom" class="form-label">Prénom<span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end @error('prenom') is-invalid @enderror" id="prenom" name="prenom" value="{{ old('prenom') }}" required 
                                                placeholder="Prénom du registraire">
                                         @error('prenom')
@@ -72,7 +72,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="email" class="form-label">Adresse email <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-envelope" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-envelope" style="color:#1f4083"></i></span>
                                         <input type="email" class="form-control rounded-end @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required 
                                                placeholder="adresse@exemple.com">
                                         @error('email')
@@ -84,7 +84,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="contact" class="form-label">Numéro de téléphone <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-phone" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-phone" style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end @error('contact') is-invalid @enderror" id="contact" name="contact" value="{{ old('contact') }}" required 
                                                placeholder="Ex: +225 07 08 09 10 11">
                                         @error('contact')
@@ -97,7 +97,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="cas_urgence" class="form-label">Contact en cas d'urgence<span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-phone" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-phone" style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end @error('cas_urgence') is-invalid @enderror" id="cas_urgence" name="cas_urgence" value="{{ old('cas_urgence') }}" required 
                                                placeholder="+225 07 08 09 10 11">
                                         @error('cas_urgence')
@@ -109,7 +109,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="commune" class="form-label">Commune <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt" style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end @error('commune') is-invalid @enderror" id="commune" name="commune" value="{{ old('commune') }}" required 
                                                placeholder="Nom de la commune">
                                         @error('commune')
@@ -130,7 +130,7 @@
                         <!-- Step 2: Profile Picture -->
                         <div class="step-content d-none" id="step2">
                             <div class="mb-4">
-                                <h4 class="border-bottom pb-2" style="color:#1977cc"><i class="fas fa-camera me-2"></i>Photo de profil</h4>
+                                <h4 class="border-bottom pb-2" style="color:#1f4083"><i class="fas fa-camera me-2"></i>Photo de profil</h4>
                             </div>
                             
                             <div class="row">
@@ -143,7 +143,7 @@
                                         @enderror
                                         <label for="profile_picture" class="file-upload-label">
                                             <div class="file-upload-icon">
-                                                <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color:#1977cc"></i>
+                                                <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color:#1f4083"></i>
                                             </div>
                                             <h5>Glissez-déposez votre photo ou cliquez pour parcourir</h5>
                                             <p class="text-muted">Format JPG, PNG ou GIF - Max 2MB</p>
@@ -172,7 +172,7 @@
                         <!-- Step 3: Confirmation -->
                         <div class="step-content d-none" id="step3">
                             <div class="mb-4">
-                                <h4 class="border-bottom pb-2" style="color:#1977cc"><i class="fas fa-check-circle me-2"></i>Confirmation</h4>
+                                <h4 class="border-bottom pb-2" style="color:#1f4083"><i class="fas fa-check-circle me-2"></i>Confirmation</h4>
                             </div>
                             
                             <div class="confirmation-summary bg-light rounded-15 p-4 mb-4">
@@ -226,8 +226,8 @@
 
 <style>
     :root {
-        --primary: #1977cc;
-        --secondary: #1977cc;
+        --primary: #1f4083;
+        --secondary: #1f4083;
         --light-bg: #f8f9fa;
         --dark-text: #333;
         --border-radius: 12px;
@@ -247,7 +247,7 @@
     }
     
     .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, #1977cc 100%) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, #1f4083 100%) !important;
     }
     
     .rounded-20 {
@@ -292,7 +292,7 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, #1977cc 100%);
+        background: linear-gradient(135deg, var(--primary) 0%, #1f4083 100%);
         border: none;
     }
     
@@ -303,7 +303,7 @@
     }
     
     .btn-success {
-        background: linear-gradient(135deg, var(--secondary) 0%, #1977cc 100%);
+        background: linear-gradient(135deg, var(--secondary) 0%, #1f4083 100%);
         border: none;
     }
     

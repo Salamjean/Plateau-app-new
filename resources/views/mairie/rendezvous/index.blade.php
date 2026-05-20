@@ -8,9 +8,9 @@
 
 <style>
   :root {
-    --primary-color: #1977cc;
-    --primary-light: #1977cc;
-    --primary-dark: #1977cc;
+    --primary-color: #1f4083;
+    --primary-light: #1f4083;
+    --primary-dark: #1f4083;
     --secondary-color: #ffffff;
     --success-color: #28a745;
     --warning-color: #ffc107;

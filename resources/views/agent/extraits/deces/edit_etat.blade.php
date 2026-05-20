@@ -23,7 +23,7 @@
 
     .rejet-item:hover {
         background: #e9f7fe;
-        border-color: #1977cc;
+        border-color: #1f4083;
     }
 
     .rejet-checkbox {
@@ -45,7 +45,7 @@
         background: white;
         padding: 8px 12px;
         border-radius: 5px;
-        border-left: 3px solid #1977cc;
+        border-left: 3px solid #1f4083;
     }
 
     .rejet-current-value small {
@@ -316,7 +316,7 @@
 
  .rejet-item:hover {
    background: #e9f7fe;
-   border-color: #1977cc;
+   border-color: #1f4083;
  }
 
  .rejet-checkbox {
@@ -338,7 +338,7 @@
    background: white;
    padding: 8px 12px;
    border-radius: 5px;
-   border-left: 3px solid #1977cc;
+   border-left: 3px solid #1f4083;
  }
 
  .rejet-current-value small {
@@ -381,18 +381,18 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-left: 5px solid #1977cc;
+    border-left: 5px solid #1f4083;
 }
 
 .page-title h2 {
-    color: #1977cc;
+    color: #1f4083;
     font-weight: 700;
     margin: 0;
     font-size: 1.8rem;
 }
 
 .page-actions .btn-action {
-    background: linear-gradient(135deg, #1977cc, #1565c0);
+    background: linear-gradient(135deg, #1f4083, #1565c0);
     color: white;
     padding: 10px 20px;
     border-radius: 8px;
@@ -427,7 +427,7 @@
     border-radius: 10px;
     padding: 25px;
     margin-bottom: 30px;
-    border-left: 5px solid #1977cc;
+    border-left: 5px solid #1f4083;
 }
 
 .info-header {
@@ -437,13 +437,13 @@
 }
 
 .info-icon {
-    color: #1977cc;
+    color: #1f4083;
     font-size: 1.5rem;
     margin-right: 10px;
 }
 
 .info-title {
-    color: #1977cc;
+    color: #1f4083;
     margin: 0;
     font-weight: 700;
 }
@@ -485,7 +485,7 @@
 }
 
 .section-title {
-    color: #1977cc;
+    color: #1f4083;
     font-weight: 700;
     margin-bottom: 20px;
     display: flex;
@@ -512,7 +512,7 @@
 
 .form-label i {
     margin-right: 8px;
-    color: #1977cc;
+    color: #1f4083;
 }
 
 .form-select, .form-control {
@@ -527,7 +527,7 @@
 
 .form-select:focus, .form-control:focus {
     outline: none;
-    border-color: #1977cc;
+    border-color: #1f4083;
     box-shadow: 0 0 0 3px rgba(25, 119, 204, 0.2);
 }
 
@@ -554,7 +554,7 @@
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, #1977cc, #1565c0);
+    background: linear-gradient(135deg, #1f4083, #1565c0);
     color: white;
     padding: 12px 30px;
     border: none;
@@ -690,7 +690,7 @@
                         icon: 'warning',
                         title: 'Sélection requise',
                         text: 'Veuillez sélectionner au moins un champ incorrect pour justifier le rejet.',
-                        confirmButtonColor: '#1977cc'
+                        confirmButtonColor: '#1f4083'
                     });
                     return;
                 }
@@ -743,7 +743,7 @@
                     text: 'Êtes-vous sûr de vouloir marquer cette demande comme terminée ? Cette action est irréversible.',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#1977cc',
+                    confirmButtonColor: '#1f4083',
                     cancelButtonColor: 'red',
                     confirmButtonText: 'Oui, terminer',
                     cancelButtonText: 'Annuler'

@@ -6,7 +6,7 @@
 
     <style>
         :root {
-            --primary: #1977cc;
+            --primary: #1f4083;
             --primary-light: #eef5fc;
             --success: #28a745;
             --warning: #f39c12;
@@ -391,7 +391,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($naissances as $naissance)
+                    @forelse ($naissances as $naissance)
                         <tr>
                             <td class="text-center"><span class="fw-bold">{{ $naissance->reference }}</span></td>
                             <td class="text-center">
@@ -447,6 +447,12 @@
                             </td>
                             <td class="text-center">
                                 <div class="d-flex gap-2 justify-content-center">
+                                    <a href="{{ route('demande.details.view', ['type' => 'naissance', 'id' => $naissance->id]) }}"
+                                        class="btn-action shadow-sm" title="Détails"
+                                        style="background: #eef5fc; color: #1f4083;">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+
                                     @if ($naissance->peut_modifier)
                                         <button
                                             onclick="showModificationPopup('{{ $naissance->id }}', {{ json_encode($naissance) }})"
@@ -465,7 +471,16 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-baby fa-3x text-muted mb-3"></i>
+                                    <p class="text-grey mb-0">Aucune demande de naissance effectuée</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -572,7 +587,7 @@
                 html: formHtml,
                 showCancelButton: true,
                 confirmButtonText: 'Enregistrer',
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 preConfirm: () => {
                     const formData = new FormData(document.getElementById('modificationForm'));
                     return formData;

@@ -1,53 +1,167 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Delivery - Espace</title>
-  <!-- plugins:css -->
-  <link rel="stylesheet" href="{{asset('assetsPosterr/assets/vendors/mdi/css/materialdesignicons.min.css')}}">
-  <link rel="stylesheet" href="{{asset('assetsPoster/assets/vendors/css/vendor.bundle.base.css')}}">
-  <!-- endinject -->
-  <!-- Plugin css for this page -->
-  <link rel="stylesheet" href="{{asset('assetsPoster/assets/vendors/flag-icon-css/css/flag-icon.min.css')}}">
-  <link rel="stylesheet" href="{{asset('assetsPoster/assets/vendors/jvectormap/jquery-jvectormap.cs')}}s">
-  <!-- End plugin css for this page -->
-  <!-- Layout styles -->
-  <link rel="stylesheet" href="{{asset('assetsPoster/assets/css/demo/style.css')}}">
-  <!-- End layout styles -->
-   <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Delivery - Espace</title>
+    
+    <!-- Polices et Icônes -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- CSS de base -->
+    <link rel="stylesheet" href="{{asset('assetsPoster/assets/vendors/css/vendor.bundle.base.css')}}">
+    <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --navbar-height: 70px;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+        }
+
+        body.sidebar-mini {
+            --sidebar-width: 80px;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .custom-sidebar {
+            width: var(--sidebar-width) !important;
+            transition: width var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page-content {
+            padding: 20px;
+            margin-top: var(--navbar-height);
+            flex-grow: 1;
+        }
+
+        .custom-navbar {
+            left: var(--sidebar-width) !important;
+            transition: left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* Reset legacy MDC */
+        .mdc-drawer-app-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        
+        @media (max-width: 991px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            body.sidebar-mini {
+                --sidebar-width: 260px;
+            }
+            body:not(.sidebar-mini) .custom-sidebar {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
 </head>
 <body>
-<script src="{{asset('assetsPoster/assets/js/preloader.js')}}"></script>
-  <div class="body-wrapper">
-    <!-- partial:partials/_sidebar.html -->
-    @include('livreur.layouts.sidebar')
-    <!-- partial -->
-    <div class="main-wrapper mdc-drawer-app-content">
-      <!-- partial:partials/_navbar.html -->
-      @include('livreur.layouts.navbar')
-      <!-- partial -->
-      <div class="page-wrapper mdc-toolbar-fixed-adjust">
-        @yield('content')
-      </div>
+
+    <div class="layout-wrapper">
+        <!-- Sidebar -->
+        @include('livreur.layouts.sidebar_new')
+
+        <div class="main-content">
+            <!-- Navbar -->
+            @include('livreur.layouts.navbar_new')
+
+            <!-- Contenu -->
+            <div class="page-content">
+                @yield('content')
+            </div>
+        </div>
     </div>
-  </div>
-  <!-- plugins:js -->
-  <script src="{{asset('assetsPoster/assets/vendors/js/vendor.bundle.base.js')}} "></script>
-  <!-- endinject -->
-  <!-- Plugin js for this page-->
-  <script src="{{asset('assetsPoster/assets/vendors/chartjs/Chart.min.js')}}"></script>
-  <script src="{{asset('assetsPoster/assets/vendors/jvectormap/jquery-jvectormap.min.js')}}"></script>
-  <script src="{{asset('assetsPoster/assets/vendors/jvectormap/jquery-jvectormap-world-mill-en.js')}}"></script>
-  <!-- End plugin js for this page-->
-  <!-- inject:js -->
-  <script src="{{asset('assetsPoster/assets/js/material.js')}}"></script>
-  <script src="{{asset('assetsPoster/assets/js/misc.js')}}"></script>
-  <!-- endinject -->
-  <!-- Custom js for this page-->
-  <script src="{{asset('assetsPoster/assets/js/dashboard.js')}}"></script>
-  <!-- End custom js for this page-->
+
+    <!-- Scripts -->
+    <script src="{{asset('assetsPoster/assets/vendors/js/vendor.bundle.base.js')}}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const body = document.body;
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const profileMenuBtn = document.getElementById('profileMenuBtn');
+            const profileDropdown = document.getElementById('profileDropdown');
+
+            if (localStorage.getItem('sidebar-mini') === 'true') {
+                body.classList.add('sidebar-mini');
+            }
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    body.classList.toggle('sidebar-mini');
+                    localStorage.setItem('sidebar-mini', body.classList.contains('sidebar-mini'));
+                });
+            }
+
+            if (profileMenuBtn && profileDropdown) {
+                profileMenuBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isVisible = profileDropdown.style.visibility === 'visible';
+                    profileDropdown.style.visibility = isVisible ? 'hidden' : 'visible';
+                    profileDropdown.style.opacity = isVisible ? '0' : '1';
+                    profileDropdown.style.transform = isVisible ? 'translateY(10px)' : 'translateY(0)';
+                });
+                document.addEventListener('click', function() {
+                    profileDropdown.style.visibility = 'hidden';
+                    profileDropdown.style.opacity = '0';
+                    profileDropdown.style.transform = 'translateY(10px)';
+                });
+            }
+
+            const hasSubmenu = document.querySelectorAll('.has-submenu');
+            hasSubmenu.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (body.classList.contains('sidebar-mini')) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const submenuId = this.getAttribute('data-submenu');
+                    const submenu = document.getElementById(submenuId);
+                    const chevron = this.querySelector('.chevron');
+                    if (submenu) {
+                        const isActive = submenu.classList.contains('active');
+                        submenu.classList.toggle('active');
+                        if (chevron) {
+                            chevron.style.transform = isActive ? 'rotate(0deg)' : 'rotate(90deg)';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
-</html> 
+</html>

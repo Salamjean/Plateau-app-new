@@ -124,7 +124,7 @@
                             <div class="mt-5">
                                 <h5 class="fw-bold text-primary mb-3">
                                     <i class="fas fa-motorcycle me-2"></i>
-                                    Livreurs enregistrés par <span class="text-dark">{{ $poste->name }} {{ $poste->prenom }}</span>
+                                    Livreurs enregistrés </span>
                                     <span class="badge bg-primary rounded-pill ms-2">{{ $poste->livreurs->count() }}</span>
                                 </h5>
                                 <div class="table-responsive">
@@ -228,7 +228,7 @@
 
 <style>
     :root {
-        --primary: #1977cc;
+        --primary: #1f4083;
         --secondary: #ff8800;
         --light-bg: #f8f9fa;
     }

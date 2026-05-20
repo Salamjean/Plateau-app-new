@@ -7,124 +7,199 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tableau de Bord</title>
+        <title>Tableau de Bord - Finance</title>
 
         <!-- Google Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <!-- Font Awesome -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+            rel="stylesheet">
+        <!-- Material Icons -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <!-- Chart.js -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
             :root {
-                --primary: #4361ee;
-                --secondary: #3f37c9;
-                --success: #4cc9f0;
-                --info: #4895ef;
-                --warning: #f72585;
-                --danger: #e63946;
-                --light: #f8f9fa;
-                --dark: #212529;
-                --gray-100: #f8f9fa;
-                --gray-200: #e9ecef;
-                --gray-600: #6c757d;
-                --text-main: #2b2d42;
-                --text-muted: #8d99ae;
+                --primary: #1f4083;
+                --primary-light: #2d5aa8;
+                --primary-dark: #152e5c;
+                --secondary: #718096;
+                --accent: #38a169;
+                --danger: #e53e3e;
+                --warning: #f6ad55;
+                --info: #4299e1;
+                --success: #48bb78;
+                --light-bg: #f7fafc;
                 --card-bg: #ffffff;
-                --border-radius: 16px;
-                --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
-                --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
-                --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
-                --transition: all 0.3s ease;
+                --text-primary: #2d3748;
+                --text-secondary: #718096;
+                --text-muted: #a0aec0;
+                --border-color: #e2e8f0;
+                --shadow-sm: 0 2px 8px rgba(31, 64, 131, 0.08);
+                --shadow-md: 0 4px 16px rgba(31, 64, 131, 0.12);
+                --shadow-lg: 0 8px 32px rgba(31, 64, 131, 0.16);
+                --gradient-primary: linear-gradient(135deg, #1f4083 0%, #2d5aa8 100%);
+                --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 1) 100%);
+                --radius-sm: 12px;
+                --radius-md: 16px;
+                --radius-lg: 20px;
+                --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
             body {
-                font-family: 'Inter', sans-serif;
-                background-color: #f3f6fd;
-                /* Fond très léger bleuté */
-                color: var(--text-main);
-                margin: 0;
-                padding: 0;
+                font-family: 'Poppins', sans-serif;
+                background: var(--light-bg);
+                color: var(--text-primary);
+                line-height: 1.6;
             }
 
-            .dashboard-container {
-                padding: 2rem;
-                width: 95%;
+            .dashboard-wrapper {
+                padding: 2.5rem;
+                max-width: 1600px;
                 margin: 0 auto;
+                animation: fadeIn 0.5s ease;
             }
 
-            /* --- Header --- */
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* === HEADER === */
             .dashboard-header {
-                margin-bottom: 2rem;
+                margin-bottom: 2.5rem;
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 1.5rem;
             }
 
-            .header-title h1 {
-                font-size: 1.75rem;
+            .header-content {
+                flex: 1;
+                min-width: 250px;
+            }
+
+            .header-content h1 {
+                font-size: 2rem;
                 font-weight: 700;
-                margin: 0;
-                color: #1977cc;
+                color: var(--primary);
+                margin-bottom: 0.5rem;
+                letter-spacing: -0.5px;
             }
 
-            .header-title p {
-                color: var(--text-muted);
-                margin-top: 0.5rem;
+            .header-content p {
+                color: var(--text-secondary);
+                font-size: 1rem;
+                font-weight: 400;
+            }
+
+            .header-badge {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .date-badge {
+                background: white;
+                padding: 0.875rem 1.5rem;
+                border-radius: var(--radius-sm);
+                box-shadow: var(--shadow-sm);
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                border: 1px solid var(--border-color);
+                transition: var(--transition);
+            }
+
+            .date-badge:hover {
+                box-shadow: var(--shadow-md);
+                transform: translateY(-2px);
+            }
+
+            .date-badge i {
+                color: var(--primary);
+                font-size: 1.25rem;
+            }
+
+            .date-badge span {
+                color: var(--text-primary);
+                font-weight: 600;
                 font-size: 0.95rem;
             }
 
-            .header-actions .date-badge {
-                background: white;
-                padding: 0.5rem 1rem;
-                border-radius: 50px;
-                font-size: 0.85rem;
-                font-weight: 600;
-                color: #1977cc;
-                box-shadow: var(--shadow-sm);
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            /* --- Stats Grid (Top) --- */
-            .grid-stats {
+            /* === KPI CARDS === */
+            .kpi-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
                 gap: 1.5rem;
-                margin-bottom: 2rem;
+                margin-bottom: 2.5rem;
             }
 
             .kpi-card {
-                background: var(--card-bg);
-                border-radius: var(--border-radius);
-                padding: 1.5rem;
+                background: white;
+                border-radius: var(--radius-md);
+                padding: 1.75rem;
                 box-shadow: var(--shadow-sm);
-                transition: var(--transition);
-                border: 1px solid rgba(0, 0, 0, 0.03);
+                border: 1px solid var(--border-color);
                 position: relative;
                 overflow: hidden;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+                transition: var(--transition);
+            }
+
+            .kpi-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: var(--gradient-primary);
+                transform: scaleX(0);
+                transform-origin: left;
+                transition: var(--transition);
             }
 
             .kpi-card:hover {
-                transform: translateY(-5px);
-                box-shadow: var(--shadow-md);
+                transform: translateY(-8px);
+                box-shadow: var(--shadow-lg);
+                border-color: var(--primary);
             }
 
-            .kpi-content h3 {
-                font-size: 2rem;
+            .kpi-card:hover::before {
+                transform: scaleX(1);
+            }
+
+            .kpi-card-content {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                position: relative;
+                z-index: 1;
+            }
+
+            .kpi-info h3 {
+                font-size: 2.5rem;
                 font-weight: 700;
-                margin: 0;
-                color: var(--text-main);
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+                line-height: 1;
             }
 
-            .kpi-content p {
-                margin: 0;
-                color: var(--text-muted);
+            .kpi-info p {
+                color: var(--text-secondary);
                 font-size: 0.9rem;
                 font-weight: 500;
                 text-transform: uppercase;
@@ -132,518 +207,797 @@
             }
 
             .kpi-icon {
-                width: 56px;
-                height: 56px;
-                border-radius: 12px;
+                width: 70px;
+                height: 70px;
+                border-radius: var(--radius-md);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 1.5rem;
-                flex-shrink: 0;
-            }
-
-            /* Couleurs Spécifiques KPI */
-            .kpi-naissance .kpi-icon {
-                background: rgba(67, 97, 238, 0.1);
-                color: var(--primary);
-            }
-
-            .kpi-deces .kpi-icon {
-                background: rgba(33, 37, 41, 0.1);
-                color: var(--dark);
-            }
-
-            .kpi-mariage .kpi-icon {
-                background: rgba(247, 37, 133, 0.1);
-                color: var(--warning);
-            }
-
-            .kpi-total .kpi-icon {
-                background: rgba(72, 149, 239, 0.1);
-                color: var(--info);
-            }
-
-
-            /* --- Finance Section (Middle) --- */
-            .section-title {
-                font-size: 1.1rem;
-                font-weight: 600;
-                color: var(--text-muted);
-                margin-bottom: 1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .section-title::after {
-                content: '';
-                flex: 1;
-                height: 1px;
-                background: var(--gray-200);
-            }
-
-            .grid-finance {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            @media (max-width: 992px) {
-                .grid-finance {
-                    grid-template-columns: 1fr;
-                }
-            }
-
-            .finance-card {
-                background: var(--card-bg);
-                border-radius: var(--border-radius);
-                padding: 1.5rem;
-                box-shadow: var(--shadow-sm);
-                border-left: 4px solid transparent;
+                font-size: 2rem;
                 position: relative;
             }
 
-            .finance-card.add {
-                border-color: #2ecc71;
+            .kpi-icon i {
+                font-size: 2rem;
+                position: relative;
+                z-index: 1;
+            }
+
+            .kpi-card.naissance .kpi-icon {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            }
+
+            .kpi-card.naissance .kpi-icon i {
+                color: white;
+            }
+
+            .kpi-card.deces .kpi-icon {
+                background: linear-gradient(135deg, #434343 0%, #000000 100%);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            }
+
+            .kpi-card.deces .kpi-icon i {
+                color: white;
+            }
+
+            .kpi-card.mariage .kpi-icon {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                box-shadow: 0 8px 16px rgba(245, 87, 108, 0.3);
+            }
+
+            .kpi-card.mariage .kpi-icon i {
+                color: white;
+            }
+
+            .kpi-card.total .kpi-icon {
+                background: var(--gradient-primary);
+                box-shadow: 0 8px 16px rgba(31, 64, 131, 0.3);
+            }
+
+            .kpi-card.total .kpi-icon i {
+                color: white;
+            }
+
+            /* === FINANCE SECTION === */
+            .section-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .section-header i {
+                color: var(--primary);
+                font-size: 1.5rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            .finance-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2.5rem;
+            }
+
+            .finance-card {
+                background: white;
+                border-radius: var(--radius-md);
+                padding: 2rem;
+                box-shadow: var(--shadow-sm);
+                border-left: 5px solid;
+                transition: var(--transition);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .finance-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 150px;
+                height: 150px;
+                opacity: 0.05;
+                font-size: 8rem;
+                font-family: 'Material Icons';
+                line-height: 1;
+                pointer-events: none;
             }
 
             .finance-card.debit {
-                border-color: #e74c3c;
+                border-color: var(--danger);
+            }
+
+            .finance-card.debit::before {
+                content: 'trending_down';
+                color: var(--danger);
             }
 
             .finance-card.balance {
-                border-color: #f1c40f;
+                border-color: var(--success);
             }
 
-            .finance-header {
+            .finance-card.balance::before {
+                content: 'account_balance_wallet';
+                color: var(--success);
+            }
+
+            .finance-card:hover {
+                transform: translateY(-8px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .finance-card-header {
                 display: flex;
+                align-items: center;
                 justify-content: space-between;
-                align-items: flex-start;
                 margin-bottom: 1rem;
             }
 
-            .finance-info h4 {
-                margin: 0;
-                font-size: 0.9rem;
-                color: var(--text-muted);
+            .finance-label {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--text-secondary);
+                font-size: 0.95rem;
                 font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
 
-            .finance-info .amount {
-                font-size: 1.8rem;
-                font-weight: 700;
-                margin-top: 5px;
-                display: block;
+            .finance-label i {
+                font-size: 1.25rem;
             }
 
-            .finance-card.add .amount {
-                color: #27ae60;
-            }
-
-            .finance-card.debit .amount {
-                color: #c0392b;
-            }
-
-            .finance-card.balance .amount {
-                color: #f39c12;
-            }
-
-            .finance-icon-bg {
+            .finance-amount {
                 font-size: 2rem;
-                opacity: 0.1;
+                font-weight: 700;
+                margin: 0.75rem 0;
+                position: relative;
+                z-index: 1;
             }
 
-            .finance-detail {
+            .finance-card.debit .finance-amount {
+                color: var(--danger);
+            }
+
+            .finance-card.balance .finance-amount {
+                color: var(--success);
+            }
+
+            .finance-meta {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                background: var(--light-bg);
+                border-radius: var(--radius-sm);
                 font-size: 0.85rem;
-                color: var(--text-muted);
-                background: var(--gray-100);
-                padding: 8px 12px;
-                border-radius: 8px;
-                display: inline-block;
+                color: var(--text-secondary);
+                font-weight: 500;
             }
 
+            .finance-meta i {
+                font-size: 1rem;
+            }
 
-            /* --- Main Content Split (Charts & Recent) --- */
-            .grid-main {
+            /* === MAIN CONTENT GRID === */
+            .main-content-grid {
                 display: grid;
                 grid-template-columns: 2fr 1fr;
                 gap: 1.5rem;
+                margin-bottom: 2.5rem;
             }
 
             @media (max-width: 1200px) {
-                .grid-main {
+                .main-content-grid {
                     grid-template-columns: 1fr;
                 }
             }
 
-            .chart-container-card {
-                background: var(--card-bg);
-                border-radius: var(--border-radius);
-                padding: 1.5rem;
+            /* === CHART CARD === */
+            .chart-card {
+                background: white;
+                border-radius: var(--radius-md);
+                padding: 2rem;
                 box-shadow: var(--shadow-sm);
-                height: 100%;
+                border: 1px solid var(--border-color);
             }
 
-            .card-header-flex {
+            .chart-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 1.5rem;
+                margin-bottom: 2rem;
+                flex-wrap: wrap;
+                gap: 1rem;
             }
 
-            .card-heading {
-                font-size: 1.1rem;
+            .chart-title {
+                font-size: 1.25rem;
                 font-weight: 700;
-                color: var(--text-main);
+                color: var(--text-primary);
             }
 
             .chart-tabs {
-                background: var(--gray-100);
-                padding: 4px;
-                border-radius: 8px;
                 display: flex;
+                gap: 0.5rem;
+                background: var(--light-bg);
+                padding: 0.25rem;
+                border-radius: var(--radius-sm);
             }
 
-            .chart-tab-btn {
+            .chart-tab {
+                padding: 0.5rem 1rem;
                 border: none;
                 background: transparent;
-                padding: 6px 12px;
+                color: var(--text-secondary);
+                font-weight: 600;
                 font-size: 0.85rem;
-                border-radius: 6px;
+                border-radius: 8px;
                 cursor: pointer;
-                color: var(--text-muted);
-                font-weight: 500;
-                transition: all 0.2s;
+                transition: var(--transition);
             }
 
-            .chart-tab-btn.active {
-                background: white;
+            .chart-tab:hover {
+                background: rgba(31, 64, 131, 0.1);
                 color: var(--primary);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             }
 
-            /* Liste Récente */
+            .chart-tab.active {
+                background: var(--primary);
+                color: white;
+                box-shadow: 0 4px 12px rgba(31, 64, 131, 0.3);
+            }
+
+            .chart-container {
+                height: 350px;
+                position: relative;
+            }
+
+            /* === RECENT LIST === */
+            .recent-card {
+                background: white;
+                border-radius: var(--radius-md);
+                padding: 2rem;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border-color);
+                height: fit-content;
+            }
+
+            .recent-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .recent-title {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 1rem;
+            }
+
+            .recent-tabs {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .recent-tab {
+                padding: 0.5rem 1rem;
+                border: 1px solid var(--border-color);
+                background: white;
+                color: var(--text-secondary);
+                font-weight: 500;
+                font-size: 0.85rem;
+                border-radius: var(--radius-sm);
+                cursor: pointer;
+                transition: var(--transition);
+                white-space: nowrap;
+            }
+
+            .recent-tab:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+            }
+
+            .recent-tab.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+
             .recent-list {
                 display: flex;
                 flex-direction: column;
-                gap: 1rem;
-                max-height: 400px;
+                gap: 0.75rem;
+                max-height: 450px;
                 overflow-y: auto;
-                padding-right: 5px;
+                padding-right: 0.5rem;
             }
 
             .recent-item {
                 display: flex;
                 align-items: center;
-                padding: 10px;
-                border-radius: 12px;
-                background: #fff;
-                border: 1px solid var(--gray-200);
+                gap: 1rem;
+                padding: 1rem;
+                background: var(--light-bg);
+                border-radius: var(--radius-sm);
+                border: 1px solid transparent;
                 transition: var(--transition);
             }
 
             .recent-item:hover {
+                background: white;
                 border-color: var(--primary);
-                background: #f8faff;
+                box-shadow: var(--shadow-sm);
             }
 
-            .icon-circle {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
+            .recent-icon {
+                width: 45px;
+                height: 45px;
+                border-radius: 12px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin-right: 12px;
-                font-size: 1rem;
                 flex-shrink: 0;
             }
 
+            .recent-icon i {
+                font-size: 1.25rem;
+                color: white;
+            }
+
+            .recent-item.naissance .recent-icon {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .recent-item.deces .recent-icon {
+                background: linear-gradient(135deg, #434343 0%, #000000 100%);
+            }
+
+            .recent-item.mariage .recent-icon {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            }
+
+            .recent-info {
+                flex: 1;
+                min-width: 0;
+            }
+
             .recent-info h5 {
-                margin: 0;
                 font-size: 0.95rem;
                 font-weight: 600;
-                color: var(--text-main);
+                color: var(--text-primary);
+                margin-bottom: 0.25rem;
             }
 
             .recent-info span {
                 font-size: 0.8rem;
-                color: var(--text-muted);
+                color: var(--text-secondary);
             }
 
-            .status-pill {
-                margin-left: auto;
-                padding: 4px 10px;
+            .recent-badge {
+                padding: 0.375rem 0.75rem;
                 border-radius: 20px;
                 font-size: 0.75rem;
                 font-weight: 600;
-                background: var(--light);
-                color: var(--text-muted);
+                background: var(--success);
+                color: white;
+                white-space: nowrap;
             }
 
-            .status-pill.new {
-                background: #d1e7dd;
-                color: #0f5132;
-            }
-
-            /* Scrollbar custom */
+            /* === SCROLLBAR === */
             ::-webkit-scrollbar {
-                width: 6px;
+                width: 8px;
+                height: 8px;
             }
 
             ::-webkit-scrollbar-track {
-                background: #f1f1f1;
+                background: var(--light-bg);
+                border-radius: 10px;
             }
 
             ::-webkit-scrollbar-thumb {
-                background: #ccc;
+                background: var(--text-muted);
                 border-radius: 10px;
             }
 
             ::-webkit-scrollbar-thumb:hover {
-                background: #aaa;
+                background: var(--text-secondary);
+            }
+
+            /* === RESPONSIVE === */
+            @media (max-width: 768px) {
+                .dashboard-wrapper {
+                    padding: 1.5rem;
+                }
+
+                .dashboard-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .header-content h1 {
+                    font-size: 1.5rem;
+                }
+
+                .kpi-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .finance-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .chart-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .chart-container {
+                    height: 250px;
+                }
+            }
+
+            /* === EMPTY STATE === */
+            .empty-state {
+                text-align: center;
+                padding: 3rem 1rem;
+                color: var(--text-secondary);
+            }
+
+            .empty-state i {
+                font-size: 4rem;
+                color: var(--text-muted);
+                margin-bottom: 1rem;
+            }
+
+            .empty-state p {
+                font-size: 0.95rem;
             }
         </style>
     </head>
 
     <body>
-        <div class="dashboard-container">
+        <div class="dashboard-wrapper">
 
-            <!-- HEADER -->
+            <!-- === HEADER === -->
             <header class="dashboard-header">
-                <div class="header-title">
-                    <h1>Vue d'ensemble</h1>
-                    <p>Bienvenue sur votre espace de gestion des recettes</p>
+                <div class="header-content">
+                    <h1>🎯 Tableau de Bord Finance</h1>
+                    <p>Vue d'ensemble de l'activité et des statistiques</p>
                 </div>
-                <div class="header-actions">
+                <div class="header-badge">
                     <div class="date-badge">
-                        <i class="far fa-calendar-alt"></i>
-                        {{ \Carbon\Carbon::now()->locale('fr')->isoFormat('D MMMM YYYY') }}
+                        <i class="material-icons">calendar_today</i>
+                        <span>{{ \Carbon\Carbon::now()->locale('fr')->isoFormat('DD MMMM YYYY') }}</span>
                     </div>
                 </div>
             </header>
 
-            <!-- KPI GRID (Activités) -->
-            <div class="grid-stats">
+            <!-- === KPI CARDS === -->
+            <div class="kpi-grid">
                 <!-- Naissances -->
-                <div class="kpi-card kpi-naissance">
-                    <div class="kpi-content">
-                        <p>Demandes d'actes de naissances</p>
-                        <h3>{{ $naissancenombre }}</h3>
-                    </div>
-                    <div class="kpi-icon">
-                        <i class="fas fa-baby"></i>
+                <div class="kpi-card naissance">
+                    <div class="kpi-card-content">
+                        <div class="kpi-info">
+                            <h3>{{ $naissancenombre }}</h3>
+                            <p>Actes de Naissance</p>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="material-icons">child_care</i>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Décès -->
-                <div class="kpi-card kpi-deces">
-                    <div class="kpi-content">
-                        <p>Demandes d'actes de décès</p>
-                        <h3>{{ $decesnombre }}</h3>
-                    </div>
-                    <div class="kpi-icon">
-                        <i class="fas fa-cross"></i>
+                <div class="kpi-card deces">
+                    <div class="kpi-card-content">
+                        <div class="kpi-info">
+                            <h3>{{ $decesnombre }}</h3>
+                            <p>Actes de Décès</p>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="material-icons">sentiment_dissatisfied</i>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Mariages -->
-                <div class="kpi-card kpi-mariage">
-                    <div class="kpi-content">
-                        <p>Demandes d'actes de mariages</p>
-                        <h3>{{ $mariagenombre }}</h3>
-                    </div>
-                    <div class="kpi-icon">
-                        <i class="fas fa-heart"></i>
+                <div class="kpi-card mariage">
+                    <div class="kpi-card-content">
+                        <div class="kpi-info">
+                            <h3>{{ $mariagenombre }}</h3>
+                            <p>Actes de Mariage</p>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="material-icons">favorite</i>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Total -->
-                <div class="kpi-card kpi-total">
-                    <div class="kpi-content">
-                        <p>Total demandes d'actes</p>
-                        <h3>{{ $total }}</h3>
-                    </div>
-                    <div class="kpi-icon">
-                        <i class="fas fa-file-invoice"></i>
+                <div class="kpi-card total">
+                    <div class="kpi-card-content">
+                        <div class="kpi-info">
+                            <h3>{{ $total }}</h3>
+                            <p>Total des Actes</p>
+                        </div>
+                        <div class="kpi-icon">
+                            <i class="material-icons">description</i>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- FINANCE SECTION -->
-            <div class="section-title">
-                <i class="fas fa-coins"></i> Situation Financière de la Mairie
+            <!-- === FINANCE SECTION === -->
+            <div class="section-header">
+                <i class="material-icons">account_balance</i>
+                <h2>Situation Financière</h2>
             </div>
 
-            <div class="grid-finance">
-                <!-- Débité -->
+            <div class="finance-grid">
+                <!-- Dépenses -->
                 <div class="finance-card debit">
-                    <div class="finance-header">
-                        <div class="finance-info">
-                            <h4>Dépenses (Demandes)</h4>
-                            <span class="amount">{{ number_format($montantTotalDebite, 0, ',', ' ') }} FCFA</span>
-                        </div>
-                        <div class="finance-icon-bg">
-                            <i class="fas fa-arrow-down" style="color: #e74c3c;"></i>
+                    <div class="finance-card-header">
+                        <div class="finance-label">
+                            <i class="material-icons">trending_down</i>
+                            <span>Dépenses (Demandes)</span>
                         </div>
                     </div>
-                    <div class="finance-detail">
-                        <i class="fas fa-receipt"></i> Débits cumulés
+                    <div class="finance-amount">{{ number_format($montantTotalDebite, 0, ',', ' ') }} FCFA</div>
+                    <div class="finance-meta">
+                        <i class="material-icons">receipt_long</i>
+                        <span>Débits cumulés</span>
                     </div>
                 </div>
 
-                <!-- Restant -->
+                <!-- Solde -->
                 <div class="finance-card balance">
-                    <div class="finance-header">
-                        <div class="finance-info">
-                            <h4>Solde Disponible</h4>
-                            <span class="amount">{{ number_format($montantRestant, 0, ',', ' ') }} FCFA</span>
-                        </div>
-                        <div class="finance-icon-bg">
-                            <i class="fas fa-wallet" style="color: #f39c12;"></i>
+                    <div class="finance-card-header">
+                        <div class="finance-label">
+                            <i class="material-icons">account_balance_wallet</i>
+                            <span>Solde Disponible</span>
                         </div>
                     </div>
-                    <div class="finance-detail">
-                        <i class="fas fa-check-circle"></i> Montant actuel
+                    <div class="finance-amount">{{ number_format($montantRestant, 0, ',', ' ') }} FCFA</div>
+                    <div class="finance-meta">
+                        <i class="material-icons">check_circle</i>
+                        <span>Montant actuel</span>
                     </div>
                 </div>
             </div>
 
-            <!-- MAIN CHART & RECENT LIST -->
-            <div class="grid-main">
-                <!-- Graphique -->
-                <div class="chart-container-card">
-                    <div class="card-header-flex">
-                        <div class="card-heading">Évolution des Activités</div>
+            <!-- === MAIN CONTENT GRID === -->
+            <div class="main-content-grid">
+
+                <!-- === CHART CARD === -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">📊 Évolution des Activités</h3>
                         <div class="chart-tabs">
-                            <button class="chart-tab-btn active" onclick="updateChart('weekly', this)">7 Jours</button>
-                            <button class="chart-tab-btn" onclick="updateChart('monthly', this)">30 Jours</button>
-                            <button class="chart-tab-btn" onclick="updateChart('yearly', this)">12 Mois</button>
+                            <button class="chart-tab active" onclick="updateChart('weekly', this)">7 Jours</button>
+                            <button class="chart-tab" onclick="updateChart('monthly', this)">30 Jours</button>
+                            <button class="chart-tab" onclick="updateChart('yearly', this)">12 Mois</button>
                         </div>
                     </div>
-                    <div style="height: 300px; width: 100%;">
+                    <div class="chart-container">
                         <canvas id="mainChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Demandes Récentes -->
-                <div class="chart-container-card">
-                    <div class="card-header-flex">
-                        <div class="card-heading">Récemment</div>
+                <!-- === RECENT ACTIVITIES === -->
+                <div class="recent-card">
+                    <div class="recent-header">
+                        <h3 class="recent-title">🕒 Activités Récentes</h3>
+                        <div class="recent-tabs">
+                            <button class="recent-tab active" onclick="showRecent('naissance', this)">Naissances</button>
+                            <button class="recent-tab" onclick="showRecent('deces', this)">Décès</button>
+                            <button class="recent-tab" onclick="showRecent('mariage', this)">Mariages</button>
+                        </div>
                     </div>
 
-                    <div class="recent-tabs" style="display:flex; gap:10px; margin-bottom:15px;">
-                        <button class="chart-tab-btn active" onclick="showRecent('naissance', this)">Actes de naissances</button>
-                        <button class="chart-tab-btn" onclick="showRecent('deces', this)">Actes de décès</button>
-                        <button class="chart-tab-btn" onclick="showRecent('mariage', this)">Actes de mariages</button>
-                    </div>
-
+                    <!-- Liste Naissances -->
                     <div class="recent-list" id="list-naissance">
                         @forelse($demandesNaissance as $demande)
-                            <div class="recent-item">
-                                <div class="icon-circle" style="background:#eaf2ff; color:#4361ee;">
-                                    <i class="fas fa-baby"></i>
+                            <div class="recent-item naissance">
+                                <div class="recent-icon">
+                                    <i class="material-icons">child_care</i>
                                 </div>
                                 <div class="recent-info">
                                     <h5>Demande #{{ $demande->reference }}</h5>
                                     <span>{{ $demande->created_at->diffForHumans() }}</span>
                                 </div>
-                                <span class="status-pill new">Nouveau</span>
+                                <span class="recent-badge">Nouveau</span>
                             </div>
                         @empty
-                            <div class="text-center text-muted py-3">Aucune demande récente</div>
+                            <div class="empty-state">
+                                <i class="material-icons">inbox</i>
+                                <p>Aucune demande récente</p>
+                            </div>
                         @endforelse
                     </div>
 
-                    <div class="recent-list" id="list-deces" style="display:none;">
+                    <!-- Liste Décès -->
+                    <div class="recent-list" id="list-deces" style="display: none;">
                         @forelse($demandesDeces as $demande)
-                            <div class="recent-item">
-                                <div class="icon-circle" style="background:#f2f2f2; color:#333;">
-                                    <i class="fas fa-cross"></i>
+                            <div class="recent-item deces">
+                                <div class="recent-icon">
+                                    <i class="material-icons">sentiment_dissatisfied</i>
                                 </div>
                                 <div class="recent-info">
                                     <h5>Demande #{{ $demande->reference }}</h5>
                                     <span>{{ $demande->created_at->diffForHumans() }}</span>
                                 </div>
-                                <span class="status-pill new">Nouveau</span>
+                                <span class="recent-badge">Nouveau</span>
                             </div>
                         @empty
-                            <div class="text-center text-muted py-3">Aucune demande récente</div>
+                            <div class="empty-state">
+                                <i class="material-icons">inbox</i>
+                                <p>Aucune demande récente</p>
+                            </div>
                         @endforelse
                     </div>
 
-                    <div class="recent-list" id="list-mariage" style="display:none;">
+                    <!-- Liste Mariages -->
+                    <div class="recent-list" id="list-mariage" style="display: none;">
                         @forelse($demandesMariage as $demande)
-                            <div class="recent-item">
-                                <div class="icon-circle" style="background:#fff0f6; color:#f72585;">
-                                    <i class="fas fa-heart"></i>
+                            <div class="recent-item mariage">
+                                <div class="recent-icon">
+                                    <i class="material-icons">favorite</i>
                                 </div>
                                 <div class="recent-info">
                                     <h5>Demande #{{ $demande->reference }}</h5>
                                     <span>{{ $demande->created_at->diffForHumans() }}</span>
                                 </div>
-                                <span class="status-pill new">Nouveau</span>
+                                <span class="recent-badge">Nouveau</span>
                             </div>
                         @empty
-                            <div class="text-center text-muted py-3">Aucune demande récente</div>
+                            <div class="empty-state">
+                                <i class="material-icons">inbox</i>
+                                <p>Aucune demande récente</p>
+                            </div>
                         @endforelse
                     </div>
-
                 </div>
+
             </div>
 
         </div>
 
-        <!-- Scripts -->
+        <!-- === JAVASCRIPT === -->
         <script>
-            // Gestion des onglets "Récemment"
+            // Fonction pour afficher les différentes listes d'activités récentes
             function showRecent(type, btn) {
                 // Masquer toutes les listes
                 document.getElementById('list-naissance').style.display = 'none';
                 document.getElementById('list-deces').style.display = 'none';
                 document.getElementById('list-mariage').style.display = 'none';
 
-                // Afficher la liste choisie
+                // Afficher la liste sélectionnée
                 document.getElementById('list-' + type).style.display = 'flex';
 
-                // Gérer la classe active
+                // Gérer les classes actives des boutons
                 const buttons = btn.parentElement.querySelectorAll('button');
                 buttons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             }
 
-            // Configuration Charts
+            // Configuration du graphique Chart.js
             const ctx = document.getElementById('mainChart').getContext('2d');
 
-            // Données injectées depuis le backend
+            // Données des graphiques injectées depuis le backend
             const chartData = {
                 weekly: {
                     labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'Hier', 'Aujourd\'hui'],
-                    datasets: [
-                        { label: 'Naissances', data: @json($weeklyData['naissances']), borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)', tension: 0.4, fill: true },
-                        { label: 'Décès', data: @json($weeklyData['deces']), borderColor: '#343a40', backgroundColor: 'rgba(52, 58, 64, 0.05)', tension: 0.4, fill: true, borderDash: [5, 5] },
-                        { label: 'Mariages', data: @json($weeklyData['mariages']), borderColor: '#f72585', backgroundColor: 'rgba(247, 37, 133, 0.1)', tension: 0.4, fill: true }
+                    datasets: [{
+                            label: 'Naissances',
+                            data: @json($weeklyData['naissances']),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Décès',
+                            data: @json($weeklyData['deces']),
+                            borderColor: '#434343',
+                            backgroundColor: 'rgba(67, 67, 67, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Mariages',
+                            data: @json($weeklyData['mariages']),
+                            borderColor: '#f5576c',
+                            backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
                     ]
                 },
                 monthly: {
-                    labels: Array.from({ length: 30 }, (_, i) => i + 1),
-                    datasets: [
-                        { label: 'Naissances', data: @json($monthlyData['naissances']), borderColor: '#4361ee', tension: 0.4 },
-                        { label: 'Décès', data: @json($monthlyData['deces']), borderColor: '#343a40', tension: 0.4 },
-                        { label: 'Mariages', data: @json($monthlyData['mariages']), borderColor: '#f72585', tension: 0.4 }
+                    labels: Array.from({
+                        length: 30
+                    }, (_, i) => `Jour ${i + 1}`),
+                    datasets: [{
+                            label: 'Naissances',
+                            data: @json($monthlyData['naissances']),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Décès',
+                            data: @json($monthlyData['deces']),
+                            borderColor: '#434343',
+                            backgroundColor: 'rgba(67, 67, 67, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Mariages',
+                            data: @json($monthlyData['mariages']),
+                            borderColor: '#f5576c',
+                            backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        }
                     ]
                 },
                 yearly: {
-                    labels: ['M-11', 'M-10', 'M-9', 'M-8', 'M-7', 'M-6', 'M-5', 'M-4', 'M-3', 'M-2', 'M-1', 'Actuel'],
-                    datasets: [
-                        { label: 'Naissances', data: @json($yearlyData['naissances']), borderColor: '#4361ee', tension: 0.4 },
-                        { label: 'Décès', data: @json($yearlyData['deces']), borderColor: '#343a40', tension: 0.4 },
-                        { label: 'Mariages', data: @json($yearlyData['mariages']), borderColor: '#f72585', tension: 0.4 }
+                    labels: ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'],
+                    datasets: [{
+                            label: 'Naissances',
+                            data: @json($yearlyData['naissances']),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Décès',
+                            data: @json($yearlyData['deces']),
+                            borderColor: '#434343',
+                            backgroundColor: 'rgba(67, 67, 67, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Mariages',
+                            data: @json($yearlyData['mariages']),
+                            borderColor: '#f5576c',
+                            backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        }
                     ]
                 }
             };
 
+            // Initialisation du graphique
             let myChart = new Chart(ctx, {
                 type: 'line',
                 data: chartData.weekly,
@@ -651,25 +1005,80 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6 } },
-                        tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#333', bodyColor: '#666', borderColor: '#eee', borderWidth: 1 }
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: {
+                                    family: 'Poppins',
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#2d3748',
+                            bodyColor: '#718096',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            font: {
+                                family: 'Poppins'
+                            }
+                        }
                     },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Inter' } } },
-                        x: { grid: { display: false }, ticks: { font: { family: 'Inter' } } }
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f0f4f8',
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11
+                                },
+                                color: '#718096'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Poppins',
+                                    size: 11
+                                },
+                                color: '#718096'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
                     }
                 }
             });
 
-            window.updateChart = function (period, btn) {
-                // Update Boutons
+            // Fonction pour mettre à jour le graphique selon la période
+            window.updateChart = function(period, btn) {
+                // Mettre à jour les boutons actifs
                 const buttons = btn.parentElement.querySelectorAll('button');
                 buttons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                // Update Data
+                // Mettre à jour les données du graphique
                 myChart.data = chartData[period];
-                myChart.update();
+                myChart.update('active');
             }
         </script>
     </body>

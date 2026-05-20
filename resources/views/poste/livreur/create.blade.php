@@ -7,7 +7,7 @@
 <style>
   :root {
     --primary-color: #ea8c51;
-    --primary-dark: #1977cc;
+    --primary-dark: #1f4083;
     --secondary-color: #333333;
     --light-color: #f8f9fa;
     --dark-color: #212529;

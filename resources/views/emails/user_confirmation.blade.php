@@ -9,7 +9,7 @@
         .header { text-align: center; margin-bottom: 30px; }
         .logo { max-width: 150px; height: auto; }
         .content { background: #f9f9f9; padding: 20px; border-radius: 5px; }
-        .button { display: inline-block; padding: 12px 24px; background: #1977cc; text-decoration: none; border-radius: 4px; }
+        .button { display: inline-block; padding: 12px 24px; background: #1f4083; text-decoration: none; border-radius: 4px; }
         .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
     </style>
 </head>

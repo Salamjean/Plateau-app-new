@@ -1,0 +1,352 @@
+/* ========================================
+   MAIRIE GLOBAL STYLES - Color Theme
+   Primary Color: #1f4083 (Sidebar Color)
+   ======================================== */
+
+:root {
+    --mairie-primary: #1f4083;
+    --mairie-primary-light: #2d5aa8;
+    --mairie-primary-dark: #152e5c;
+    --mairie-secondary: #718096;
+    --mairie-success: #38a169;
+    --mairie-danger: #e53e3e;
+    --mairie-warning: #d69e2e;
+    --mairie-info: #3182ce;
+
+    /* Backgrounds */
+    --mairie-bg: #f8fafc;
+    --mairie-card-bg: #ffffff;
+
+    /* Borders */
+    --mairie-border: #e2e8f0;
+
+    /* Text */
+    --mairie-text: #2d3748;
+    --mairie-text-muted: #718096;
+}
+
+/* Override Bootstrap and other CSS variables */
+.modern-dashboard,
+body:has(.modern-dashboard),
+[data-mairie-theme] {
+    --primary: var(--mairie-primary) !important;
+    --secondary: var(--mairie-secondary) !important;
+    --bs-primary: var(--mairie-primary) !important;
+    --bs-primary-rgb: 31, 64, 131 !important;
+}
+
+/* Gradients with primary color */
+.gradient-primary {
+    background: linear-gradient(
+        135deg,
+        var(--mairie-primary) 0%,
+        var(--mairie-primary-light) 100%
+    ) !important;
+}
+
+.gradient-primary-horizontal {
+    background: linear-gradient(
+        120deg,
+        var(--mairie-primary),
+        var(--mairie-primary-light)
+    ) !important;
+}
+
+/* Headers and Titles */
+.dashboard-header,
+.table-header,
+.card-header.bg-primary,
+.btn-primary {
+    background: linear-gradient(
+        135deg,
+        var(--mairie-primary) 0%,
+        var(--mairie-primary-light) 100%
+    ) !important;
+    border-color: var(--mairie-primary) !important;
+}
+
+/* Cards with primary border */
+.card-primary,
+.stat-card.card-primary,
+.dashboard-card.card-primary {
+    border-bottom-color: var(--mairie-primary) !important;
+    border-top-color: var(--mairie-primary) !important;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-filter {
+    background: linear-gradient(
+        135deg,
+        var(--mairie-primary) 0%,
+        var(--mairie-primary-light) 100%
+    ) !important;
+    border-color: var(--mairie-primary) !important;
+    color: white !important;
+}
+
+.btn-primary:hover,
+.btn-filter:hover {
+    background: linear-gradient(
+        135deg,
+        var(--mairie-primary-dark) 0%,
+        var(--mairie-primary) 100%
+    ) !important;
+    border-color: var(--mairie-primary-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(31, 64, 131, 0.3) !important;
+}
+
+.btn-outline-primary {
+    color: var(--mairie-primary) !important;
+    border-color: var(--mairie-primary) !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--mairie-primary) !important;
+    border-color: var(--mairie-primary) !important;
+    color: white !important;
+}
+
+/* Text Colors */
+.text-primary,
+.primary-text {
+    color: var(--mairie-primary) !important;
+}
+
+.text-secondary,
+.secondary-text {
+    color: var(--mairie-secondary) !important;
+}
+
+/* Badges */
+.badge.bg-primary,
+.badge.bg-primary-light {
+    background-color: rgba(31, 64, 131, 0.15) !important;
+    color: var(--mairie-primary) !important;
+}
+
+.badge.badge-primary {
+    background-color: var(--mairie-primary) !important;
+    color: white !important;
+}
+
+/* Icons with primary background */
+.icon-primary,
+.icon-circle.bg-primary-light {
+    background-color: rgba(31, 64, 131, 0.15) !important;
+    color: var(--mairie-primary) !important;
+}
+
+/* Table Headers */
+.table th {
+    color: var(--mairie-primary) !important;
+}
+
+.table-light {
+    background-color: rgba(31, 64, 131, 0.05) !important;
+}
+
+/* Links */
+a.text-primary {
+    color: var(--mairie-primary) !important;
+}
+
+a.text-primary:hover {
+    color: var(--mairie-primary-light) !important;
+}
+
+/* Form Controls Focus */
+.form-control:focus,
+.form-select:focus,
+.modern-select:focus {
+    border-color: var(--mairie-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(31, 64, 131, 0.25) !important;
+}
+
+/* Pagination */
+.pagination .page-link {
+    color: var(--mairie-primary) !important;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--mairie-primary) !important;
+    border-color: var(--mairie-primary) !important;
+}
+
+.pagination .page-link:hover {
+    background-color: rgba(31, 64, 131, 0.1) !important;
+    color: var(--mairie-primary) !important;
+}
+
+/* Nav Tabs */
+.nav-tabs .nav-link.active {
+    color: var(--mairie-primary) !important;
+    border-bottom-color: var(--mairie-primary) !important;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--mairie-primary) !important;
+}
+
+/* Progress Bars */
+.progress-bar {
+    background-color: var(--mairie-primary) !important;
+}
+
+/* Alerts */
+.alert-primary {
+    background-color: rgba(31, 64, 131, 0.1) !important;
+    border-color: rgba(31, 64, 131, 0.2) !important;
+    color: var(--mairie-primary-dark) !important;
+}
+
+/* Dropdown */
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--mairie-primary) !important;
+}
+
+/* Modals */
+.modal-header {
+    background: linear-gradient(
+        135deg,
+        var(--mairie-primary) 0%,
+        var(--mairie-primary-light) 100%
+    ) !important;
+    color: white !important;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Spinners */
+.spinner-border.text-primary {
+    color: var(--mairie-primary) !important;
+}
+
+/* Stat Cards Specific */
+.stat-card:hover {
+    border-top: 2px solid var(--mairie-primary) !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar-thumb {
+    background-color: var(--mairie-primary) !important;
+}
+
+/* Backgrounds */
+.bg-primary {
+    background-color: var(--mairie-primary) !important;
+}
+
+.bg-primary-light {
+    background-color: rgba(31, 64, 131, 0.1) !important;
+}
+
+/* Borders */
+.border-primary {
+    border-color: var(--mairie-primary) !important;
+}
+
+/* Shadows with primary color */
+.shadow-primary {
+    box-shadow: 0 4px 12px rgba(31, 64, 131, 0.15) !important;
+}
+
+/* Avatar backgrounds */
+.avatar-title.bg-light {
+    color: var(--mairie-primary) !important;
+}
+
+/* Status indicators */
+.status-badge.status-primary {
+    background-color: rgba(31, 64, 131, 0.1) !important;
+    color: var(--mairie-primary) !important;
+}
+
+/* Chart colors override */
+.chart-primary {
+    color: var(--mairie-primary) !important;
+}
+
+/* List group items */
+.list-group-item.active {
+    background-color: var(--mairie-primary) !important;
+    border-color: var(--mairie-primary) !important;
+}
+
+/* Tooltip */
+.tooltip-inner {
+    background-color: var(--mairie-primary) !important;
+}
+
+.bs-tooltip-top .tooltip-arrow::before,
+.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
+    border-top-color: var(--mairie-primary) !important;
+}
+
+/* Card hover effects */
+.stat-card:hover,
+.dashboard-card:hover {
+    border-color: var(--mairie-primary) !important;
+}
+
+/* Input group text */
+.input-group-text {
+    background-color: rgba(31, 64, 131, 0.05) !important;
+    border-color: var(--mairie-border) !important;
+    color: var(--mairie-primary) !important;
+}
+
+/* Switch/Toggle */
+.form-check-input:checked {
+    background-color: var(--mairie-primary) !important;
+    border-color: var(--mairie-primary) !important;
+}
+
+/* Breadcrumb */
+.breadcrumb-item.active {
+    color: var(--mairie-primary) !important;
+}
+
+.breadcrumb-item a {
+    color: var(--mairie-primary) !important;
+}
+
+/* Accordion */
+.accordion-button:not(.collapsed) {
+    background-color: rgba(31, 64, 131, 0.1) !important;
+    color: var(--mairie-primary) !important;
+}
+
+.accordion-button:focus {
+    border-color: var(--mairie-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(31, 64, 131, 0.25) !important;
+}
+
+/* Offcanvas */
+.offcanvas-header {
+    background: linear-gradient(
+        135deg,
+        var(--mairie-primary) 0%,
+        var(--mairie-primary-light) 100%
+    ) !important;
+    color: white !important;
+}
+
+/* Toast */
+.toast-header {
+    background-color: var(--mairie-primary) !important;
+    color: white !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-primary,
+    .btn-filter {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+    }
+}

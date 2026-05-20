@@ -4,8 +4,8 @@
 <!-- Styles -->
 <style>
     :root {
-        --primary-color: #1977cc;
-        --secondary-color: #1977cc;
+        --primary-color: #1f4083;
+        --secondary-color: #1f4083;
         --success-color: #2ecc71;
         --warning-color: #f39c12;
         --danger-color: #e74c3c;
@@ -409,7 +409,7 @@
                     title: 'Champs requis',
                     text: 'Veuillez remplir tous les champs obligatoires avant de continuer.',
                     icon: 'warning',
-                    confirmButtonColor: '#1977cc'
+                    confirmButtonColor: '#1f4083'
                 });
                 return;
             }
@@ -438,7 +438,7 @@
                     title: 'Validation requise',
                     text: 'Vous devez certifier que les informations sont exactes avant de soumettre.',
                     icon: 'warning',
-                    confirmButtonColor: '#1977cc'
+                    confirmButtonColor: '#1f4083'
                 });
             }
         });
@@ -448,7 +448,7 @@
                 title: 'Succès',
                 text: "{{ session('success') }}",
                 icon: 'success',
-                confirmButtonColor: '#1977cc'
+                confirmButtonColor: '#1f4083'
             });
         @endif
 
@@ -457,7 +457,7 @@
                 title: 'Erreur',
                 text: "{{ session('error') }}",
                 icon: 'error',
-                confirmButtonColor: '#1977cc'
+                confirmButtonColor: '#1f4083'
             });
         @endif
     });

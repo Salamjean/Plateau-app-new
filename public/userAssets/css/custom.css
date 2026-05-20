@@ -1,22 +1,22 @@
-@import url('https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap');
+@import url("https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap");
 
 :root {
-    --primary: #1977cc;
-    --primary-hover: #1565b8;
-    --primary-light: rgba(25, 119, 204, 0.08);
-    --success: #01B574;
+    --primary: #1f4083;
+    --primary-hover: #163266;
+    --primary-light: rgba(31, 64, 131, 0.08);
+    --success: #01b574;
     --success-light: rgba(1, 181, 116, 0.1);
-    --info: #00B5DD;
+    --info: #00b5dd;
     --info-light: rgba(0, 181, 221, 0.1);
-    --warning: #FFB547;
+    --warning: #ffb547;
     --warning-light: rgba(255, 181, 71, 0.1);
-    --danger: #EE5D50;
+    --danger: #ee5d50;
     --danger-light: rgba(238, 93, 80, 0.1);
-    --purple: #4318FF;
+    --purple: #4318ff;
     --purple-light: rgba(67, 24, 255, 0.1);
-    --pink: #FF3B67;
+    --pink: #ff3b67;
     --pink-light: rgba(255, 59, 103, 0.1);
-    
+
     --bg-main: #f4f7fe;
     --bg-white: #ffffff;
     --text-navy: #2b3674;
@@ -38,7 +38,7 @@
 
 body {
     background-color: var(--bg-main) !important;
-    font-family: 'Poppins', sans-serif !important;
+    font-family: "Poppins", sans-serif !important;
     color: var(--text-navy) !important;
     overflow-x: hidden;
 }
@@ -167,17 +167,35 @@ a:hover {
 }
 
 /* Vibrant Icon Colors on White Sidebar */
-.item-birth i { color: var(--success) !important; background: var(--success-light) !important; }
-.item-death i { color: var(--danger) !important; background: var(--danger-light) !important; }
-.item-marriage i { color: var(--pink) !important; background: var(--pink-light) !important; }
-.item-appointment i { color: var(--warning) !important; background: var(--warning-light) !important; }
-.item-dashboard i { color: var(--primary) !important; background: var(--primary-light) !important; }
-.item-history i { color: var(--purple) !important; background: var(--purple-light) !important; }
+.item-birth i {
+    color: var(--success) !important;
+    background: var(--success-light) !important;
+}
+.item-death i {
+    color: var(--danger) !important;
+    background: var(--danger-light) !important;
+}
+.item-marriage i {
+    color: var(--pink) !important;
+    background: var(--pink-light) !important;
+}
+.item-appointment i {
+    color: var(--warning) !important;
+    background: var(--warning-light) !important;
+}
+.item-dashboard i {
+    color: var(--primary) !important;
+    background: var(--primary-light) !important;
+}
+.item-history i {
+    color: var(--purple) !important;
+    background: var(--purple-light) !important;
+}
 
 #sidebar ul li.active > a {
     background: var(--primary);
     color: #fff;
-    box-shadow: 0 8px 20px rgba(25, 119, 204, 0.25);
+    box-shadow: 0 8px 20px rgba(31, 64, 131, 0.25);
     transform: translateX(5px);
 }
 
@@ -201,7 +219,6 @@ a:hover {
     color: var(--primary);
     transform: translateX(5px);
 }
-
 
 /* Primary Accents */
 .border-top-primary {
@@ -230,7 +247,7 @@ a:hover {
 }
 
 #sidebar ul ul li.active-link a::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 45px;
     top: 50%;
@@ -248,7 +265,7 @@ a:hover {
     right: 0;
     left: 290px;
     height: 70px;
-    background: rgba(25, 119, 204, 0.95);
+    background: var(--primary);
     backdrop-filter: blur(12px);
     border-radius: 0;
     z-index: 999;
@@ -380,11 +397,18 @@ a:hover {
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
-.opacity-8 { opacity: 0.8; }
+.opacity-8 {
+    opacity: 0.8;
+}
 
 /* Badge soft */
 .badge-soft-primary {
@@ -400,7 +424,8 @@ a:hover {
     padding: 20px;
 }
 
-.card, .white_shd {
+.card,
+.white_shd {
     background: var(--bg-white) !important;
     border-radius: var(--radius-xl) !important;
     border: none !important;
@@ -428,7 +453,7 @@ a:hover {
     border-radius: var(--radius-xl);
     margin-bottom: 30px;
     box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(25, 119, 204, 0.05);
+    border: 1px solid rgba(31, 64, 131, 0.05);
 }
 
 .welcome-section h1 {
@@ -473,10 +498,26 @@ a:hover {
     margin-right: 20px;
 }
 
-.stat-icon.birth { color: var(--success); background: var(--success-light); box-shadow: 0 10px 20px -5px var(--success-light); }
-.stat-icon.marriage { color: var(--pink); background: var(--pink-light); box-shadow: 0 10px 20px -5px var(--pink-light); }
-.stat-icon.death { color: var(--danger); background: var(--danger-light); box-shadow: 0 10px 20px -5px var(--danger-light); }
-.stat-icon.total { color: var(--primary); background: var(--primary-light); box-shadow: 0 10px 20px -5px var(--primary-light); }
+.stat-icon.birth {
+    color: var(--success);
+    background: var(--success-light);
+    box-shadow: 0 10px 20px -5px var(--success-light);
+}
+.stat-icon.marriage {
+    color: var(--pink);
+    background: var(--pink-light);
+    box-shadow: 0 10px 20px -5px var(--pink-light);
+}
+.stat-icon.death {
+    color: var(--danger);
+    background: var(--danger-light);
+    box-shadow: 0 10px 20px -5px var(--danger-light);
+}
+.stat-icon.total {
+    color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 10px 20px -5px var(--primary-light);
+}
 
 .stat-content h3 {
     font-size: 0.9rem;
@@ -565,11 +606,11 @@ a:hover {
     margin-bottom: 30px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(25, 119, 204, 0.4);
+    box-shadow: 0 10px 40px rgba(31, 64, 131, 0.4);
 }
 
 .hero-banner::after {
-    content: '';
+    content: "";
     position: absolute;
     top: -20%;
     right: -10%;
@@ -710,7 +751,9 @@ a:hover {
 }
 
 .hover-lift {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    transition:
+        transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.3s ease;
 }
 
 .hover-lift:hover {
@@ -725,12 +768,12 @@ a:hover {
     padding: 12px 24px;
     border-radius: 14px;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(25, 119, 204, 0.3);
+    box-shadow: 0 4px 15px rgba(31, 64, 131, 0.3);
     transition: 0.3s;
 }
 
 .btn-premium:hover {
-    box-shadow: 0 8px 25px rgba(25, 119, 204, 0.4);
+    box-shadow: 0 8px 25px rgba(31, 64, 131, 0.4);
     transform: translateY(-2px);
     color: white !important;
     text-decoration: none;
@@ -892,7 +935,8 @@ a:hover {
     }
 
     /* Cards */
-    .card, .white_shd {
+    .card,
+    .white_shd {
         padding: 16px;
         border-radius: 16px !important;
     }
@@ -900,8 +944,8 @@ a:hover {
     /* Tables scrollables sans barre de défilement visible */
     .table-responsive {
         font-size: 0.82rem;
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
     }
 
     .table-responsive::-webkit-scrollbar {
@@ -914,7 +958,7 @@ a:hover {
         padding-left: 5px;
         padding-right: 5px;
     }
-    
+
     .stat-number {
         font-size: 1.1rem;
     }
@@ -950,4 +994,19 @@ a:hover {
     body.sidebar-open {
         overflow: hidden;
     }
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
+.bg-primary {
+    background-color: var(--primary) !important;
+}
+.btn-primary {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
 }

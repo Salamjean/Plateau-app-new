@@ -11,8 +11,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             :root {
-                --primary: #1977cc;
-                --secondary: #1977cc;
+                --primary: #1f4083;
+                --secondary: #1f4083;
                 --light-bg: #f8f9fa;
             }
 
@@ -23,7 +23,7 @@
             }
 
             .dashboard-header {
-                background: linear-gradient(120deg, var(--secondary), #1977cc);
+                background: linear-gradient(120deg, var(--secondary), #1f4083);
                 color: white;
                 border-radius: 15px;
                 box-shadow: 0 5px 15px rgba(0, 126, 0, 0.15);
@@ -84,7 +84,7 @@
             }
 
             .table-header {
-                background: linear-gradient(120deg, var(--secondary), #1977cc);
+                background: linear-gradient(120deg, var(--secondary), #1f4083);
                 color: white;
                 padding: 1rem 1.5rem;
                 display: flex;
@@ -149,7 +149,7 @@
             }
 
             .pagination .page-link:hover {
-                color: #1977cc;
+                color: #1f4083;
             }
 
             .filter-section {
@@ -226,7 +226,7 @@
             }
 
             .page-item.active .page-link {
-                background: linear-gradient(120deg, var(--secondary), #1977cc);
+                background: linear-gradient(120deg, var(--secondary), #1f4083);
                 color: white;
                 border: none;
                 box-shadow: 0 2px 8px rgba(25, 119, 204, 0.3);
@@ -344,6 +344,7 @@
                                     <th style="text-align: center">Quantité</th>
                                     <th style="text-align: center">Nom & Prénom</th>
                                     <th style="text-align: center">Type</th>
+                                    <th style="text-align: center">Agent</th>
                                     <th style="text-align: center">Date de demande</th>
                                     <th style="text-align: center">État</th>
                                     <th style="text-align: center">Retrait</th>
@@ -377,6 +378,15 @@
                                                 <span class="badge badge-urgent">
                                                     <i class="fas fa-bolt me-1"></i> Copie Integrale
                                                 </span>
+                                            @endif
+                                        </td>
+                                        <td style="text-align: center">
+                                            @if ($naissance->agent)
+                                                <div class="fw-bold text-primary">
+                                                    <i class="fas fa-user-check me-1"></i> {{ $naissance->agent->name }}
+                                                </div>
+                                            @else
+                                                <i class="fas fa-user-slash text-muted" title="Non récupéré"></i>
                                             @endif
                                         </td>
                                         <td style="text-align: center">
@@ -420,7 +430,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-4">
+                                        <td colspan="8" class="text-center py-4">
                                             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                             <h5 class="text-muted">Aucune demande trouvée</h5>
                                             <p class="text-muted">Aucune demande d'extrait de naissance n'a été enregistrée

@@ -7,12 +7,12 @@
 
     <style>
         :root {
-            --primary-color: #1977cc;
-            --primary-light: #1977cc;
-            --primary-dark: #1977cc;
-            --secondary-color: #1977cc;
-            --secondary-light: #1977cc;
-            --secondary-dark: #1977cc;
+            --primary-color: #1f4083;
+            --primary-light: #1f4083;
+            --primary-dark: #1f4083;
+            --secondary-color: #1f4083;
+            --secondary-light: #1f4083;
+            --secondary-dark: #1f4083;
             --light-color: #ffffff;
             --dark-color: #212529;
             --gray-color: #6c757d;
@@ -368,7 +368,7 @@
             padding: 4px 8px;
             color: white;
             border-radius: 50px;
-            background-color: #1977cc;
+            background-color: #1f4083;
             font-size: 0.7rem;
             white-space: nowrap;
         }
@@ -537,7 +537,7 @@
             padding: 0 !important;
             margin: 0 !important;
             scrollbar-width: thin;
-            scrollbar-color: #1977cc44 transparent;
+            scrollbar-color: #1f408344 transparent;
         }
 
         .request-details-popup .swal2-html-container::-webkit-scrollbar {
@@ -545,7 +545,7 @@
         }
 
         .request-details-popup .swal2-html-container::-webkit-scrollbar-thumb {
-            background: #1977cc55;
+            background: #1f408355;
             border-radius: 4px;
         }
 
@@ -646,7 +646,7 @@
                     icon: 'success',
                     title: 'Succès',
                     text: '{{ Session::get('success') }}',
-                    confirmButtonColor: '#1977cc',
+                    confirmButtonColor: '#1f4083',
                     background: 'white'
                 });
             </script>
@@ -658,7 +658,7 @@
                     icon: 'error',
                     title: 'Erreur',
                     text: '{{ Session::get('error') }}',
-                    confirmButtonColor: '#1977cc',
+                    confirmButtonColor: '#1f4083',
                     background: 'white'
                 });
             </script>
@@ -882,7 +882,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td style="text-align: center" colspan="8" class="empty-state">
+                                    <td style="text-align: center" colspan="10" class="empty-state">
                                         <i class="fas fa-cross"></i>
                                         <h5>Aucune demande d'extrait de mariage en cours</h5>
                                         <p>Toutes les demandes sont traitées ou vous n'avez pas encore récuperer demande.
@@ -1143,7 +1143,7 @@
                 <div style="flex:1;">
                   <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
                   <div style="display:flex;gap:8px;">
-                    ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1977cc;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1977cc;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
+                    ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
                     <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
                   </div>
                 </div>
@@ -1176,7 +1176,7 @@
                 <div class="dp-section">
                   <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div><div class="dp-section-title">${isCopieSimple ? 'Informations Générales' : 'Informations des Conjoints'}</div></div>
                   ${isCopieSimple ? `
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1977cc;font-weight:700;">Copie Simple</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
                           ` : `
                           <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom Époux</span><span class="dp-value">${mariage.nomEpoux||'--'}</span></div>
                           <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
@@ -1227,7 +1227,7 @@
                 html: htmlContent,
                 width: '860px',
                 confirmButtonText: '<i class="fas fa-times"></i> Fermer',
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 showCloseButton: true,
                 padding: 0,
                 customClass: {
@@ -1261,7 +1261,7 @@
                 <img src="${imageSrc}" style="max-width:100%;max-height:65vh;display:block;" alt="Document">
               </div>
               <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-                <a href="${imageSrc}" download style="color:#1977cc;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
+                <a href="${imageSrc}" download style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
                   <i class="fas fa-download"></i> Télécharger
                 </a>
                 <button onclick="Swal.close()" style="color:#475569;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #e2e8f0;border-radius:8px;background:white;font-size:0.85rem;font-weight:600;cursor:pointer;">
@@ -1329,7 +1329,7 @@
 
             const htmlContent = `
             <div style="text-align: center;">
-                <h3 style="color: #1977cc; margin-bottom: 20px;">Informations de Livraison</h3>
+                <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
                 
                 <div style="margin-bottom: 15px;">
                     <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || mariage.user.name + ' ' + mariage.user.prenom}
@@ -1367,7 +1367,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Télécharger en PDF',
                 cancelButtonText: 'Fermer',
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 width: '600px',
                 customClass: {
                     popup: 'delivery-info-popup'
@@ -1391,7 +1391,7 @@
         }
 
         .dp-hero {
-            background: linear-gradient(135deg, #1977cc 0%, #0d47a1 100%);
+            background: linear-gradient(135deg, #1f4083 0%, #0d47a1 100%);
             padding: 24px 28px 20px;
             position: relative;
             overflow: hidden;
@@ -1499,12 +1499,12 @@
         }
 
         .dp-tab:hover {
-            color: #1977cc;
+            color: #1f4083;
         }
 
         .dp-tab.dp-active {
-            color: #1977cc;
-            border-bottom-color: #1977cc;
+            color: #1f4083;
+            border-bottom-color: #1f4083;
         }
 
         .dp-panel {
@@ -1537,7 +1537,7 @@
             width: 30px;
             height: 30px;
             border-radius: 7px;
-            background: linear-gradient(135deg, #1977cc, #0d47a1);
+            background: linear-gradient(135deg, #1f4083, #0d47a1);
             display: flex;
             align-items: center;
             justify-content: center;

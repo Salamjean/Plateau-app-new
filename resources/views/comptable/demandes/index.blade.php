@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #2563eb;
+            --primary: #1f4083;
             --primary-light: #eff6ff;
-            --primary-hover: #1d4ed8;
+            --primary-hover: #1f4083;
             --success: #059669;
             --success-light: #ecfdf5;
             --warning: #d97706;
@@ -662,7 +662,7 @@
                         text: 'Le timbre sera marqué comme récupéré et le stock sera mis à jour.',
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#2563eb',
+                        confirmButtonColor: '#1f4083',
                         cancelButtonColor: '#dc2626',
                         confirmButtonText: 'Oui, valider !',
                         cancelButtonText: 'Annuler',

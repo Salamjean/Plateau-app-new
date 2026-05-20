@@ -6,9 +6,9 @@
 
     <style>
         :root {
-            --primary-color: #1977cc;
-            --secondary-color: #1977cc;
-            --accent-color: #1977cc;
+            --primary-color: #1f4083;
+            --secondary-color: #1f4083;
+            --accent-color: #1f4083;
             --success-color: #27ae60;
             --warning-color: #f39c12;
             --danger-color: #e74c3c;
@@ -445,7 +445,7 @@
                 text: "Voulez-vous vraiment supprimer cette demande ? Cette action est irréversible.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 cancelButtonColor: '#e74c3c',
                 confirmButtonText: 'Oui, supprimer',
                 cancelButtonText: 'Annuler',
@@ -462,7 +462,7 @@
                 title: 'Action non autorisée',
                 text: 'Cette demande ne peut pas être supprimée car elle est en cours de traitement ou déjà finalisée.',
                 icon: 'info',
-                confirmButtonColor: '#1977cc'
+                confirmButtonColor: '#1f4083'
             });
         }
 
@@ -472,7 +472,7 @@
                 title: 'Succès',
                 text: "{{ session('success') }}",
                 icon: 'success',
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 timer: 3000
             });
         @endif

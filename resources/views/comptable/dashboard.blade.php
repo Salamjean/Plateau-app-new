@@ -21,10 +21,10 @@
 
         <style>
             :root {
-                --primary: #4361ee;
-                --secondary: #3f37c9;
+                --primary: #1f4083;
+                --secondary: #1f4083;
                 --success: #4cc9f0;
-                --info: #4895ef;
+                --info: #1f4083;
                 --warning: #f72585;
                 --danger: #e63946;
                 --light: #f8f9fa;
@@ -66,7 +66,7 @@
             .header-title h1 {
                 font-size: 1.75rem;
                 font-weight: 700;
-                color: #1977cc;
+                color: #1f4083;
                 margin: 0;
             }
 
@@ -82,7 +82,7 @@
                 border-radius: 50px;
                 font-size: 0.85rem;
                 font-weight: 600;
-                color: #1977cc;
+                color: #1f4083;
                 box-shadow: var(--shadow-sm);
                 display: flex;
                 align-items: center;
@@ -217,7 +217,7 @@
 
             /* Bleu clair */
             .finance-card.sales-month {
-                border-color: #4361ee;
+                border-color: #1f4083;
             }
 
             /* Bleu primaire */
@@ -266,7 +266,7 @@
             }
 
             .finance-card.sales-month .finance-icon-bg {
-                color: #4361ee;
+                color: #1f4083;
             }
 
             .finance-card.stock .finance-icon-bg {
@@ -407,7 +407,7 @@
 
             .status-pill.primary {
                 background: #eaf2ff;
-                color: #4361ee;
+                color: #1f4083;
             }
 
             .status-pill.success {
@@ -634,7 +634,7 @@
                         @forelse($recentDemandes as $demande)
                             <div class="recent-item">
                                 @if($demande->type_demande == 'naissance')
-                                    <div class="icon-circle" style="background:#eaf2ff; color:#4361ee;">
+                                    <div class="icon-circle" style="background:#eaf2ff; color:#1f4083;">
                                         <i class="fas fa-baby"></i>
                                     </div>
                                     <div class="recent-info">
@@ -735,7 +735,7 @@
                     data: {
                         labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'Hier', 'Aujourd\'hui'],
                         datasets: [
-                            { label: 'Actes de naissances', data: @json($weeklyData['naissances']), borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)', tension: 0.4, fill: true },
+                            { label: 'Actes de naissances', data: @json($weeklyData['naissances']), borderColor: '#1f4083', backgroundColor: 'rgba(67, 97, 238, 0.1)', tension: 0.4, fill: true },
                             { label: 'Actes de décès', data: @json($weeklyData['deces']), borderColor: '#343a40', backgroundColor: 'rgba(52, 58, 64, 0.05)', tension: 0.4, fill: true, borderDash: [5, 5] },
                             { label: 'Actes de mariages', data: @json($weeklyData['mariages']), borderColor: '#f72585', backgroundColor: 'rgba(247, 37, 133, 0.1)', tension: 0.4, fill: true }
                         ]
@@ -767,7 +767,7 @@
                         labels: ['Actes de naissances', 'Actes de décès', 'Actes de mariages'],
                         datasets: [{
                             data: [{{ $naissancenombre }}, {{ $decesnombre }}, {{ $mariagenombre }}],
-                            backgroundColor: ['#4361ee', '#343a40', '#f72585'],
+                            backgroundColor: ['#1f4083', '#343a40', '#f72585'],
                             borderWidth: 0
                         }]
                     },

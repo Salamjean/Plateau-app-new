@@ -5,7 +5,7 @@
 <style>
     .detail-container { padding: 2rem; max-width: 1400px; margin: 0 auto; }
     .header-card {
-        background: linear-gradient(135deg, #1977cc 0%, #4facfe 100%);
+        background: linear-gradient(135deg, #1f4083 0%, #4facfe 100%);
         color: #fff; padding: 2rem; border-radius: 20px; margin-bottom: 2rem;
         box-shadow: 0 10px 30px rgba(25,119,204,0.2);
     }
@@ -24,7 +24,7 @@
     }
     .info-card h3 {
         font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
-        color: #1977cc; font-weight: 800; margin: 0 0 1rem 0;
+        color: #1f4083; font-weight: 800; margin: 0 0 1rem 0;
         border-bottom: 2px solid #f4f7fe; padding-bottom: 8px;
     }
     .info-row { padding: 6px 0; font-size: 0.9rem; }
@@ -35,7 +35,7 @@
 
     .ligne-card {
         background: #fff; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.04); border-left: 5px solid #1977cc;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04); border-left: 5px solid #1f4083;
         position: relative;
     }
     .ligne-card.simple { border-left-color: #01B574; }
@@ -61,7 +61,7 @@
         background: #f4f7fe; border-radius: 12px; padding: 1rem; text-align: center;
     }
     .cni-preview img { max-width: 100%; border-radius: 8px; }
-    .cni-preview a { color: #1977cc; font-weight: 700; text-decoration: none; }
+    .cni-preview a { color: #1f4083; font-weight: 700; text-decoration: none; }
 
     .ligne-decision {
         background: #f8fafc; padding: 1rem; border-radius: 12px; margin-top: 1rem;
@@ -90,7 +90,7 @@
     }
 
     .global-actions {
-        background: linear-gradient(135deg, #2b3674 0%, #1977cc 100%);
+        background: linear-gradient(135deg, #2b3674 0%, #1f4083 100%);
         color: #fff; padding: 1.5rem 2rem; border-radius: 16px;
         margin-top: 2rem; display: flex; justify-content: space-between;
         align-items: center; flex-wrap: wrap; gap: 1rem;
@@ -124,7 +124,7 @@
 
     .back-link {
         display: inline-flex; align-items: center; gap: 8px;
-        color: #1977cc; text-decoration: none; font-weight: 700;
+        color: #1f4083; text-decoration: none; font-weight: 700;
         margin-bottom: 1rem;
     }
     .back-link:hover { color: #0d4a85; }

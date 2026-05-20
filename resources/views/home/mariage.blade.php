@@ -1,636 +1,368 @@
-@extends('home.layouts.tamplate')
+@extends('home.layouts.main')
+
 @section('content')
-<div class="extrait-page">
-    <!-- Hero Section -->
-    <section class="extrait-hero">
-        <div class="extrait-container">
-            <h1>Extraits de Mariage</h1>
-            <p>Obtenez votre extrait de mariage en ligne - Service officiel de la Mairie du Plateau</p>
-        </div>
-    </section>
-
-    <!-- Navigation Tabs -->
-    <section class="extrait-tabs">
-        <div class="extrait-container">
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="copie-integrale">Copie intégrale</button>
-                <button class="tab-btn" data-tab="extrait-simple">Extrait simple</button>
+    <div class="service-detail-page">
+        <!-- Hero Section -->
+        <section class="service-hero">
+            <div class="container text-center">
+                <div class="badge-service mb-3" data-aos="fade-down">
+                    <span class="badge rounded-pill bg-white bg-opacity-25 text-white px-3 py-2 fw-700">
+                        <i class="bi bi-heart-fill me-1"></i> ÉTAT CIVIL
+                    </span>
+                </div>
+                <h1 class="display-3 fw-900 text-white mb-4" data-aos="fade-up">Extraits de Mariage</h1>
+                <p class="lead text-white-50 mx-auto" style="max-width: 700px;" data-aos="fade-up" data-aos-delay="100">
+                    Commandez vos actes de mariage en toute simplicité. Un service officiel dédié aux citoyens de la commune
+                    du Plateau.
+                </p>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Tab Content -->
-    <div class="extrait-container">
-        <!-- Copie Intégrale -->
-        <div class="tab-content active" id="copie-integrale">
-            <div class="extrait-card">
-                <div class="card-header">
-                    <h2>Copie intégrale d'acte de mariage</h2>
-                    <p>Document complet avec toutes les informations sur l'union matrimoniale</p>
-                </div>
-
-                <div class="card-body">
-                    <div class="info-alert">
-                        <i class="fas fa-info-circle"></i>
-                        <div>
-                            <strong>À savoir :</strong> La copie intégrale contient toutes les informations sur le mariage, y compris les détails sur les époux et leurs parents.
+        <!-- Main Content -->
+        <section class="py-5" style="margin-top: -60px;">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <!-- Navigation Tabs -->
+                        <div class="tabs-modern mb-5" data-aos="fade-up">
+                            <button class="tab-link active" onclick="openTab(event, 'copie-integrale')">
+                                <i class="bi bi-file-earmark-medical me-2"></i>Copie Intégrale
+                            </button>
+                            <button class="tab-link" onclick="openTab(event, 'extrait-simple')">
+                                <i class="bi bi-file-earmark-text me-2"></i>Extrait Simple
+                            </button>
                         </div>
-                    </div>
 
-                    <div class="description">
-                        <p>La copie intégrale de l'acte de mariage est la reproduction intégrale de l'acte de mariage inscrit sur le registre d'état civil. Elle comporte des informations sur les époux (noms, prénoms, dates et lieu de naissance), des informations sur leurs parents et les mentions marginales lorsqu'elles existent.</p>
-                    </div>
+                        <!-- Tab Content: Copie Intégrale -->
+                        <div id="copie-integrale" class="tab-pane active" data-aos="fade-up">
+                            <div class="card-modern">
+                                <div class="card-top-bar" style="background: #1f4083;"></div>
+                                <div class="p-5">
+                                    <div class="row g-5">
+                                        <div class="col-md-7">
+                                            <h2 class="fw-900 text-primary mb-4">Copie Intégrale d'Acte</h2>
+                                            <p class="text-muted fs-5 mb-4">La reproduction complète de l'acte original avec
+                                                toutes ses mentions marginales.</p>
 
-                    <div class="requirements">
-                        <h3><i class="fas fa-file-alt"></i> Documents requis</h3>
-                        <div class="requirements-grid">
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
+                                            <div class="alert-modern mb-4">
+                                                <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                                                <div>
+                                                    <span class="fw-800 d-block text-primary">Usage recommandé</span>
+                                                    <span class="small text-muted">Nécessaire pour les procédures de
+                                                        divorce, successions ou nouvelles unions.</span>
+                                                </div>
+                                            </div>
+
+                                            <h4 class="fw-800 mb-3 text-dark">Informations requises :</h4>
+                                            <ul class="list-unstyled custom-list">
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Identité complète
+                                                    des deux époux</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Date et lieu de la
+                                                    célébration</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Noms et prénoms des
+                                                    parents des époux</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Numéro du registre
+                                                    de mariage</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="price-card p-4 rounded-4 text-center glass-effect">
+                                                <span class="text-uppercase fw-800 text-muted small">Tarif Officiel</span>
+                                                <h2 class="display-5 fw-900 text-primary my-2">500 FCFA</h2>
+                                                <p class="small text-muted mb-4">Par exemplaire (hors frais annexes)</p>
+                                                <a href="{{ route('user.dashboard') }}"
+                                                    class="btn btn-primary w-100 py-3 rounded-3 fw-800">
+                                                    COMMANDER LA COPIE <i class="bi bi-arrow-right ms-2"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span>Nom et prénoms complets des deux époux</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Date de naissance des époux</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Lieu de naissance des époux</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Date du mariage</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Lieu du mariage (commune)</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Copie des pièces d'identité des requérants</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Timbre fiscal (500 FCFA par copie)</span>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="action-btn">
-                        <a href="{{ route('user.dashboard') }}" class="btn-primary">
-                            <i class="fas fa-paper-plane"></i> Démarrer la demande
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <!-- Tab Content: Extrait Simple -->
+                        <div id="extrait-simple" class="tab-pane">
+                            <div class="card-modern">
+                                <div class="card-top-bar" style="background: var(--secondary);"></div>
+                                <div class="p-5">
+                                    <div class="row g-5">
+                                        <div class="col-md-7">
+                                            <h2 class="fw-900 text-primary mb-4">Extrait de Mariage Simple</h2>
+                                            <p class="text-muted fs-5 mb-4">Un résumé officiel contenant les informations
+                                                essentielles de l'acte.</p>
 
-        <!-- Extrait Simple -->
-        <div class="tab-content" id="extrait-simple">
-            <div class="extrait-card">
-                <div class="card-header">
-                    <h2>Extrait simple d'acte de mariage</h2>
-                    <p>Document simplifié avec les informations essentielles sur le mariage</p>
-                </div>
+                                            <div class="alert-modern warning mb-4">
+                                                <i class="bi bi-shield-check text-warning fs-4"></i>
+                                                <div>
+                                                    <span class="fw-800 d-block text-warning">Rapidité</span>
+                                                    <span class="small text-muted">Idéal pour les démarches administratives
+                                                        courantes.</span>
+                                                </div>
+                                            </div>
 
-                <div class="card-body">
-                    <div class="info-alert">
-                        <i class="fas fa-info-circle"></i>
-                        <div>
-                            <strong>À savoir :</strong> L'extrait simple contient uniquement les informations essentielles sur le mariage.
-                        </div>
-                    </div>
-
-                    <div class="description">
-                        <p>L'extrait simple de l'acte de mariage est un document qui reprend une partie des informations de l'acte de mariage original. Il comporte uniquement les informations sur les époux (noms, prénoms, dates et lieu de naissance) ainsi que la date et le lieu du mariage, sans les informations sur les parents ni les mentions marginales.</p>
-                    </div>
-
-                    <div class="requirements">
-                        <h3><i class="fas fa-list-check"></i> Documents requis</h3>
-                        <div class="requirements-grid">
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
+                                            <h4 class="fw-800 mb-3 text-dark">Documents à fournir :</h4>
+                                            <ul class="list-unstyled custom-list">
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Noms et prénoms des
+                                                    époux</li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Date du mariage
+                                                </li>
+                                                <li><i class="bi bi-check-circle-fill text-success"></i> Copie de la CNI de
+                                                    l'un des époux</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="price-card p-4 rounded-4 text-center glass-effect">
+                                                <span class="text-uppercase fw-800 text-muted small">Tarif Officiel</span>
+                                                <h2 class="display-5 fw-900 text-primary my-2">500 FCFA</h2>
+                                                <p class="small text-muted mb-4">Service rapide disponible</p>
+                                                <a href="{{ route('user.dashboard') }}"
+                                                    class="btn btn-primary w-100 py-3 rounded-3 fw-800">
+                                                    COMMANDER L'EXTRAIT <i class="bi bi-arrow-right ms-2"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span>Nom et prénoms complets des deux époux</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Date de naissance des époux</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Date du mariage</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Lieu du mariage (commune)</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Copie des pièces d'identité des requérants</span>
-                            </div>
-                            <div class="requirement-item">
-                                <div class="requirement-icon">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                                <span>Timbre fiscal (500 FCFA par copie)</span>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="action-btn">
-                        <a href="{{ route('user.dashboard') }}" class="btn-primary">
-                            <i class="fas fa-paper-plane"></i> Démarrer la demande
-                        </a>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="py-5 bg-light">
+            <div class="container py-5">
+                <h2 class="text-center fw-900 text-primary mb-5">Questions Fréquentes</h2>
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-4">
+                        <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition border-0">
+                            <h4 class="fw-800 text-primary mb-3">Qui peut demander ?</h4>
+                            <p class="text-muted mb-0">Chacun des époux, leurs ascendants ou descendants majeurs sur
+                                présentation d'une pièce d'identité.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition border-0">
+                            <h4 class="fw-800 text-primary mb-3">Mariage hors Plateau ?</h4>
+                            <p class="text-muted mb-0">Vous ne pouvez commander ici que les mariages célébrés à la mairie du
+                                Plateau.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition border-0">
+                            <h4 class="fw-800 text-primary mb-3">Quels modes de retrait ?</h4>
+                            <p class="text-muted mb-0">Retrait au guichet physique de la mairie ou livraison sécurisée à
+                                l'adresse de votre choix.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-
-    <!-- FAQ Section -->
-    <section class="faq-section">
-        <div class="extrait-container">
-            <h2>Questions Fréquentes</h2>
-            <div class="faq-grid">
-                <div class="faq-item">
-                    <h3>Quelle est la différence entre un extrait simple et une copie intégrale ?</h3>
-                    <p>L'extrait simple contient les informations de base sur les époux et le mariage tandis que la copie intégrale inclut également des informations sur les parents et les mentions marginales.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Combien de temps faut-il pour obtenir un extrait de mariage ?</h3>
-                    <p>Le traitement d'une demande en ligne prend généralement 24 à 48 heures. Vous recevrez une notification dès que votre document sera prêt.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Puis-je faire une demande pour un mariage célébré dans une autre commune ?</h3>
-                    <p>Non, vous devez vous adresser à la mairie où le mariage a été célébré pour obtenir une copie de l'acte.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section class="contact-section">
-        <div class="extrait-container">
-            <div class="contact-card">
-                <h2>Besoin d'aide ?</h2>
-                <p>Notre équipe est à votre disposition pour vous accompagner dans vos démarches</p>
-                
-                <div class="contact-methods">
-                    <div class="contact-method">
-                        <i class="fas fa-phone"></i>
-                        <h3>Par téléphone</h3>
-                        <p>+225 XX XX XX XX<br>Du lundi au vendredi, 8h-17h</p>
-                    </div>
-                    
-                    <div class="contact-method">
-                        <i class="fas fa-envelope"></i>
-                        <h3>Par email</h3>
-                        <p>etatcivil@mairieplateau.ci<br>Réponse sous 24h</p>
-                    </div>
-                    
-                    <div class="contact-method">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <h3>En personne</h3>
-                        <p>Mairie du Plateau<br>Service État Civil</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
-
-<style>
-    :root {
-        --primary-color: #1977cc;
-        --primary-light: #e8f2fc;
-        --secondary-color: #f8f9fa;
-        --text-color: #333;
-        --light-text: #6c757d;
-        --white: #ffffff;
-        --success-color: #28a745;
-        --info-color: #17a2b8;
-        --border-radius: 12px;
-        --box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        --transition: all 0.3s ease;
-    }
-
-    .extrait-page {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--white);
-        color: var(--text-color);
-        line-height: 1.6;
-    }
-
-    .extrait-container {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-
-    /* Hero Section */
-    .extrait-hero {
-        background: linear-gradient(rgba(25, 119, 204, 0.5), rgba(25, 119, 204, 0.9)), url('{{asset('assets/assets/img/logo plateau.png')}}');
-        background-size: cover;
-        background-position: center;
-        color: var(--white);
-        padding: 80px 0;
-        text-align: center;
-    }
-
-    .extrait-hero h1 {
-        font-size: 2.8rem;
-        margin-bottom: 20px;
-        font-weight: 700;
-        color: white;
-    }
-
-    .extrait-hero p {
-        font-size: 1.3rem;
-        max-width: 700px;
-        margin: 0 auto;
-        opacity: 0.9;
-    }
-
-    /* Tabs Navigation */
-    .extrait-tabs {
-        background-color: var(--secondary-color);
-        padding: 30px 0;
-    }
-
-    .tabs {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-    }
-
-    .tab-btn {
-        background: var(--white);
-        border: 2px solid var(--primary-color);
-        color: var(--primary-color);
-        padding: 15px 30px;
-        border-radius: 50px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 1.1rem;
-        transition: var(--transition);
-    }
-
-    .tab-btn:hover, .tab-btn.active {
-        background: var(--primary-color);
-        color: var(--white);
-        transform: translateY(-2px);
-    }
-
-    /* Tab Content */
-    .tab-content {
-        display: none;
-        padding: 50px 0;
-    }
-
-    .tab-content.active {
-        display: block;
-    }
-
-    /* Card Styles */
-    .extrait-card {
-        background: var(--white);
-        border-radius: var(--border-radius);
-        overflow: hidden;
-        box-shadow: var(--box-shadow);
-        transition: var(--transition);
-    }
-
-    .extrait-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-header {
-        background: linear-gradient(135deg, var(--primary-color), #125daa);
-        color: var(--white);
-        padding: 30px;
-        text-align: center;
-    }
-
-    .card-header h2 {
-        font-size: 2rem;
-        color: white;
-        margin-bottom: 10px;
-    }
-
-    .card-header p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-    }
-
-    .card-body {
-        padding: 30px;
-    }
-
-    /* Info Alert */
-    .info-alert {
-        display: flex;
-        align-items: flex-start;
-        background-color: var(--primary-light);
-        border-left: 4px solid var(--info-color);
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-    }
-
-    .info-alert i {
-        color: var(--info-color);
-        font-size: 1.5rem;
-        margin-right: 15px;
-        margin-top: 2px;
-    }
-
-    .info-alert strong {
-        color: var(--info-color);
-    }
-
-    /* Description */
-    .description {
-        margin-bottom: 30px;
-    }
-
-    .description p {
-        font-size: 1.1rem;
-        line-height: 1.7;
-        color: var(--text-color);
-    }
-
-    /* Requirements */
-    .requirements {
-        margin-bottom: 40px;
-    }
-
-    .requirements h3 {
-        color: var(--primary-color);
-        font-size: 1.5rem;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-    }
-
-    .requirements h3 i {
-        margin-right: 10px;
-    }
-
-    .requirements-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 15px;
-    }
-
-    .requirement-item {
-        display: flex;
-        align-items: center;
-        padding: 15px;
-        background-color: var(--secondary-color);
-        border-radius: 8px;
-        transition: var(--transition);
-    }
-
-    .requirement-item:hover {
-        background-color: var(--primary-light);
-        transform: translateX(5px);
-    }
-
-    .requirement-icon {
-        width: 30px;
-        height: 30px;
-        background-color: var(--success-color);
-        color: var(--white);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 15px;
-        flex-shrink: 0;
-    }
-
-    /* Action Button */
-    .action-btn {
-        text-align: center;
-    }
-
-    .btn-primary {
-        display: inline-block;
-        background-color: var(--primary-color);
-        color: var(--white);
-        padding: 16px 40px;
-        border-radius: 50px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 1.1rem;
-        transition: var(--transition);
-    }
-
-    .btn-primary:hover {
-        background-color: #125daa;
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(25, 119, 204, 0.3);
-    }
-
-    .btn-primary i {
-        margin-right: 10px;
-    }
-
-    /* FAQ Section */
-    .faq-section {
-        background-color: var(--secondary-color);
-        padding: 80px 0;
-    }
-
-    .faq-section h2 {
-        text-align: center;
-        margin-bottom: 50px;
-        color: var(--primary-color);
-        font-size: 2.2rem;
-    }
-
-    .faq-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 30px;
-    }
-
-    .faq-item {
-        background: var(--white);
-        border-radius: var(--border-radius);
-        padding: 25px;
-        box-shadow: var(--box-shadow);
-    }
-
-    .faq-item h3 {
-        color: var(--primary-color);
-        margin-bottom: 15px;
-        font-size: 1.2rem;
-    }
-
-    /* Contact Section */
-    .contact-section {
-        padding: 80px 0;
-    }
-
-    .contact-card {
-        background: linear-gradient(135deg, var(--primary-color), #125daa);
-        color: var(--white);
-        padding: 60px 50px;
-        border-radius: var(--border-radius);
-        text-align: center;
-    }
-
-    .contact-card h2 {
-        margin-bottom: 15px;
-        font-size: 2rem;
-    }
-
-    .contact-card > p {
-        margin-bottom: 50px;
-        font-size: 1.1rem;
-        opacity: 0.9;
-    }
-
-    .contact-methods {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 40px;
-    }
-
-    .contact-method {
-        padding: 20px;
-    }
-
-    .contact-method i {
-        font-size: 2.5rem;
-        margin-bottom: 20px;
-        color: var(--white);
-        opacity: 0.9;
-    }
-
-    .contact-method h3 {
-        margin-bottom: 15px;
-        font-size: 1.3rem;
-    }
-
-    .contact-method p {
-        opacity: 0.9;
-        line-height: 1.6;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .tabs {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .tab-btn {
-            width: 100%;
-            max-width: 300px;
-            text-align: center;
-        }
-        
-        .requirements-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .faq-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .contact-methods {
-            grid-template-columns: 1fr;
-        }
-        
-        .contact-card {
-            padding: 40px 20px;
-        }
-        
-        .extrait-hero h1 {
-            font-size: 2.2rem;
-        }
-        
-        .extrait-hero p {
-            font-size: 1.1rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .card-header {
-            padding: 20px;
-        }
-        
-        .card-header h2 {
-            font-size: 1.6rem;
-        }
-        
-        .card-body {
-            padding: 20px;
-        }
-        
-        .info-alert {
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .info-alert i {
-            margin-right: 0;
-            margin-bottom: 10px;
-        }
-        
-        .btn-primary {
-            width: 100%;
-            text-align: center;
-        }
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove active class from all buttons and contents
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked button
-                btn.classList.add('active');
-                
-                // Show corresponding content
-                const tabId = btn.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
-            });
-        });
-    });
-</script>
 @endsection
+
+@push('styles')
+    <style>
+        .service-hero {
+            background: linear-gradient(rgba(31, 64, 131, 0.9), rgba(31, 64, 131, 0.8)), url('{{ asset('assets/assets/img/Plateau-immeuble.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            padding: 180px 0 120px;
+            border-radius: 0 0 80px 80px;
+        }
+
+        .text-primary {
+            color: #1f4083 !important;
+        }
+
+        .bg-primary {
+            background-color: #1f4083 !important;
+        }
+
+        .btn-primary {
+            background-color: #1f4083 !important;
+            border-color: #1f4083 !important;
+        }
+
+        .fw-900 {
+            font-weight: 900;
+        }
+
+        .fw-800 {
+            font-weight: 800;
+        }
+
+        .fw-700 {
+            font-weight: 700;
+        }
+
+        .tabs-modern {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-link {
+            border: none;
+            background: transparent;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 700;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .tab-link.active {
+            background: #1f4083;
+            color: white;
+        }
+
+        .card-modern {
+            background: white;
+            border-radius: 35px;
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(15, 23, 42, 0.08);
+            border: 1px solid #f1f5f9;
+            position: relative;
+        }
+
+        .card-top-bar {
+            height: 10px;
+            width: 100%;
+        }
+
+        .alert-modern {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(31, 64, 131, 0.05);
+            border-radius: 15px;
+        }
+
+        .alert-modern.warning {
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .custom-list li {
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .price-card {
+            border: 2px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .faq-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 991px) {
+            .service-hero {
+                padding: 120px 0 60px !important;
+                border-radius: 0 0 40px 40px;
+            }
+
+            .display-3 {
+                font-size: 2.5rem !important;
+            }
+
+            .tabs-modern {
+                flex-direction: column;
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .tab-link {
+                width: 100%;
+                padding: 12px 20px;
+                text-align: center;
+            }
+
+            .card-modern {
+                border-radius: 25px;
+                margin-top: -40px !important;
+            }
+
+            .p-5 {
+                padding: 1.5rem !important;
+            }
+
+            .row.g-5 {
+                --bs-gutter-y: 2rem;
+            }
+
+            .price-card {
+                padding: 1.5rem !important;
+            }
+
+            .alert-modern {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .display-3 {
+                font-size: 2rem !important;
+            }
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabContent, tabLinks;
+            tabContent = document.getElementsByClassName("tab-pane");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+                tabContent[i].classList.remove("active");
+            }
+            tabLinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.className += " active";
+        }
+    </script>
+@endpush

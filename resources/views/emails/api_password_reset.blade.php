@@ -23,7 +23,7 @@
         }
         /* En-tête */
         .header {
-            background-color: #1977cc; /* Bleu institutionnel */
+            background-color: #1f4083; /* Bleu institutionnel */
             padding: 25px;
             text-align: center;
         }
@@ -56,7 +56,7 @@
         /* Bouton (même si c'est un code, un style de bouton est parfois utilisé) */
         .button {
             display: inline-block;
-            background-color: #1977cc;
+            background-color: #1f4083;
             color: #ffffff;
             padding: 12px 25px;
             border-radius: 5px;

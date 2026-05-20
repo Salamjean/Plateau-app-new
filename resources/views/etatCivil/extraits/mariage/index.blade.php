@@ -11,8 +11,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             :root {
-                --primary: #1977cc;
-                --secondary: #1977cc;
+                --primary: #1f4083;
+                --secondary: #1f4083;
                 --light-bg: #f8f9fa;
             }
 
@@ -23,7 +23,7 @@
             }
 
             .dashboard-header {
-                background: linear-gradient(120deg, var(--secondary), #1977cc);
+                background: linear-gradient(120deg, var(--secondary), #1f4083);
                 color: white;
                 border-radius: 15px;
                 box-shadow: 0 5px 15px rgba(0, 126, 0, 0.15);
@@ -84,7 +84,7 @@
             }
 
             .table-header {
-                background: linear-gradient(120deg, var(--secondary), #1977cc);
+                background: linear-gradient(120deg, var(--secondary), #1f4083);
                 color: white;
                 padding: 1rem 1.5rem;
                 display: flex;
@@ -149,7 +149,7 @@
             }
 
             .pagination .page-link:hover {
-                color: #1977cc;
+                color: #1f4083;
             }
 
             .filter-section {

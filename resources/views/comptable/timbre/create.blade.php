@@ -158,9 +158,9 @@
 
 <style>
     :root {
-        --primary-color: #1977cc;
-        --primary-light: #1977cc;
-        --primary-dark: #1977cc;
+        --primary-color: #1f4083;
+        --primary-light: #1f4083;
+        --primary-dark: #1f4083;
         --secondary-color: #ff8800;
         --secondary-light: #ffaa40;
         --secondary-dark: #cc6d00;

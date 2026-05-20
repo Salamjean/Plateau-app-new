@@ -17,13 +17,20 @@
       <div class="dropdown">
          <a class="dropdown-toggle d-flex align-items-center" data-toggle="dropdown" style="cursor:pointer; text-decoration:none;"> 
             @php
-                $navPic = optional(Auth::user())->profile_picture;
-                $navPicUrl = $navPic
-                    ? (\Illuminate\Support\Str::startsWith($navPic, ['http://', 'https://']) ? $navPic : asset('storage/' . $navPic))
-                    : asset('assets/images/profiles/useriii.jpeg');
+                $user = Auth::user();
+                $navPic = optional($user)->profile_picture;
+                $initials = strtoupper(substr($user->name ?? '', 0, 1) . substr($user->prenom ?? '', 0, 1));
             @endphp
-            <img src="{{ $navPicUrl }}"
-            style="width:40px; height:40px; border-radius:50%; border: 2px solid rgba(255,255,255,0.5);" alt="Profile">
+            
+            @if($navPic)
+               <img src="{{ \Illuminate\Support\Str::startsWith($navPic, ['http://', 'https://']) ? $navPic : asset('storage/' . $navPic) }}"
+               style="width:40px; height:40px; border-radius:50%; border: 2px solid rgba(255,255,255,0.5); object-fit: cover;" alt="Profile">
+            @else
+               <div class="d-flex align-items-center justify-content-center bg-white text-primary font-weight-bold" 
+                    style="width:40px; height:40px; border-radius:50%; border: 2px solid rgba(255,255,255,0.5); font-size: 14px;">
+                  {{ $initials }}
+               </div>
+            @endif
             <span class="name_user ml-2 d-none d-md-inline">{{ Auth::user()->name.' '.Auth::user()->prenom }}</span>
          </a>
          <div class="dropdown-menu dropdown-menu-right mt-3 border-0 shadow-sm" style="border-radius:12px;">

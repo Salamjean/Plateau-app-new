@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Services\YellikaSmsService;
 
 /**
  * Traitement par l'agent des demandes groupées de décès.
@@ -86,16 +87,19 @@ class AgentDecesGroupeController extends Controller
             $this->notifierUtilisateur($groupe, $auMoinsUnRejet);
 
             ActionHistory::logAction(
-                'deces_groupe', $groupe->id, $groupe->reference,
+                'deces_groupe',
+                $groupe->id,
+                $groupe->reference,
                 $auMoinsUnRejet ? 'rejet' : 'changement_etat',
-                $ancienEtatGroupe, $groupe->etat,
+                $ancienEtatGroupe,
+                $groupe->etat,
                 $auMoinsUnRejet ? 'Rejet global suite à motif sur au moins une ligne' : null,
-                null, null
+                null,
+                null
             );
 
             DB::commit();
             return redirect()->route('agent.demandes.deces.groupes.index')->with('success', $messageSuccess);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Erreur traitement groupe deces ' . $groupe->reference . ' : ' . $e->getMessage());
@@ -121,6 +125,19 @@ class AgentDecesGroupeController extends Controller
         $groupe->etat = 'rejetée';
         $groupe->agent_id = $agent->id;
         $groupe->save();
+
+        // Envoi SMS
+        $user = $groupe->user;
+        if ($user) {
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre demande groupée d'extraits de décès (Réf: {$groupe->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            try {
+                $yellikaSmsService = app(YellikaSmsService::class);
+                $yellikaSmsService->sendSms($phoneNumber, $message);
+            } catch (\Exception $e) {
+                Log::error("Erreur lors de l'envoi du SMS de rejet (décès groupe) : " . $e->getMessage());
+            }
+        }
     }
 
     private function validerGroupe(DecesGroupe $groupe, $agent): void
@@ -178,7 +195,8 @@ class AgentDecesGroupeController extends Controller
         }
 
         $user->notify(new GeneralPushNotification($title, $body, [
-            'type' => 'tracking', 'reference' => $groupe->reference,
+            'type' => 'tracking',
+            'reference' => $groupe->reference,
             'url' => 'plateauapps://demande?reference=' . $groupe->reference,
         ]));
     }

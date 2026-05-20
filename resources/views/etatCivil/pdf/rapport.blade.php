@@ -13,13 +13,13 @@
         
         .header {
             text-align: center;
-            border-bottom: 3px solid #1977cc;
+            border-bottom: 3px solid #1f4083;
             padding-bottom: 20px;
             margin-bottom: 30px;
         }
         
         .header h1 {
-            color: #1977cc;
+            color: #1f4083;
             margin: 0;
             font-size: 24px;
         }
@@ -35,7 +35,7 @@
         }
         
         .section-title {
-            background: #1977cc;
+            background: #1f4083;
             color: white;
             padding: 8px 15px;
             border-radius: 4px;
@@ -70,7 +70,7 @@
         .stat-number {
             font-size: 18px;
             font-weight: bold;
-            color: #1977cc;
+            color: #1f4083;
         }
         
         .stat-label {
@@ -85,7 +85,7 @@
         }
         
         .table th {
-            background: #1977cc;
+            background: #1f4083;
             color: white;
             padding: 10px;
             text-align: left;

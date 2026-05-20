@@ -387,7 +387,7 @@ class NaissanceController extends Controller
         $phoneNumber = $user->indicatif . $user->contact;
         Log::info('Numéro de téléphone construit : ' . $phoneNumber);
         $message = "Bonjour {$user->name}, votre demande d'extrait de naissance a bien été transmise à la mairie du plateau. Référence : {$naissance->reference}.
-Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com/home/search";
+Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://plateau-apps.com";
         $smsResult = $yellikaSmsService->sendSms($phoneNumber, $message);
 
         // Envoi de l'email de confirmation

@@ -179,8 +179,8 @@
 
 <style>
     :root {
-        --primary: #1977cc;
-        --secondary: #1977cc;
+        --primary: #1f4083;
+        --secondary: #1f4083;
         --light-bg: #f8f9fa;
     }
     
@@ -205,8 +205,8 @@
     }
     
     .btn-primary:hover {
-        background-color: #1977cc;
-        border-color: #1977cc;
+        background-color: #1f4083;
+        border-color: #1f4083;
     }
     
     .text-primary {
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 html: `Êtes-vous sûr de vouloir désarchiver <strong>${agentName}</strong> ?`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#1977cc',
+                confirmButtonColor: '#1f4083',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Oui, désarchiver',
                 cancelButtonText: 'Annuler'
@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     title: 'Archivé !',
                     text: `L'agent ${agentName} a été archivé avec succès.`,
                     icon: 'success',
-                    confirmButtonColor: '#1977cc'
+                    confirmButtonColor: '#1f4083'
                 }).then(() => {
                     location.reload();
                 });
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     title: 'Désarchivé !',
                     text: `L'agent ${agentName} a été désarchivé avec succès.`,
                     icon: 'success',
-                    confirmButtonColor: '#1977cc'
+                    confirmButtonColor: '#1f4083'
                 }).then(() => {
                     location.reload();
                 });

@@ -149,8 +149,8 @@
 
 <style>
     :root {
-        --primary: #1977cc;
-        --secondary: #1977cc;
+        --primary: #1f4083;
+        --secondary: #1f4083;
         --light-bg: #f8f9fa;
     }
     

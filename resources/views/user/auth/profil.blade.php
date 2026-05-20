@@ -7,7 +7,7 @@
 <style>
     /* Votre CSS existant reste le même */
     :root {
-        --primary: #1977cc;
+        --primary: #1f4083;
         --primary-dark: #125ea3;
         --navy: #2b3674;
         --navy-light: #3a478c;

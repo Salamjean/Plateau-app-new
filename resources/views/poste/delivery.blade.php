@@ -3,579 +3,176 @@
 @section('content')
 <style>
     :root {
-        --primary-color: #1977cc;
-        --secondary-color: #ea8c51;
-        --light-color: #f8f9fa;
-        --dark-color: #343a40;
+        --primary: #1f4083;
+        --secondary: #ea8c51;
+        --success: #10b981;
+        --text-main: #2d3748;
+        --text-muted: #718096;
     }
-    
-    body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        background-color: #f5f5f5;
-    }
-    
+
     .center-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        flex: 1;
-        padding: 2rem 0;
+        min-height: calc(100vh - 200px);
+        padding: 2rem;
     }
-    
-    .attribution-card {
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        border: none;
-        overflow: hidden;
-        width: 100%;
-        max-width: 800px;
-        margin: auto;
+
+    .register-card {
         background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        width: 100%;
+        max-width: 600px;
+        overflow: hidden;
+        border: 1px solid #edf2f7;
     }
-    
-    .attribution-header {
-        background: linear-gradient(135deg, var(--primary-color), #1977cc);
-        color: white;
-        padding: 1.5rem;
-        font-size: 1.5rem;
-        font-weight: 600;
+
+    .card-header {
+        background: var(--primary);
+        padding: 2rem;
         text-align: center;
-        border-bottom: 4px solid var(--secondary-color);
-    }
-    
-    .attribution-body {
-        padding: 2.5rem;
-        background-color: white;
-    }
-    
-    .form-label {
-        color: var(--primary-color);
-        font-weight: 500;
-        display: block;
-        margin-bottom: 0.75rem;
-    }
-    
-    .form-control {
-        border-radius: 8px;
-        padding: 12px 15px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s;
-        width: 100%;
-    }
-    
-    .form-control:focus {
-        border-color: var(--secondary-color);
-        box-shadow: 0 0 0 0.2rem rgba(249, 207, 3, 0.25);
-    }
-    
-    .btn-attribuer {
-        background-color: var(--primary-color);
         color: white;
-        border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.3s;
-        text-transform: uppercase;
-        width: 100%;
-        max-width: 300px;
-        margin: 0 auto;
-        display: block;
+        position: relative;
     }
-    
-    .btn-attribuer:hover {
-        background-color: #044a3a;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(6, 99, 78, 0.3);
+
+    .card-header i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 50%;
     }
-    
-    .search-icon {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--primary-color);
+
+    .card-header h2 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.5rem;
     }
-    
+
+    .card-body {
+        padding: 3rem;
+    }
+
+    .instruction-text {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
     .input-group {
         position: relative;
-        margin-bottom: 0.5rem;
+        margin-bottom: 2rem;
     }
-    
-    .illustration {
-        max-width: 180px;
-        margin: 0 auto 30px;
-        display: block;
-    }
-    
-    .help-link {
-        color: var(--primary-color);
-        transition: color 0.3s;
-    }
-    
-    .help-link:hover {
-        color: #033a2e;
-        text-decoration: none;
-    }
-    
-    /* Styles pour le scanner QR Code */
-    .qr-scanner-container {
-        margin: 20px 0;
-        text-align: center;
-    }
-    
-    .qr-toggle {
-        background-color: var(--secondary-color);
-        color: var(--dark-color);
-        border: none;
-        padding: 12px 25px;
-        border-radius: 8px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .qr-toggle:hover {
-        background-color: #e6b800;
-        transform: translateY(-2px);
-    }
-    
-    .scanner-wrapper {
-        position: relative;
-        width: 100%;
-        max-width: 400px;
-        margin: 20px auto;
-        display: none;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    #qr-video {
-        width: 100%;
-        height: 300px;
-        object-fit: cover;
-        background-color: #f0f0f0;
-    }
-    
-    .scanner-overlay {
+
+    .input-group i {
         position: absolute;
-        top: 0;
-        left: 0;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary);
+    }
+
+    .form-control {
         width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        pointer-events: none;
-    }
-    
-    .scanner-frame {
-        width: 200px;
-        height: 200px;
-        border: 3px solid var(--secondary-color);
+        padding: 15px 15px 15px 50px;
+        border: 2px solid #e2e8f0;
         border-radius: 12px;
-        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.3);
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-transform: uppercase;
     }
-    
-    .scanner-active .scanner-wrapper {
-        display: block;
+
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(31, 64, 131, 0.1);
+        outline: none;
     }
-    
-    .scanner-active .manual-input {
-        display: none;
-    }
-    
-    .divider {
+
+    .btn-register {
+        width: 100%;
+        padding: 15px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
         display: flex;
         align-items: center;
-        text-align: center;
-        margin: 20px 0;
-        color: #6c757d;
-    }
-    
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid #dee2e6;
-    }
-    
-    .divider::before {
-        margin-right: .5em;
-    }
-    
-    .divider::after {
-        margin-left: .5em;
-    }
-    
-    .scanner-actions {
-        margin-top: 15px;
-        display: flex;
         justify-content: center;
         gap: 10px;
-    }
-    
-    .btn-scanner {
-        padding: 8px 15px;
-        border-radius: 6px;
-        border: none;
-        font-weight: 500;
         cursor: pointer;
         transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-    
-    .btn-scanner-primary {
-        background-color: var(--primary-color);
-        color: white;
+
+    .btn-register:hover {
+        background: #163266;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(31, 64, 131, 0.3);
     }
-    
-    .btn-scanner-secondary {
-        background-color: #6c757d;
-        color: white;
-    }
-    
-    .scanning-line {
+
+    .accent-bar {
         position: absolute;
-        height: 2px;
-        width: 180px;
-        background-color: var(--secondary-color);
-        top: 50%;
-        animation: scan 2s infinite ease-in-out;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: var(--secondary);
     }
-    
-    @keyframes scan {
-        0% { top: 20%; }
-        50% { top: 80%; }
-        100% { top: 20%; }
-    }
-    
-    #qr-canvas {
-        display: none;
-    }
-    
-    @media (max-width: 768px) {
-        .attribution-body {
-            padding: 1.75rem;
-        }
-        
-        .center-container {
-            padding: 1rem;
-        }
-        
-        .illustration {
-            max-width: 150px;
-        }
-        
-        .scanner-wrapper {
-            max-width: 300px;
-        }
-        
-        #qr-video {
-            height: 250px;
-        }
-        
-        .scanner-frame {
-            width: 180px;
-            height: 180px;
-        }
-        
-        .scanning-line {
-            width: 160px;
+
+    @media (max-width: 480px) {
+        .card-body {
+            padding: 1.5rem;
         }
     }
 </style>
+
 <div class="center-container">
-    <div class="attribution-card">
-        <div class="attribution-header">
-            <i class="fas fa-tasks mr-2"></i> Verifier les colis
+    <div class="register-card">
+        <div class="card-header">
+            <i class="material-icons">qr_code_scanner</i>
+            <h2>R�ception de Colis</h2>
+            <p style="margin-top: 5px; opacity: 0.9;">Enregistrez de nouveaux colis arrivant au Courrier</p>
+            <div class="accent-bar"></div>
         </div>
         
-        <div class="attribution-body">
-            <img src="{{ asset('assets/assets/img/logo plateau.png') }}" alt="Illustration" class="illustration" style="height: 90px">
-            <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Illustration" class="illustration" style="height: 90px; margin-top:-70px">
-            
-            <div class="qr-scanner-container">
-                <button type="button" class="qr-toggle" id="toggleScanner">
-                    <i class="fas fa-qrcode mr-2"></i> Scanner le QR Code
-                </button>
-                
-                <div class="scanner-wrapper" id="scannerWrapper">
-                    <div id="qr-video-container">
-                        <video id="qr-video" playsinline></video>
-                        <canvas id="qr-canvas" hidden></canvas>
-                        <div class="scanner-overlay">
-                            <div class="scanner-frame">
-                                <div class="scanning-line"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="scanner-actions">
-                        <button type="button" class="btn-scanner btn-scanner-secondary" id="switchCamera">
-                            <i class="fas fa-sync-alt mr-1"></i> Changer caméra
-                        </button>
-                    </div>
+        <div class="card-body">
+            @if(session('error'))
+                <div style="background: #fee2e2; color: #b91c1c; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                    <i class="material-icons">error_outline</i>
+                    {{ session('error') }}
                 </div>
-                
-                <div class="divider">OU</div>
-            </div>
-            
-            <form method="POST" action="{{ route('poste.attribuer-demande') }}" class="manual-input" id="manualForm">
+            @endif
+
+            @if(session('success'))
+                <div style="background: #ecfdf5; color: #047857; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                    <i class="material-icons">check_circle</i>
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            <p class="instruction-text">
+                Veuillez scanner le QR Code ou saisir manuellement la r�f�rence unique du colis figurant sur le r�c�piss�.
+            </p>
+
+            <form action="{{ route('poste.attribuer-demande') }}" method="POST">
                 @csrf
-
-                <div class="mb-4">
-                    <label for="reference" class="form-label">
-                        <i class="fas fa-search mr-2"></i> Saisissez la référence ou le code de livraison
-                    </label>
-                    
-                    <div class="input-group">
-                        <input id="reference" type="text" 
-                               class="form-control @error('reference') is-invalid @enderror" 
-                               name="reference" 
-                               value="{{ old('reference') }}" 
-                               placeholder="Ex: LIV..56..231" 
-                               required 
-                               autocomplete="off">
-                        <i class="fas fa-barcode search-icon"></i>
-                        
-                        @error('reference')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                    
-                    <small class="text-muted">
-                        Le code de livraison se trouve sur l'enveloppe.
-                    </small>
+                <div class="input-group">
+                    <i class="material-icons">label</i>
+                    <input type="text" name="reference" class="form-control" placeholder="EX: NAIS-2023-XXXX" required autofocus>
                 </div>
 
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-attribuer" style="cursor: pointer">
-                        <i class="fas fa-paper-plane mr-2" ></i> Verifer un colis pour le service de livraison
-                    </button>
-                </div>
+                <button type="submit" class="btn-register">
+                    <i class="material-icons">file_download</i>
+                    Enregistrer en courrier
+                </button>
             </form>
-            
-            <div class="text-center mt-4 pt-3">
-                <a href="#" class="help-link">
-                    <i class="fas fa-question-circle mr-2"></i> Aide sur l'attribution des demandes
-                </a>
-            </div>
         </div>
     </div>
 </div>
-<!-- Font Awesome pour les icônes -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<!-- SweetAlert2 CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-<!-- Bibliothèque jsQR pour la détection de QR codes -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputRef = document.getElementById('reference');
-        const searchIcon = inputRef.parentElement.querySelector('.search-icon');
-        const toggleScannerBtn = document.getElementById('toggleScanner');
-        const scannerWrapper = document.getElementById('scannerWrapper');
-        const manualForm = document.getElementById('manualForm');
-        const attributionCard = document.querySelector('.attribution-card');
-        const switchCameraBtn = document.getElementById('switchCamera');
-        
-        const video = document.getElementById('qr-video');
-        const canvas = document.getElementById('qr-canvas');
-        const canvasContext = canvas.getContext('2d');
-        
-        let stream = null;
-        let isScannerActive = false;
-        let useFrontCamera = false;
-        let scanningInterval = null;
-        
-        inputRef.addEventListener('focus', function() {
-            searchIcon.style.color = '#ea8c51';
-            this.parentElement.style.boxShadow = '0 0 0 2px rgba(249, 207, 3, 0.3)';
-        });
-        
-        inputRef.addEventListener('blur', function() {
-            searchIcon.style.color = '#1977cc';
-            this.parentElement.style.boxShadow = 'none';
-        });
-
-        // Toggle QR Scanner
-        toggleScannerBtn.addEventListener('click', function() {
-            isScannerActive = !isScannerActive;
-            
-            if (isScannerActive) {
-                // Activer le scanner
-                attributionCard.classList.add('scanner-active');
-                toggleScannerBtn.innerHTML = '<i class="fas fa-keyboard mr-2"></i> Saisie manuelle';
-                toggleScannerBtn.style.backgroundColor = '#1977cc';
-                toggleScannerBtn.style.color = 'white';
-                
-                // Initialiser le scanner
-                initCamera();
-            } else {
-                // Désactiver le scanner
-                stopCamera();
-                attributionCard.classList.remove('scanner-active');
-                toggleScannerBtn.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Scanner le QR Code';
-                toggleScannerBtn.style.backgroundColor = '#ea8c51';
-                toggleScannerBtn.style.color = 'white';
-            }
-        });
-        
-        // Changer de caméra
-        switchCameraBtn.addEventListener('click', function() {
-            useFrontCamera = !useFrontCamera;
-            stopCamera();
-            initCamera();
-        });
-        
-        // Initialiser la caméra
-        function initCamera() {
-            // Demander l'accès à la caméra
-            navigator.mediaDevices.getUserMedia({
-                video: { 
-                    facingMode: useFrontCamera ? "user" : "environment",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-                audio: false
-            })
-            .then(function(mediaStream) {
-                stream = mediaStream;
-                video.srcObject = mediaStream;
-                video.play();
-                
-                // Démarrer la détection de QR code
-                startQRDetection();
-            })
-            .catch(function(error) {
-                console.error("Erreur d'accès à la caméra:", error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur de caméra',
-                    text: 'Impossible d\'accéder à la caméra. Veuillez vérifier les permissions.',
-                    confirmButtonColor: '#d33',
-                    confirmButtonText: 'OK'
-                });
-                
-                // Revenir en mode manuel en cas d'erreur
-                isScannerActive = false;
-                attributionCard.classList.remove('scanner-active');
-                toggleScannerBtn.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Scanner le QR Code';
-                toggleScannerBtn.style.backgroundColor = '#ea8c51';
-                toggleScannerBtn.style.color = '#343a40';
-            });
-        }
-        
-        // Arrêter la caméra
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-                stream = null;
-            }
-            
-            // Arrêter l'intervalle de détection
-            if (scanningInterval) {
-                clearInterval(scanningInterval);
-                scanningInterval = null;
-            }
-        }
-        
-        // Démarrer la détection de QR code
-        function startQRDetection() {
-            // Ajuster la taille du canvas à celle de la vidéo
-            video.addEventListener('loadedmetadata', function() {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                
-                // Démarrer la détection périodique
-                scanningInterval = setInterval(scanQRCode, 100);
-            });
-        }
-        
-        // Scanner pour les QR codes
-        function scanQRCode() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                // Dessiner l'image de la vidéo sur le canvas
-                canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // Obtenir les données d'image du canvas
-                const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
-                
-                // Essayer de détecter un QR code
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
-                
-                // Si un QR code est détecté
-                if (code) {
-                    // Arrêter la détection
-                    clearInterval(scanningInterval);
-                    scanningInterval = null;
-                    
-                    // Traiter le code détecté
-                    processScannedCode(code.data);
-                }
-            }
-        }
-        
-        // Traiter le code scanné
-       function processScannedCode(code) {
-            // Arrêter la caméra
-            stopCamera();
-            
-            // Remplir le champ de référence avec le code scanné
-            document.getElementById('reference').value = code;
-            
-            // Soumettre automatiquement le formulaire
-            document.getElementById('manualForm').submit();
-        }
-        
-        // Afficher les messages SweetAlert2 si nécessaire
-        @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Succès',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#1977cc',
-                confirmButtonText: 'OK',
-                timer: 3000,
-                timerProgressBar: true
-            });
-        @endif
-
-        @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'OK'
-            });
-        @endif
-
-        @if($errors->any())
-            Swal.fire({
-                icon: 'error',
-                title: 'Erreur',
-                html: `@foreach ($errors->all() as $error)
-                    <p>{{ $error }}</p>
-                @endforeach`,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    });
-</script>
 @endsection

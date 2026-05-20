@@ -13,16 +13,16 @@
             text-align: center;
             margin-top: 100px;
             margin-bottom: 20px;
-            border-bottom: 2px solid #1977cc;
+            border-bottom: 2px solid #1f4083;
             padding-bottom: 10px;
         }
         .header h1 {
-            color: #1977cc;
+            color: #1f4083;
             margin: 0;
             font-size: 20px;
         }
         .header h2 {
-            color: #1977cc;
+            color: #1f4083;
             margin: 5px 0 0;
             font-size: 16px;
         }
@@ -52,7 +52,7 @@
             text-align: center;
         }
         .table th {
-            background-color: #1977cc;
+            background-color: #1f4083;
             color: white;
         }
         .table tr:nth-child(even) {

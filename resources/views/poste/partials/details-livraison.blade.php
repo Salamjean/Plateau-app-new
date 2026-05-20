@@ -120,7 +120,7 @@
     }
     
     hr {
-        border-top: 1px solid rgba(6, 99, 78, 0.1);
+        border-top: 1px solid rgba(31, 64, 131, 0.1);
         margin: 1.5rem 0;
     }
 </style>

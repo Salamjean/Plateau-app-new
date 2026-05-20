@@ -40,14 +40,14 @@
                         <!-- Step 1: Personal Information -->
                         <div class="step-content" id="step1">
                             <div class="mb-4">
-                                <h4 class="border-bottom pb-2" style="color:#1977cc"><i class="fas fa-user-circle me-2"></i>Informations Personnelles</h4>
+                                <h4 class="border-bottom pb-2" style="color:#1f4083"><i class="fas fa-user-circle me-2"></i>Informations Personnelles</h4>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="name_respo" class="form-label">Nom du service<span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-home " style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-home " style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end" id="name_respo" name="name_respo" value="Etat Civil" readonly>
                                     </div>
                                 </div>
@@ -55,7 +55,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="email" class="form-label">Adresse email <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-envelope" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-envelope" style="color:#1f4083"></i></span>
                                         <input type="email" class="form-control rounded-end" id="email" name="email" required 
                                                placeholder="adresse@exemple.com">
                                     </div>
@@ -67,7 +67,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="contact" class="form-label">Numéro de téléphone <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-phone" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-phone" style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end" id="contact" name="contact" required 
                                                placeholder="Ex: +225 07 08 09 10 11">
                                     </div>
@@ -76,7 +76,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="commune" class="form-label">Commune <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt" style="color:#1977cc"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt" style="color:#1f4083"></i></span>
                                         <input type="text" class="form-control rounded-end" id="commune" name="commune" required 
                                                placeholder="Nom de la commune">
                                     </div>
@@ -94,7 +94,7 @@
                         <!-- Step 2: Profile Picture -->
                         <div class="step-content d-none" id="step2">
                             <div class="mb-4">
-                                <h4 class="border-bottom pb-2" style="color:#1977cc"><i class="fas fa-camera me-2"></i>Photo de profil</h4>
+                                <h4 class="border-bottom pb-2" style="color:#1f4083"><i class="fas fa-camera me-2"></i>Photo de profil</h4>
                             </div>
                             
                             <div class="row">
@@ -104,7 +104,7 @@
                                                accept="image/*" hidden>
                                         <label for="profile_picture" class="file-upload-label">
                                             <div class="file-upload-icon">
-                                                <i class="fas fa-cloud-upload-alt fa-3x  style="color:#1977cc"mb-3"></i>
+                                                <i class="fas fa-cloud-upload-alt fa-3x  style="color:#1f4083"mb-3"></i>
                                             </div>
                                             <h5>Glissez-déposez votre photo ou cliquez pour parcourir</h5>
                                             <p class="text-muted">Format JPG, PNG ou GIF - Max 2MB</p>
@@ -133,7 +133,7 @@
                         <!-- Step 3: Confirmation -->
                         <div class="step-content d-none" id="step3">
                             <div class="mb-4">
-                                <h4 class="border-bottom pb-2" style="color:#1977cc"><i class="fas fa-check-circle me-2"></i>Confirmation</h4>
+                                <h4 class="border-bottom pb-2" style="color:#1f4083"><i class="fas fa-check-circle me-2"></i>Confirmation</h4>
                             </div>
                             
                             <div class="confirmation-summary bg-light rounded-15 p-4 mb-4">
@@ -184,8 +184,8 @@
 
 <style>
     :root {
-        --primary: #1977cc;
-        --secondary: #1977cc;
+        --primary: #1f4083;
+        --secondary: #1f4083;
         --light-bg: #f8f9fa;
         --dark-text: #333;
         --border-radius: 12px;
@@ -205,7 +205,7 @@
     }
     
     .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, #1977cc 100%) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, #1f4083 100%) !important;
     }
     
     .rounded-20 {
@@ -250,7 +250,7 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, #1977cc 100%);
+        background: linear-gradient(135deg, var(--primary) 0%, #1f4083 100%);
         border: none;
     }
     
@@ -261,12 +261,12 @@
     }
     
     .btn-success {
-        background: linear-gradient(135deg, var(--secondary) 0%, #1977cc 100%);
+        background: linear-gradient(135deg, var(--secondary) 0%, #1f4083 100%);
         border: none;
     }
     
     .btn-success:hover {
-        background: linear-gradient(135deg, #1977cc 0%, #1977cc 100%);
+        background: linear-gradient(135deg, #1f4083 0%, #1f4083 100%);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(255, 136, 0, 0.2);
     }

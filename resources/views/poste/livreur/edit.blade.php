@@ -6,13 +6,13 @@
 
 <style>
   :root {
-    --primary-color: #1977cc;
-    --primary-dark: #1977cc;
+    --primary-color: #1f4083;
+    --primary-dark: #1f4083;
     --secondary-color: #ea8c51;
     --light-color: #f8f9fa;
     --dark-color: #212529;
     --border-radius: 12px;
-    --box-shadow: 0 8px 20px rgba(6, 99, 78, 0.15);
+    --box-shadow: 0 8px 20px rgba(31, 64, 131, 0.15);
   }
 
   .edit-card {
@@ -418,7 +418,7 @@
       icon: 'success',
       title: 'Modification réussie',
       text: '{{ Session::get('success') }}',
-      confirmButtonColor: '#1977cc',
+      confirmButtonColor: '#1f4083',
       background: '#ffffff',
       timer: 3000
     });
@@ -429,7 +429,7 @@
       icon: 'error',
       title: 'Erreur',
       text: '{{ Session::get('error') }}',
-      confirmButtonColor: '#1977cc',
+      confirmButtonColor: '#1f4083',
       background: '#ffffff'
     });
   @endif
@@ -442,7 +442,7 @@
       text: 'Toutes les modifications non enregistrées seront perdues.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#1977cc',
+      confirmButtonColor: '#1f4083',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Oui, réinitialiser',
       cancelButtonText: 'Annuler'
