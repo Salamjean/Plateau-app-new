@@ -131,6 +131,7 @@ class UserAuthenticate extends Controller
                 'agents.prenom as agent_prenom'
             )
             ->where('naissances.user_id', $userId)
+            ->whereNotIn('naissances.etat', ['en attente de paiement', 'non payé', 'non_paye', 'paiement_en_attente'])
 
             ->unionAll(
                 DB::table('deces')
@@ -147,6 +148,7 @@ class UserAuthenticate extends Controller
                         'agents.prenom as agent_prenom'
                     )
                     ->where('deces.user_id', $userId)
+                    ->whereNotIn('deces.etat', ['en attente de paiement', 'non payé', 'non_paye', 'paiement_en_attente'])
             )
 
             ->unionAll(
@@ -164,6 +166,7 @@ class UserAuthenticate extends Controller
                         'agents.prenom as agent_prenom'
                     )
                     ->where('mariages.user_id', $userId)
+                    ->whereNotIn('mariages.etat', ['en attente de paiement', 'non payé', 'non_paye', 'paiement_en_attente'])
             )
 
             ->orderBy('created_at', 'desc')
