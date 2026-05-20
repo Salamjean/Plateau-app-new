@@ -120,7 +120,7 @@ class AgentMariageController extends Controller
                 $mariage->statut_livraison = 'en attente';
                 $mariage->livraison_code = $livraisonCode;
                 $mariage->qr_code_path = $qrCodePath;
-                $mariage->livraison_id = 1;
+                $mariage->livraison_id = null;
                 $mariage->dhl_id = null;
             }
 

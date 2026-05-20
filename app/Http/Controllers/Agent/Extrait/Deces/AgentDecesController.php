@@ -99,7 +99,7 @@ class AgentDecesController extends Controller
                 $deces->statut_livraison = 'en attente';
                 $deces->livraison_code = $livraisonCode;
                 $deces->qr_code_path = $qrCodePath;
-                $deces->livraison_id = 1;
+                $deces->livraison_id = null;
                 $deces->dhl_id = null;
             }
 

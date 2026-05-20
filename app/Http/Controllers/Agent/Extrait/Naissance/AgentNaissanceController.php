@@ -96,7 +96,7 @@ class AgentNaissanceController extends Controller
                 $naissance->statut_livraison = 'en attente';
                 $naissance->livraison_code = $livraisonCode;
                 $naissance->qr_code_path = $qrCodePath;
-                $naissance->livraison_id = 1;
+                $naissance->livraison_id = null;
                 $naissance->dhl_id = null;
             }
 
