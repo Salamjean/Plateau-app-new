@@ -148,7 +148,7 @@ class DemandeNaissanceController extends Controller
             // Normalisation : le mobile envoie 'retrait'/'livraison' (minuscules)
             // mais le backend attend 'Retrait sur place'/'Livraison' (comme le web)
             $naissance->choix_option = strtolower($request->choix_option) === 'livraison'
-                ? 'Livraison'
+                ? 'livraison'
                 : 'Retrait sur place';
             $naissance->user_id = $user->id;
             $naissance->reference = $reference;

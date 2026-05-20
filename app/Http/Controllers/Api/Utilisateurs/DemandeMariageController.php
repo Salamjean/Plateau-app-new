@@ -140,7 +140,7 @@ class DemandeMariageController extends Controller
             // Normalisation : le mobile envoie 'retrait'/'livraison' (minuscules)
             // mais le backend attend 'Retrait sur place'/'Livraison' (comme le web)
             $mariage->choix_option = strtolower($request->choix_option) === 'livraison'
-                ? 'Livraison'
+                ? 'livraison'
                 : 'Retrait sur place';
             $mariage->user_id = $user->id;
             $mariage->reference = $reference;
