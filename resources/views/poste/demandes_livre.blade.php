@@ -178,7 +178,7 @@
         <i class="material-icons">task_alt</i>
         Historique des livraisons
     </h2>
-    <span class="stats-badge">{{ $demandes->count() }} Colis livré(s)</span>
+    <span class="stats-badge">{{ $demandes->count() }} Colis livrÃ©(s)</span>
 </div>
 
 <div class="demandes-grid">
@@ -209,7 +209,7 @@
 
                 <div class="status-banner">
                     <i class="material-icons" style="font-size: 1rem;">verified</i>
-                    LIVRÉ AVEC SUCCÈS
+                    LIVRÃ‰ AVEC SUCCÃˆS
                 </div>
             </div>
 
@@ -219,7 +219,7 @@
                     Livreur : {{ $demande->livreur->name ?? '--' }} {{ $demande->livreur->prenom ?? '--' }}
                 </div>
                 <small class="text-muted" style="display: block; margin-top: 5px;">
-                    Date : {{ $demande->updated_at->format('d/m/Y à H:i') }}
+                    Date : {{ $demande->updated_at->format('d/m/Y Ã  H:i') }}
                 </small>
             </div>
         </div>
@@ -227,7 +227,7 @@
         <div class="empty-state">
             <i class="material-icons">history</i>
             <h3>Aucun historique</h3>
-            <p class="text-muted">Les colis livrés par vos agents apparaîtront ici.</p>
+            <p class="text-muted">Les colis livrÃ©s par vos agents apparaÃ®tront ici.</p>
         </div>
     @endforelse
 </div>

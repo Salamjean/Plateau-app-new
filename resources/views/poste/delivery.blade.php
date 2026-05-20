@@ -136,7 +136,7 @@
     <div class="register-card">
         <div class="card-header">
             <i class="material-icons">qr_code_scanner</i>
-            <h2>Réception de Colis</h2>
+            <h2>RÃ©ception de Colis</h2>
             <p style="margin-top: 5px; opacity: 0.9;">Enregistrez de nouveaux colis arrivant au Courrier</p>
             <div class="accent-bar"></div>
         </div>
@@ -157,7 +157,7 @@
             @endif
 
             <p class="instruction-text">
-                Veuillez scanner le QR Code ou saisir manuellement la référence unique du colis figurant sur le récépissé.
+                Veuillez scanner le QR Code ou saisir manuellement la rÃ©fÃ©rence unique du colis figurant sur le rÃ©cÃ©pissÃ©.
             </p>
 
             <form action="{{ route('poste.attribuer-demande') }}" method="POST">

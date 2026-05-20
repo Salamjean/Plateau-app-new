@@ -318,7 +318,7 @@
                 <i class="material-icons">info</i>
                 <div class="instruction-text">
                     <h4>Scanner ou Saisir</h4>
-                    <p>Veuillez entrer le numéro de référence fourni par le client pour authentifier la livraison du colis.</p>
+                    <p>Veuillez entrer le numÃ©ro de rÃ©fÃ©rence fourni par le client pour authentifier la livraison du colis.</p>
                 </div>
             </div>
 
@@ -328,12 +328,12 @@
                 @csrf
                 
                 <div class="form-group">
-                    <label class="form-label" for="referenceInput">Référence du Colis</label>
+                    <label class="form-label" for="referenceInput">RÃ©fÃ©rence du Colis</label>
                     <div class="search-input-group">
                         <input type="text" class="modern-input" id="referenceInput" 
                                placeholder="Ex: REF-2024-XXXX" required autocomplete="off">
                         <button class="verify-btn" type="button" id="checkReferenceBtn">
-                            <span id="btnText">Vérifier</span>
+                            <span id="btnText">VÃ©rifier</span>
                             <div id="btnLoading" class="loading-spinner"></div>
                         </button>
                     </div>
@@ -342,7 +342,7 @@
                 <div id="demandeInfos">
                     <h3 class="result-title">
                         <i class="material-icons text-primary" style="color: var(--primary);">inventory</i>
-                        Vérification des Détails
+                        VÃ©rification des DÃ©tails
                     </h3>
                     
                     <div class="info-grid">
@@ -353,7 +353,7 @@
                         </div>
 
                         <div class="info-card">
-                            <div class="info-label">Référence Colis</div>
+                            <div class="info-label">RÃ©fÃ©rence Colis</div>
                             <div class="info-value" id="refColisLabel"></div>
                         </div>
                         
@@ -378,7 +378,7 @@
                         </div>
 
                         <div class="info-card" style="grid-column: span 2">
-                            <div class="info-label">Adresse Précise</div>
+                            <div class="info-label">Adresse PrÃ©cise</div>
                             <div class="info-value" id="adresse"></div>
                         </div>
                     </div>
@@ -418,7 +418,7 @@ $(document).ready(function() {
     $('#checkReferenceBtn').on('click', function() {
         const reference = $('#referenceInput').val().trim();
         if (!reference) {
-            showMessage('error', 'Veuillez saisir une référence.');
+            showMessage('error', 'Veuillez saisir une rÃ©fÃ©rence.');
             return;
         }
 
@@ -441,7 +441,7 @@ $(document).ready(function() {
                     $('#refColisLabel').text(reference);
                     $('#destinataire').text(response.data.destinataire);
                     $('#contact').text(response.data.contact);
-                    $('#typeDemande').text(response.data.email || 'Non renseigné');
+                    $('#typeDemande').text(response.data.email || 'Non renseignÃ©');
                     $('#adresse').text(response.data.adresse || 'N/A');
                     $('#villeCommune').text((response.data.commune || '') + ' ' + (response.data.quartier || ''));
                     
@@ -450,13 +450,13 @@ $(document).ready(function() {
                     $('#demandeType').val(response.data.type);
                     
                     $('#demandeInfos').fadeIn();
-                    showMessage('success', 'Référence valide ! Veuillez vérifier les informations.');
+                    showMessage('success', 'RÃ©fÃ©rence valide ! Veuillez vÃ©rifier les informations.');
                 } else {
                     showMessage('error', response.message);
                 }
             },
             error: function(xhr) {
-                let msg = 'Une erreur est survenue lors de la vérification.';
+                let msg = 'Une erreur est survenue lors de la vÃ©rification.';
                 if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
                 showMessage('error', msg);
             },
@@ -488,7 +488,7 @@ function handleFormSubmit(e) {
         data: $(form).serialize(),
         success: function(response) {
             if (response.success) {
-                // Utiliser displayMessage pour le succès avant de rediriger
+                // Utiliser displayMessage pour le succÃ¨s avant de rediriger
                 const html = `
                     <div class="custom-alert alert-success">
                         <i class="material-icons">check_circle</i>

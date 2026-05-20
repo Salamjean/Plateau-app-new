@@ -120,7 +120,7 @@
 
         .title {
             font-size: 2rem;
-            font-weight: 800;
+            font-weight: 400;
             color: #1a1a1a;
             margin-bottom: 8px;
             position: relative;

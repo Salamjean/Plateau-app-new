@@ -24,23 +24,23 @@
         <!-- Colis -->
         <a href="{{ route('livraison.create') }}"
             class="sidebar-link {{ request()->routeIs('livraison.create') ? 'active' : '' }}"
-            title="Vérifier les colis">
+            title="VÃ©rifier les colis">
             <i class="material-icons">task_alt</i>
-            <span>Vérifier les colis</span>
+            <span>VÃ©rifier les colis</span>
         </a>
 
         <a href="{{ route('poste.demandes-attribuees') }}"
             class="sidebar-link {{ request()->routeIs('poste.demandes-attribuees') ? 'active' : '' }}"
-            title="Colis à livrer">
+            title="Colis Ã  livrer">
             <i class="material-icons">local_shipping</i>
-            <span>Les colis à livrer</span>
+            <span>Les colis Ã  livrer</span>
         </a>
 
         <a href="{{ route('poste.demandes-livree') }}"
             class="sidebar-link {{ request()->routeIs('poste.demandes-livree') ? 'active' : '' }}"
-            title="Colis livrés">
+            title="Colis livrÃ©s">
             <i class="material-icons">fact_check</i>
-            <span>Les colis livrés</span>
+            <span>Les colis livrÃ©s</span>
         </a>
 
         <div class="sidebar-divider"></div>
@@ -66,7 +66,7 @@
                 </a>
                 <a href="{{ route('poste.livreur.archives') }}"
                     class="sidebar-sublink {{ request()->routeIs('poste.livreur.archives') ? 'active' : '' }}">
-                    <span>Livreur archivé</span>
+                    <span>Livreur archivÃ©</span>
                 </a>
             </div>
         </div>
@@ -90,7 +90,7 @@
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
     }
 
-    /* Règles pour l'état réduit (sidebar-mini) */
+    /* RÃ¨gles pour l'Ã©tat rÃ©duit (sidebar-mini) */
     body.sidebar-mini .sidebar-header {
         padding: 20px 5px;
     }

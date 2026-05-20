@@ -42,11 +42,11 @@
                 id="submenu-colis">
                 <a href="{{ route('livreur.livraison') }}"
                     class="sidebar-sublink {{ request()->routeIs('livreur.livraison') ? 'active' : '' }}">
-                    <span>Colis à livrer</span>
+                    <span>Colis Ã  livrer</span>
                 </a>
                 <a href="{{ route('livreur.livree') }}"
                     class="sidebar-sublink {{ request()->routeIs('livreur.livree') ? 'active' : '' }}">
-                    <span>Colis livrés</span>
+                    <span>Colis livrÃ©s</span>
                 </a>
             </div>
         </div>
@@ -69,7 +69,7 @@
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
     }
 
-    /* Règles pour l'état réduit (sidebar-mini) */
+    /* RÃ¨gles pour l'Ã©tat rÃ©duit (sidebar-mini) */
     body.sidebar-mini .sidebar-header {
         padding: 20px 5px;
     }

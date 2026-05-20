@@ -324,7 +324,7 @@
 
         <div class="stat-card">
             <div class="stat-info">
-                <span class="stat-label">Solde Cumulé</span>
+                <span class="stat-label">Solde CumulÃ©</span>
                 <div class="stat-value">{{ number_format($livreurs->sum('solde'), 0, ',', ' ') }} <small
                         style="font-size: 0.8rem;">F</small></div>
             </div>
@@ -340,8 +340,8 @@
                 <thead>
                     <tr>
                         <th>Livreur</th>
-                        <th>Coordonnées</th>
-                        <th>Zone d'activité</th>
+                        <th>CoordonnÃ©es</th>
+                        <th>Zone d'activitÃ©</th>
                         <th>Statut</th>
                         <th>Solde</th>
                         <th class="text-end">Actions</th>

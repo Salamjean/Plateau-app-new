@@ -236,7 +236,7 @@
         </h2>
         <div id="selection-counter" class="stats-badge"
             style="background: var(--secondary); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600; display: none;">
-            0 colis sélectionné(s)
+            0 colis sÃ©lectionnÃ©(s)
         </div>
     </div>
 
@@ -246,7 +246,7 @@
                 <button type="button" class="btn-submit" style="background: #f1f5f9; color: var(--text-main);"
                     onclick="toggleSelectAll()">
                     <i class="material-icons">select_all</i>
-                    Tout sélectionner
+                    Tout sÃ©lectionner
                 </button>
             </div>
 
@@ -305,7 +305,7 @@
                         <div class="info-row">
                             <i class="material-icons">event</i>
                             <div class="info-content">
-                                <span class="info-label">Reçu au Courrier</span>
+                                <span class="info-label">ReÃ§u au Courrier</span>
                                 <span class="info-value">{{ $demande->updated_at->format('d/m/Y') }}</span>
                             </div>
                         </div>
@@ -313,11 +313,11 @@
                         <div class="status-pill {{ $demande->livreur_id ? 'status-assigned' : 'status-pending' }}">
                             <i class="material-icons"
                                 style="font-size: 14px;">{{ $demande->livreur_id ? 'person_pin' : 'hourglass_empty' }}</i>
-                            <span>{{ $demande->livreur_id ? 'Assigné à ' . $demande->livreur->name : "En attente d'assignation" }}</span>
+                            <span>{{ $demande->livreur_id ? 'AssignÃ© Ã  ' . $demande->livreur->name : "En attente d'assignation" }}</span>
                             @if ($demande->livreur_id)
                                 <span
                                     style="font-size: 0.65rem; opacity: 0.8; margin-left: 5px; border-left: 1px solid rgba(0,0,0,0.1); padding-left: 5px;">(Double-clic
-                                    pour réassigner)</span>
+                                    pour rÃ©assigner)</span>
                             @endif
                         </div>
                     </div>
@@ -349,12 +349,12 @@
                 card.classList.add('selected');
             }
 
-            console.log("Sélection actuelle:", selectedDemandes);
+            console.log("SÃ©lection actuelle:", selectedDemandes);
             updateUI();
         }
 
         function toggleSelectAll() {
-            // On ne sélectionne par défaut que les colis non assignés pour la sélection groupée
+            // On ne sÃ©lectionne par dÃ©faut que les colis non assignÃ©s pour la sÃ©lection groupÃ©e
             const cards = document.querySelectorAll('.demande-card[data-assigned="0"]');
             const allCards = document.querySelectorAll('.demande-card');
 
@@ -382,7 +382,7 @@
             const hiddenDiv = document.getElementById('hidden-inputs');
 
             if (counter) {
-                counter.textContent = `${selectedDemandes.length} colis sélectionné(s)`;
+                counter.textContent = `${selectedDemandes.length} colis sÃ©lectionnÃ©(s)`;
                 counter.style.display = selectedDemandes.length > 0 ? 'block' : 'none';
             }
 

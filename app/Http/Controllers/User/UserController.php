@@ -138,7 +138,11 @@ class UserController extends Controller
         $currentYear = now()->year;
         $monthlyData = array_fill(0, 12, 0); // Initialise un tableau pour 12 mois (0-11)
 
+        // Définir les états à inclure dans le graphique
+        $etatsInclus = ['en attente', 'terminé', 'récu'];
+
         $records = $model::where('user_id', $userId)
+            ->whereIn('etat', $etatsInclus) // Ajout du filtre par état
             ->whereYear('created_at', $currentYear)
             ->selectRaw('MONTH(created_at) as month, COUNT(*) as count')
             ->groupBy('month')

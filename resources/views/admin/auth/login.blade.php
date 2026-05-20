@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,8 +12,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh; 
-            margin: 0; 
+            height: 100vh;
+            margin: 0;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -56,7 +57,7 @@
         }
 
         .input:focus {
-            border: 1.5px solid #007bff; 
+            border: 1.5px solid #1f4083;
         }
 
         .label {
@@ -69,12 +70,12 @@
             z-index: 2;
         }
 
-        .input:focus ~ .label,
-        .input:valid ~ .label {
+        .input:focus~.label,
+        .input:valid~.label {
             top: -5px;
             left: 5px;
             font-size: 12px;
-            color: #007bff; 
+            color: #1f4083;
             background-color: #ffffff;
             padding-left: 5px;
             padding-right: 5px;
@@ -83,7 +84,7 @@
         .submit-btn {
             margin-top: 30px;
             height: 55px;
-            background: #6777ef; 
+            background: #1f4083;
             border: 0;
             outline: none;
             color: #ffffff;
@@ -129,39 +130,41 @@
         }
     </style>
 </head>
+
 <body>
 
-<form class="form-control" method="POST" action="{{ route('admin.handleLogin') }}">
-    <p class="title">Connexion de Kks-Technologies</p>
-    
-    @csrf
-    @method('post')
-    
-    @if (Session::get('success'))
-        <div class="success-message">{{ Session::get('success') }}</div>
-    @endif
-    @if (Session::get('error'))
-        <div class="error-message">{{ Session::get('error') }}</div>
-    @endif
+    <form class="form-control" method="POST" action="{{ route('admin.handleLogin') }}">
+        <p class="title">Connexion de Kks-Technologies</p>
 
-    <div class="input-field">
-        <input required class="input" type="email" name="email" value="{{ old('email') }}" />
-        <label class="label" for="email">Email</label>
-        @error('email')
-            <div class="error-message">{{ $message }}</div>
-        @enderror
-    </div>
+        @csrf
+        @method('post')
 
-    <div class="input-field">
-        <input required class="input" type="password" name="password" />
-        <label class="label" for="password">Mot de passe</label>
-        @error('password')
-            <div class="error-message">{{ $message }}</div>
-        @enderror
-    </div>
+        @if (Session::get('success'))
+            <div class="success-message">{{ Session::get('success') }}</div>
+        @endif
+        @if (Session::get('error'))
+            <div class="error-message">{{ Session::get('error') }}</div>
+        @endif
 
-    <button type="submit" class="submit-btn">Se connecter</button>
-</form>
+        <div class="input-field">
+            <input required class="input" type="email" name="email" value="{{ old('email') }}" />
+            <label class="label" for="email">Email</label>
+            @error('email')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="input-field">
+            <input required class="input" type="password" name="password" />
+            <label class="label" for="password">Mot de passe</label>
+            @error('password')
+                <div class="error-message">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <button type="submit" class="submit-btn">Se connecter</button>
+    </form>
 
 </body>
+
 </html>

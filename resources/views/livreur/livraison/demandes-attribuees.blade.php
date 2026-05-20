@@ -197,7 +197,7 @@
 <div class="page-header">
     <h2 class="page-title">
         <i class="material-icons">local_shipping</i>
-        Colis à livrer
+        Colis Ã  livrer
     </h2>
     <span class="stats-badge">{{ $demandes->count() }} Demande(s)</span>
 </div>
@@ -253,8 +253,8 @@
     @empty
         <div class="empty-state">
             <i class="material-icons">inbox</i>
-            <h3>Aucun colis à livrer</h3>
-            <p class="text-muted">Toutes vos livraisons sont à jour pour le moment.</p>
+            <h3>Aucun colis Ã  livrer</h3>
+            <p class="text-muted">Toutes vos livraisons sont Ã  jour pour le moment.</p>
         </div>
     @endforelse
 </div>

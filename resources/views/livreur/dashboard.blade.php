@@ -278,12 +278,12 @@
 </style>
 
 <div class="dashboard-container">
-    <!-- Bannière de bienvenue -->
+    <!-- BanniÃ¨re de bienvenue -->
     <div class="welcome-banner">
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h2>Bonjour, {{ $livreur->name }} ! ??</h2>
-                <p>Prêt pour vos livraisons d'aujourd'hui ? Gérez vos colis et suivez vos performances en temps réel.</p>
+                <p>PrÃªt pour vos livraisons d'aujourd'hui ? GÃ©rez vos colis et suivez vos performances en temps rÃ©el.</p>
                 <div class="status-badge">
                     <i class="material-icons" style="font-size: 18px;">{{ $livreur->disponible ? 'check_circle' : 'do_not_disturb_on' }}</i>
                     Statut : {{ $livreur->disponible ? 'Disponible' : 'Indisponible' }}
@@ -318,7 +318,7 @@
                 <i class="material-icons">task_alt</i>
             </div>
             <div class="kpi-info">
-                <h3>Terminées</h3>
+                <h3>TerminÃ©es</h3>
                 <div class="value">{{ $stats['livrees'] }}</div>
             </div>
         </div>
@@ -335,17 +335,17 @@
     </div>
     
     <div class="main-grid">
-        <!-- Activités récentes -->
+        <!-- ActivitÃ©s rÃ©centes -->
         <div class="card">
             <div class="card-header">
-                <h4><i class="material-icons">history</i> Activités Récentes</h4>
+                <h4><i class="material-icons">history</i> ActivitÃ©s RÃ©centes</h4>
                 <a href="{{route('livreur.livraison')}}" class="btn btn-sm btn-link" style="color: var(--primary-color); font-weight: 600;">Voir tout</a>
             </div>
             <div class="activity-list">
                 @forelse($activites as $activite)
                 <div class="activity-item">
-                    <div class="activity-icon-sm" style="background: {{ $activite['statut'] == 'livré' ? '#e8f5e9' : '#f0f4ff' }}; color: {{ $activite['statut'] == 'livré' ? '#2e7d32' : '#1f4083' }};">
-                        <i class="material-icons">{{ $activite['statut'] == 'livré' ? 'done_all' : 'delivery_dining' }}</i>
+                    <div class="activity-icon-sm" style="background: {{ $activite['statut'] == 'livrÃ©' ? '#e8f5e9' : '#f0f4ff' }}; color: {{ $activite['statut'] == 'livrÃ©' ? '#2e7d32' : '#1f4083' }};">
+                        <i class="material-icons">{{ $activite['statut'] == 'livrÃ©' ? 'done_all' : 'delivery_dining' }}</i>
                     </div>
                     <div class="activity-detail">
                         <div class="activity-header">
@@ -356,8 +356,8 @@
                             Destinataire : <strong>{{ $activite['destinataire'] }}</strong>
                         </div>
                         <div class="mt-2 text-end">
-                            <span class="badge-status {{ $activite['statut'] == 'livré' ? 'badge-livre' : 'badge-en-route' }}">
-                                {{ $activite['statut'] == 'livré' ? 'Livré' : 'En cours' }}
+                            <span class="badge-status {{ $activite['statut'] == 'livrÃ©' ? 'badge-livre' : 'badge-en-route' }}">
+                                {{ $activite['statut'] == 'livrÃ©' ? 'LivrÃ©' : 'En cours' }}
                             </span>
                         </div>
                     </div>
@@ -365,7 +365,7 @@
                 @empty
                 <div class="text-center p-5">
                     <i class="material-icons text-muted" style="font-size: 48px;">inbox</i>
-                    <p class="text-muted mt-2">Aucune activité récente pour le moment.</p>
+                    <p class="text-muted mt-2">Aucune activitÃ© rÃ©cente pour le moment.</p>
                 </div>
                 @endforelse
             </div>
@@ -379,7 +379,7 @@
             <div class="quick-actions-list">
                 <a href="{{route('livreur.livraison')}}" class="action-btn">
                     <i class="material-icons" style="color: #FF9800;">inventory_2</i>
-                    Colis à livrer
+                    Colis Ã  livrer
                 </a>
                 <a href="{{route('livreur.validated')}}" class="action-btn">
                     <i class="material-icons" style="color: #4CAF50;">qr_code_scanner</i>

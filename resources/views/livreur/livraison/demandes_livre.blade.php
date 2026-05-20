@@ -177,7 +177,7 @@
 <div class="page-header">
     <h2 class="page-title">
         <i class="material-icons">task_alt</i>
-        Colis livrés
+        Colis livrÃ©s
     </h2>
     <span class="stats-badge">{{ $demandes->count() }} Livraison(s)</span>
 </div>
@@ -210,22 +210,22 @@
 
                 <div class="status-banner">
                     <i class="material-icons" style="font-size: 1rem;">check_circle</i>
-                    LIVRAISON EFFECTUÉE
+                    LIVRAISON EFFECTUÃ‰E
                 </div>
             </div>
 
             <div class="card-footer">
                 <div class="delivery-date">
                     <i class="material-icons" style="font-size: 1rem;">event_available</i>
-                    Livré le {{ $demande->updated_at->format('d/m/Y à H:i') }}
+                    LivrÃ© le {{ $demande->updated_at->format('d/m/Y Ã  H:i') }}
                 </div>
             </div>
         </div>
     @empty
         <div class="empty-state">
             <i class="material-icons">history</i>
-            <h3>Aucune livraison effectuée</h3>
-            <p class="text-muted">Vos livraisons validées apparaîtront ici.</p>
+            <h3>Aucune livraison effectuÃ©e</h3>
+            <p class="text-muted">Vos livraisons validÃ©es apparaÃ®tront ici.</p>
         </div>
     @endforelse
 </div>

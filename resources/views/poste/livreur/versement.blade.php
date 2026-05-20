@@ -167,7 +167,7 @@
 <div class="page-header">
     <a href="{{ route('delivery.index') }}" class="btn-back">
         <i class="material-icons">arrow_back</i>
-        Retour à la liste
+        Retour Ã  la liste
     </a>
 </div>
 
@@ -191,7 +191,7 @@
         </div>
 
         <div class="solde-badge">
-            <span class="label">Solde à verser</span>
+            <span class="label">Solde Ã  verser</span>
             <span class="amount">{{ number_format($livreur->solde, 0, ',', ' ') }} F</span>
         </div>
     </div>
@@ -220,18 +220,18 @@
             @csrf
             <div class="form-group">
                 <label class="form-label">Montant du versement (FCFA)</label>
-                <input type="number" name="montant" class="form-control" placeholder="Entrez le montant reçu..." max="{{ $livreur->solde }}" required autofocus>
-                <small class="text-muted">Le montant ne peut pas dépasser le solde disponible ({{ $livreur->solde }} F).</small>
+                <input type="number" name="montant" class="form-control" placeholder="Entrez le montant reÃ§u..." max="{{ $livreur->solde }}" required autofocus>
+                <small class="text-muted">Le montant ne peut pas dÃ©passer le solde disponible ({{ $livreur->solde }} F).</small>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Référence du reçu (Optionnel)</label>
-                <input type="text" name="reference_recu" class="form-control" placeholder="Numéro du récépissé...">
+                <label class="form-label">RÃ©fÃ©rence du reÃ§u (Optionnel)</label>
+                <input type="text" name="reference_recu" class="form-control" placeholder="NumÃ©ro du rÃ©cÃ©pissÃ©...">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Note / Commentaire</label>
-                <textarea name="note" class="form-control" rows="3" placeholder="Informations complémentaires..."></textarea>
+                <textarea name="note" class="form-control" rows="3" placeholder="Informations complÃ©mentaires..."></textarea>
             </div>
 
             <button type="submit" class="btn-submit">

@@ -35,7 +35,7 @@
                     </div>
                     <div class="dropdown-user-details">
                         <h6 class="dropdown-username">{{ Auth::guard('poste')->user()->name }}</h6>
-                        <p class="dropdown-useremail">Connect�</p>
+                        <p class="dropdown-useremail">Connecte</p>
                     </div>
                 </div>
                 <div class="dropdown-divider"></div>
@@ -46,7 +46,7 @@
                             <button type="submit" class="dropdown-item logout-item"
                                 style="width:100%; border:none; background:none; text-align:left; cursor:pointer; display:flex; align-items:center; gap:10px; padding:12px 20px; color:#e53e3e; font-weight:500;">
                                 <i class="material-icons">power_settings_new</i>
-                                <span>Se d�connecter</span>
+                                <span>Se deconnecter</span>
                             </button>
                         </form>
                     </li>

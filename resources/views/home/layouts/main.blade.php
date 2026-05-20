@@ -96,6 +96,10 @@
             color: white !important;
         }
 
+        .nav-link.active {
+            color: white !important;
+        }
+
         .nav-link::after {
             content: '';
             position: absolute;
@@ -108,8 +112,17 @@
             transform: translateX(-50%);
         }
 
-        .nav-link:hover::after {
+        .nav-link:hover::after,
+        .nav-link.active::after {
             width: 80%;
+        }
+
+        .btn-portal::after {
+            display: none !important;
+        }
+
+        .dropdown-toggle::after {
+            display: none !important;
         }
 
         .btn-portal {
@@ -123,6 +136,7 @@
             letter-spacing: 1px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
+            text-decoration: none !important;
         }
 
         .btn-portal:hover {
