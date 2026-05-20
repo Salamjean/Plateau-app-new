@@ -160,7 +160,11 @@ class DemandeDecesController extends Controller
             $deces->CNIdcl = $uploadedPaths['CNIdcl'] ?? null;
             $deces->documentMariage = $uploadedPaths['documentMariage'] ?? null;
             $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
-            $deces->choix_option = $request->choix_option;
+            // Normalisation : le mobile envoie 'retrait'/'livraison' (minuscules)
+            // mais le backend attend 'Retrait sur place'/'Livraison' (comme le web)
+            $deces->choix_option = strtolower($request->choix_option) === 'livraison'
+                ? 'Livraison'
+                : 'Retrait sur place';
             $deces->commune = $request->communeD ?: $user->commune;
             $deces->commune_deces = $request->commune_deces;
             $deces->user_id = $user->id;

@@ -547,6 +547,7 @@ class ProfileCompletionController extends Controller
             'diaspora'          => 'nullable|boolean',
             'pays_residence'    => 'nullable|string|max:255',
             'push_notification' => 'nullable|string|max:255',
+            'profile_picture'   => 'nullable',
         ], [
             'email.unique'   => 'Cette adresse email est déjà utilisée par un autre compte.',
             'contact.unique' => 'Ce numéro est déjà associé à un compte. Veuillez vous connecter.',
@@ -561,6 +562,28 @@ class ProfileCompletionController extends Controller
         }
 
         try {
+            $profilePicturePath = null;
+
+            // Gestion de l'image de profil (Fichier ou Base64)
+            $profilePicture = $request->input('profile_picture');
+            $file = $request->file('profile_picture');
+
+            if ($request->hasFile('profile_picture') && $file->isValid()) {
+                $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+                Log::info('Profile picture stored at: ' . $profilePicturePath);
+            } elseif (is_string($profilePicture) && !empty($profilePicture)) {
+                // Si c'est du base64
+                $base64Data = preg_replace('/^data:image\/\w+;base64,/', '', $profilePicture);
+                $imageData = base64_decode($base64Data);
+
+                if ($imageData !== false) {
+                    $fileName = 'profile_' . time() . '_' . Str::random(10) . '.jpg';
+                    $profilePicturePath = 'profile_pictures/' . $fileName;
+                    Storage::disk('public')->put($profilePicturePath, $imageData);
+                    Log::info('Profile picture base64 stored at: ' . $profilePicturePath);
+                }
+            }
+
             // ── MODE 1 : Création du nouveau compte (OTP vérifié) ───────────────
             if ($isNewUser) {
                 // Vérifier qu'aucun compte finalisé n'existe avec ce numéro
@@ -570,6 +593,10 @@ class ProfileCompletionController extends Controller
                     ->first();
 
                 if ($existing) {
+                    // Nettoyer l'image temporaire si elle a été créée
+                    if ($profilePicturePath && Storage::disk('public')->exists($profilePicturePath)) {
+                        Storage::disk('public')->delete($profilePicturePath);
+                    }
                     return response()->json([
                         'success' => false,
                         'message' => 'Un compte existe déjà avec ce numéro. Veuillez vous connecter.'
@@ -589,6 +616,7 @@ class ProfileCompletionController extends Controller
                     'pays_residence'    => $request->pays_residence,
                     'phone_verified_at' => $otpVerifiedData['phone_verified_at'] ?? now(),
                     'push_notification' => $request->push_notification,
+                    'profile_picture'   => $profilePicturePath,
                 ]);
 
                 // Nettoyer le cache OTP — vérification consommée
@@ -633,6 +661,14 @@ class ProfileCompletionController extends Controller
             if ($request->filled('pays_residence'))    $updateData['pays_residence']    = $request->pays_residence;
             if ($request->filled('push_notification')) $updateData['push_notification'] = $request->push_notification;
 
+            // Mettre à jour la photo si fournie
+            if ($profilePicturePath) {
+                if ($authUser->profile_picture && Storage::disk('public')->exists($authUser->profile_picture)) {
+                    Storage::disk('public')->delete($authUser->profile_picture);
+                }
+                $updateData['profile_picture'] = $profilePicturePath;
+            }
+
             $authUser->update($updateData);
 
             Log::info('Phone Auth - Profil complété (compte existant)', [
@@ -652,6 +688,12 @@ class ProfileCompletionController extends Controller
             ], 200);
         } catch (\Exception $e) {
             Log::error('Erreur finalizeProfilePhone: ' . $e->getMessage());
+
+            // Supprimer l'image uploadée en cas d'erreur
+            if ($profilePicturePath && Storage::disk('public')->exists($profilePicturePath)) {
+                Storage::disk('public')->delete($profilePicturePath);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Une erreur est survenue lors de la finalisation.',

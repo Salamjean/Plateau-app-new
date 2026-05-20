@@ -481,12 +481,12 @@
                         data-date="{{ \Carbon\Carbon::parse($demande->created_at)->format('Y-m-d') }}"
                         data-search="{{ strtolower($demande->demandeur_nom . ' ' . ($demande->contact ?? '') . ' ' . $demande->type_demande) }}">
                         <td>
-                            @if($demande->type_demande == 'naissance')
-                                <span class="badge badge-naissance"><i class="fas fa-baby"></i> Naissance</span>
-                            @elseif($demande->type_demande == 'deces')
-                                <span class="badge badge-deces"><i class="fas fa-cross"></i> Décès</span>
-                            @elseif($demande->type_demande == 'mariage')
-                                <span class="badge badge-mariage"><i class="fas fa-heart"></i> Mariage</span>
+                            @if(in_array($demande->type_demande, ['naissance', 'naissance_groupe']))
+                                <span class="badge badge-naissance"><i class="fas fa-baby"></i> Naissance{{ $demande->type_demande === 'naissance_groupe' ? ' (Groupe)' : '' }}</span>
+                            @elseif(in_array($demande->type_demande, ['deces', 'deces_groupe']))
+                                <span class="badge badge-deces"><i class="fas fa-cross"></i> Décès{{ $demande->type_demande === 'deces_groupe' ? ' (Groupe)' : '' }}</span>
+                            @elseif(in_array($demande->type_demande, ['mariage', 'mariage_groupe']))
+                                <span class="badge badge-mariage"><i class="fas fa-heart"></i> Mariage{{ $demande->type_demande === 'mariage_groupe' ? ' (Groupe)' : '' }}</span>
                             @endif
                         </td>
                         <td>
@@ -538,12 +538,12 @@
                         data-date="{{ \Carbon\Carbon::parse($demande->created_at)->format('Y-m-d') }}"
                         data-search="{{ strtolower($demande->demandeur_nom . ' ' . ($demande->contact ?? '') . ' ' . $demande->type_demande) }}">
                         <td>
-                            @if($demande->type_demande == 'naissance')
-                                <span class="badge badge-naissance"><i class="fas fa-baby"></i> Naissance</span>
-                            @elseif($demande->type_demande == 'deces')
-                                <span class="badge badge-deces"><i class="fas fa-cross"></i> Décès</span>
-                            @elseif($demande->type_demande == 'mariage')
-                                <span class="badge badge-mariage"><i class="fas fa-heart"></i> Mariage</span>
+                            @if(in_array($demande->type_demande, ['naissance', 'naissance_groupe']))
+                                <span class="badge badge-naissance"><i class="fas fa-baby"></i> Naissance{{ $demande->type_demande === 'naissance_groupe' ? ' (Groupe)' : '' }}</span>
+                            @elseif(in_array($demande->type_demande, ['deces', 'deces_groupe']))
+                                <span class="badge badge-deces"><i class="fas fa-cross"></i> Décès{{ $demande->type_demande === 'deces_groupe' ? ' (Groupe)' : '' }}</span>
+                            @elseif(in_array($demande->type_demande, ['mariage', 'mariage_groupe']))
+                                <span class="badge badge-mariage"><i class="fas fa-heart"></i> Mariage{{ $demande->type_demande === 'mariage_groupe' ? ' (Groupe)' : '' }}</span>
                             @endif
                         </td>
                         <td>

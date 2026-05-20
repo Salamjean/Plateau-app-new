@@ -137,7 +137,11 @@ class DemandeMariageController extends Controller
             $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
             $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
             $mariage->commune = "plateau";
-            $mariage->choix_option = $request->choix_option;
+            // Normalisation : le mobile envoie 'retrait'/'livraison' (minuscules)
+            // mais le backend attend 'Retrait sur place'/'Livraison' (comme le web)
+            $mariage->choix_option = strtolower($request->choix_option) === 'livraison'
+                ? 'Livraison'
+                : 'Retrait sur place';
             $mariage->user_id = $user->id;
             $mariage->reference = $reference;
 
