@@ -396,7 +396,7 @@
                 <label class="form-label">Ville de résidence</label>
                 <div class="input-wrapper">
                     <i class="fas fa-city input-icon"></i>
-                    <input type="text" name="ville_residence" class="input-field" value="{{ old('ville_residence', $user?->ville_residence ?? '') }}" placeholder="Ex: Paris">
+                    <input type="text" name="ville_residence" class="input-field" value="{{ old('ville_residence', $user?->ville_residence ?? '') }}" placeholder="Ex: Abidjan">
                 </div>
             </div>
 

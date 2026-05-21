@@ -515,7 +515,7 @@
                         <span class="x-small font-weight-800 text-uppercase text-muted">Note importante</span>
                     </div>
                     <p class="x-small text-muted leading-relaxed">
-                        Le délai de traitement standard est de 48h à 72h ouvrables après validation de votre paiement.
+                        Le délai de traitement standard est de 24h à 48h jours ouvrés après validation de votre paiement.
                     </p>
                 </div>
             </div>

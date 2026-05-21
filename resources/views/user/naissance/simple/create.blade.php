@@ -1777,20 +1777,21 @@
                     const heure_livraison = document.getElementById('swal-heure_livraison').value;
 
                     if (!nom_destinataire || !prenom_destinataire || !contact_destinataire || !
-                        adresse_livraison || !ville || !commune_livraison || !quartier || !date_livraison || !
-                        heure_livraison) {
+                        adresse_livraison || !ville || !commune_livraison || !quartier) {
                         Swal.showValidationMessage(
-                            "Veuillez remplir tous les champs obligatoires, y compris la date et l'heure de livraison."
+                            "Veuillez remplir tous les champs obligatoires."
                         );
                         return false;
                     }
 
-                    const selectedDate = new Date(date_livraison);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    if (selectedDate < today) {
-                        Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
-                        return false;
+                    if (date_livraison) {
+                        const selectedDate = new Date(date_livraison);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        if (selectedDate < today) {
+                            Swal.showValidationMessage("La date de livraison ne peut pas être dans le passé.");
+                            return false;
+                        }
                     }
                     // Validation d'email simple (si renseigné)
                     if (email_destinataire && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_destinataire)) {

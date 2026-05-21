@@ -1335,7 +1335,7 @@
                     };
 
                     if (!d.nom || !d.prenom || !d.contact || !d.adresse || !d.ville || !d.commune || !d
-                        .quartier || !d.date || !d.heure) {
+                        .quartier) {
                         Swal.showValidationMessage('Veuillez remplir tous les champs obligatoires');
                         return false;
                     }
