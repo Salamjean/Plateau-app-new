@@ -220,7 +220,7 @@
                                 <div class="card-chip"></div>
                                 <span class="fw-bold text-uppercase tracking-wider small">E-TIMBRE COLLECTE</span>
                             </div>
-                            <h6 class="text-white-50 text-uppercase small mb-1">SOLDE DISPONIBLE</h6>
+                            <h6 class="text-white-50 text-uppercase small mb-1">CUMUL DU MOIS EN COURS</h6>
                             <h1 class="display-5 fw-bold mb-3" style="font-feature-settings: 'tnum';">
                                 <span id="wallet-balance" data-target="{{ $soldePortefeuille }}">0</span> <span class="fs-4">FCFA</span>
                             </h1>
@@ -254,22 +254,17 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="p-3 border rounded-3 bg-light">
-                                        <small class="text-muted d-block text-uppercase small">Total reversé</small>
-                                        <h4 class="fw-bold text-danger mb-0">{{ number_format($totalReversements, 0, ',', ' ') }} FCFA</h4>
+                                        <small class="text-muted d-block text-uppercase small">Total transféré TrésorPay</small>
+                                        <h4 class="fw-bold text-success mb-0">{{ number_format($totalReversements, 0, ',', ' ') }} FCFA</h4>
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-4 alert alert-info border-0 rounded-3 d-flex align-items-center">
-                                <i class="fas fa-circle-info fa-2x me-3 text-info"></i>
+                            <div class="mt-4 alert alert-success border-0 rounded-3 d-flex align-items-center" style="background-color: rgba(46, 196, 182, 0.1); color: #1f4083;">
+                                <i class="fas fa-circle-check fa-2x me-3 text-success"></i>
                                 <span class="small">
-                                    Ce portefeuille virtuel accumule dynamiquement le montant des timbres collectés en ligne via Wave ou MTN lors des demandes de naissances, mariages et décès. Vous pouvez reverser ces fonds à tout moment sur votre compte TrésorPay.
+                                    Toutes les recettes de timbres collectées en ligne sont automatiquement et instantanément transférées vers le compte unique TrésorPay (<strong>gtvB04rzE_wkvb4S2</strong>) du Trésor Public.
                                 </span>
                             </div>
-                        </div>
-                        <div class="d-flex justify-content-end align-items-end mt-3">
-                            <button class="glow-btn btn" data-bs-toggle="modal" data-bs-target="#transferModal" {{ $soldePortefeuille <= 0 ? 'disabled' : '' }}>
-                                <i class="fas fa-paper-plane me-2"></i> Initier un reversement TrésorPay
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -321,7 +316,7 @@
             <!-- Historique unifié des Transactions -->
             <div class="table-container animate-up" style="animation-delay: 0.5s;">
                 <div class="table-header p-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des Reversements</h5>
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des Transferts</h5>
                     <div class="d-flex align-items-center gap-2">
                         <a href="{{ route('comptable.portefeuille.historique') }}" class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 me-2">
                             <i class="fas fa-expand me-1"></i> Voir tout l'historique
@@ -334,8 +329,8 @@
                             <tr>
                                 <th class="py-3 text-secondary text-center">DATE & HEURE</th>
                                 <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
-                                <th class="py-3 text-secondary text-center">COMPTE DESTINATAIRE (TRÉSORPAY)</th>
-                                <th class="py-3 text-secondary text-center">MONTANT REVERSÉ</th>
+                                <th class="py-3 text-secondary text-center">DESTINATAIRE (TRÉSORPAY)</th>
+                                <th class="py-3 text-secondary text-center">MONTANT</th>
                                 <th class="py-3 text-secondary text-center">STATUT</th>
                             </tr>
                         </thead>
@@ -357,11 +352,11 @@
                                         <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
                                     </td>
                                     <td class="text-center">
-                                        <span class="small fw-bold" style="font-family: monospace;">{{ $t->destinataire }}</span>
+                                        <span class="small fw-bold">{{ $t->destinataire }}</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold text-danger">
-                                            - {{ number_format($t->montant, 0, ',', ' ') }} FCFA
+                                        <span class="fw-bold text-success">
+                                            {{ number_format($t->montant, 0, ',', ' ') }} FCFA
                                         </span>
                                     </td>
                                     <td class="text-center">

@@ -73,7 +73,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4 animate-up" style="animation-delay: 0.1s;">
                 <div>
                     <h2 class="fw-bold text-dark mb-1"><i class="fas fa-history text-primary me-2"></i>Historique Complet</h2>
-                    <p class="text-muted mb-0">Visualisez tous les reversements effectués de votre portefeuille vers le Trésor Public.</p>
+                    <p class="text-muted mb-0">Visualisez toutes les demandes transférées de votre portefeuille vers le Trésor Public.</p>
                 </div>
                 <div>
                     <a href="{{ route('mairie.portefeuille.index') }}" class="btn back-btn">
@@ -85,7 +85,7 @@
             <!-- Historique unifié des Transactions -->
             <div class="table-container animate-up" style="animation-delay: 0.2s;">
                 <div class="table-header p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3" style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i>Tous les Reversements</h5>
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i>Toutes les Demandes Transférées</h5>
                     <div class="d-flex align-items-center gap-3 flex-wrap">
                         <!-- Filtre par mois -->
                         <form method="GET" action="{{ url()->current() }}" class="d-flex align-items-center" id="filterForm">
@@ -138,8 +138,8 @@
                             <tr>
                                 <th class="py-3 text-secondary text-center">DATE & HEURE</th>
                                 <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
-                                <th class="py-3 text-secondary text-center">COMPTE DESTINATAIRE (TRÉSORPAY)</th>
-                                <th class="py-3 text-secondary text-center">MONTANT REVERSÉ</th>
+                                <th class="py-3 text-secondary text-center">DESTINATAIRE (TRÉSORPAY)</th>
+                                <th class="py-3 text-secondary text-center">MONTANT</th>
                                 <th class="py-3 text-secondary text-center">STATUT</th>
                             </tr>
                         </thead>
@@ -161,11 +161,11 @@
                                         <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
                                     </td>
                                     <td class="text-center">
-                                        <span class="small fw-bold" style="font-family: monospace;">{{ $t->destinataire }}</span>
+                                        <span class="small fw-bold">{{ $t->destinataire }}</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold text-danger">
-                                            - {{ number_format($t->montant, 0, ',', ' ') }} FCFA
+                                        <span class="fw-bold text-success">
+                                            {{ number_format($t->montant, 0, ',', ' ') }} FCFA
                                         </span>
                                     </td>
                                     <td class="text-center">
@@ -179,8 +179,8 @@
                                     <td colspan="5" class="py-5 text-center">
                                         <div class="py-4 text-center">
                                             <i class="fas fa-receipt fa-3x text-light mb-3"></i>
-                                            <h5 class="text-muted">Aucun reversement effectué</h5>
-                                            <p class="text-muted small mb-0">Les virements vers TrésorPay apparaîtront ici dès qu'ils seront initiés.</p>
+                                            <h5 class="text-muted">Aucun transfert effectué</h5>
+                                            <p class="text-muted small mb-0">Les transferts vers TrésorPay s'afficheront ici en temps réel au fil des paiements des citoyens.</p>
                                         </div>
                                     </td>
                                 </tr>

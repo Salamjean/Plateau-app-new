@@ -230,7 +230,7 @@
                                 <div class="card-chip"></div>
                                 <span class="fw-bold text-uppercase tracking-wider small">E-TIMBRE COLLECTE</span>
                             </div>
-                            <h6 class="text-white-50 text-uppercase small mb-1">SOLDE DISPONIBLE</h6>
+                            <h6 class="text-white-50 text-uppercase small mb-1">CUMUL DU MOIS EN COURS</h6>
                             <h1 class="display-5 fw-bold mb-3" style="font-feature-settings: 'tnum';">
                                 <span id="wallet-balance" data-target="{{ $soldePortefeuille }}">0</span> <span class="fs-4">FCFA</span>
                             </h1>
@@ -364,7 +364,7 @@
                                                 <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
                                             </td>
                                             <td class="text-center">
-                                                <span class="small fw-bold" style="font-family: monospace;">{{ $t->destinataire }}</span>
+                                                <span class="small fw-bold">{{ $t->destinataire }}</span>
                                             </td>
                                             <td class="text-center">
                                                 <span class="fw-bold text-success">

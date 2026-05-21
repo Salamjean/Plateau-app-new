@@ -168,32 +168,35 @@ class ComptableDashboard extends Controller
         // Le solde restant est directement le solde actuel de la mairie
         $montantRestant = $montantTotalAjoute;
 
-        // Calcul dynamique du solde du portefeuille en ligne
-        $naissancesAll = Naissance::where('commune', $commune)->paye()->get();
-        $totalNaissancePortefeuille = $naissancesAll->sum(function ($item) {
+        // Calcul dynamique du solde du portefeuille (cumul du mois en cours)
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        $naissancesMonth = Naissance::where('commune', $commune)
+            ->paye()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get();
+        $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $mariagesAll = Mariage::where('commune', $commune)->paye()->get();
-        $totalMariagePortefeuille = $mariagesAll->sum(function ($item) {
+        $mariagesMonth = Mariage::where('commune', $commune)
+            ->paye()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get();
+        $totalMariageMonth = $mariagesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $decesAll = Deces::where('commune', $commune)->paye()->get();
-        $totalDecesPortefeuille = $decesAll->sum(function ($item) {
+        $decesMonth = Deces::where('commune', $commune)
+            ->paye()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get();
+        $totalDecesMonth = $decesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $totalPerçuEnLigne = $totalNaissancePortefeuille + $totalMariagePortefeuille + $totalDecesPortefeuille;
-
-        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
-        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
-        $totalReversements = 0;
-        if ($mairieObj) {
-            $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
-            $totalReversements = collect($reversements)->sum('montant');
-        }
-        $soldePortefeuille = $totalPerçuEnLigne - $totalReversements;
+        $soldePortefeuille = $totalNaissanceMonth + $totalMariageMonth + $totalDecesMonth;
 
         return view(
             'comptable.dashboard',
@@ -313,39 +316,77 @@ class ComptableDashboard extends Controller
         // Somme totale brute perçue en ligne
         $totalPerçuEnLigne = $totalNaissance + $totalMariage + $totalDeces;
 
-        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
-        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
-        $reversements = [];
-        $mairieId = null;
-        if ($mairieObj) {
-            $mairieId = $mairieObj->id;
-            $reversements = session()->get('mairie_reversements_' . $mairieId, []);
-        }
-        
-        $totalReversements = collect($reversements)->sum('montant');
+        // Tout est automatiquement et instantanément reversé à TrésorPay.
+        $totalReversements = $totalPerçuEnLigne;
 
-        // Solde net du portefeuille
-        $soldePortefeuille = $totalPerçuEnLigne - $totalReversements;
+        // Calcul dynamique du cumul du mois en cours
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
 
-        // Créer la liste des reversements effectués (Débits)
-        $feed = collect();
+        $naissancesMonth = Naissance::where('commune', $commune)
+            ->paye()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get();
+        $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
 
-        foreach ($reversements as $rev) {
-            $feed->push((object)[
-                'reference' => $rev['reference'],
-                'montant' => $rev['montant'],
-                'destinataire' => $rev['destinataire'],
-                'date' => Carbon::parse($rev['date']),
-                'status' => 'Reversé'
+        $mariagesMonth = Mariage::where('commune', $commune)
+            ->paye()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get();
+        $totalMariageMonth = $mariagesMonth->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $decesMonth = Deces::where('commune', $commune)
+            ->paye()
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get();
+        $totalDecesMonth = $decesMonth->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $soldePortefeuille = $totalNaissanceMonth + $totalMariageMonth + $totalDecesMonth;
+
+        // Récupérer les derniers paiements réels de timbres pour alimenter l'historique des transferts instantanés
+        $derniersPaiements = collect();
+
+        foreach ($naissances as $n) {
+            $derniersPaiements->push((object)[
+                'date' => Carbon::parse($n->created_at),
+                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $n->montant_timbre ?? 500,
+                'status' => 'Transféré'
             ]);
         }
 
-        // Trier les reversements par date décroissante
-        $sortedFeed = $feed->sortByDesc('date');
+        foreach ($mariages as $m) {
+            $derniersPaiements->push((object)[
+                'date' => Carbon::parse($m->created_at),
+                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $m->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        foreach ($deces as $d) {
+            $derniersPaiements->push((object)[
+                'date' => Carbon::parse($d->created_at),
+                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $d->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        $sortedFeed = $derniersPaiements->sortByDesc('date');
         $totalTransactionsCount = $sortedFeed->count();
 
-        // Limiter strictement aux 3 derniers reversements
-        $transactions = $sortedFeed->take(3);
+        // Limiter strictement aux 5 derniers transferts (comme côté mairie/finance)
+        $transactions = $sortedFeed->take(5);
 
         return view('comptable.portefeuille', compact(
             'comptable',
@@ -365,23 +406,51 @@ class ComptableDashboard extends Controller
         $comptable = Auth::guard('comptable')->user();
         $commune = $comptable->communeM;
 
-        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
-        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
-        $reversements = [];
-        if ($mairieObj) {
-            $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
-        }
+        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
+        $naissances = Naissance::where('commune', $commune)
+            ->paye()
+            ->with('user')
+            ->get();
 
-        // Créer la liste des reversements effectués (Débits)
+        $mariages = Mariage::where('commune', $commune)
+            ->paye()
+            ->with('user')
+            ->get();
+
+        $deces = Deces::where('commune', $commune)
+            ->paye()
+            ->with('user')
+            ->get();
+
         $feed = collect();
 
-        foreach ($reversements as $rev) {
+        foreach ($naissances as $n) {
             $feed->push((object)[
-                'reference' => $rev['reference'],
-                'montant' => $rev['montant'],
-                'destinataire' => $rev['destinataire'],
-                'date' => Carbon::parse($rev['date']),
-                'status' => 'Reversé'
+                'date' => Carbon::parse($n->created_at),
+                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $n->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        foreach ($mariages as $m) {
+            $feed->push((object)[
+                'date' => Carbon::parse($m->created_at),
+                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $m->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        foreach ($deces as $d) {
+            $feed->push((object)[
+                'date' => Carbon::parse($d->created_at),
+                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $d->montant_timbre ?? 500,
+                'status' => 'Transféré'
             ]);
         }
 
@@ -403,7 +472,7 @@ class ComptableDashboard extends Controller
             });
         }
 
-        // Trier les reversements par date décroissante
+        // Trier les transferts par date décroissante
         $sortedFeed = $feed->sortByDesc('date');
 
         // Paginer l'historique complet par lot de 10
@@ -431,23 +500,48 @@ class ComptableDashboard extends Controller
         $commune = $comptable->communeM;
         $year = $request->input('year', Carbon::now()->format('Y'));
 
-        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
-        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
-        $reversements = [];
-        if ($mairieObj) {
-            $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
-        }
+        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
+        $naissances = Naissance::where('commune', $commune)
+            ->paye()
+            ->get();
 
-        // Créer la liste des reversements effectués (Débits)
+        $mariages = Mariage::where('commune', $commune)
+            ->paye()
+            ->get();
+
+        $deces = Deces::where('commune', $commune)
+            ->paye()
+            ->get();
+
         $feed = collect();
 
-        foreach ($reversements as $rev) {
+        foreach ($naissances as $n) {
             $feed->push((object)[
-                'reference' => $rev['reference'],
-                'montant' => $rev['montant'],
-                'destinataire' => $rev['destinataire'],
-                'date' => Carbon::parse($rev['date']),
-                'status' => 'Reversé'
+                'date' => Carbon::parse($n->created_at),
+                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $n->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        foreach ($mariages as $m) {
+            $feed->push((object)[
+                'date' => Carbon::parse($m->created_at),
+                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $m->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        foreach ($deces as $d) {
+            $feed->push((object)[
+                'date' => Carbon::parse($d->created_at),
+                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $d->montant_timbre ?? 500,
+                'status' => 'Transféré'
             ]);
         }
 
@@ -500,7 +594,7 @@ class ComptableDashboard extends Controller
             'monthlyReport'
         ));
 
-        return $pdf->download('reversements_comptable_' . $year . '.pdf');
+        return $pdf->download('transferts_comptable_' . $year . '.pdf');
     }
 
     public function reverserPortefeuille(Request $request)

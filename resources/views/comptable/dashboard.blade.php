@@ -746,7 +746,7 @@
                             <span class="card-badge-online">E-timbre En Ligne</span>
                         </div>
                         <div>
-                            <span class="wallet-title">Solde Collecté en ligne</span>
+                            <span class="wallet-title">CUMUL DU MOIS EN COURS</span>
                             <div class="wallet-balance-container">
                                 <span id="wallet-balance" data-target="{{ $soldePortefeuille }}">0</span>
                                 <span class="currency">FCFA</span>

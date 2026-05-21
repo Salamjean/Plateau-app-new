@@ -812,7 +812,7 @@
                                     <div class="card-chip"></div>
                                     <span class="fw-bold text-white text-uppercase tracking-wider small" style="font-size: 0.7rem; letter-spacing: 1px;">E-TIMBRE COLLECTE</span>
                                 </div>
-                                <h6 class="text-white-50 text-uppercase small mb-1" style="font-size: 0.65rem; opacity: 0.8; color: rgba(255,255,255,0.7) !important;">SOLDE COLLECTÉ EN LIGNE</h6>
+                                <h6 class="text-white-50 text-uppercase small mb-1" style="font-size: 0.65rem; opacity: 0.8; color: rgba(255,255,255,0.7) !important;">CUMUL DU MOIS EN COURS</h6>
                                 <h1 class="fw-bold mb-0 text-white" style="font-feature-settings: 'tnum'; font-size: 1.8rem;">
                                     <span id="wallet-balance" data-target="{{ $soldePortefeuille }}">0</span> <span class="fs-6">FCFA</span>
                                 </h1>

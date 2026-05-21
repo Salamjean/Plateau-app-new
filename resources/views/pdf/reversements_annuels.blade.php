@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Rapport de Reversements Annuels - {{ $year }}</title>
+    <title>Rapport de Transferts Annuels - {{ $year }}</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -125,7 +125,7 @@
                     PLATEAU APP
                 </td>
                 <td class="title-section" style="width: 50%; text-align: right;">
-                    <h2 style="margin: 0; color: #1f4083; font-size: 20px;">RAPPORT DE REVERSEMENT</h2>
+                    <h2 style="margin: 0; color: #1f4083; font-size: 20px;">RAPPORT DE TRANSFERT</h2>
                     <p style="margin: 5px 0 0 0; color: #777; font-size: 12px;">Récapitulatif Annuel - {{ $year }}</p>
                 </td>
             </tr>
@@ -149,14 +149,14 @@
         </table>
     </div>
 
-    <div class="table-title">Détail des Reversements Mensuels</div>
+    <div class="table-title">Détail des Transferts Mensuels</div>
 
     <table class="data-table">
         <thead>
             <tr>
                 <th class="text-center">Mois</th>
                 <th class="text-center">Nombre de Transactions</th>
-                <th class="text-center">Montant Cumulé Reversé</th>
+                <th class="text-center">Montant Cumulé</th>
             </tr>
         </thead>
         <tbody>
@@ -172,7 +172,7 @@
                 <tr>
                     <td class="text-center">{{ $report['label'] }}</td>
                     <td class="text-center">{{ $report['count'] }}</td>
-                    <td class="text-center" style="color: #e71d36; font-weight: bold;">
+                    <td class="text-center" style="color: #2ec4b6; font-weight: bold;">
                         {{ number_format($report['total_montant'], 0, ',', ' ') }} FCFA
                     </td>
                 </tr>
@@ -180,7 +180,7 @@
             <tr class="total-row">
                 <td style="font-weight: bold;">TOTAL ANNUEL</td>
                 <td class="text-center" style="font-weight: bold;">{{ $totalTransactions }}</td>
-                <td class="text-center" style="color: #e71d36; font-size: 14px; font-weight: bold;">
+                <td class="text-center" style="color: #2ec4b6; font-size: 14px; font-weight: bold;">
                     {{ number_format($grandTotal, 0, ',', ' ') }} FCFA
                 </td>
             </tr>
