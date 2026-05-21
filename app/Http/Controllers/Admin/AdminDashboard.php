@@ -122,9 +122,10 @@ class AdminDashboard extends Controller
                 ->whereMonth('updated_at', Carbon::now()->month)
                 ->sum('montant_livraison');
 
-            // Activités récentes
+            // Activités récentes (uniquement les demandes payées)
             $activites = $activites->merge(
-                $class::with('user')
+                $class::paye()
+                    ->with('user')
                     ->latest()
                     ->take(5)
                     ->get()
@@ -134,6 +135,8 @@ class AdminDashboard extends Controller
                     })
             );
         }
+
+        $activites = $activites->sortByDesc('created_at');
 
         return view('admin.dashboard', compact(
             'deces',
@@ -229,5 +232,124 @@ class AdminDashboard extends Controller
         ];
 
         return $months[$monthNumber] ?? 'Mois inconnu';
+    }
+
+    public function transactions(Request $request)
+    {
+        // 1. Récupérer toutes les demandes payées
+        $naissancesQuery = Naissance::paye()->with('user');
+        $mariagesQuery = Mariage::paye()->with('user');
+        $decesQuery = Deces::paye()->with('user');
+
+        // Appliquer le filtre par nom du demandeur si spécifié
+        $searchDemandeur = $request->input('demandeur');
+        if (!empty($searchDemandeur)) {
+            $naissancesQuery->whereHas('user', function ($q) use ($searchDemandeur) {
+                $q->where(function ($sub) use ($searchDemandeur) {
+                    $sub->where('name', 'like', "%{$searchDemandeur}%")
+                        ->orWhere('prenom', 'like', "%{$searchDemandeur}%");
+                });
+            });
+            $mariagesQuery->whereHas('user', function ($q) use ($searchDemandeur) {
+                $q->where(function ($sub) use ($searchDemandeur) {
+                    $sub->where('name', 'like', "%{$searchDemandeur}%")
+                        ->orWhere('prenom', 'like', "%{$searchDemandeur}%");
+                });
+            });
+            $decesQuery->whereHas('user', function ($q) use ($searchDemandeur) {
+                $q->where(function ($sub) use ($searchDemandeur) {
+                    $sub->where('name', 'like', "%{$searchDemandeur}%")
+                        ->orWhere('prenom', 'like', "%{$searchDemandeur}%");
+                });
+            });
+        }
+
+        $naissances = $naissancesQuery->get();
+        $mariages = $mariagesQuery->get();
+        $deces = $decesQuery->get();
+
+        $feed = collect();
+
+        foreach ($naissances as $n) {
+            $feed->push((object)[
+                'date' => Carbon::parse($n->created_at),
+                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
+                'commune' => $n->commune,
+                'type' => 'Naissance',
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $n->montant_timbre ?? 500,
+                'status' => 'Transféré',
+                'demandeur' => $n->user ? ($n->user->name . ' ' . $n->user->prenom) : 'N/A'
+            ]);
+        }
+
+        foreach ($mariages as $m) {
+            $feed->push((object)[
+                'date' => Carbon::parse($m->created_at),
+                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
+                'commune' => $m->commune,
+                'type' => 'Mariage',
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $m->montant_timbre ?? 500,
+                'status' => 'Transféré',
+                'demandeur' => $m->user ? ($m->user->name . ' ' . $m->user->prenom) : 'N/A'
+            ]);
+        }
+
+        foreach ($deces as $d) {
+            $feed->push((object)[
+                'date' => Carbon::parse($d->created_at),
+                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
+                'commune' => $d->commune,
+                'type' => 'Décès',
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $d->montant_timbre ?? 500,
+                'status' => 'Transféré',
+                'demandeur' => $d->user ? ($d->user->name . ' ' . $d->user->prenom) : 'N/A'
+            ]);
+        }
+
+        // Extraire la liste de tous les mois uniques de transactions (format 'Y-m') pour alimenter le filtre
+        $availableMonths = $feed->map(function ($item) {
+            return $item->date->format('Y-m');
+        })->unique()->sortDesc()->values();
+
+        // Appliquer le filtre par mois si spécifié
+        $selectedMonth = $request->input('month');
+        if (!empty($selectedMonth)) {
+            $feed = $feed->filter(function ($item) use ($selectedMonth) {
+                return $item->date->format('Y-m') === $selectedMonth;
+            });
+        }
+
+        // Appliquer le filtre par type si spécifié
+        $selectedType = $request->input('type');
+        if (!empty($selectedType)) {
+            $feed = $feed->filter(function ($item) use ($selectedType) {
+                return $item->type === $selectedType;
+            });
+        }
+
+        // Trier les transferts par date décroissante
+        $sortedFeed = $feed->sortByDesc('date');
+
+        // Paginer les transactions
+        $page = $request->input('page', 1);
+        $perPage = 10;
+        $transactions = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sortedFeed->forPage($page, $perPage),
+            $sortedFeed->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('admin.transactions.index', compact(
+            'transactions',
+            'availableMonths',
+            'searchDemandeur',
+            'selectedMonth',
+            'selectedType'
+        ));
     }
 }

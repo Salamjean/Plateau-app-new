@@ -169,7 +169,54 @@
         </script>
       @endif
     </div>
-    
+    <!-- Filtres -->
+    <div class="card mb-4" style="border-top: 3px solid #6777ef; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div class="card-body p-4">
+            <form method="GET" action="{{ route('admin.mariage') }}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="demandeur" class="form-label font-weight-bold text-secondary small mb-2">NOM DU DEMANDEUR</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-user text-muted"></i></span>
+                        <input type="text" name="demandeur" id="demandeur" class="form-control border-start-0" placeholder="Rechercher par nom ou prénom..." value="{{ $searchDemandeur }}" onchange="this.form.submit()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="reference" class="form-label font-weight-bold text-secondary small mb-2">RÉFÉRENCE</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-hashtag text-muted"></i></span>
+                        <input type="text" name="reference" id="reference" class="form-control border-start-0" placeholder="Ex: marriage-..." value="{{ $searchReference }}" onchange="this.form.submit()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="month" class="form-label font-weight-bold text-secondary small mb-2">MOIS DE DEMANDE</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar text-muted"></i></span>
+                        <select name="month" id="month" class="form-select border-start-0" onchange="this.form.submit()">
+                            <option value="">Tous les mois</option>
+                            @foreach ($availableMonths as $month)
+                                @php
+                                    $carbonDate = \Carbon\Carbon::createFromFormat('Y-m', $month);
+                                    $formattedMonth = ucfirst($carbonDate->translatedFormat('F Y'));
+                                @endphp
+                                <option value="{{ $month }}" {{ $selectedMonth == $month ? 'selected' : '' }}>
+                                    {{ $formattedMonth }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 d-grid gap-2">
+                    <button type="submit" class="btn text-white w-100 py-2" style="background-color: #6777ef; border-radius: 8px; font-weight: 500; border: none; transition: background-color 0.2s;">
+                        <i class="fas fa-search me-1"></i>Filtrer
+                    </button>
+                    <a href="{{ route('admin.mariage') }}" class="btn btn-secondary w-100 py-2" style="border-radius: 8px; font-weight: 500;">
+                        <i class="fas fa-undo me-1"></i>Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row col-12">
       <div class="col-lg-12">
           <div class="card mb-4">
@@ -231,19 +278,7 @@
     });
   }
 
-  // Fonction de recherche
-  document.getElementById('searchInput').addEventListener('keyup', function() {
-    const filter = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#dataTable tbody tr');
 
-    rows.forEach(row => {
-      const cells = row.querySelectorAll('td');
-      const match = Array.from(cells).some(cell => 
-        cell.textContent.toLowerCase().includes(filter)
-      );
-      row.style.display = match ? '' : 'none';
-    });
-  });
 
   // Validation du formulaire
   document.querySelector('form').addEventListener('submit', function(event) {

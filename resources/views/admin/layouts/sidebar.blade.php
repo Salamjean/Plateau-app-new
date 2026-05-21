@@ -41,6 +41,13 @@
     </a>
   </li>
 
+  <li class="nav-item">
+    <a class="nav-link" href="{{route('admin.transactions')}}">
+      <i class="fas fa-fw fa-exchange-alt"></i>
+      <span>Transactions</span>
+    </a>
+  </li>
+
   <hr class="sidebar-divider">
 <hr class="sidebar-divider">
 <div class="sidebar-heading" style="font-size: 15px; text-align:center">
