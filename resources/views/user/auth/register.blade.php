@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="shortcut icon" href="{{ asset('assets/assets/img/logo plateau.png') }}" />
-    <title>Inscription - Plateau App</title>
+    <title>Inscription - Utilisateur</title>
     <style>
         :root {
             --primary-color: #1f4083;
@@ -305,6 +305,31 @@
             font-weight: 700;
         }
 
+        .checkbox-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            height: 52px;
+            border: 1.5px solid #e1e8ef;
+        }
+
+        .checkbox-card:hover {
+            background: #eef2fa;
+            border-color: var(--primary-color);
+        }
+
+        .checkbox-card input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
         @media (max-width: 480px) {
             .form-container {
                 padding: 30px 20px;
@@ -351,12 +376,25 @@
         @endif
 
         <div id="phone-section">
+            <!-- Choix Diaspora -->
+            <label class="checkbox-card" for="diaspora_choice">
+                <input type="checkbox" id="diaspora_choice">
+                <span style="font-weight: 700; color: #1a1a1a;">Je réside à l'étranger (Diaspora)</span>
+            </label>
+
             <div class="form-group">
                 <label class="form-label">Numéro de téléphone</label>
-                <div class="input-wrapper">
-                    <input type="hidden" id="otp_indicatif" value="+225">
-                    <i class="fas fa-mobile-alt input-icon"></i>
-                    <input id="otp_contact" class="input-field" type="tel" placeholder="Ex: 0700000000">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div id="indicatif-wrapper" style="display: none; width: 120px;">
+                        <div class="input-wrapper">
+                            <i class="fas fa-globe input-icon" style="left: 15px;"></i>
+                            <input type="text" id="otp_indicatif" class="input-field" value="+225" style="padding: 0 15px 0 40px; text-align: center;" placeholder="+225">
+                        </div>
+                    </div>
+                    <div class="input-wrapper" style="flex: 1;">
+                        <i class="fas fa-mobile-alt input-icon"></i>
+                        <input id="otp_contact" class="input-field" type="tel" placeholder="Ex: 0700000000">
+                    </div>
                 </div>
             </div>
 
@@ -415,6 +453,26 @@
             const btnSendOtp = document.getElementById('btnSendOtp');
             const btnVerifyOtp = document.getElementById('btnVerifyOtp');
             const otpBox = document.getElementById('otpBox');
+
+            // Logique Diaspora / Indicatif pays
+            const diasporaChoice = document.getElementById('diaspora_choice');
+            const indicatifWrapper = document.getElementById('indicatif-wrapper');
+            const otpIndicatif = document.getElementById('otp_indicatif');
+
+            if (diasporaChoice) {
+                diasporaChoice.addEventListener('change', function() {
+                    if (this.checked) {
+                        indicatifWrapper.style.display = 'block';
+                        otpIndicatif.value = '';
+                        otpIndicatif.placeholder = '+33';
+                        otpIndicatif.focus();
+                    } else {
+                        indicatifWrapper.style.display = 'none';
+                        otpIndicatif.value = '+225';
+                        otpIndicatif.placeholder = '+225';
+                    }
+                });
+            }
 
             if (btnSendOtp) {
                 btnSendOtp.addEventListener('click', function() {
