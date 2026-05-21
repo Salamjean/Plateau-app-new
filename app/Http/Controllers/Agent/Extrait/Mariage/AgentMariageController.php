@@ -364,6 +364,6 @@ class AgentMariageController extends Controller
             ->setPaper('a6', 'landscape')
             ->setOption('isRemoteEnabled', true);
 
-        return $pdf->download('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
+        return $pdf->stream('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
     }
 }

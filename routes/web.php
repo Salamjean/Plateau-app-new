@@ -145,6 +145,7 @@ Route::middleware('mairie')->prefix('mairie')->group(function () {
     Route::get('/ventes-timbre', [MairieDashboard::class, 'salesTimbre'])->name('mairie.timbres.index');
     Route::get('/portefeuille', [MairieDashboard::class, 'portefeuille'])->name('mairie.portefeuille.index');
     Route::get('/portefeuille/historique', [MairieDashboard::class, 'historiqueReversements'])->name('mairie.portefeuille.historique');
+    Route::get('/portefeuille/export-pdf', [MairieDashboard::class, 'exportPDF'])->name('mairie.portefeuille.export_pdf');
     Route::post('/portefeuille/reverser', [MairieDashboard::class, 'reverserPortefeuille'])->name('mairie.portefeuille.reverser');
     Route::get('/logout', [MairieDashboard::class, 'logout'])->name('mairie.logout');
 
@@ -305,6 +306,7 @@ Route::middleware('finance')->prefix('finance')->group(function () {
     // Portefeuille en ligne
     Route::get('/portefeuille', [FinanceDashboard::class, 'portefeuille'])->name('finance.portefeuille.index');
     Route::get('/portefeuille/historique', [FinanceDashboard::class, 'historiqueReversements'])->name('finance.portefeuille.historique');
+    Route::get('/portefeuille/export-pdf', [FinanceDashboard::class, 'exportPDF'])->name('finance.portefeuille.export_pdf');
     Route::post('/portefeuille/reverser', [FinanceDashboard::class, 'reverserPortefeuille'])->name('finance.portefeuille.reverser');
 
     //les routes des financiers de la caisse
@@ -355,6 +357,7 @@ Route::middleware('comptable')->prefix('accounting')->group(function () {
     // Portefeuille en ligne
     Route::get('/portefeuille', [ComptableDashboard::class, 'portefeuille'])->name('comptable.portefeuille.index');
     Route::get('/portefeuille/historique', [ComptableDashboard::class, 'historiqueReversements'])->name('comptable.portefeuille.historique');
+    Route::get('/portefeuille/export-pdf', [ComptableDashboard::class, 'exportPDF'])->name('comptable.portefeuille.export_pdf');
     Route::post('/portefeuille/reverser', [ComptableDashboard::class, 'reverserPortefeuille'])->name('comptable.portefeuille.reverser');
 });
 

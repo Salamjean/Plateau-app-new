@@ -264,22 +264,17 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="p-3 border rounded-3 bg-light">
-                                        <small class="text-muted d-block text-uppercase small">Total reversé</small>
-                                        <h4 class="fw-bold text-danger mb-0">{{ number_format($totalReversements, 0, ',', ' ') }} FCFA</h4>
+                                        <small class="text-muted d-block text-uppercase small">Total transféré TrésorPay</small>
+                                        <h4 class="fw-bold text-success mb-0">{{ number_format($totalReversements, 0, ',', ' ') }} FCFA</h4>
                                     </div>
                                 </div>
                             </div>
                             <div class="mt-4 alert alert-info border-0 rounded-3 d-flex align-items-center">
                                 <i class="fas fa-circle-info fa-2x me-3 text-info"></i>
                                 <span class="small">
-                                    Ce portefeuille virtuel accumule dynamiquement le montant des timbres collectés en ligne via Wave ou MTN lors des demandes de naissances, mariages et décès. Vous pouvez reverser ces fonds à tout moment sur votre compte TrésorPay.
+                                    Ce tableau de bord comptabilise en temps réel les montants des timbres collectés en ligne. Avec le système de paiement direct, chaque fois qu'un citoyen effectue un paiement de timbre par Wave, la somme est immédiatement et automatiquement créditée sur le compte de TrésorPay.
                                 </span>
                             </div>
-                        </div>
-                        <div class="d-flex justify-content-end align-items-end mt-3">
-                            <button class="glow-btn btn" disabled>
-                                <i class="fas fa-paper-plane me-2"></i> Initier un reversement TrésorPay
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -327,71 +322,103 @@
                 </div>
             </div>
 
-            <!-- Historique unifié des Transactions -->
-            <div class="table-container animate-up" style="animation-delay: 0.5s;">
-                <div class="table-header p-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des Reversements</h5>
-                    <div class="d-flex align-items-center gap-2">
-                        <a href="{{ route('mairie.portefeuille.historique') }}" class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 me-2">
-                            <i class="fas fa-expand me-1"></i> Voir tout l'historique
-                        </a>
+            <!-- Historique à gauche & Comptabilisation Mensuelle à droite -->
+            <div class="row g-4 animate-up" style="animation-delay: 0.5s;">
+                <!-- Historique unifié des Transactions -->
+                <div class="col-lg-8">
+                    <div class="table-container h-100">
+                        <div class="table-header p-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des Transferts</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ route('mairie.portefeuille.historique') }}" class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 me-2">
+                                    <i class="fas fa-expand me-1"></i> Voir tout l'historique
+                                </a>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 text-center">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="py-3 text-secondary text-center">DATE & HEURE</th>
+                                        <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
+                                        <th class="py-3 text-secondary text-center">DESTINATAIRE (TRÉSORPAY)</th>
+                                        <th class="py-3 text-secondary text-center">MONTANT</th>
+                                        <th class="py-3 text-secondary text-center">STATUT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($transactions as $t)
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="p-2 bg-light rounded-3 me-2">
+                                                        <i class="fas fa-calendar-days text-muted"></i>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <span class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
+                                                        <small class="text-muted">{{ $t->date->format('H:i') }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="small fw-bold" style="font-family: monospace;">{{ $t->destinataire }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="fw-bold text-success">
+                                                    {{ number_format($t->montant, 0, ',', ' ') }} FCFA
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge rounded-pill px-3 py-2 badge-credit">
+                                                    <i class="fas fa-circle-check me-1"></i> {{ $t->status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="py-5 text-center">
+                                                <div class="py-4 text-center">
+                                                    <i class="fas fa-receipt fa-3x text-light mb-3"></i>
+                                                    <h5 class="text-muted">Aucun transfert effectué</h5>
+                                                    <p class="text-muted small mb-0">Les transferts vers TrésorPay s'afficheront ici en temps réel au fil des paiements des citoyens.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 text-center">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="py-3 text-secondary text-center">DATE & HEURE</th>
-                                <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
-                                <th class="py-3 text-secondary text-center">COMPTE DESTINATAIRE (TRÉSORPAY)</th>
-                                <th class="py-3 text-secondary text-center">MONTANT REVERSÉ</th>
-                                <th class="py-3 text-secondary text-center">STATUT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($transactions as $t)
-                                <tr>
-                                    <td class="text-center">
-                                        <div class="d-flex align-items-center justify-content-center">
-                                            <div class="p-2 bg-light rounded-3 me-2">
-                                                <i class="fas fa-calendar-days text-muted"></i>
+
+                <!-- Comptabilisation Mensuelle TrésorPay -->
+                <div class="col-lg-4">
+                    <div class="card stat-card h-100 p-0 overflow-hidden" style="border: none; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05); border-radius: 15px;">
+                        <div class="p-4" style="background: linear-gradient(120deg, #d4af37, #b8860b); color: black;">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2"></i>Reçu par TrésorPay ({{ $currentYear }})</h5>
+                            <p class="mb-0 small text-black-50 fw-bold">Comptabilisation mensuelle automatique</p>
+                        </div>
+                        <div class="p-3" style="max-height: 420px; overflow-y: auto;">
+                            <ul class="list-group list-group-flush">
+                                @foreach($comptabiliteMensuelle as $num => $m)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 border-bottom border-light">
+                                        <div class="d-flex align-items-center">
+                                            <div class="p-2 bg-light rounded-circle me-3 text-center d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <span class="fw-bold text-muted small" style="font-size: 0.8rem;">{{ str_pad($num, 2, '0', STR_PAD_LEFT) }}</span>
                                             </div>
-                                            <div class="text-center">
-                                                <span class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
-                                                <small class="text-muted">{{ $t->date->format('H:i') }}</small>
-                                            </div>
+                                            <span class="fw-bold text-dark" style="font-size: 0.9rem;">{{ $m['nom'] }}</span>
                                         </div>
-                                    </td>
-                                    <td class="text-center">
-                                        <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="small fw-bold" style="font-family: monospace;">{{ $t->destinataire }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="fw-bold text-danger">
-                                            - {{ number_format($t->montant, 0, ',', ' ') }} FCFA
+                                        <span class="badge bg-success-light text-success rounded-pill px-3 py-2 fw-bold" style="font-size: 0.85rem; background-color: rgba(46, 196, 182, 0.12);">
+                                            {{ number_format($m['montant'], 0, ',', ' ') }} FCFA
                                         </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge rounded-pill px-3 py-2 badge-credit">
-                                            <i class="fas fa-circle-check me-1"></i> {{ $t->status }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="py-5 text-center">
-                                        <div class="py-4 text-center">
-                                            <i class="fas fa-receipt fa-3x text-light mb-3"></i>
-                                            <h5 class="text-muted">Aucun reversement effectué</h5>
-                                            <p class="text-muted small mb-0">Les virements vers TrésorPay apparaîtront ici dès qu'ils seront initiés.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

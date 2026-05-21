@@ -10,13 +10,13 @@
     <title>Finaliser le profil - Plateau App</title>
     <style>
         :root {
-            --primary-color: #1a66ff;
-            --secondary-color: #1a66ff;
-            --accent-color: #4895ef;
+            --primary-color: #1f4083;
+            --secondary-color: #1f4083;
+            --accent-color: #3b5fa6;
             --error-color: #f72585;
             --success-color: #4cc9f0;
             --light-color: #f8f9fa;
-            --dark-color: #212529;
+            --dark-color: #1f4083;
             --text-muted: #6c757d;
             --border-color: #e9ecef;
             --transition-speed: 0.3s;
@@ -35,7 +35,7 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e0eaff 100%);
+            background: linear-gradient(135deg, #f0f4fa 0%, #dbe5f5 100%);
             padding: 20px;
         }
 
@@ -43,7 +43,7 @@
             background-color: white;
             padding: 40px;
             width: 100%;
-            max-width: 600px;
+            max-width: 850px;
             border-radius: 24px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
             animation: slideUp 0.6s ease-out;
@@ -62,7 +62,7 @@
         .illustration-circle {
             width: 80px;
             height: 80px;
-            background: #f0f7ff;
+            background: #eef2fa;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -91,11 +91,22 @@
             font-size: 0.95rem;
         }
 
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px 20px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
         .section-title {
+            grid-column: span 2;
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--primary-color);
-            margin: 30px 0 15px;
+            margin: 25px 0 10px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -109,7 +120,7 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 0;
         }
 
         .form-label {
@@ -147,7 +158,7 @@
 
         .input-field:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(26, 102, 255, 0.05);
+            box-shadow: 0 0 0 4px rgba(31, 64, 131, 0.08);
         }
 
         .input-field:read-only {
@@ -163,13 +174,15 @@
             padding: 15px;
             background: #f8f9fa;
             border-radius: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 0;
             cursor: pointer;
             transition: 0.3s;
+            height: 52px;
+            align-self: end;
         }
 
         .checkbox-card:hover {
-            background: #f0f4ff;
+            background: #eef2fa;
         }
 
         .checkbox-card input {
@@ -180,11 +193,14 @@
 
         .diaspora-fields {
             display: none;
+            grid-column: span 2;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
             animation: fadeIn 0.4s ease;
         }
 
         .diaspora-fields.active {
-            display: block;
+            display: grid;
         }
 
         @keyframes fadeIn {
@@ -193,6 +209,7 @@
         }
 
         .submit-btn {
+            grid-column: span 2;
             width: 100%;
             height: 56px;
             background: var(--primary-color);
@@ -206,14 +223,14 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            margin-top: 30px;
+            margin-top: 20px;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 16px rgba(26, 102, 255, 0.15);
+            box-shadow: 0 8px 16px rgba(31, 64, 131, 0.15);
         }
 
         .submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(26, 102, 255, 0.2);
+            box-shadow: 0 12px 24px rgba(31, 64, 131, 0.25);
         }
 
         .error-msg {
@@ -223,8 +240,51 @@
             font-weight: 600;
         }
 
-        @media (max-width: 480px) {
-            .form-container { padding: 30px 20px; }
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color var(--transition-speed);
+        }
+
+        .toggle-password:hover {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                max-width: 100%;
+                padding: 30px 20px;
+            }
+            form {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            .section-title {
+                grid-column: span 1;
+            }
+            .diaspora-fields {
+                grid-column: span 1;
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .checkbox-card {
+                align-self: stretch;
+            }
+            .submit-btn {
+                grid-column: span 1;
+            }
         }
     </style>
 </head>
@@ -274,7 +334,7 @@
                 @error('prenom') <p class="error-msg">{{ $message }}</p> @enderror
             </div>
 
-            <div class="form-group">
+            <div class="form-group full-width">
                 <label class="form-label">Adresse Email {{ $isSocial ? '' : '(Optionnelle)' }}</label>
                 <div class="input-wrapper">
                     <i class="fas fa-envelope input-icon"></i>
@@ -286,7 +346,7 @@
 
             @if($isNewSocial)
             <div class="section-title"><i class="fas fa-phone"></i> Contact</div>
-            <div class="form-group">
+            <div class="form-group full-width">
                 <label class="form-label">Numéro de téléphone</label>
                 <div class="input-wrapper">
                     <input type="hidden" name="indicatif" value="+225">
@@ -303,7 +363,10 @@
                 <label class="form-label">Mot de passe</label>
                 <div class="input-wrapper">
                     <i class="fas fa-key input-icon"></i>
-                    <input type="password" name="password" class="input-field" required placeholder="Définissez un mot de passe">
+                    <input type="password" name="password" id="password" class="input-field" required placeholder="Définissez un mot de passe">
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
                 @error('password') <p class="error-msg">{{ $message }}</p> @enderror
             </div>
@@ -312,7 +375,10 @@
                 <label class="form-label">Confirmation</label>
                 <div class="input-wrapper">
                     <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="password_confirmation" class="input-field" required placeholder="Confirmez le mot de passe">
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="input-field" required placeholder="Confirmez le mot de passe">
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password_confirmation', this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
             </div>
             @endif
@@ -358,6 +424,20 @@
         document.getElementById('diaspora').addEventListener('change', function() {
             document.getElementById('diasporaBox').classList.toggle('active', this.checked);
         });
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
 
         @if(Session::has('error'))
             Swal.fire({ icon: 'error', title: 'Oups', text: '{{ Session::get('error') }}', confirmButtonColor: 'var(--primary-color)' });

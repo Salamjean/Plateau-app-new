@@ -222,32 +222,79 @@ class MairieDashboard extends Controller
         // Somme totale brute perçue en ligne
         $totalPerçuEnLigne = $totalNaissance + $totalMariage + $totalDeces;
 
-        // Récupérer les reversements simulés en session
-        $reversements = session()->get('mairie_reversements_' . $mairie->id, []);
-        $totalReversements = collect($reversements)->sum('montant');
+        // Solution 1 : Tout est automatiquement et instantanément reversé à TrésorPay.
+        // Donc le total reversé est égal au total perçu en ligne, et le solde disponible à reverser manuellement est à 0.
+        $totalReversements = $totalPerçuEnLigne;
+        $soldePortefeuille = 0;
 
-        // Solde net du portefeuille
-        $soldePortefeuille = $totalPerçuEnLigne - $totalReversements;
+        // Récupérer les derniers paiements réels de timbres pour alimenter l'historique des reversements instantanés
+        $derniersPaiements = collect();
 
-        // Créer la liste des reversements effectués (Débits)
-        $feed = collect();
-
-        foreach ($reversements as $rev) {
-            $feed->push((object)[
-                'reference' => $rev['reference'],
-                'montant' => $rev['montant'],
-                'destinataire' => $rev['destinataire'],
-                'date' => Carbon::parse($rev['date']),
-                'status' => 'Reversé'
+        foreach ($naissances as $n) {
+            $derniersPaiements->push((object)[
+                'date' => Carbon::parse($n->created_at),
+                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'TrésorPay (gtvB04rzE_wkvb4S2)',
+                'montant' => $n->montant_timbre ?? 500,
+                'status' => 'Transféré'
             ]);
         }
 
-        // Trier les reversements par date décroissante
-        $sortedFeed = $feed->sortByDesc('date');
-        $totalTransactionsCount = $sortedFeed->count();
+        foreach ($mariages as $m) {
+            $derniersPaiements->push((object)[
+                'date' => Carbon::parse($m->created_at),
+                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'TrésorPay (gtvB04rzE_wkvb4S2)',
+                'montant' => $m->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
 
-        // Limiter strictement aux 3 derniers reversements
-        $transactions = $sortedFeed->take(3);
+        foreach ($deces as $d) {
+            $derniersPaiements->push((object)[
+                'date' => Carbon::parse($d->created_at),
+                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
+                'destinataire' => 'TrésorPay (gtvB04rzE_wkvb4S2)',
+                'montant' => $d->montant_timbre ?? 500,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        $sortedFeed = $derniersPaiements->sortByDesc('date');
+        $totalTransactionsCount = $sortedFeed->count();
+        $transactions = $sortedFeed->take(5);
+
+        // Comptabilisation mensuelle des timbres reçus par TrésorPay pour l'année en cours
+        $currentYear = Carbon::now()->year;
+        $comptabiliteMensuelle = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $comptabiliteMensuelle[$m] = [
+                'nom' => ucfirst(Carbon::create(null, $m, 1)->locale('fr')->translatedFormat('F')),
+                'montant' => 0
+            ];
+        }
+
+        foreach ($naissances as $item) {
+            $date = Carbon::parse($item->created_at);
+            if ($date->year == $currentYear) {
+                $comptabiliteMensuelle[$date->month]['montant'] += $item->montant_timbre ?? 500;
+            }
+        }
+
+        foreach ($mariages as $item) {
+            $date = Carbon::parse($item->created_at);
+            if ($date->year == $currentYear) {
+                $comptabiliteMensuelle[$date->month]['montant'] += $item->montant_timbre ?? 500;
+            }
+        }
+
+        foreach ($deces as $item) {
+            $date = Carbon::parse($item->created_at);
+            if ($date->year == $currentYear) {
+                $comptabiliteMensuelle[$date->month]['montant'] += $item->montant_timbre ?? 500;
+            }
+        }
 
         return view('mairie.portefeuille', compact(
             'mairie',
@@ -258,7 +305,9 @@ class MairieDashboard extends Controller
             'totalDeces',
             'totalReversements',
             'transactions',
-            'totalTransactionsCount'
+            'totalTransactionsCount',
+            'comptabiliteMensuelle',
+            'currentYear'
         ));
     }
 
@@ -287,6 +336,11 @@ class MairieDashboard extends Controller
             return $item->date->format('Y-m');
         })->unique()->sortDesc()->values();
 
+        // Extraire la liste de tous les ans uniques de transactions (format 'Y') pour l'export PDF
+        $availableYears = $feed->map(function ($item) {
+            return $item->date->format('Y');
+        })->unique()->sortDesc()->values();
+
         // Appliquer le filtre par mois si spécifié
         $selectedMonth = $request->input('month');
         if (!empty($selectedMonth)) {
@@ -312,8 +366,83 @@ class MairieDashboard extends Controller
         return view('mairie.portefeuille_historique', compact(
             'mairie',
             'transactions',
-            'availableMonths'
+            'availableMonths',
+            'availableYears'
         ));
+    }
+
+    public function exportPDF(Request $request)
+    {
+        $mairie = Auth::guard('mairie')->user();
+        $commune = $mairie->name; // Mairie name contient le nom de la commune
+        $year = $request->input('year', Carbon::now()->format('Y'));
+
+        // Récupérer les reversements simulés en session
+        $reversements = session()->get('mairie_reversements_' . $mairie->id, []);
+
+        // Créer la liste des reversements effectués (Débits)
+        $feed = collect();
+
+        foreach ($reversements as $rev) {
+            $feed->push((object)[
+                'reference' => $rev['reference'],
+                'montant' => $rev['montant'],
+                'destinataire' => $rev['destinataire'],
+                'date' => Carbon::parse($rev['date']),
+                'status' => 'Reversé'
+            ]);
+        }
+
+        // Filtrer par année sélectionnée
+        $feed = $feed->filter(function ($item) use ($year) {
+            return $item->date->format('Y') === $year;
+        });
+
+        // Préparer le rapport mensuel pour cette année (de janvier à décembre) avec traduction française robuste
+        $frenchMonths = [
+            1 => 'Janvier',
+            2 => 'Février',
+            3 => 'Mars',
+            4 => 'Avril',
+            5 => 'Mai',
+            6 => 'Juin',
+            7 => 'Juillet',
+            8 => 'Août',
+            9 => 'Septembre',
+            10 => 'Octobre',
+            11 => 'Novembre',
+            12 => 'Décembre'
+        ];
+
+        $monthlyReport = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $date = Carbon::create($year, $m, 1);
+            $monthKey = $date->format('Y-m');
+            $monthLabel = $frenchMonths[$m];
+
+            $monthTransactions = $feed->filter(function ($item) use ($monthKey) {
+                return $item->date->format('Y-m') === $monthKey;
+            });
+
+            $monthlyReport[] = [
+                'label' => $monthLabel,
+                'count' => $monthTransactions->count(),
+                'total_montant' => $monthTransactions->sum('montant')
+            ];
+        }
+
+        $userName = $mairie->name;
+        $roleLabel = 'Mairie';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.reversements_annuels', compact(
+            'year',
+            'commune',
+            'userName',
+            'roleLabel',
+            'monthlyReport'
+        ));
+
+        return $pdf->download('reversements_mairie_' . $year . '.pdf');
     }
 
     public function reverserPortefeuille(Request $request)

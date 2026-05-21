@@ -115,6 +115,30 @@ class PaymentController extends Controller
                 $demande->lignes()->update(['etat' => 'en attente']);
             }
 
+            // --- SOLUTION 1 : Reversement automatique du timbre vers TrésorPay ---
+            try {
+                $user = User::find($demande->user_id);
+                $montantTimbre = (int) ($demande->montant_timbre ?? 500);
+                
+                if ($montantTimbre > 0 && $user) {
+                    $tresorPayService = app(\App\Services\TresorPayService::class);
+                    $telephone = $user->contact;
+                    $nom = $user->name ?? 'Client';
+                    $referencePaiement = 'TP-AUTO-' . $demande->reference;
+                    
+                    Log::info("Déclenchement du reversement automatique TrésorPay pour {$demande->reference} (Fallback). Montant: {$montantTimbre}");
+                    $tresorPayService->initierReversementDirect(
+                        $telephone,
+                        $montantTimbre,
+                        $referencePaiement,
+                        $nom,
+                        'Mairie de Plateau'
+                    );
+                }
+            } catch (\Exception $e) {
+                Log::error("Erreur lors du reversement automatique TrésorPay en arrière-plan (Fallback): " . $e->getMessage());
+            }
+
             // Incrémenter le compteur de demandes gratuites si applicable
             $this->incrementFreeRequestsFromDemande($demande);
         } else {

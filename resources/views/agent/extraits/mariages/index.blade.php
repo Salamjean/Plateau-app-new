@@ -718,8 +718,8 @@
                                     <td style="text-align: center">
                                         @if ($mariage->choix_option == 'livraison' && $mariage->etat == 'terminé')
                                             <button class="download-btn"
-                                                onclick="showDeliveryInfo({{ json_encode($mariage) }})">
-                                                <i class="fas fa-download me-1"></i>Télécharger
+                                                onclick="imprimerEtiquette({{ $mariage->id }})">
+                                                <i class="fas fa-print me-1"></i>Imprimer
                                             </button>
                                         @else
                                             <span class="badge bg-secondary">N/A</span>
@@ -1323,6 +1323,19 @@
             });
         }
 
+        // Impression directe de l'étiquette sans popup
+        function imprimerEtiquette(id) {
+            const url = downloadDeliveryInfoUrl.replace(':id', id);
+            const printWindow = window.open(url, '_blank');
+            if (printWindow) {
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                    }, 500);
+                };
+            }
+        }
+
         // Fonction pour afficher les informations de livraison
         function showDeliveryInfo(mariage) {
             const deliveryInfo = mariage || {};
@@ -1365,7 +1378,7 @@
                 title: 'Détails de Livraison',
                 html: htmlContent,
                 showCancelButton: true,
-                confirmButtonText: 'Télécharger en PDF',
+                confirmButtonText: '<i class="fas fa-print"></i> Imprimer l\'étiquette',
                 cancelButtonText: 'Fermer',
                 confirmButtonColor: '#1f4083',
                 width: '600px',
@@ -1378,8 +1391,16 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
+                    // Ouvrir l'étiquette et déclencher l'impression automatique
                     const url = downloadDeliveryInfoUrl.replace(':id', mariage.id);
-                    window.open(url, '_blank');
+                    const printWindow = window.open(url, '_blank');
+                    if (printWindow) {
+                        printWindow.onload = function() {
+                            setTimeout(function() {
+                                printWindow.print();
+                            }, 500);
+                        };
+                    }
                 }
             });
         }

@@ -390,6 +390,11 @@ class ComptableDashboard extends Controller
             return $item->date->format('Y-m');
         })->unique()->sortDesc()->values();
 
+        // Extraire la liste de tous les ans uniques de transactions (format 'Y') pour l'export PDF
+        $availableYears = $feed->map(function ($item) {
+            return $item->date->format('Y');
+        })->unique()->sortDesc()->values();
+
         // Appliquer le filtre par mois si spécifié
         $selectedMonth = $request->input('month');
         if (!empty($selectedMonth)) {
@@ -415,8 +420,87 @@ class ComptableDashboard extends Controller
         return view('comptable.portefeuille_historique', compact(
             'comptable',
             'transactions',
-            'availableMonths'
+            'availableMonths',
+            'availableYears'
         ));
+    }
+
+    public function exportPDF(Request $request)
+    {
+        $comptable = Auth::guard('comptable')->user();
+        $commune = $comptable->communeM;
+        $year = $request->input('year', Carbon::now()->format('Y'));
+
+        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
+        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
+        $reversements = [];
+        if ($mairieObj) {
+            $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
+        }
+
+        // Créer la liste des reversements effectués (Débits)
+        $feed = collect();
+
+        foreach ($reversements as $rev) {
+            $feed->push((object)[
+                'reference' => $rev['reference'],
+                'montant' => $rev['montant'],
+                'destinataire' => $rev['destinataire'],
+                'date' => Carbon::parse($rev['date']),
+                'status' => 'Reversé'
+            ]);
+        }
+
+        // Filtrer par année sélectionnée
+        $feed = $feed->filter(function ($item) use ($year) {
+            return $item->date->format('Y') === $year;
+        });
+
+        // Préparer le rapport mensuel pour cette année (de janvier à décembre) avec traduction française robuste
+        $frenchMonths = [
+            1 => 'Janvier',
+            2 => 'Février',
+            3 => 'Mars',
+            4 => 'Avril',
+            5 => 'Mai',
+            6 => 'Juin',
+            7 => 'Juillet',
+            8 => 'Août',
+            9 => 'Septembre',
+            10 => 'Octobre',
+            11 => 'Novembre',
+            12 => 'Décembre'
+        ];
+
+        $monthlyReport = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $date = Carbon::create($year, $m, 1);
+            $monthKey = $date->format('Y-m');
+            $monthLabel = $frenchMonths[$m];
+
+            $monthTransactions = $feed->filter(function ($item) use ($monthKey) {
+                return $item->date->format('Y-m') === $monthKey;
+            });
+
+            $monthlyReport[] = [
+                'label' => $monthLabel,
+                'count' => $monthTransactions->count(),
+                'total_montant' => $monthTransactions->sum('montant')
+            ];
+        }
+
+        $userName = $comptable->name;
+        $roleLabel = 'Comptable';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.reversements_annuels', compact(
+            'year',
+            'commune',
+            'userName',
+            'roleLabel',
+            'monthlyReport'
+        ));
+
+        return $pdf->download('reversements_comptable_' . $year . '.pdf');
     }
 
     public function reverserPortefeuille(Request $request)

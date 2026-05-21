@@ -107,6 +107,26 @@
                                 </select>
                             </div>
                         </form>
+
+                        <!-- Export PDF par année -->
+                        <form method="GET" action="{{ route('comptable.portefeuille.export_pdf') }}" class="d-flex align-items-center" target="_blank">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-danger border-0 rounded-start-pill ps-3 pe-2">
+                                    <i class="fas fa-file-pdf"></i>
+                                </span>
+                                <select name="year" class="form-select border-0 pe-4 ps-2 fw-semibold text-danger" style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 100px; font-size: 0.9rem;">
+                                    @forelse($availableYears as $year)
+                                        <option value="{{ $year }}" class="text-dark">{{ $year }}</option>
+                                    @empty
+                                        <option value="{{ date('Y') }}" class="text-dark">{{ date('Y') }}</option>
+                                    @endforelse
+                                </select>
+                                <button type="submit" class="btn btn-danger border-0 rounded-end-pill px-3 fw-bold" style="height: 38px; font-size: 0.85rem;">
+                                    Exporter PDF
+                                </button>
+                            </div>
+                        </form>
+
                         <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold" style="font-size: 0.85rem; height: 38px; display: inline-flex; align-items: center;">
                             {{ $transactions->total() }} Transactions au total
                         </span>
