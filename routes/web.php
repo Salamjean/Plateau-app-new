@@ -143,6 +143,9 @@ Route::prefix('mairie')->group(function () {
 Route::middleware('mairie')->prefix('mairie')->group(function () {
     Route::get('/dashboard', [MairieDashboard::class, 'dashboard'])->name('mairie.dashboard');
     Route::get('/ventes-timbre', [MairieDashboard::class, 'salesTimbre'])->name('mairie.timbres.index');
+    Route::get('/portefeuille', [MairieDashboard::class, 'portefeuille'])->name('mairie.portefeuille.index');
+    Route::get('/portefeuille/historique', [MairieDashboard::class, 'historiqueReversements'])->name('mairie.portefeuille.historique');
+    Route::post('/portefeuille/reverser', [MairieDashboard::class, 'reverserPortefeuille'])->name('mairie.portefeuille.reverser');
     Route::get('/logout', [MairieDashboard::class, 'logout'])->name('mairie.logout');
 
     //Les routes pour la liste des demandes 
@@ -299,6 +302,11 @@ Route::middleware('finance')->prefix('finance')->group(function () {
     Route::get('/dashboard', [FinanceDashboard::class, 'dashboard'])->name('finance.dashboard');
     Route::get('/logout', [FinanceDashboard::class, 'logout'])->name('finance.logout');
 
+    // Portefeuille en ligne
+    Route::get('/portefeuille', [FinanceDashboard::class, 'portefeuille'])->name('finance.portefeuille.index');
+    Route::get('/portefeuille/historique', [FinanceDashboard::class, 'historiqueReversements'])->name('finance.portefeuille.historique');
+    Route::post('/portefeuille/reverser', [FinanceDashboard::class, 'reverserPortefeuille'])->name('finance.portefeuille.reverser');
+
     //les routes des financiers de la caisse
     Route::prefix('accounting')->group(function () {
         Route::get('/index', [ComptableController::class, 'index'])->name('comptable.index');
@@ -343,6 +351,11 @@ Route::middleware('comptable')->prefix('accounting')->group(function () {
     // Demandes en ligne
     Route::get('/demandes-en-ligne', [\App\Http\Controllers\Comptable\ComptableDemandeController::class, 'index'])->name('comptable.demandes.index');
     Route::post('/demandes-en-ligne/recover/{type}/{id}', [\App\Http\Controllers\Comptable\ComptableDemandeController::class, 'markRecovered'])->name('comptable.demandes.recover');
+
+    // Portefeuille en ligne
+    Route::get('/portefeuille', [ComptableDashboard::class, 'portefeuille'])->name('comptable.portefeuille.index');
+    Route::get('/portefeuille/historique', [ComptableDashboard::class, 'historiqueReversements'])->name('comptable.portefeuille.historique');
+    Route::post('/portefeuille/reverser', [ComptableDashboard::class, 'reverserPortefeuille'])->name('comptable.portefeuille.reverser');
 });
 
 //Les routes de getsion de @postes 

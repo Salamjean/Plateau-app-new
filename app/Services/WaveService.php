@@ -28,6 +28,23 @@ class WaveService
      */
     public function createCheckoutSession($amount, $currency, $successUrl, $errorUrl, $clientReference)
     {
+        // Détecter dynamiquement si la requête provient d'un tunnel ngrok.
+        // Si c'est le cas, on remplace l'hôte localhost/lvh.me par l'URL ngrok active
+        // pour que l'utilisateur soit correctement redirigé vers son tunnel après le paiement.
+        if (!app()->runningInConsole() && request()->getHost() && str_contains(request()->getHost(), 'ngrok')) {
+            $currentSchemeAndHost = request()->getSchemeAndHttpHost();
+            $configuredAppUrl = rtrim(config('app.url'), '/');
+            
+            if ($configuredAppUrl) {
+                $successUrl = str_replace($configuredAppUrl, $currentSchemeAndHost, $successUrl);
+                $errorUrl = str_replace($configuredAppUrl, $currentSchemeAndHost, $errorUrl);
+            }
+            
+            // Sécurité additionnelle si localhost est présent
+            $successUrl = str_replace('://localhost', '://' . request()->getHost(), $successUrl);
+            $errorUrl = str_replace('://localhost', '://' . request()->getHost(), $errorUrl);
+        }
+
         // Force HTTPS unconditionally — Wave API strictly requires https:// URLs
         // even for local development environments.
         $successUrl = str_replace('http://', 'https://', $successUrl);

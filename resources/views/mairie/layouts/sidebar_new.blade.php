@@ -153,6 +153,13 @@
             <i class="material-icons">local_activity</i>
             <span>Ventes de timbres</span>
         </a>
+
+        <a href="{{ route('mairie.portefeuille.index') }}"
+            class="sidebar-link {{ request()->routeIs('mairie.portefeuille.index') ? 'active' : '' }}"
+            title="Portefeuille en ligne">
+            <i class="material-icons">account_balance_wallet</i>
+            <span>Portefeuille en ligne</span>
+        </a>
     </nav>
 </aside>
 

@@ -37,6 +37,14 @@
             <span>Demande en ligne</span>
         </a>
 
+        <!-- Portefeuille en ligne -->
+        <a href="{{ route('comptable.portefeuille.index') }}"
+            class="sidebar-link {{ request()->routeIs('comptable.portefeuille.index') || request()->routeIs('comptable.portefeuille.historique') ? 'active' : '' }}"
+            title="Portefeuille en ligne">
+            <i class="material-icons">account_balance_wallet</i>
+            <span>Portefeuille en ligne</span>
+        </a>
+
         <!-- Historique de ventes -->
         <a href="{{ route('comptable.timbre.history') }}"
             class="sidebar-link {{ request()->routeIs('comptable.timbre.history') ? 'active' : '' }}"

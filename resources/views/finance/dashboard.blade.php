@@ -60,7 +60,8 @@
 
             .dashboard-wrapper {
                 padding: 2.5rem;
-                max-width: 1600px;
+                max-width: none;
+                width: 100%;
                 margin: 0 auto;
                 animation: fadeIn 0.5s ease;
             }
@@ -661,6 +662,65 @@
             .empty-state p {
                 font-size: 0.95rem;
             }
+
+            /* Premium Glassmorphic Card */
+            .glass-card {
+                background: linear-gradient(135deg, rgba(31, 64, 131, 0.9), rgba(13, 110, 253, 0.75));
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: var(--radius-md);
+                padding: 2rem;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+                color: white;
+                position: relative;
+                overflow: hidden;
+                transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+                text-decoration: none;
+            }
+
+            .glass-card:hover {
+                transform: translateY(-8px) scale(1.02);
+                box-shadow: 0 25px 45px rgba(13, 110, 253, 0.3);
+            }
+
+            /* Reflective shine effect on card hover */
+            .glass-card::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -150%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+                transform: skewX(-25deg);
+                transition: 0.75s ease;
+            }
+
+            .glass-card:hover::after {
+                left: 150%;
+            }
+
+            /* RFID / SIM Chip styling */
+            .card-chip {
+                width: 40px;
+                height: 30px;
+                background: linear-gradient(135deg, #ffd700, #b8860b);
+                border-radius: 6px;
+                position: relative;
+                box-shadow: inset 0 1px 3px rgba(255,255,255,0.5);
+            }
+
+            .card-chip::before {
+                content: '';
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                bottom: 5px;
+                border: 1px solid rgba(0, 0, 0, 0.15);
+                border-radius: 4px;
+            }
         </style>
     </head>
 
@@ -742,7 +802,34 @@
                 <h2>Situation Financière</h2>
             </div>
 
-            <div class="finance-grid">
+            <div class="finance-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                <!-- La carte Bancaire Virtuelle Premium (Portefeuille en ligne) -->
+                <div class="animate-up h-100" style="animation-delay: 0.1s; height: 100%;">
+                    <a href="{{ route('finance.portefeuille.index') }}" class="text-decoration-none d-block h-100" style="height: 100%;">
+                        <div class="glass-card h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="card-chip"></div>
+                                    <span class="fw-bold text-white text-uppercase tracking-wider small" style="font-size: 0.7rem; letter-spacing: 1px;">E-TIMBRE COLLECTE</span>
+                                </div>
+                                <h6 class="text-white-50 text-uppercase small mb-1" style="font-size: 0.65rem; opacity: 0.8; color: rgba(255,255,255,0.7) !important;">SOLDE COLLECTÉ EN LIGNE</h6>
+                                <h1 class="fw-bold mb-0 text-white" style="font-feature-settings: 'tnum'; font-size: 1.8rem;">
+                                    <span id="wallet-balance" data-target="{{ $soldePortefeuille }}">0</span> <span class="fs-6">FCFA</span>
+                                </h1>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between align-items-end mt-2">
+                                    <div>
+                                        <small class="text-white-50 d-block small" style="font-size: 0.6rem; opacity: 0.8; color: rgba(255,255,255,0.7) !important;">COMMUNE DE</small>
+                                        <span class="fw-bold text-white text-uppercase" style="font-size: 0.85rem;">{{ $finance->communeM }}</span>
+                                    </div>
+                                    <img src="{{ asset('assets/assets/img/logo plateau.png') }}" alt="Logo Plateau" style="height: 28px; filter: brightness(0) invert(1);">
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
                 <!-- Dépenses -->
                 <div class="finance-card debit">
                     <div class="finance-card-header">
@@ -763,13 +850,13 @@
                     <div class="finance-card-header">
                         <div class="finance-label">
                             <i class="material-icons">account_balance_wallet</i>
-                            <span>Solde Disponible</span>
+                            <span>Solde Disponible (Physique)</span>
                         </div>
                     </div>
                     <div class="finance-amount">{{ number_format($montantRestant, 0, ',', ' ') }} FCFA</div>
                     <div class="finance-meta">
                         <i class="material-icons">check_circle</i>
-                        <span>Montant actuel</span>
+                        <span>Timbres physiques en mairie</span>
                     </div>
                 </div>
             </div>
@@ -873,6 +960,33 @@
 
         <!-- === JAVASCRIPT === -->
         <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // progressive increment for wallet balance
+                const balanceEl = document.getElementById('wallet-balance');
+                if (balanceEl) {
+                    const targetValue = parseInt(balanceEl.getAttribute('data-target'), 10);
+                    if (targetValue > 0) {
+                        let start = 0;
+                        const duration = 1200; // ms
+                        const stepTime = 15;
+                        const steps = duration / stepTime;
+                        const increment = targetValue / steps;
+                        
+                        const timer = setInterval(() => {
+                            start += increment;
+                            if (start >= targetValue) {
+                                balanceEl.textContent = targetValue.toLocaleString('fr-FR');
+                                clearInterval(timer);
+                            } else {
+                                balanceEl.textContent = Math.floor(start).toLocaleString('fr-FR');
+                            }
+                        }, stepTime);
+                    } else {
+                        balanceEl.textContent = '0';
+                    }
+                }
+            });
+
             // Fonction pour afficher les différentes listes d'activités récentes
             function showRecent(type, btn) {
                 // Masquer toutes les listes

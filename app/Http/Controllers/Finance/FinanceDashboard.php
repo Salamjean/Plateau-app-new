@@ -139,7 +139,27 @@ class FinanceDashboard extends Controller
         $totalTimbresAjoutes = $montantTotalAjoute / 500;
         $totalTimbresDebites = $total;
 
-        // Récupérer les demandes récentes
+        // Calcul dynamique du solde du portefeuille virtuel
+        $naissancesAll = Naissance::where('commune', $finance->communeM)->paye()->get();
+        $totalNaissance = $naissancesAll->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $mariagesAll = Mariage::where('commune', $finance->communeM)->paye()->get();
+        $totalMariage = $mariagesAll->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $decesAll = Deces::where('commune', $finance->communeM)->paye()->get();
+        $totalDeces = $decesAll->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $totalPerçuEnLigne = $totalNaissance + $totalMariage + $totalDeces;
+        $reversements = session()->get('finance_reversements_' . $finance->id, []);
+        $totalReversements = collect($reversements)->sum('montant');
+        $soldePortefeuille = $totalPerçuEnLigne - $totalReversements;
+
         $demandesNaissance = Naissance::where('commune', $finance->communeM)->latest()->take(3)->get();
         $demandesDeces = Deces::where('commune', $finance->communeM)->latest()->take(3)->get();
         $demandesMariage = Mariage::where('commune', $finance->communeM)->latest()->take(3)->get();
@@ -171,6 +191,7 @@ class FinanceDashboard extends Controller
         return view(
             'finance.dashboard',
             compact(
+                'finance',
                 'total',
                 'soldeTimbres',
                 'decesnombre',
@@ -205,6 +226,7 @@ class FinanceDashboard extends Controller
                 'montantRestant',
                 'totalTimbresAjoutes',
                 'totalTimbresDebites',
+                'soldePortefeuille'
             )
         );
     }
@@ -249,6 +271,165 @@ class FinanceDashboard extends Controller
             $data[] = $count;
         }
         return $data;
+    }
+
+    public function portefeuille(Request $request)
+    {
+        $finance = Auth::guard('finance')->user();
+
+        // Calcul dynamique des timbres Naissance perçus en ligne
+        $naissances = Naissance::where('commune', $finance->communeM)
+            ->paye()
+            ->with('user')
+            ->get();
+        $totalNaissance = $naissances->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        // Calcul dynamique des timbres Mariage perçus en ligne
+        $mariages = Mariage::where('commune', $finance->communeM)
+            ->paye()
+            ->with('user')
+            ->get();
+        $totalMariage = $mariages->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        // Calcul dynamique des timbres Décès perçus en ligne
+        $deces = Deces::where('commune', $finance->communeM)
+            ->paye()
+            ->with('user')
+            ->get();
+        $totalDeces = $deces->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        // Somme totale brute perçue en ligne
+        $totalPerçuEnLigne = $totalNaissance + $totalMariage + $totalDeces;
+
+        // Récupérer les reversements simulés en session
+        $reversements = session()->get('finance_reversements_' . $finance->id, []);
+        $totalReversements = collect($reversements)->sum('montant');
+
+        // Solde net du portefeuille
+        $soldePortefeuille = $totalPerçuEnLigne - $totalReversements;
+
+        // Créer la liste des reversements effectués (Débits)
+        $feed = collect();
+
+        foreach ($reversements as $rev) {
+            $feed->push((object)[
+                'reference' => $rev['reference'],
+                'montant' => $rev['montant'],
+                'destinataire' => $rev['destinataire'],
+                'date' => Carbon::parse($rev['date']),
+                'status' => 'Reversé'
+            ]);
+        }
+
+        // Trier les reversements par date décroissante
+        $sortedFeed = $feed->sortByDesc('date');
+        $totalTransactionsCount = $sortedFeed->count();
+
+        // Limiter strictement aux 3 derniers reversements
+        $transactions = $sortedFeed->take(3);
+
+        return view('finance.portefeuille', compact(
+            'finance',
+            'soldePortefeuille',
+            'totalPerçuEnLigne',
+            'totalNaissance',
+            'totalMariage',
+            'totalDeces',
+            'totalReversements',
+            'transactions',
+            'totalTransactionsCount'
+        ));
+    }
+
+    public function historiqueReversements(Request $request)
+    {
+        $finance = Auth::guard('finance')->user();
+
+        // Récupérer les reversements simulés en session
+        $reversements = session()->get('finance_reversements_' . $finance->id, []);
+
+        // Créer la liste des reversements effectués (Débits)
+        $feed = collect();
+
+        foreach ($reversements as $rev) {
+            $feed->push((object)[
+                'reference' => $rev['reference'],
+                'montant' => $rev['montant'],
+                'destinataire' => $rev['destinataire'],
+                'date' => Carbon::parse($rev['date']),
+                'status' => 'Reversé'
+            ]);
+        }
+
+        // Extraire la liste de tous les mois uniques de transactions (format 'Y-m') pour alimenter le filtre
+        $availableMonths = $feed->map(function ($item) {
+            return $item->date->format('Y-m');
+        })->unique()->sortDesc()->values();
+
+        // Appliquer le filtre par mois si spécifié
+        $selectedMonth = $request->input('month');
+        if (!empty($selectedMonth)) {
+            $feed = $feed->filter(function ($item) use ($selectedMonth) {
+                return $item->date->format('Y-m') === $selectedMonth;
+            });
+        }
+
+        // Trier les reversements par date décroissante
+        $sortedFeed = $feed->sortByDesc('date');
+
+        // Paginer l'historique complet par lot de 10
+        $page = $request->input('page', 1);
+        $perPage = 10;
+        $transactions = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sortedFeed->forPage($page, $perPage),
+            $sortedFeed->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('finance.portefeuille_historique', compact(
+            'finance',
+            'transactions',
+            'availableMonths'
+        ));
+    }
+
+    public function reverserPortefeuille(Request $request)
+    {
+        $request->validate([
+            'montant' => 'required|numeric|min:1',
+            'credential_id' => 'required|string'
+        ]);
+
+        $finance = Auth::guard('finance')->user();
+        $montant = (float) $request->input('montant');
+        $credentialId = $request->input('credential_id');
+
+        // Récupérer les reversements actuels en session
+        $reversements = session()->get('finance_reversements_' . $finance->id, []);
+        
+        // Enregistrer le nouveau reversement
+        $reversements[] = [
+            'reference' => 'REV-' . strtoupper(bin2hex(random_bytes(4))),
+            'montant' => $montant,
+            'status' => 'SUCCES',
+            'destinataire' => $credentialId,
+            'date' => now()->toDateTimeString()
+        ];
+
+        session()->put('finance_reversements_' . $finance->id, $reversements);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Reversement de ' . number_format($montant) . ' XOF effectué avec succès vers TrésorPay.'
+        ]);
     }
 
     public function logout()

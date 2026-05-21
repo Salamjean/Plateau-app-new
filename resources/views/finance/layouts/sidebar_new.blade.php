@@ -60,6 +60,15 @@
             <i class="material-icons">people</i>
             <span>Régies</span>
         </a>
+
+        <!-- Portefeuille en ligne -->
+        <div class="sidebar-divider"></div>
+        <a href="{{ route('finance.portefeuille.index') }}"
+            class="sidebar-link {{ request()->routeIs('finance.portefeuille.index') || request()->routeIs('finance.portefeuille.historique') ? 'active' : '' }}"
+            title="Portefeuille en ligne">
+            <i class="material-icons">account_balance_wallet</i>
+            <span>Portefeuille en ligne</span>
+        </a>
     </nav>
 </aside>
 

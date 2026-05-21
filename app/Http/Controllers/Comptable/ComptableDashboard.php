@@ -168,6 +168,33 @@ class ComptableDashboard extends Controller
         // Le solde restant est directement le solde actuel de la mairie
         $montantRestant = $montantTotalAjoute;
 
+        // Calcul dynamique du solde du portefeuille en ligne
+        $naissancesAll = Naissance::where('commune', $commune)->paye()->get();
+        $totalNaissancePortefeuille = $naissancesAll->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $mariagesAll = Mariage::where('commune', $commune)->paye()->get();
+        $totalMariagePortefeuille = $mariagesAll->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $decesAll = Deces::where('commune', $commune)->paye()->get();
+        $totalDecesPortefeuille = $decesAll->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        $totalPerçuEnLigne = $totalNaissancePortefeuille + $totalMariagePortefeuille + $totalDecesPortefeuille;
+
+        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
+        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
+        $totalReversements = 0;
+        if ($mairieObj) {
+            $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
+            $totalReversements = collect($reversements)->sum('montant');
+        }
+        $soldePortefeuille = $totalPerçuEnLigne - $totalReversements;
+
         return view(
             'comptable.dashboard',
             compact(
@@ -204,7 +231,8 @@ class ComptableDashboard extends Controller
                 'valeursTimbres',
                 'dernieresVentesTimbres',
                 'montantTotalAjoute',
-                'montantRestant' // Variable calculée
+                'montantRestant', // Variable calculée
+                'soldePortefeuille'
             )
         );
     }
@@ -248,6 +276,188 @@ class ComptableDashboard extends Controller
             $data[] = $count;
         }
         return $data;
+    }
+
+    public function portefeuille(Request $request)
+    {
+        $comptable = Auth::guard('comptable')->user();
+        $commune = $comptable->communeM;
+
+        // Calcul dynamique des timbres Naissance perçus en ligne
+        $naissances = Naissance::where('commune', $commune)
+            ->paye()
+            ->with('user')
+            ->get();
+        $totalNaissance = $naissances->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        // Calcul dynamique des timbres Mariage perçus en ligne
+        $mariages = Mariage::where('commune', $commune)
+            ->paye()
+            ->with('user')
+            ->get();
+        $totalMariage = $mariages->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        // Calcul dynamique des timbres Décès perçus en ligne
+        $deces = Deces::where('commune', $commune)
+            ->paye()
+            ->with('user')
+            ->get();
+        $totalDeces = $deces->sum(function ($item) {
+            return $item->montant_timbre ?? 500;
+        });
+
+        // Somme totale brute perçue en ligne
+        $totalPerçuEnLigne = $totalNaissance + $totalMariage + $totalDeces;
+
+        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
+        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
+        $reversements = [];
+        $mairieId = null;
+        if ($mairieObj) {
+            $mairieId = $mairieObj->id;
+            $reversements = session()->get('mairie_reversements_' . $mairieId, []);
+        }
+        
+        $totalReversements = collect($reversements)->sum('montant');
+
+        // Solde net du portefeuille
+        $soldePortefeuille = $totalPerçuEnLigne - $totalReversements;
+
+        // Créer la liste des reversements effectués (Débits)
+        $feed = collect();
+
+        foreach ($reversements as $rev) {
+            $feed->push((object)[
+                'reference' => $rev['reference'],
+                'montant' => $rev['montant'],
+                'destinataire' => $rev['destinataire'],
+                'date' => Carbon::parse($rev['date']),
+                'status' => 'Reversé'
+            ]);
+        }
+
+        // Trier les reversements par date décroissante
+        $sortedFeed = $feed->sortByDesc('date');
+        $totalTransactionsCount = $sortedFeed->count();
+
+        // Limiter strictement aux 3 derniers reversements
+        $transactions = $sortedFeed->take(3);
+
+        return view('comptable.portefeuille', compact(
+            'comptable',
+            'soldePortefeuille',
+            'totalPerçuEnLigne',
+            'totalNaissance',
+            'totalMariage',
+            'totalDeces',
+            'totalReversements',
+            'transactions',
+            'totalTransactionsCount'
+        ));
+    }
+
+    public function historiqueReversements(Request $request)
+    {
+        $comptable = Auth::guard('comptable')->user();
+        $commune = $comptable->communeM;
+
+        // Trouver la mairie pour obtenir son id afin de récupérer ses reversements
+        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
+        $reversements = [];
+        if ($mairieObj) {
+            $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
+        }
+
+        // Créer la liste des reversements effectués (Débits)
+        $feed = collect();
+
+        foreach ($reversements as $rev) {
+            $feed->push((object)[
+                'reference' => $rev['reference'],
+                'montant' => $rev['montant'],
+                'destinataire' => $rev['destinataire'],
+                'date' => Carbon::parse($rev['date']),
+                'status' => 'Reversé'
+            ]);
+        }
+
+        // Extraire la liste de tous les mois uniques de transactions (format 'Y-m') pour alimenter le filtre
+        $availableMonths = $feed->map(function ($item) {
+            return $item->date->format('Y-m');
+        })->unique()->sortDesc()->values();
+
+        // Appliquer le filtre par mois si spécifié
+        $selectedMonth = $request->input('month');
+        if (!empty($selectedMonth)) {
+            $feed = $feed->filter(function ($item) use ($selectedMonth) {
+                return $item->date->format('Y-m') === $selectedMonth;
+            });
+        }
+
+        // Trier les reversements par date décroissante
+        $sortedFeed = $feed->sortByDesc('date');
+
+        // Paginer l'historique complet par lot de 10
+        $page = $request->input('page', 1);
+        $perPage = 10;
+        $transactions = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sortedFeed->forPage($page, $perPage),
+            $sortedFeed->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('comptable.portefeuille_historique', compact(
+            'comptable',
+            'transactions',
+            'availableMonths'
+        ));
+    }
+
+    public function reverserPortefeuille(Request $request)
+    {
+        $request->validate([
+            'montant' => 'required|numeric|min:1',
+            'credential_id' => 'required|string'
+        ]);
+
+        $comptable = Auth::guard('comptable')->user();
+        $commune = $comptable->communeM;
+        $montant = (float) $request->input('montant');
+        $credentialId = $request->input('credential_id');
+
+        // Trouver la mairie pour obtenir son id
+        $mairieObj = \App\Models\Mairie::where('name', $commune)->first();
+        if (!$mairieObj) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Mairie introuvable pour cette commune.'
+            ], 404);
+        }
+
+        // Récupérer les reversements actuels en session
+        $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
+        
+        // Enregistrer le nouveau reversement
+        $reversements[] = [
+            'reference' => 'REV-' . strtoupper(bin2hex(random_bytes(4))),
+            'montant' => $montant,
+            'status' => 'SUCCES',
+            'destinataire' => $credentialId,
+            'date' => now()->toDateTimeString()
+        ];
+
+        session()->put('mairie_reversements_' . $mairieObj->id, $reversements);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Reversement de ' . number_format($montant) . ' XOF effectué avec succès vers TrésorPay.'
+        ]);
     }
 
     public function logout()
