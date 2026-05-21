@@ -340,13 +340,26 @@
                 padding: 0 5px;
             }
         }
+
+        .input-field:disabled {
+            background-color: #f1f3f5;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #e9ecef;
+        }
+
+        .checkbox-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #f1f3f5;
+        }
     </style>
 </head>
 
 <body>
     <div class="form-container">
         <!-- Bouton Retour -->
-        <a href="{{ route('home') }}" class="back-btn">
+        <a href="{{ route('home') }}" class="back-btn" id="backBtn">
             <i class="fas fa-arrow-left"></i>
         </a>
 
@@ -532,6 +545,22 @@
                                 });
                                 otpBox.style.display = 'block';
                                 btnSendOtp.style.display = 'none';
+
+                                // Griser les champs après l'envoi de l'OTP
+                                document.getElementById('otp_contact').disabled = true;
+                                document.getElementById('otp_indicatif').disabled = true;
+                                if (otpPaysResidence) otpPaysResidence.disabled = true;
+                                if (diasporaChoice) {
+                                    diasporaChoice.disabled = true;
+                                    const checkboxCard = diasporaChoice.closest('.checkbox-card');
+                                    if (checkboxCard) {
+                                        checkboxCard.classList.add('disabled');
+                                        checkboxCard.style.display = 'none';
+                                    }
+                                }
+
+                                // Démarrer le compte à rebours de renvoi
+                                startResendCountdown();
                             } else {
                                 Swal.fire('Erreur', data.message || 'Erreur inconnue', 'error');
                                 this.disabled = false;
@@ -650,6 +679,128 @@
 
             handleSocial('googlePhoneBtn', '/user/auth/google', 'google');
             handleSocial('applePhoneBtn', '/user/auth/apple', 'apple');
+
+            // Compte à rebours pour le renvoi d'OTP (cooldown)
+            let resendTimer = null;
+            function startResendCountdown() {
+                const resendOtp = document.getElementById('resendOtp');
+                if (!resendOtp) return;
+                
+                let seconds = 60;
+                resendOtp.style.pointerEvents = 'none';
+                resendOtp.style.opacity = '0.5';
+                resendOtp.innerHTML = `Renvoyer (dans ${seconds}s)`;
+                
+                if (resendTimer) clearInterval(resendTimer);
+                
+                resendTimer = setInterval(() => {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(resendTimer);
+                        resendOtp.style.pointerEvents = 'auto';
+                        resendOtp.style.opacity = '1';
+                        resendOtp.innerHTML = 'Renvoyer';
+                    } else {
+                        resendOtp.innerHTML = `Renvoyer (dans ${seconds}s)`;
+                    }
+                }, 1000);
+            }
+
+            // Logique du bouton Retour
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    if (otpBox && otpBox.style.display === 'block') {
+                        e.preventDefault();
+                        
+                        // Cacher la boîte OTP et réafficher le bouton d'envoi
+                        otpBox.style.display = 'none';
+                        btnSendOtp.style.display = 'block';
+                        btnSendOtp.disabled = false;
+                        btnSendOtp.innerHTML = '<i class="fas fa-paper-plane"></i> Recevoir le code par SMS';
+                        
+                        // Réactiver les champs
+                        document.getElementById('otp_contact').disabled = false;
+                        document.getElementById('otp_indicatif').disabled = false;
+                        if (otpPaysResidence) otpPaysResidence.disabled = false;
+                        if (diasporaChoice) {
+                            diasporaChoice.disabled = false;
+                            const checkboxCard = diasporaChoice.closest('.checkbox-card');
+                            if (checkboxCard) {
+                                checkboxCard.classList.remove('disabled');
+                                checkboxCard.style.display = 'flex';
+                            }
+                        }
+                        
+                        // Vider le champ de code OTP et réinitialiser le timer
+                        const otpCode = document.getElementById('otp_code');
+                        if (otpCode) otpCode.value = '';
+                        if (resendTimer) {
+                            clearInterval(resendTimer);
+                            const resendOtp = document.getElementById('resendOtp');
+                            if (resendOtp) {
+                                resendOtp.style.pointerEvents = 'auto';
+                                resendOtp.style.opacity = '1';
+                                resendOtp.innerHTML = 'Renvoyer';
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Logique du lien Renvoyer OTP
+            const resendOtp = document.getElementById('resendOtp');
+            if (resendOtp) {
+                resendOtp.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const indicatif = document.getElementById('otp_indicatif').value;
+                    const contact = document.getElementById('otp_contact').value;
+                    
+                    if (!contact) {
+                        return Swal.fire('Oups', 'Veuillez saisir votre numéro de téléphone', 'warning');
+                    }
+
+                    Swal.fire({
+                        title: 'Renvoi en cours...',
+                        text: 'Veuillez patienter pendant que nous renvoyons le code de vérification.',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch("{{ route('user.auth.otp.send') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            indicatif,
+                            contact
+                        })
+                    }).then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Succès',
+                                text: data.message,
+                                icon: 'success',
+                                timer: 5000,
+                                timerProgressBar: true
+                            });
+                            // Relancer le compte à rebours après renvoi réussi
+                            startResendCountdown();
+                        } else {
+                            Swal.fire('Erreur', data.message || 'Erreur inconnue', 'error');
+                        }
+                    }).catch(() => {
+                        Swal.fire('Erreur', 'Impossible de renvoyer le code. Veuillez réessayer.', 'error');
+                    });
+                });
+            }
         });
     </script>
 </body>
