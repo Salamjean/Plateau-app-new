@@ -398,6 +398,17 @@
                 </div>
             </div>
 
+            <!-- Pays de résidence (uniquement si diaspora) -->
+            <div id="pays-residence-wrapper" style="display: none; margin-top: 15px; animation: fadeIn 0.4s ease;">
+                <div class="form-group">
+                    <label class="form-label">Pays de résidence</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-marker-alt input-icon"></i>
+                        <input id="otp_pays_residence" class="input-field" type="text" placeholder="Ex: France">
+                    </div>
+                </div>
+            </div>
+
             <button type="button" class="submit-btn" id="btnSendOtp">
                 <i class="fas fa-paper-plane"></i> Recevoir le code par SMS
             </button>
@@ -458,18 +469,23 @@
             const diasporaChoice = document.getElementById('diaspora_choice');
             const indicatifWrapper = document.getElementById('indicatif-wrapper');
             const otpIndicatif = document.getElementById('otp_indicatif');
+            const paysResidenceWrapper = document.getElementById('pays-residence-wrapper');
+            const otpPaysResidence = document.getElementById('otp_pays_residence');
 
             if (diasporaChoice) {
                 diasporaChoice.addEventListener('change', function() {
                     if (this.checked) {
                         indicatifWrapper.style.display = 'block';
+                        paysResidenceWrapper.style.display = 'block';
                         otpIndicatif.value = '';
                         otpIndicatif.placeholder = '+33';
                         otpIndicatif.focus();
                     } else {
                         indicatifWrapper.style.display = 'none';
+                        paysResidenceWrapper.style.display = 'none';
                         otpIndicatif.value = '+225';
                         otpIndicatif.placeholder = '+225';
+                        otpPaysResidence.value = '';
                     }
                 });
             }
@@ -478,8 +494,18 @@
                 btnSendOtp.addEventListener('click', function() {
                     const indicatif = document.getElementById('otp_indicatif').value;
                     const contact = document.getElementById('otp_contact').value;
+                    const isDiaspora = diasporaChoice ? diasporaChoice.checked : false;
+                    const pays = otpPaysResidence ? otpPaysResidence.value.trim() : '';
 
-                    if (!contact) return Swal.fire('Oups', 'Veuillez saisir votre numéro', 'warning');
+                    if (isDiaspora && !indicatif) {
+                        return Swal.fire('Oups', 'Veuillez saisir votre indicatif pays', 'warning');
+                    }
+                    if (!contact) {
+                        return Swal.fire('Oups', 'Veuillez saisir votre numéro', 'warning');
+                    }
+                    if (isDiaspora && !pays) {
+                        return Swal.fire('Oups', 'Veuillez saisir votre pays de résidence', 'warning');
+                    }
 
                     this.disabled = true;
                     this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
@@ -525,7 +551,8 @@
                     const indicatif = document.getElementById('otp_indicatif').value;
                     const contact = document.getElementById('otp_contact').value;
                     const otp = document.getElementById('otp_code').value;
-                    const diaspora = document.getElementById('diaspora_choice').checked ? 1 : 0;
+                    const diaspora = diasporaChoice.checked ? 1 : 0;
+                    const pays_residence = otpPaysResidence ? otpPaysResidence.value.trim() : '';
 
                     if (!otp) return Swal.fire('Oups', 'Veuillez saisir le code reçu', 'warning');
 
@@ -542,7 +569,8 @@
                                 indicatif,
                                 contact,
                                 otp,
-                                diaspora
+                                diaspora,
+                                pays_residence
                             })
                         }).then(r => r.json())
                         .then(data => {

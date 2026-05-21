@@ -314,6 +314,7 @@ class UserAuthFlowController extends Controller
                     'contact'           => $request->contact,
                     'phone_verified_at' => now()->toDateTimeString(),
                     'diaspora'          => $request->input('diaspora') ? true : false,
+                    'pays_residence'    => $request->input('pays_residence'),
                 ],
                 'pending_google_auth' => null,
                 'pending_apple_auth'  => null,

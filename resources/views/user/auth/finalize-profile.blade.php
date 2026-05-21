@@ -393,9 +393,12 @@
             </div>
 
             @php
+                $isSocial = $isSocial ?? false;
                 $isDiasporaChecked = old('diaspora', $pendingPhone['diaspora'] ?? $user?->diaspora ?? false);
+                $showDiaspora = $isSocial || (!empty($pendingPhone) && !empty($pendingPhone['diaspora']));
             @endphp
 
+            @if($showDiaspora)
             <label class="checkbox-card" for="diaspora">
                 <input type="checkbox" name="diaspora" id="diaspora" value="1" {{ $isDiasporaChecked ? 'checked' : '' }}>
                 <span style="font-weight: 700; color: #1a1a1a;">Je réside à l'étranger (Diaspora)</span>
@@ -406,7 +409,7 @@
                     <label class="form-label">Pays de résidence</label>
                     <div class="input-wrapper">
                         <i class="fas fa-globe input-icon"></i>
-                        <input type="text" name="pays_residence" class="input-field" value="{{ old('pays_residence', $user?->pays_residence ?? '') }}" placeholder="Ex: France">
+                        <input type="text" name="pays_residence" class="input-field" value="{{ old('pays_residence', $pendingPhone['pays_residence'] ?? $user?->pays_residence ?? '') }}" placeholder="Ex: France">
                     </div>
                 </div>
                 <div class="form-group">
@@ -417,6 +420,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <button type="submit" class="submit-btn">
                 <i class="fas fa-check-circle"></i> Terminer l'inscription
@@ -425,9 +429,15 @@
     </div>
 
     <script>
-        document.getElementById('diaspora').addEventListener('change', function() {
-            document.getElementById('diasporaBox').classList.toggle('active', this.checked);
-        });
+        const diasporaCheckbox = document.getElementById('diaspora');
+        if (diasporaCheckbox) {
+            diasporaCheckbox.addEventListener('change', function() {
+                const diasporaBox = document.getElementById('diasporaBox');
+                if (diasporaBox) {
+                    diasporaBox.classList.toggle('active', this.checked);
+                }
+            });
+        }
 
         function togglePasswordVisibility(inputId, btn) {
             const input = document.getElementById(inputId);
