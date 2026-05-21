@@ -392,6 +392,14 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                <label class="form-label">Ville de résidence</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-city input-icon"></i>
+                    <input type="text" name="ville_residence" class="input-field" value="{{ old('ville_residence', $user?->ville_residence ?? '') }}" placeholder="Ex: Paris">
+                </div>
+            </div>
+
             @php
                 $isSocial = $isSocial ?? false;
                 $isDiasporaChecked = old('diaspora', $pendingPhone['diaspora'] ?? $user?->diaspora ?? false);
@@ -399,24 +407,17 @@
             @endphp
 
             @if($showDiaspora)
-            <label class="checkbox-card" for="diaspora">
+            <label class="checkbox-card full-width" for="diaspora">
                 <input type="checkbox" name="diaspora" id="diaspora" value="1" {{ $isDiasporaChecked ? 'checked' : '' }}>
                 <span style="font-weight: 700; color: #1a1a1a;">Je réside à l'étranger (Diaspora)</span>
             </label>
 
             <div class="diaspora-fields {{ $isDiasporaChecked ? 'active' : '' }}" id="diasporaBox">
-                <div class="form-group">
+                <div class="form-group full-width">
                     <label class="form-label">Pays de résidence</label>
                     <div class="input-wrapper">
                         <i class="fas fa-globe input-icon"></i>
                         <input type="text" name="pays_residence" class="input-field" value="{{ old('pays_residence', $pendingPhone['pays_residence'] ?? $user?->pays_residence ?? '') }}" placeholder="Ex: France">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Ville de résidence</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-city input-icon"></i>
-                        <input type="text" name="ville_residence" class="input-field" value="{{ old('ville_residence', $user?->ville_residence ?? '') }}" placeholder="Ex: Paris">
                     </div>
                 </div>
             </div>
