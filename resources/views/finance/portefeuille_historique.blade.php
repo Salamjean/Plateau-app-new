@@ -65,6 +65,64 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(31, 64, 131, 0.3);
         }
+
+        /* Styles Premium pour la Pagination */
+        .pagination-premium {
+            display: flex;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            margin: 0;
+        }
+
+        .pagination-premium .page-item {
+            display: inline-block;
+        }
+
+        .pagination-premium .page-item .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50% !important;
+            border: 1px solid var(--neutral-200);
+            background: white;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .pagination-premium .page-item .page-link:hover {
+            background: var(--primary);
+            color: white !important;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 15px rgba(31, 64, 131, 0.25);
+            border-color: var(--primary);
+        }
+
+        .pagination-premium .page-item.active .page-link {
+            background: var(--primary);
+            color: white !important;
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px rgba(31, 64, 131, 0.35);
+            transform: scale(1.05);
+        }
+
+        .pagination-premium .page-item.disabled .page-link {
+            background: rgba(241, 245, 249, 0.5);
+            color: #94a3b8 !important;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
     </style>
 
     <div class="portefeuille-page">
@@ -192,7 +250,46 @@
 
             <!-- Pagination -->
             <div class="mt-4 d-flex justify-content-center">
-                {{ $transactions->links() }}
+                @if ($transactions->hasPages())
+                    <nav class="d-flex justify-content-center align-items-center">
+                        <ul class="pagination pagination-premium">
+                            {{-- Bouton Page Précédente --}}
+                            @if ($transactions->onFirstPage())
+                                <li class="page-item disabled" aria-disabled="true">
+                                    <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $transactions->appends(request()->query())->previousPageUrl() }}" rel="prev"><i class="fas fa-chevron-left"></i></a>
+                                </li>
+                            @endif
+
+                            {{-- Éléments de pages --}}
+                            @foreach ($transactions->appends(request()->query())->getUrlRange(max(1, $transactions->currentPage() - 2), min($transactions->lastPage(), $transactions->currentPage() + 2)) as $page => $url)
+                                @if ($page == $transactions->currentPage())
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link">{{ $page }}</span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                    </li>
+                                @endif
+                            @endforeach
+
+                            {{-- Bouton Page Suivante --}}
+                            @if ($transactions->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $transactions->appends(request()->query())->nextPageUrl() }}" rel="next"><i class="fas fa-chevron-right"></i></a>
+                                </li>
+                            @else
+                                <li class="page-item disabled" aria-disabled="true">
+                                    <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+                @endif
             </div>
         </div>
     </div>
