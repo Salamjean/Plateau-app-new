@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="shortcut icon" href="{{asset('assets/assets/img/logo plateau.png')}}" />
-    <title>Finaliser le profil - Plateau App</title>
+    <title>Finaliser le profil - Utilisateur</title>
     <style>
         :root {
             --primary-color: #1f4083;
@@ -392,12 +392,16 @@
                 </div>
             </div>
 
+            @php
+                $isDiasporaChecked = old('diaspora', $pendingPhone['diaspora'] ?? $user?->diaspora ?? false);
+            @endphp
+
             <label class="checkbox-card" for="diaspora">
-                <input type="checkbox" name="diaspora" id="diaspora" value="1" {{ old('diaspora', $user?->diaspora ?? false) ? 'checked' : '' }}>
+                <input type="checkbox" name="diaspora" id="diaspora" value="1" {{ $isDiasporaChecked ? 'checked' : '' }}>
                 <span style="font-weight: 700; color: #1a1a1a;">Je réside à l'étranger (Diaspora)</span>
             </label>
 
-            <div class="diaspora-fields {{ old('diaspora', $user?->diaspora ?? false) ? 'active' : '' }}" id="diasporaBox">
+            <div class="diaspora-fields {{ $isDiasporaChecked ? 'active' : '' }}" id="diasporaBox">
                 <div class="form-group">
                     <label class="form-label">Pays de résidence</label>
                     <div class="input-wrapper">

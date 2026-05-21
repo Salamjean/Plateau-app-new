@@ -525,6 +525,7 @@
                     const indicatif = document.getElementById('otp_indicatif').value;
                     const contact = document.getElementById('otp_contact').value;
                     const otp = document.getElementById('otp_code').value;
+                    const diaspora = document.getElementById('diaspora_choice').checked ? 1 : 0;
 
                     if (!otp) return Swal.fire('Oups', 'Veuillez saisir le code reçu', 'warning');
 
@@ -540,7 +541,8 @@
                             body: JSON.stringify({
                                 indicatif,
                                 contact,
-                                otp
+                                otp,
+                                diaspora
                             })
                         }).then(r => r.json())
                         .then(data => {

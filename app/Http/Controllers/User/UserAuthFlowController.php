@@ -313,6 +313,7 @@ class UserAuthFlowController extends Controller
                     'indicatif'         => $request->indicatif,
                     'contact'           => $request->contact,
                     'phone_verified_at' => now()->toDateTimeString(),
+                    'diaspora'          => $request->input('diaspora') ? true : false,
                 ],
                 'pending_google_auth' => null,
                 'pending_apple_auth'  => null,
@@ -373,7 +374,7 @@ class UserAuthFlowController extends Controller
                        || ($user && (!empty($user->google_id) || !empty($user->apple_id)));
         $isPhoneNew  = !empty($pendingPhone);
 
-        return view('user.auth.finalize-profile', compact('user', 'pendingData', 'isSocial', 'isPhoneNew'));
+        return view('user.auth.finalize-profile', compact('user', 'pendingData', 'isSocial', 'isPhoneNew', 'pendingPhone'));
     }
 
     /**
