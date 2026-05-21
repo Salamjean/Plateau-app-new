@@ -439,7 +439,13 @@
                         }).then(r => r.json())
                         .then(data => {
                             if (data.success) {
-                                Swal.fire('Succès', data.message, 'success');
+                                Swal.fire({
+                                    title: 'Succès',
+                                    text: data.message,
+                                    icon: 'success',
+                                    timer: 5000,
+                                    timerProgressBar: true
+                                });
                                 otpBox.style.display = 'block';
                                 btnSendOtp.style.display = 'none';
                             } else {
