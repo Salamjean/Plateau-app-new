@@ -1,282 +1,294 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Acte de Mariage</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: Helvetica, Arial, sans-serif !important;
         }
-        html, body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 9pt;
-            line-height: 1.2;
+
+        html,
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #000000;
+            background-color: #fff;
         }
+
         @page {
-            size: A6 landscape;
-            margin: 0mm 5mm;
+            size: 80mm 210mm;
+            margin: 4mm 4mm;
         }
 
         .etiquette-content {
-            display: flex;
-            padding: 2px 5px 0 5px;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 95%;
-        }
-        .etiquette-header {
-            background-color: #000;
-            color: #fff;
-            text-align: center;
-            padding: 3px 0;
-            font-weight: bold;
-            font-size: 12pt;
-            letter-spacing: 5px;
-            margin-bottom: 4mm;
-            flex-shrink: 0;
-        }
-
-        .info-header-table,
-        .details-table,
-        .reference-table {
             width: 100%;
-            border-collapse: collapse;
+            height: 100%;
+        }
+
+        /* Modern header */
+        .etiquette-header {
+            background-color: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            text-align: center;
+            padding: 7px 0;
+            font-size: 11pt;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             margin-bottom: 4mm;
-            flex-shrink: 0;
-        }
-        .reference-table {
-            margin-bottom: 0;
-            min-height: 20mm;
+            border-radius: 4px;
         }
 
-        /* Section 1 */
-        .info-header-table {
-            border: none;
-            min-height: 20mm;
-        }
-        .info-header-table td {
-            vertical-align: middle;
-            border: none;
-        }
-        .logo-cell { width: 33%; text-align: left; }
-        .address-cell { width: 34%; text-align: center; }
-        .qr-cell   { width: 33%; text-align: right; }
-
-        .custom-logo {
-            max-width: 100%;
-            max-height: 18mm;
-            display: block;
-            margin-right: auto;
-        }
-        .address-details {
-            font-size: 8pt;
-            font-weight: bold;
-            line-height: 1.3;
-        }
-        .address-details strong {
-            font-size: 9pt;
-            display: block;
-            margin-bottom: 1mm;
-        }
-        .qr-code-img-header {
-            max-width: 100%;
-            max-height: 22mm;
-            display: block;
-            margin-left: auto;
-        }
-        .qr-placeholder {
-            font-size: 8pt;
-            color: #666;
-            text-align: center;
-            padding: 5mm 0;
+        /* Information Grid */
+        .grid-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 4mm;
         }
 
-        /* Section 2 */
-        .details-table {
-            border: 1.5pt solid #000;
+        .grid-card {
+            border: 1px solid #000000;
+            border-radius: 4px;
+            padding: 8px 10px;
+            background: #ffffff;
         }
-        .details-table th {
-            background-color: #E0E0E0;
-            font-weight: bold;
-            font-size: 8.5pt;
-            border: 0.5pt solid #000;
-            text-align: center;
-            padding: 1mm 1.5mm;
+
+        .card-label {
+            font-size: 7.5pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #444444;
+            display: block;
+            margin-bottom: 4px;
+            border-bottom: 0.5px solid #dddddd;
+            padding-bottom: 2px;
         }
-        .details-table td {
-            border: 0.5pt solid #000;
-            vertical-align: top;
+
+        .card-value {
+            font-size: 10pt;
+            color: #000000;
+            line-height: 1.4;
+        }
+
+        .card-value-large {
             font-size: 12pt;
-            font-weight: bold;
-            line-height: 1.1;
-            padding: 1mm 1.5mm;
+            color: #000000;
+            margin-bottom: 4px;
         }
-        .date-cell { width: 22%; text-align: center; font-size: 11pt; }
-        .dest-cell { width: 48%; }
-        .exp-cell  { width: 30%; }
 
         .sub-info {
             font-size: 10pt;
-            font-weight: normal;
-            margin-top: 1mm;
+            color: #111111;
         }
 
-        /* Section 3 */
-        .reference-table {
-            border: 1.5pt solid #000;
-            display: table;
-            table-layout: fixed;
+        /* Large Reference Footer Box */
+        .footer-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 2mm;
         }
-        .reference-table td {
-            vertical-align: middle;
-            font-size: 12pt;
-            font-weight: bold;
-            border: 0.5pt solid #000;
-            padding: 1mm 2mm;
-        }
-        .ref-cell { width: 70%; border-right: 1pt solid #000; text-align: left; }
-        .count-cell { width: 30%; text-align: center; }
 
-        .qr-code-img-ref {
-            max-width: 12mm;
-            max-height: 12mm;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 2mm;
+        .ref-card {
+            border: 2px solid #000000;
+            border-radius: 4px;
+            padding: 10px 12px;
+            background-color: #ffffff;
         }
+
         .reference-number {
-            font-size: 26pt;
-            font-weight: bold;
-            line-height: 1;
-            max-width: calc(100% - 14mm - 2mm);
-            word-wrap: break-word;
-        }
-        .type-colis-info {
-            font-size: 8pt;
-            margin-top: 1mm;
+            font-size: 21pt;
+            letter-spacing: 1px;
+            line-height: 1.1;
+            color: #000000;
             text-align: center;
-            word-wrap: break-word;
+            margin-top: 3px;
         }
+
+        .type-colis-badge {
+            font-size: 8.5pt;
+            color: #333333;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .counter-card {
+            border: 1px solid #000000;
+            border-radius: 4px;
+            background-color: #ffffff;
+            text-align: center;
+            padding: 8px 4px;
+        }
+
         .counter-text {
-            font-size: 26pt;
-            font-weight: bold;
-            line-height: 1;
-            margin-bottom: 1mm;
+            font-size: 16pt;
+            line-height: 1.1;
         }
-        .destination-text {
-            font-size: 9pt;
-            font-weight: bold;
+
+        .counter-label {
+            font-size: 6.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #555555;
+        }
+
+        .custom-logo {
+            max-height: 14mm;
+            max-width: 100%;
             display: block;
+            margin: 0 auto;
+        }
+
+        .qr-img {
+            max-height: 17mm;
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .qr-placeholder {
+            font-size: 8pt;
+            color: #888888;
+            border: 1px dashed #cccccc;
+            padding: 6px;
+            text-align: center;
+            border-radius: 3px;
+        }
+
+        .bw-logo {
+            filter: grayscale(100%);
         }
 
         .etiquette-page:not(.last-page) {
             page-break-after: always !important;
         }
-
-        .bw-logo {
-            filter: grayscale(100%) contrast(150%);
-        }
-        
-        .document-type {
-            font-size: 10pt;
-            font-weight: bold;
-            text-align: center;
-            margin-top: 2mm;
-        }
     </style>
-</head>
-<body>
-    <div class="etiquette-page last-page">
-        <div class="etiquette-content">
-            <div class="etiquette-header">
-                ACTE DE MARIAGE - LIVRAISON
+    </head>
+
+    <body>
+        <div class="etiquette-page last-page">
+            <div class="etiquette-content">
+                <!-- Sleek Badge Header -->
+                <div class="etiquette-header">
+                    ACTE DE MARIAGE • LIVRAISON
+                </div>
+
+                <!-- Block 1: Municipal Identity & Logos -->
+                <table class="grid-table" style="margin-bottom: 3mm;">
+                    <tr>
+                        <td class="grid-card">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="width: 25%; text-align: center; vertical-align: middle;">
+                                        @if (file_exists(public_path('assets/assets/img/logo plateau.png')))
+                                            <img src="{{ public_path('assets/assets/img/logo plateau.png') }}"
+                                                class="custom-logo" alt="Logo">
+                                        @else
+                                            <span class="qr-placeholder"
+                                                style="display: block; padding: 4px 0;">Logo</span>
+                                        @endif
+                                    </td>
+                                    <td style="width: 50%; text-align: center; vertical-align: middle; padding: 0 5px;">
+                                        <div style="font-size: 9.5pt; letter-spacing: 0.5px;">MAIRIE DE PLATEAU</div>
+                                        <div class="etat-civil-title"
+                                            style="font-size: 9.5pt; color: #000000; margin-top: 1px;">État Civil •
+                                            Mariages</div>
+                                    </td>
+                                    <td style="width: 25%; text-align: center; vertical-align: middle;">
+                                        @if ($naissance->qr_code_path && file_exists(public_path('storage/' . $naissance->qr_code_path)))
+                                            <img src="{{ public_path('storage/' . $naissance->qr_code_path) }}"
+                                                class="qr-img" style="max-height: 14mm;" alt="QR Code">
+                                        @else
+                                            <div class="qr-placeholder" style="padding: 4px 0;">QR</div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Block 2: Date and Expéditeur (Side by Side in 1 box) -->
+                <table class="grid-table" style="margin-bottom: 3mm;">
+                    <tr>
+                        <td class="grid-card">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="width: 50%; border-right: 1px solid #dddddd; padding-right: 5px;">
+                                        <span
+                                            style="font-size: 9.5pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Date
+                                            Demande</span>
+                                        <div class="card-value">
+                                            {{ $naissance->created_at->format('d/m/Y') }}
+                                            <span style="font-size: 8.5pt; color: #00000; margin-left: 3px;">
+                                                {{ $naissance->created_at->format('H:i') }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="width: 50%; padding-left: 8px;">
+                                        <span
+                                            style="font-size: 9.5pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Expéditeur</span>
+                                        <div class="card-value">Mairie de {{ $naissance->commune ?? 'Plateau' }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Block 3: Destinataire (Main big block) -->
+                <table class="grid-table" style="margin-bottom: 3mm;">
+                    <tr>
+                        <td class="grid-card" style="padding: 10px 12px;">
+                            <span
+                                style="font-size: 9pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Destinataire
+                                & Adresse de Livraison</span>
+                            <div class="card-value-large" style="font-size: 10pt; margin-bottom: 6px;">
+                                Dest. : {{ $naissance->nom_destinataire ?? $naissance->user->name }}
+                                {{ $naissance->prenom_destinataire ?? $naissance->user->prenom }}
+                            </div>
+                            <div class="sub-info" style="font-size: 10pt; line-height: 1.5;">
+                                Téléphone : {{ $naissance->contact_destinataire ?? $naissance->user->contact }} <br>
+                                Adresse : {{ $naissance->adresse_livraison ?? 'Adresse non spécifiée' }}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Block 4: Reference & Tracking (Barcode/QR & Counter) -->
+                <table class="footer-table">
+                    <tr>
+                        <td class="ref-card" style="width: 75%; vertical-align: middle;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="width: 15%; vertical-align: middle; text-align: left;">
+                                        @if ($naissance->qr_code_path && file_exists(public_path('storage/' . $naissance->qr_code_path)))
+                                            <img src="{{ public_path('storage/' . $naissance->qr_code_path) }}"
+                                                style="max-height: 12mm; display: block;" alt="QR Ref">
+                                        @endif
+                                    </td>
+                                    <td style="width: 85%; vertical-align: middle; padding-left: 8px;">
+                                        <span class="card-label"
+                                            style="font-size: 9pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">RÉFÉRENCE
+                                            DE LIVRAISON</span>
+                                        <div class="reference-number" style="text-align: left; font-size: 18pt;">
+                                            {{ $naissance->livraison_code }}</div>
+                                        <div class="type-colis-badge"
+                                            style="font-size: 7pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">
+                                            Extrait de Mariage
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
             </div>
-
-            {{-- Section Logo / Adresse / QR --}}
-            <table class="info-header-table">
-                <tr>
-                    <td class="logo-cell">
-                        @if(file_exists(public_path('assets/assets/img/logo plateau.png')))
-                            <img src="{{ public_path('assets/assets/img/logo plateau.png') }}" class="custom-logo bw-logo" alt="Logo">
-                        @else
-                            <p style="font-size:7pt;color:red;">Logo absent</p>
-                        @endif
-                    </td>
-                    <td class="address-cell">
-                        <div class="address-details">
-                            <strong>MAIRIE - ÉTAT CIVIL</strong>
-                            Service des Actes de mariage<br>
-                            @if(isset($mairie_adresse))
-                                {{ $mairie_adresse }}<br>
-                            @endif
-                            @if(isset($mairie_telephone))
-                                Tél: {{ $mairie_telephone }}
-                            @endif
-                        </div>
-                    </td>
-                    <td class="qr-cell">
-                        @if($naissance->qr_code_path && file_exists(public_path('storage/' . $naissance->qr_code_path)))
-                            <img src="{{ public_path('storage/' . $naissance->qr_code_path) }}" class="qr-code-img-header" alt="QR Code">
-                        @else
-                            <div class="qr-placeholder">QR Code<br>Absent</div>
-                        @endif
-                    </td>
-                </tr>
-            </table>
-
-            {{-- Section Détails --}}
-            <table class="details-table">
-                <thead>
-                    <tr>
-                        <th>DATE DEMANDE</th>
-                        <th>DESTINATAIRE</th>
-                        <th>EXPEDITEUR</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="date-cell">
-                            <span>{{ $naissance->created_at->format('d/m/Y') }}</span><br>
-                            <span style="font-size:8pt;">{{ $naissance->created_at->format('H:i') }}</span>
-                        </td>
-                        <td class="dest-cell" style="text-align: center">
-                            <span>Nom & prénoms :{{ $naissance->nom_destinataire ?? $naissance->user->name }} {{ $naissance->prenom_destinataire ?? $naissance->user->prenom }}</span><br>
-                            <span>Email :{{ $naissance->email_destinataire ?? $naissance->user->contact }}</span><br>
-                            <span>Contact :{{ $naissance->contact_destinataire ?? $naissance->user->contact }}</span><br>
-                            <span class="sub-info">Adresse :{{ $naissance->adresse_livraison ?? 'Adresse non spécifiée' }}</span><br>
-                            <span class="sub-info">Ville :{{ $naissance->ville ?? 'Ville non spécifiée' }}</span><br>
-                            <span class="sub-info">Quartier :{{ $naissance->quartier ?? 'quartier non spécifiée' }}</span><br>
-                            <span class="sub-info">Code Postal :{{ $naissance->code_postal ?? 'Code postal non spécifiée' }}</span><br>
-                        </td>
-                        <td class="exp-cell" style="text-align: center">
-                            <span>Service État Civil</span><br>
-                            <span class="sub-info">Mairie de <strong>{{ $naissance->commune ?? 'Ville non spécifiée' }}</strong></span>
-                            <img src="{{ public_path('assets/assets/img/plateau-mart.png') }}" class="custom-logo bw-logo" alt="Logo">
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            {{-- Section Référence / Compteur --}}
-            <table class="reference-table">
-                <tr>
-                    <td class="ref-cell">
-                        <div style="text-align:center;margin-top:1mm;">
-                            @if($naissance->qr_code_path && file_exists(public_path('storage/' . $naissance->qr_code_path)))
-                                <img src="{{ public_path('storage/' . $naissance->qr_code_path) }}" class="qr-code-img-ref" alt="QR Ref">
-                            @endif
-                            <span class="reference-number">{{ $naissance->livraison_code }}</span>
-                        </div>
-                    </td>
-                    <td class="count-cell">
-                        <span class="counter-text">1 / 1</span>
-                        <span class="destination-text">LIVRAISON À DOMICILE</span>
-                    </td>
-                </tr>
-            </table>
         </div>
-    </div>
-</body>
-</html>
+    </body>
+
+    </html>
