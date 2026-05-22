@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Auth;
 
 class MairieDashboard extends Controller
 {
+    private function excludeRetraitSurPlace($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('choix_option')
+                ->orWhere('choix_option', '!=', 'Retrait sur place');
+        });
+    }
+
     public function dashboard(Request $request)
     {
         Carbon::setLocale('fr');
@@ -74,24 +82,30 @@ class MairieDashboard extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = Naissance::where('commune', $mairie->name)
-            ->paye()
+        $naissancesMonth = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $mairie->name)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $mariagesMonth = Mariage::where('commune', $mairie->name)
-            ->paye()
+        $mariagesMonth = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $mairie->name)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalMariageMonth = $mariagesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $decesMonth = Deces::where('commune', $mairie->name)
-            ->paye()
+        $decesMonth = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $mairie->name)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalDecesMonth = $decesMonth->sum(function ($item) {
@@ -202,8 +216,10 @@ class MairieDashboard extends Controller
         $mairie = Auth::guard('mairie')->user();
 
         // Calcul dynamique des timbres Naissance perçus en ligne
-        $naissances = Naissance::where('commune', $mairie->name)
-            ->paye()
+        $naissances = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $mairie->name)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalNaissance = $naissances->sum(function ($item) {
@@ -211,8 +227,10 @@ class MairieDashboard extends Controller
         });
 
         // Calcul dynamique des timbres Mariage perçus en ligne
-        $mariages = Mariage::where('commune', $mairie->name)
-            ->paye()
+        $mariages = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $mairie->name)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalMariage = $mariages->sum(function ($item) {
@@ -220,8 +238,10 @@ class MairieDashboard extends Controller
         });
 
         // Calcul dynamique des timbres Décès perçus en ligne
-        $deces = Deces::where('commune', $mairie->name)
-            ->paye()
+        $deces = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $mairie->name)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalDeces = $deces->sum(function ($item) {
@@ -239,24 +259,30 @@ class MairieDashboard extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = Naissance::where('commune', $mairie->name)
-            ->paye()
+        $naissancesMonth = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $mairie->name)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $mariagesMonth = Mariage::where('commune', $mairie->name)
-            ->paye()
+        $mariagesMonth = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $mairie->name)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalMariageMonth = $mariagesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $decesMonth = Deces::where('commune', $mairie->name)
-            ->paye()
+        $decesMonth = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $mairie->name)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalDecesMonth = $decesMonth->sum(function ($item) {
@@ -354,18 +380,24 @@ class MairieDashboard extends Controller
         $mairie = Auth::guard('mairie')->user();
 
         // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
-        $naissances = Naissance::where('commune', $mairie->name)
-            ->paye()
+        $naissances = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $mairie->name)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
-        $mariages = Mariage::where('commune', $mairie->name)
-            ->paye()
+        $mariages = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $mairie->name)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
-        $deces = Deces::where('commune', $mairie->name)
-            ->paye()
+        $deces = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $mairie->name)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
@@ -557,7 +589,7 @@ class MairieDashboard extends Controller
 
         // Récupérer les reversements actuels en session
         $reversements = session()->get('mairie_reversements_' . $mairie->id, []);
-        
+
         // Enregistrer le nouveau reversement
         $reversements[] = [
             'reference' => 'REV-' . strtoupper(bin2hex(random_bytes(4))),

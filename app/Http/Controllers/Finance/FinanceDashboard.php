@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\Auth;
 
 class FinanceDashboard extends Controller
 {
+    private function excludeRetraitSurPlace($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('choix_option')
+                ->orWhere('choix_option', '!=', 'Retrait sur place');
+        });
+    }
+
     public function dashboard()
     {
         // Récupérer l'utilisateur connecté
@@ -143,24 +151,30 @@ class FinanceDashboard extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = Naissance::where('commune', $finance->communeM)
-            ->paye()
+        $naissancesMonth = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $mariagesMonth = Mariage::where('commune', $finance->communeM)
-            ->paye()
+        $mariagesMonth = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalMariageMonth = $mariagesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $decesMonth = Deces::where('commune', $finance->communeM)
-            ->paye()
+        $decesMonth = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalDecesMonth = $decesMonth->sum(function ($item) {
@@ -287,8 +301,10 @@ class FinanceDashboard extends Controller
         $finance = Auth::guard('finance')->user();
 
         // Calcul dynamique des timbres Naissance perçus en ligne
-        $naissances = Naissance::where('commune', $finance->communeM)
-            ->paye()
+        $naissances = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalNaissance = $naissances->sum(function ($item) {
@@ -296,8 +312,10 @@ class FinanceDashboard extends Controller
         });
 
         // Calcul dynamique des timbres Mariage perçus en ligne
-        $mariages = Mariage::where('commune', $finance->communeM)
-            ->paye()
+        $mariages = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalMariage = $mariages->sum(function ($item) {
@@ -305,8 +323,10 @@ class FinanceDashboard extends Controller
         });
 
         // Calcul dynamique des timbres Décès perçus en ligne
-        $deces = Deces::where('commune', $finance->communeM)
-            ->paye()
+        $deces = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalDeces = $deces->sum(function ($item) {
@@ -323,24 +343,30 @@ class FinanceDashboard extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = Naissance::where('commune', $finance->communeM)
-            ->paye()
+        $naissancesMonth = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $mariagesMonth = Mariage::where('commune', $finance->communeM)
-            ->paye()
+        $mariagesMonth = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalMariageMonth = $mariagesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $decesMonth = Deces::where('commune', $finance->communeM)
-            ->paye()
+        $decesMonth = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalDecesMonth = $decesMonth->sum(function ($item) {
@@ -406,18 +432,24 @@ class FinanceDashboard extends Controller
         $finance = Auth::guard('finance')->user();
 
         // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
-        $naissances = Naissance::where('commune', $finance->communeM)
-            ->paye()
+        $naissances = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
-        $mariages = Mariage::where('commune', $finance->communeM)
-            ->paye()
+        $mariages = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
-        $deces = Deces::where('commune', $finance->communeM)
-            ->paye()
+        $deces = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $finance->communeM)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
@@ -609,7 +641,7 @@ class FinanceDashboard extends Controller
 
         // Récupérer les reversements actuels en session
         $reversements = session()->get('finance_reversements_' . $finance->id, []);
-        
+
         // Enregistrer le nouveau reversement
         $reversements[] = [
             'reference' => 'REV-' . strtoupper(bin2hex(random_bytes(4))),

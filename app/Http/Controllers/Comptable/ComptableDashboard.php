@@ -14,6 +14,14 @@ use Illuminate\Support\Facades\DB;
 
 class ComptableDashboard extends Controller
 {
+    private function excludeRetraitSurPlace($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('choix_option')
+                ->orWhere('choix_option', '!=', 'Retrait sur place');
+        });
+    }
+
     public function dashboard()
     {
         // Récupérer l'utilisateur connecté (comptable)
@@ -172,24 +180,30 @@ class ComptableDashboard extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = Naissance::where('commune', $commune)
-            ->paye()
+        $naissancesMonth = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $commune)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $mariagesMonth = Mariage::where('commune', $commune)
-            ->paye()
+        $mariagesMonth = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $commune)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalMariageMonth = $mariagesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $decesMonth = Deces::where('commune', $commune)
-            ->paye()
+        $decesMonth = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $commune)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalDecesMonth = $decesMonth->sum(function ($item) {
@@ -287,8 +301,10 @@ class ComptableDashboard extends Controller
         $commune = $comptable->communeM;
 
         // Calcul dynamique des timbres Naissance perçus en ligne
-        $naissances = Naissance::where('commune', $commune)
-            ->paye()
+        $naissances = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $commune)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalNaissance = $naissances->sum(function ($item) {
@@ -296,8 +312,10 @@ class ComptableDashboard extends Controller
         });
 
         // Calcul dynamique des timbres Mariage perçus en ligne
-        $mariages = Mariage::where('commune', $commune)
-            ->paye()
+        $mariages = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $commune)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalMariage = $mariages->sum(function ($item) {
@@ -305,8 +323,10 @@ class ComptableDashboard extends Controller
         });
 
         // Calcul dynamique des timbres Décès perçus en ligne
-        $deces = Deces::where('commune', $commune)
-            ->paye()
+        $deces = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $commune)
+                ->paye()
+        )
             ->with('user')
             ->get();
         $totalDeces = $deces->sum(function ($item) {
@@ -323,24 +343,30 @@ class ComptableDashboard extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = Naissance::where('commune', $commune)
-            ->paye()
+        $naissancesMonth = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $commune)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $mariagesMonth = Mariage::where('commune', $commune)
-            ->paye()
+        $mariagesMonth = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $commune)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalMariageMonth = $mariagesMonth->sum(function ($item) {
             return $item->montant_timbre ?? 500;
         });
 
-        $decesMonth = Deces::where('commune', $commune)
-            ->paye()
+        $decesMonth = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $commune)
+                ->paye()
+        )
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
         $totalDecesMonth = $decesMonth->sum(function ($item) {
@@ -407,18 +433,24 @@ class ComptableDashboard extends Controller
         $commune = $comptable->communeM;
 
         // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
-        $naissances = Naissance::where('commune', $commune)
-            ->paye()
+        $naissances = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $commune)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
-        $mariages = Mariage::where('commune', $commune)
-            ->paye()
+        $mariages = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $commune)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
-        $deces = Deces::where('commune', $commune)
-            ->paye()
+        $deces = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $commune)
+                ->paye()
+        )
             ->with('user')
             ->get();
 
@@ -501,16 +533,22 @@ class ComptableDashboard extends Controller
         $year = $request->input('year', Carbon::now()->format('Y'));
 
         // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
-        $naissances = Naissance::where('commune', $commune)
-            ->paye()
+        $naissances = $this->excludeRetraitSurPlace(
+            Naissance::where('commune', $commune)
+                ->paye()
+        )
             ->get();
 
-        $mariages = Mariage::where('commune', $commune)
-            ->paye()
+        $mariages = $this->excludeRetraitSurPlace(
+            Mariage::where('commune', $commune)
+                ->paye()
+        )
             ->get();
 
-        $deces = Deces::where('commune', $commune)
-            ->paye()
+        $deces = $this->excludeRetraitSurPlace(
+            Deces::where('commune', $commune)
+                ->paye()
+        )
             ->get();
 
         $feed = collect();
@@ -620,7 +658,7 @@ class ComptableDashboard extends Controller
 
         // Récupérer les reversements actuels en session
         $reversements = session()->get('mairie_reversements_' . $mairieObj->id, []);
-        
+
         // Enregistrer le nouveau reversement
         $reversements[] = [
             'reference' => 'REV-' . strtoupper(bin2hex(random_bytes(4))),
