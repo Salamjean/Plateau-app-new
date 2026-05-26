@@ -164,9 +164,7 @@ class NaissanceController extends Controller
                 'in:enfant,parent,connaissance'
             ],
             'document_autorisation' => [
-                \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
-                    return $request->pour === 'une_autre_personne' && in_array($request->type, ['integrale', 'groupee']) && $request->relation === 'connaissance';
-                }),
+                'required_if:relation,connaissance',
                 'nullable',
                 'file',
                 'mimes:jpeg,png,jpg,pdf',

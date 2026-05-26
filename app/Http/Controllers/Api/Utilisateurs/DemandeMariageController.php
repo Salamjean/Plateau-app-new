@@ -67,26 +67,13 @@ class DemandeMariageController extends Controller
             'pieceIdentite' => 'required',
             'extraitMariage' => 'nullable',
             'commune_mariage' => 'required|string',
+            'pour' => 'nullable|string|max:255',
+            'relation' => 'nullable|string|in:enfant,parent,connaissance',
+            'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
-        }
-
-        // Validation IA Gemini de la pièce d'identité pieceIdentite
-        if ($request->hasFile('pieceIdentite')) {
-            try {
-                $geminiService = app(\App\Services\GeminiValidationService::class);
-                $validation = $geminiService->validateIdentityDocument($request->file('pieceIdentite'));
-                if (!$validation['isValid']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "La pièce d'identité a été rejetée par l'IA de la mairie : " . $validation['reason']
-                    ], 422);
-                }
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de la validation Gemini pour l\'API Mariage : ' . $e->getMessage());
-            }
         }
 
         try {
@@ -96,6 +83,7 @@ class DemandeMariageController extends Controller
             $filesToUpload = [
                 'pieceIdentite' => 'identite',
                 'extraitMariage' => 'extrait',
+                'document_autorisation' => 'autorisations',
             ];
             $uploadedPaths = [];
             foreach ($filesToUpload as $fileKey => $subDir) {
@@ -119,6 +107,9 @@ class DemandeMariageController extends Controller
 
             // 4. Création de la demande (Spécifique au Mariage)
             $mariage = new Mariage();
+            $mariage->pour = $request->pour;
+            $mariage->relation = $request->relation;
+            $mariage->document_autorisation = $uploadedPaths['document_autorisation'] ?? null;
             $mariage->type = $request->input('typeDemande'); // Harmonisation (simple, integrale, groupee)
             $mariage->nomEpoux = $request->nomEpoux;
             $mariage->prenomEpoux = $request->prenomEpoux;

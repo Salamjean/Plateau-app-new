@@ -86,6 +86,38 @@ class DemandeNaissanceController extends Controller
             'quartier' => 'nullable|string|max:255',
         ]);
 
+        // 1. Validation (Spécifique à Naissance)
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|string|max:255',
+            'pour' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'number' => 'nullable|string|max:255',
+            'DateR' => 'nullable|date',
+            'commune' => 'required|string|max:255',
+            'commune_naissance' => 'required|string|max:255',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
+            'CNI' => 'required',
+            'nom_prenoms_pere' => 'nullable|string|max:255',
+            'nom_prenoms_mere' => 'nullable|string|max:255',
+            'choix_option' => 'required|in:retrait,livraison',
+            'montant_timbre' => 'required_if:choix_option,livraison|numeric',
+            'montant_livraison' => 'required_if:choix_option,livraison|numeric',
+            'nom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
+            'prenom_destinataire' => 'required_if:choix_option,livraison|string|max:255',
+            'email_destinataire' => 'nullable|email',
+            'contact_destinataire' => 'required_if:choix_option,livraison|string|max:20',
+            'adresse_livraison' => 'required_if:choix_option,livraison|string|max:500',
+            'code_postal' => 'nullable|string|max:10',
+            'ville' => 'nullable|string|max:255',
+            'commune_livraison' => 'nullable|string|max:255',
+            'quartier' => 'nullable|string|max:255',
+            'relation' => 'nullable|string|in:enfant,parent,connaissance',
+            'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+        ]);
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -94,27 +126,10 @@ class DemandeNaissanceController extends Controller
             ], 422);
         }
 
-        // Validation IA Gemini de la pièce d'identité CNI
-        if ($request->hasFile('CNI')) {
-            try {
-                $geminiService = app(\App\Services\GeminiValidationService::class);
-                $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
-                if (!$validation['isValid']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "La pièce d'identité (CNI) a été rejetée par l'IA de la mairie : " . $validation['reason']
-                    ], 422);
-                }
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de la validation Gemini pour l\'API : ' . $e->getMessage());
-                // On peut décider de laisser passer ou bloquer. Ici on laisse passer ou on gère. Le plus sûr est de logguer mais ne pas bloquer si c'est un timeout d'API externe, ou bloquer si on veut absolument l'IA. Bloquons ou continuons selon la politique. Bloquer est plus robuste si on veut forcer la vérification.
-            }
-        }
-
         try {
             $user = Auth::user();
 
-            // 2. Upload du fichier CNI
+            // 2. Upload du fichier CNI et document_autorisation
             $uploadedPaths = [];
             if ($request->hasFile('CNI')) {
                 $file = $request->file('CNI');
@@ -122,6 +137,14 @@ class DemandeNaissanceController extends Controller
                 $newFileName = (string) Str::uuid() . '.' . $extension;
                 $path = $file->storeAs("images/naissances/cni", $newFileName, 'public');
                 $uploadedPaths['CNI'] = $path;
+            }
+
+            if ($request->hasFile('document_autorisation')) {
+                $file = $request->file('document_autorisation');
+                $extension = $file->getClientOriginalExtension();
+                $newFileName = (string) Str::uuid() . '.' . $extension;
+                $path = $file->storeAs("images/naissances/autorisations", $newFileName, 'public');
+                $uploadedPaths['document_autorisation'] = $path;
             }
 
             // 3. Génération de la référence (AN)
@@ -143,6 +166,8 @@ class DemandeNaissanceController extends Controller
             $naissance->DateR = $request->DateR ? Carbon::parse($request->DateR)->format('Y-m-d') : null;
             $naissance->commune = $request->commune;
             $naissance->commune_naissance = $request->commune_naissance;
+            $naissance->relation = $request->relation;
+            $naissance->document_autorisation = $uploadedPaths['document_autorisation'] ?? null;
 
             // Calcul des quantités comme dans NaissanceController web
             $qtySimple = (int) $request->input('qty_simple', 0);

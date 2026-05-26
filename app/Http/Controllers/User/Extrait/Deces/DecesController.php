@@ -48,8 +48,8 @@ class DecesController extends Controller
         $request->validate([
             'type' => 'required',
             'pour' => 'nullable|string',
-            'relation' => 'nullable|string',
-            'document_autorisation' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:25600',
+            'relation' => 'nullable|string|in:enfant,parent,connaissance',
+            'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:25600',
             'name' => 'required',
             'numberR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'dateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
@@ -73,6 +73,7 @@ class DecesController extends Controller
             'RequisPolice.required' => 'Cet document requis de police est obligatoire.',
             'pActe.mimes' => 'Cet document d\'extrait de décès doit être un format de fichier valide (png, jpg, jpeg, pdf).',
             'CNIdfnt.mimes' => 'Cet document doit être un format de fichier valide (png, jpg, jpeg, pdf).',
+            'document_autorisation.required_if' => 'Le document d\'autorisation est obligatoire pour une connaissance.',
         ]);
 
         $geminiService = app(\App\Services\GeminiValidationService::class);

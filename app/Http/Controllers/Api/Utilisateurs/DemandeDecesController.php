@@ -82,6 +82,9 @@ class DemandeDecesController extends Controller
             'communeD' => 'nullable|string|max:255',
             'commune_deces' => 'required|string|max:255',
             'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
+            'pour' => 'nullable|string|max:255',
+            'relation' => 'nullable|string|in:enfant,parent,connaissance',
+            'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
 
             // Note : montant_timbre est maintenant le PRIX UNITAIRE
             'montant_timbre' => 'required_if:choix_option,livraison|numeric',
@@ -104,38 +107,6 @@ class DemandeDecesController extends Controller
             return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
         }
 
-        // Validation IA Gemini de la pièce d'identité du déclarant (CNIdcl)
-        if ($request->hasFile('CNIdcl')) {
-            try {
-                $geminiService = app(\App\Services\GeminiValidationService::class);
-                $validation = $geminiService->validateIdentityDocument($request->file('CNIdcl'));
-                if (!$validation['isValid']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "La pièce d'identité du déclarant (CNIdcl) a été rejetée par l'IA : " . $validation['reason']
-                    ], 422);
-                }
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de la validation Gemini pour l\'API Décès CNIdcl : ' . $e->getMessage());
-            }
-        }
-
-        // Validation IA Gemini de la pièce d'identité du défunt (CNIdfnt)
-        if ($request->hasFile('CNIdfnt')) {
-            try {
-                $geminiService = app(\App\Services\GeminiValidationService::class);
-                $validation = $geminiService->validateIdentityDocument($request->file('CNIdfnt'));
-                if (!$validation['isValid']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "La pièce d'identité du défunt (CNIdfnt) a été rejetée par l'IA : " . $validation['reason']
-                    ], 422);
-                }
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de la validation Gemini pour l\'API Décès CNIdfnt : ' . $e->getMessage());
-            }
-        }
-
         try {
             $user = Auth::user();
 
@@ -145,6 +116,7 @@ class DemandeDecesController extends Controller
                 'CNIdcl' => 'cnid',
                 'documentMariage' => 'mariage',
                 'RequisPolice' => 'police',
+                'document_autorisation' => 'autorisations',
             ];
             $uploadedPaths = [];
             foreach ($filesToUpload as $fileKey => $subDir) {
@@ -192,6 +164,9 @@ class DemandeDecesController extends Controller
             $deces->CNIdcl = $uploadedPaths['CNIdcl'] ?? null;
             $deces->documentMariage = $uploadedPaths['documentMariage'] ?? null;
             $deces->RequisPolice = $uploadedPaths['RequisPolice'] ?? null;
+            $deces->pour = $request->pour;
+            $deces->relation = $request->relation;
+            $deces->document_autorisation = $uploadedPaths['document_autorisation'] ?? null;
             // Normalisation : le mobile envoie 'retrait'/'livraison' (minuscules)
             // mais le backend attend 'Retrait sur place'/'Livraison' (comme le web)
             $deces->choix_option = strtolower($request->choix_option) === 'livraison'

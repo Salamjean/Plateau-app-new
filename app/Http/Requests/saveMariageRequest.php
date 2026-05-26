@@ -27,7 +27,7 @@ class saveMariageRequest extends FormRequest
             'commune_mariage' => 'required|string|max:255',
             'pour' => 'nullable|string',
             'relation' => 'nullable|string',
-            'document_autorisation' => 'nullable|mimes:png,jpg,jpeg,pdf|max:25600',
+            'document_autorisation' => 'required_if:relation,connaissance|nullable|mimes:png,jpg,jpeg,pdf|max:25600',
         ];
     }
 
@@ -38,6 +38,7 @@ class saveMariageRequest extends FormRequest
             'commune_mariage.required' => 'La commune de mariage est obligatoire.',
             'pieceIdentite.mimes' => 'Le format de la pièce d\'identité doit être PNG, JPG, JPEG ou PDF.',
             'pieceIdentite.max' => 'La taille de la pièce d\'identité ne doit pas dépasser 25Mo.',
+            'document_autorisation.required_if' => 'Le document d\'autorisation est obligatoire pour une connaissance.',
             'extraitMariage.mimes' => 'Le format de l\'ancien acte doit être PNG, JPG, JPEG ou PDF.',
             'extraitMariage.max' => 'La taille de l\'ancien acte ne doit pas dépasser 25Mo.',
         ];
