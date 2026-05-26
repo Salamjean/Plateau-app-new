@@ -94,6 +94,23 @@ class DemandeNaissanceController extends Controller
             ], 422);
         }
 
+        // Validation IA Gemini de la pièce d'identité CNI
+        if ($request->hasFile('CNI')) {
+            try {
+                $geminiService = app(\App\Services\GeminiValidationService::class);
+                $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
+                if (!$validation['isValid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité (CNI) a été rejetée par l'IA de la mairie : " . $validation['reason']
+                    ], 422);
+                }
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la validation Gemini pour l\'API : ' . $e->getMessage());
+                // On peut décider de laisser passer ou bloquer. Ici on laisse passer ou on gère. Le plus sûr est de logguer mais ne pas bloquer si c'est un timeout d'API externe, ou bloquer si on veut absolument l'IA. Bloquons ou continuons selon la politique. Bloquer est plus robuste si on veut forcer la vérification.
+            }
+        }
+
         try {
             $user = Auth::user();
 

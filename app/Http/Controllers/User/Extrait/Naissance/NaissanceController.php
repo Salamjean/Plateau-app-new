@@ -79,6 +79,16 @@ class NaissanceController extends Controller
         // Mettre à jour uniquement les champs spécifiés
         foreach ($champsAModifier as $champ) {
             if ($champ === 'CNI' && $request->hasFile('CNI')) {
+                // Validation IA Gemini de la pièce d'identité CNI
+                $geminiService = app(\App\Services\GeminiValidationService::class);
+                $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
+                if (!$validation['isValid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité (CNI) a été rejetée par l'IA : " . $validation['reason']
+                    ], 422);
+                }
+
                 // Supprimer l'ancien fichier si existe
                 if ($demande->CNI) {
                     Storage::delete($demande->CNI);
@@ -131,6 +141,7 @@ class NaissanceController extends Controller
 
     public function store(Request $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService)
     {
+
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'type' => 'required',
             'name' => 'required',
@@ -144,6 +155,23 @@ class NaissanceController extends Controller
             'qty_simple' => 'nullable|integer|min:0|max:10',
             'qty_integral' => 'nullable|integer|min:0|max:10',
             'CNI' => 'required',
+            'relation' => [
+                \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                    return $request->pour === 'une_autre_personne' && in_array($request->type, ['integrale', 'groupee']);
+                }),
+                'nullable',
+                'string',
+                'in:enfant,parent,connaissance'
+            ],
+            'document_autorisation' => [
+                \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                    return $request->pour === 'une_autre_personne' && in_array($request->type, ['integrale', 'groupee']) && $request->relation === 'connaissance';
+                }),
+                'nullable',
+                'file',
+                'mimes:jpeg,png,jpg,pdf',
+                'max:2048'
+            ],
         ], [
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
             'name.required' => 'Le nom est obligatoire',
@@ -157,6 +185,11 @@ class NaissanceController extends Controller
             'qty_integral.integer' => 'La quantité intégrale doit être un nombre entier',
             'CNI.mimes' => 'Le format du fichier doit être PNG, JPG, JPEG ou PDF',
             'CNI.max' => 'Le fichier ne doit pas dépasser 1Mo',
+            'relation.required_if' => 'Le lien de parenté est obligatoire.',
+            'relation.in' => 'Le lien de parenté sélectionné est invalide.',
+            'document_autorisation.required_if' => 'Le document d\'autorisation est obligatoire pour une connaissance.',
+            'document_autorisation.mimes' => 'Le format du document d\'autorisation doit être PNG, JPG, JPEG ou PDF.',
+            'document_autorisation.max' => 'Le document d\'autorisation ne doit pas dépasser 2Mo.',
         ]);
 
         if ($validator->fails()) {
@@ -168,12 +201,25 @@ class NaissanceController extends Controller
         }
 
         $validated = $validator->validated();
+
+        // Validation IA Gemini de la pièce d'identité CNI
+        if ($request->hasFile('CNI')) {
+            $geminiService = app(\App\Services\GeminiValidationService::class);
+            $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
+            if (!$validation['isValid']) {
+                return redirect()->back()
+                    ->withErrors(['CNI' => "La pièce d'identité (CNI) a été rejetée par l'IA de la mairie : " . $validation['reason']])
+                    ->withInput();
+            }
+        }
+
         // Log des données de la requête
         Log::info('Store method called', $request->all());
 
         // Configuration des chemins pour le stockage des fichiers
         $filesToUpload = [
             'CNI' => 'cni/',
+            'document_autorisation' => 'autorisations/',
         ];
         $uploadedPaths = [];
 
@@ -201,15 +247,27 @@ class NaissanceController extends Controller
         $increment = Naissance::getNextId();
         $reference = 'AN' . $randomDigits . $increment . $communeInitiale . $anneeCourante;
 
-        // Récupération des quantités
+        // Récupération des quantités selon le type de demande
         $qtySimple = (int) $request->input('qty_simple', 0);
         $qtyIntegral = (int) $request->input('qty_integral', 0);
-        if ($qtySimple === 0 && $qtyIntegral === 0) {
-            $type = $request->input('type');
-            if ($type === 'extrait_integral') {
-                $qtyIntegral = 1;
-            } else {
+
+        if ($request->type === 'simple') {
+            $qtyIntegral = 0;
+            if ($qtySimple <= 0) {
                 $qtySimple = 1;
+            }
+        } elseif ($request->type === 'integrale' || $request->type === 'extrait_integral') {
+            $qtySimple = 0;
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
+            }
+        } else {
+            // groupee (simple + integrale)
+            if ($qtySimple <= 0) {
+                $qtySimple = 1;
+            }
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
             }
         }
         $totalQuantity = $qtySimple + $qtyIntegral;
@@ -230,6 +288,8 @@ class NaissanceController extends Controller
         $naissance->commune = $request->commune;
         $naissance->commune_naissance = $request->commune_naissance;
         $naissance->CNI = $uploadedPaths['CNI'] ?? null;
+        $naissance->relation = $request->relation;
+        $naissance->document_autorisation = $uploadedPaths['document_autorisation'] ?? null;
         $naissance->choix_option = $request->choix_option;
         $naissance->user_id = $user->id;
         $naissance->etat = 'non_paye';
@@ -358,7 +418,6 @@ class NaissanceController extends Controller
 
                         Log::error('Échec CinetPay: ' . $response->body());
                         return redirect()->route('user.extrait.index')->with('error', 'Erreur de génération du lien CinetPay.');
-
                     } catch (\Exception $e) {
                         Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
                         return redirect()->route('user.extrait.index')->with('error', 'Erreur interne de paiement.');

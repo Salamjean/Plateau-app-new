@@ -49,6 +49,8 @@ class Naissance extends Model
         'groupe_id',
         'position_in_groupe',
         'type_document',
+        'relation',
+        'document_autorisation',
     ];
 
     public function user()

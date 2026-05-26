@@ -862,6 +862,31 @@
                             </label>
                         </div>
 
+                        <!-- Blocs dynamiques de relation et procuration -->
+                        <div class="input-group-custom" id="relation-block" style="display: none; margin-top: 1.5rem;">
+                            <label>Quel est votre lien avec le titulaire de l'acte ? <span class="text-danger">*</span></label>
+                            <div class="input-wrapper">
+                                <select id="relation" name="relation" class="form-control-custom" onchange="onRelationChange()">
+                                    <option value="">-- Choisir le lien de parenté --</option>
+                                    <option value="enfant">C'est mon enfant</option>
+                                    <option value="parent">C'est mon parent</option>
+                                    <option value="connaissance">C'est une connaissance / Autre</option>
+                                </select>
+                                <i class="fas fa-link"></i>
+                            </div>
+                        </div>
+
+                        <div class="input-group-custom" id="document-autorisation-block" style="display: none; margin-top: 1.5rem;">
+                            <label>Document d'autorisation / Procuration <span class="text-danger">*</span></label>
+                            <label class="file-upload-area">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h6 id="autorisation-file-name" class="text-navy-bold mb-1">Téléverser le justificatif d'autorisation</h6>
+                                <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 2Mo)</p>
+                                <input type="file" id="document_autorisation" name="document_autorisation" class="d-none"
+                                    onchange="updateAutorisationFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
+                            </label>
+                        </div>
+
                         <!-- Section quantités (toujours visible) -->
                         <div id="qty-section" class="qty-section">
                             <div id="qty-section-label" class="qty-section-label" style="text-align:center;">
@@ -1080,6 +1105,49 @@
     <script>
         let formSubmitted = false;
 
+        function toggleRelationFields() {
+            const pourSelect = document.querySelector('input[name="pour"]:checked');
+            const typeSelect = document.querySelector('input[name="type"]:checked');
+            
+            const relationBlock = document.getElementById('relation-block');
+            const relationSelect = document.getElementById('relation');
+            const documentBlock = document.getElementById('document-autorisation-block');
+
+            if (pourSelect && typeSelect) {
+                const isAutrePersonne = pourSelect.value === 'une_autre_personne';
+                const isIntegralOrGroupee = typeSelect.value === 'integrale' || typeSelect.value === 'groupee';
+
+                if (isAutrePersonne && isIntegralOrGroupee) {
+                    relationBlock.style.display = 'block';
+                } else {
+                    relationBlock.style.display = 'none';
+                    relationSelect.value = '';
+                    
+                    documentBlock.style.display = 'none';
+                    document.getElementById('document_autorisation').value = '';
+                    document.getElementById('autorisation-file-name').textContent = 'Téléverser le justificatif d\'autorisation';
+                }
+            }
+        }
+
+        function onRelationChange() {
+            const relationSelect = document.getElementById('relation');
+            const documentBlock = document.getElementById('document-autorisation-block');
+
+            if (relationSelect.value === 'connaissance') {
+                documentBlock.style.display = 'block';
+            } else {
+                documentBlock.style.display = 'none';
+                document.getElementById('document_autorisation').value = '';
+                document.getElementById('autorisation-file-name').textContent = 'Téléverser le justificatif d\'autorisation';
+            }
+        }
+
+        function updateAutorisationFileName(input) {
+            const fileName = input.files[0] ? input.files[0].name : 'Aucun document sélectionné';
+            document.getElementById('autorisation-file-name').textContent = fileName;
+        }
+
         function updateFields() {
             const pourSelect = document.querySelector('input[name="pour"]:checked');
             const nameInput = document.getElementById('name');
@@ -1108,6 +1176,7 @@
                 // communeSelect.selectedIndex = 0; // Pas nécessaire si 'plateau' est toujours sélectionné
                 // CMUInput.value = ''; // Pas nécessaire si CMU est optionnel
             }
+            toggleRelationFields();
         }
 
         function updateFileName(input) {
@@ -1178,6 +1247,7 @@
 
             syncQuantite();
             document.getElementById('naissanceForm').action = ROUTE_SIMPLE_STORE;
+            toggleRelationFields();
         }
 
         function syncQuantite() {
@@ -1262,7 +1332,22 @@
 
             let isValid = true;
             if (step === 1) {
-                // Étape 1 toujours valide (selects avec valeurs par défaut)
+                const pourSelect = document.querySelector('input[name="pour"]:checked').value;
+                const typeSelect = document.querySelector('input[name="type"]:checked').value;
+
+                if (pourSelect === 'une_autre_personne' && (typeSelect === 'integrale' || typeSelect === 'groupee')) {
+                    const relation = document.getElementById('relation');
+                    if (!relation.value) {
+                        isValid = false;
+                        displayClientError(relation, "Veuillez préciser votre lien de parenté.");
+                    } else if (relation.value === 'connaissance') {
+                        const docInput = document.getElementById('document_autorisation');
+                        if (docInput.files.length === 0) {
+                            isValid = false;
+                            displayClientError(docInput.closest('.input-group-custom'), "Veuillez téléverser le document d'autorisation.");
+                        }
+                    }
+                }
             } else if (step === 2) {
                 const name = document.getElementById('name');
                 const prenom = document.getElementById('prenom');
@@ -1463,6 +1548,34 @@
                     }
                 }
             });
+
+            // Validation de la relation et procuration (si requis)
+            const pourSelectVal = document.querySelector('input[name="pour"]:checked').value;
+            if (pourSelectVal === 'une_autre_personne' && (typeVal === 'integrale' || typeVal === 'groupee')) {
+                const relation = document.getElementById('relation');
+                if (!relation.value) {
+                    isValid = false;
+                    displayClientError(relation, "Veuillez préciser votre lien de parenté.");
+                } else if (relation.value === 'connaissance') {
+                    const docInput = document.getElementById('document_autorisation');
+                    if (docInput.files.length === 0) {
+                        isValid = false;
+                        displayClientError(docInput.closest('.input-group-custom'), "Veuillez téléverser le document d'autorisation.");
+                    } else {
+                        const file = docInput.files[0];
+                        const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+                        const maxSize = 2000 * 1024; // 2 Mo
+                        if (!allowedTypes.includes(file.type)) {
+                            isValid = false;
+                            displayClientError(docInput.closest('.input-group-custom'), 'Le format du document doit être PNG, JPG, JPEG ou PDF.');
+                        } else if (file.size > maxSize) {
+                            isValid = false;
+                            displayClientError(docInput.closest('.input-group-custom'), 'Le document ne doit pas dépasser 2Mo.');
+                        }
+                    }
+                }
+            }
+
             return isValid;
         }
 

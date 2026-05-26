@@ -9,6 +9,9 @@ class Deces extends Model
     protected $fillable = [
         'type',
         'name',
+        'pour',
+        'relation',
+        'document_autorisation',
         'numberR',
         'dateR',
         'nom_prenoms_pere',

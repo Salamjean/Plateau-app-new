@@ -43,7 +43,10 @@ class MariageGroupeController extends Controller
         $freeRequestsRemaining  = $this->getRemainingFreeRequests($user);
 
         return view('user.mariage.groupee.create', compact(
-            'userName', 'userPrenom', 'freeRequestsModeActive', 'freeRequestsRemaining'
+            'userName',
+            'userPrenom',
+            'freeRequestsModeActive',
+            'freeRequestsRemaining'
         ));
     }
 
@@ -75,6 +78,20 @@ class MariageGroupeController extends Controller
             'payment_method'                 => 'required_if:choix_option,livraison|in:wave,mtn,orange,moov',
             'mtn_number'                     => 'required_if:payment_method,mtn|nullable|string|max:20',
         ]);
+
+        $geminiService = app(\App\Services\GeminiValidationService::class);
+
+        // Validation IA Gemini de chaque pieceIdentite dans les lignes
+        if ($request->has('lignes') && is_array($request->lignes)) {
+            foreach ($request->lignes as $index => $ligne) {
+                if ($request->hasFile("lignes.{$index}.pieceIdentite")) {
+                    $validation = $geminiService->validateIdentityDocument($request->file("lignes.{$index}.pieceIdentite"));
+                    if (!$validation['isValid']) {
+                        return $this->respondError($request, "La pièce d'identité de l'acte n°" . ($index + 1) . " a été rejetée par l'IA : " . $validation['reason']);
+                    }
+                }
+            }
+        }
 
         $user = Auth::user();
         $qtySimple   = (int) $request->qty_simple;
@@ -211,7 +228,6 @@ class MariageGroupeController extends Controller
                 'redirect_url' => route('user.extrait.mariage.index'),
                 'reference'    => $groupe->reference,
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Erreur création demande groupée mariage : ' . $e->getMessage());
@@ -248,7 +264,11 @@ class MariageGroupeController extends Controller
 
         if ($method === 'wave') {
             $session = $waveService->createCheckoutSession(
-                $groupe->montant_total, 'XOF', $successUrl, $errorUrl, $groupe->reference
+                $groupe->montant_total,
+                'XOF',
+                $successUrl,
+                $errorUrl,
+                $groupe->reference
             );
             return $session['wave_launch_url'] ?? null;
         }
@@ -262,13 +282,17 @@ class MariageGroupeController extends Controller
             try {
                 $mtnService = new \App\Services\MtnService();
                 $response = $mtnService->requestToPay(
-                    $groupe->montant_total, $mtnPhone, $groupe->reference,
-                    'Extrait Mariage Groupé', 'Mairie Plateau'
+                    $groupe->montant_total,
+                    $mtnPhone,
+                    $groupe->reference,
+                    'Extrait Mariage Groupé',
+                    'Mairie Plateau'
                 );
                 if ($response && $response['status'] === 'PENDING') {
                     session(['mtn_ref_' . $groupe->reference => $response['referenceId']]);
                     return route('user.payment.mtn.waiting', [
-                        'reference' => $groupe->reference, 'type' => 'mariage_groupe',
+                        'reference' => $groupe->reference,
+                        'type' => 'mariage_groupe',
                     ]);
                 }
             } catch (\Throwable $e) {

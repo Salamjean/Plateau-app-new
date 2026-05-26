@@ -104,6 +104,38 @@ class DemandeDecesController extends Controller
             return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
         }
 
+        // Validation IA Gemini de la pièce d'identité du déclarant (CNIdcl)
+        if ($request->hasFile('CNIdcl')) {
+            try {
+                $geminiService = app(\App\Services\GeminiValidationService::class);
+                $validation = $geminiService->validateIdentityDocument($request->file('CNIdcl'));
+                if (!$validation['isValid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité du déclarant (CNIdcl) a été rejetée par l'IA : " . $validation['reason']
+                    ], 422);
+                }
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la validation Gemini pour l\'API Décès CNIdcl : ' . $e->getMessage());
+            }
+        }
+
+        // Validation IA Gemini de la pièce d'identité du défunt (CNIdfnt)
+        if ($request->hasFile('CNIdfnt')) {
+            try {
+                $geminiService = app(\App\Services\GeminiValidationService::class);
+                $validation = $geminiService->validateIdentityDocument($request->file('CNIdfnt'));
+                if (!$validation['isValid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité du défunt (CNIdfnt) a été rejetée par l'IA : " . $validation['reason']
+                    ], 422);
+                }
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la validation Gemini pour l\'API Décès CNIdfnt : ' . $e->getMessage());
+            }
+        }
+
         try {
             $user = Auth::user();
 

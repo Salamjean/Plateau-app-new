@@ -648,6 +648,105 @@
             font-weight: 700;
             font-size: 1rem;
         }
+
+        /* Pills compactes pour "Cette demande est pour" */
+        .pour-toggle-group {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .pour-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .pour-toggle-row-label {
+            font-weight: 700;
+            color: var(--text-navy);
+            font-size: 0.92rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pour-toggle-row-label i {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .pour-toggle-label {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .pour-toggle-label input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .pour-toggle-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 1.1rem;
+            background: #fff;
+            border: 2px solid #e8edf5;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #718096;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .pour-toggle-content i {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            transition: 0.2s;
+        }
+
+        .pour-toggle-content .check-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e0;
+            flex-shrink: 0;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content i {
+            color: var(--primary);
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content .check-dot {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
     </style>
 
     <div class="form-page-container">
@@ -706,7 +805,35 @@
                 <!-- ÉTAPE 1: Type de document -->
                 <div class="form-step active" id="step-1">
                     <div class="form-section">
-                        <div class="form-section-title">
+                        <div class="pour-toggle-row">
+                            <span class="pour-toggle-row-label">
+                                <i class="fas fa-user-circle"></i> Cette demande est pour
+                            </span>
+                            <div class="pour-toggle-group" style="margin-bottom:0;">
+                                <label class="pour-toggle-label">
+                                    <input type="radio" name="pour" value="Moi"
+                                        {{ old('pour', 'Moi') !== 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
+                                    <div class="pour-toggle-content">
+                                        <span class="check-dot"></span>
+                                        <i class="fas fa-user"></i>
+                                        Ma famille directe
+                                    </div>
+                                </label>
+                                <label class="pour-toggle-label">
+                                    <input type="radio" name="pour" value="une_autre_personne"
+                                        {{ old('pour') === 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
+                                    <div class="pour-toggle-content">
+                                        <span class="check-dot"></span>
+                                        <i class="fas fa-users"></i>
+                                        Une autre personne
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-section-title" style="margin-top:1.5rem;">
                             <i class="fas fa-file-alt"></i> Quel type d'acte souhaitez-vous ?
                         </div>
 
@@ -738,6 +865,35 @@
                             </label>
                         </div>
 
+                        <!-- Blocs dynamiques de relation et procuration -->
+                        <div class="input-group-custom" id="relation-block" style="display: none; margin-top: 1.5rem;">
+                            <label>Quel est votre lien avec le défunt ? <span class="text-danger">*</span></label>
+                            <div class="input-wrapper">
+                                <select id="relation" name="relation" class="form-control-custom"
+                                    onchange="onRelationChange()">
+                                    <option value="">-- Choisir le lien de parenté --</option>
+                                    <option value="enfant">C'est mon enfant</option>
+                                    <option value="parent">C'est mon parent / ascendant</option>
+                                    <option value="connaissance">C'est une connaissance / Autre</option>
+                                </select>
+                                <i class="fas fa-link"></i>
+                            </div>
+                        </div>
+
+                        <div class="input-group-custom" id="document-autorisation-block"
+                            style="display: none; margin-top: 1.5rem;">
+                            <label>Document d'autorisation / Procuration <span class="text-danger">*</span></label>
+                            <label class="file-upload-area">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h6 id="autorisation-file-name" class="text-navy-bold mb-1">Téléverser le justificatif
+                                    d'autorisation</h6>
+                                <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 2Mo)</p>
+                                <input type="file" id="document_autorisation" name="document_autorisation"
+                                    class="d-none" onchange="updateAutorisationFileName(this)"
+                                    accept=".jpg,.jpeg,.png,.pdf">
+                            </label>
+                        </div>
+
                         <!-- Quantité -->
                         <div class="qty-section">
                             <div class="qty-section-label" id="qty-label-deces-section"><i class="fas fa-copy"
@@ -753,8 +909,8 @@
                                             <span>Copie simple</span>
                                         </div>
                                         <div class="qty-stepper">
-                                            <button type="button" class="qty-btn" onclick="updateDQty(-1)" id="dQtyMinus"
-                                                disabled>-</button>
+                                            <button type="button" class="qty-btn" onclick="updateDQty(-1)"
+                                                id="dQtyMinus" disabled>-</button>
                                             <input type="number" name="qty_simple" id="qty_simple" class="qty-input"
                                                 value="1" min="1" max="20" readonly>
                                             <button type="button" class="qty-btn" onclick="updateDQty(1)">+</button>
@@ -1073,6 +1229,59 @@
     <script>
         let formSubmitted = false;
 
+        function toggleRelationFields() {
+            const pourSelect = document.querySelector('input[name="pour"]:checked');
+            const typeSelect = document.querySelector('input[name="type"]:checked');
+
+            const relationBlock = document.getElementById('relation-block');
+            const relationSelect = document.getElementById('relation');
+            const documentBlock = document.getElementById('document-autorisation-block');
+
+            if (pourSelect && typeSelect) {
+                const isAutrePersonne = pourSelect.value === 'une_autre_personne';
+                const isIntegralOrGroupee = typeSelect.value === 'integrale' || typeSelect.value === 'groupee';
+
+                if (isAutrePersonne && isIntegralOrGroupee) {
+                    relationBlock.style.display = 'block';
+                } else {
+                    relationBlock.style.display = 'none';
+                    if (relationSelect) relationSelect.value = '';
+
+                    if (documentBlock) {
+                        documentBlock.style.display = 'none';
+                        document.getElementById('document_autorisation').value = '';
+                        document.getElementById('autorisation-file-name').textContent =
+                            'Téléverser le justificatif d\'autorisation';
+                    }
+                }
+            }
+        }
+
+        function onRelationChange() {
+            const relationSelect = document.getElementById('relation');
+            const documentBlock = document.getElementById('document-autorisation-block');
+
+            if (relationSelect && relationSelect.value === 'connaissance') {
+                documentBlock.style.display = 'block';
+            } else {
+                if (documentBlock) {
+                    documentBlock.style.display = 'none';
+                    document.getElementById('document_autorisation').value = '';
+                    document.getElementById('autorisation-file-name').textContent =
+                        'Téléverser le justificatif d\'autorisation';
+                }
+            }
+        }
+
+        function updateAutorisationFileName(input) {
+            const fileName = input.files[0] ? input.files[0].name : 'Aucun document sélectionné';
+            document.getElementById('autorisation-file-name').textContent = fileName;
+        }
+
+        function updateFields() {
+            toggleRelationFields();
+        }
+
         function toggleMarriageDoc(show) {
             document.getElementById('marriageDocContainer').style.display = show ? 'block' : 'none';
         }
@@ -1112,6 +1321,7 @@
                 if (sectionLbl) sectionLbl.innerHTML =
                     '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?';
             }
+            toggleRelationFields();
         }
 
         function updateDQty(delta) {
@@ -1559,5 +1769,7 @@
                 document.getElementById('payment-phone-label').innerText = 'Numéro MTN Money';
             }
         }
+
+        updateFields();
     </script>
 @endsection

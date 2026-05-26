@@ -22,22 +22,22 @@ class ComptableDemandeController extends Controller
 
         $mapNaissance = function ($item) {
             $item->type_demande  = 'naissance';
-            $item->demandeur_nom = $item->name . ' ' . $item->prenom;
-            $item->contact       = $item->user->contact;
+            $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
+            $item->contact       = $item->user->contact ?? '';
             return $item;
         };
 
         $mapDeces = function ($item) {
             $item->type_demande  = 'deces';
-            $item->demandeur_nom = $item->name . ' ' . $item->prenom;
-            $item->contact       = $item->user->contact;
+            $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
+            $item->contact       = $item->user->contact ?? '';
             return $item;
         };
 
         $mapMariage = function ($item) {
             $item->type_demande  = 'mariage';
-            $item->demandeur_nom = $item->nomEpoux . ' ' . $item->prenomEpoux;
-            $item->contact       = $item->user->contact;
+            $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
+            $item->contact       = $item->user->contact ?? '';
             return $item;
         };
 
@@ -70,10 +70,10 @@ class ComptableDemandeController extends Controller
         // Utilise LOWER() pour être insensible à la casse (mobile envoie minuscules, web envoie capitalisé)
         $filterRequests = function ($query) {
             $query->whereRaw('LOWER(choix_option) = ?', ['livraison'])
-                  ->orWhere(function ($q) {
-                      $q->whereRaw('LOWER(choix_option) IN (?, ?)', ['retrait sur place', 'retrait'])
+                ->orWhere(function ($q) {
+                    $q->whereRaw('LOWER(choix_option) IN (?, ?)', ['retrait sur place', 'retrait'])
                         ->where('is_free_request', 1);
-                  });
+                });
         };
 
         $naissances = Naissance::where('commune', $commune)
@@ -108,7 +108,7 @@ class ComptableDemandeController extends Controller
             ->get()->map($mapMariageGroupe);
 
         $all = $naissances->concat($deces)->concat($mariages)
-                          ->concat($naissancesGroupes)->concat($decesGroupes)->concat($mariagesGroupes);
+            ->concat($naissancesGroupes)->concat($decesGroupes)->concat($mariagesGroupes);
 
         // Toggle : séparation par timbre_recupere
         $demandesEnAttente = $all->where('timbre_recupere', 0)->sortByDesc('created_at')->values();
@@ -138,12 +138,24 @@ class ComptableDemandeController extends Controller
         \Illuminate\Support\Facades\Log::info("Récupération timbre. Type: $type, ID: $id");
 
         switch ($type) {
-            case 'naissance':        $model = Naissance::findOrFail($id);      break;
-            case 'deces':            $model = Deces::findOrFail($id);           break;
-            case 'mariage':          $model = Mariage::findOrFail($id);         break;
-            case 'naissance_groupe': $model = NaissanceGroupe::findOrFail($id); break;
-            case 'deces_groupe':     $model = DecesGroupe::findOrFail($id);     break;
-            case 'mariage_groupe':   $model = MariageGroupe::findOrFail($id);   break;
+            case 'naissance':
+                $model = Naissance::findOrFail($id);
+                break;
+            case 'deces':
+                $model = Deces::findOrFail($id);
+                break;
+            case 'mariage':
+                $model = Mariage::findOrFail($id);
+                break;
+            case 'naissance_groupe':
+                $model = NaissanceGroupe::findOrFail($id);
+                break;
+            case 'deces_groupe':
+                $model = DecesGroupe::findOrFail($id);
+                break;
+            case 'mariage_groupe':
+                $model = MariageGroupe::findOrFail($id);
+                break;
             default:
                 return redirect()->back()->with('error', 'Type de demande invalide');
         }

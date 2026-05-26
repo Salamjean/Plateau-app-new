@@ -35,7 +35,10 @@ class DecesGroupeController extends Controller
         $freeRequestsRemaining  = $this->getRemainingFreeRequests($user);
 
         return view('user.deces.groupee.create', compact(
-            'userName', 'userPrenom', 'freeRequestsModeActive', 'freeRequestsRemaining'
+            'userName',
+            'userPrenom',
+            'freeRequestsModeActive',
+            'freeRequestsRemaining'
         ));
     }
 
@@ -72,6 +75,29 @@ class DecesGroupeController extends Controller
             'payment_method'          => 'required_if:choix_option,livraison|in:wave,mtn,orange,moov',
             'mtn_number'              => 'required_if:payment_method,mtn|nullable|string|max:20',
         ]);
+
+        $geminiService = app(\App\Services\GeminiValidationService::class);
+
+        // Validation IA Gemini de chaque justificatif d'identité dans les lignes du groupe décès
+        if ($request->has('lignes') && is_array($request->lignes)) {
+            foreach ($request->lignes as $index => $ligne) {
+                // Pièce d'identité du défunt (CNIdfnt)
+                if ($request->hasFile("lignes.{$index}.CNIdfnt")) {
+                    $validation = $geminiService->validateIdentityDocument($request->file("lignes.{$index}.CNIdfnt"));
+                    if (!$validation['isValid']) {
+                        return $this->respondError($request, "La pièce d'identité du défunt de la ligne n°" . ($index + 1) . " a été rejetée par l'IA : " . $validation['reason']);
+                    }
+                }
+
+                // Pièce d'identité du déclarant (CNIdcl)
+                if ($request->hasFile("lignes.{$index}.CNIdcl")) {
+                    $validation = $geminiService->validateIdentityDocument($request->file("lignes.{$index}.CNIdcl"));
+                    if (!$validation['isValid']) {
+                        return $this->respondError($request, "La pièce d'identité du déclarant de la ligne n°" . ($index + 1) . " a été rejetée par l'IA : " . $validation['reason']);
+                    }
+                }
+            }
+        }
 
         $user = Auth::user();
         $qtySimple   = (int) $request->qty_simple;
@@ -231,7 +257,6 @@ class DecesGroupeController extends Controller
                 'redirect_url' => route('user.extrait.deces.index'),
                 'reference'    => $groupe->reference,
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Erreur création demande groupée décès : ' . $e->getMessage());
@@ -268,7 +293,11 @@ class DecesGroupeController extends Controller
 
         if ($method === 'wave') {
             $session = $waveService->createCheckoutSession(
-                $groupe->montant_total, 'XOF', $successUrl, $errorUrl, $groupe->reference
+                $groupe->montant_total,
+                'XOF',
+                $successUrl,
+                $errorUrl,
+                $groupe->reference
             );
             return $session['wave_launch_url'] ?? null;
         }
@@ -282,13 +311,17 @@ class DecesGroupeController extends Controller
             try {
                 $mtnService = new \App\Services\MtnService();
                 $response = $mtnService->requestToPay(
-                    $groupe->montant_total, $mtnPhone, $groupe->reference,
-                    'Extrait Décès Groupé', 'Mairie Plateau'
+                    $groupe->montant_total,
+                    $mtnPhone,
+                    $groupe->reference,
+                    'Extrait Décès Groupé',
+                    'Mairie Plateau'
                 );
                 if ($response && $response['status'] === 'PENDING') {
                     session(['mtn_ref_' . $groupe->reference => $response['referenceId']]);
                     return route('user.payment.mtn.waiting', [
-                        'reference' => $groupe->reference, 'type' => 'deces_groupe',
+                        'reference' => $groupe->reference,
+                        'type' => 'deces_groupe',
                     ]);
                 }
             } catch (\Throwable $e) {

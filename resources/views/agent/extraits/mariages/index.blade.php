@@ -717,8 +717,7 @@
                                 <tr>
                                     <td style="text-align: center">
                                         @if ($mariage->choix_option == 'livraison' && $mariage->etat == 'terminé')
-                                            <button class="download-btn"
-                                                onclick="imprimerEtiquette({{ $mariage->id }})">
+                                            <button class="download-btn" onclick="imprimerEtiquette({{ $mariage->id }})">
                                                 <i class="fas fa-print me-1"></i>Imprimer
                                             </button>
                                         @else
@@ -1133,6 +1132,14 @@
                         isPdf: p.toLowerCase().endsWith('.pdf')
                     });
                 }
+                if (mariage.document_autorisation) {
+                    const p = '{{ asset('storage/') }}/' + mariage.document_autorisation;
+                    docs.push({
+                        label: "Document d'autorisation / Procuration",
+                        path: p,
+                        isPdf: p.toLowerCase().endsWith('.pdf')
+                    });
+                }
                 if (!docs.length)
                     return `<div style="text-align:center;padding:24px;color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:2rem;margin-bottom:8px;display:block;"></i><p style="margin:0;font-size:0.85rem;">Aucun document joint</p></div>`;
                 return docs.map(d => `
@@ -1176,14 +1183,14 @@
                 <div class="dp-section">
                   <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div><div class="dp-section-title">${isCopieSimple ? 'Informations Générales' : 'Informations des Conjoints'}</div></div>
                   ${isCopieSimple ? `
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
-                          ` : `
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom Époux</span><span class="dp-value">${mariage.nomEpoux||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Naiss. Époux</span><span class="dp-value">${mariage.dateNaissanceEpoux||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Lieu naiss.</span><span class="dp-value">${mariage.lieuNaissanceEpoux||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Commune</span><span class="dp-value">${mariage.commune||'--'}</span></div>
-                          `}
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
+                              ` : `
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom Époux</span><span class="dp-value">${mariage.nomEpoux||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Naiss. Époux</span><span class="dp-value">${mariage.dateNaissanceEpoux||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Lieu naiss.</span><span class="dp-value">${mariage.lieuNaissanceEpoux||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Commune</span><span class="dp-value">${mariage.commune||'--'}</span></div>
+                              `}
                 </div>
                 <div class="dp-section">
                   <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-user-circle"></i></div><div class="dp-section-title">Demandeur</div></div>
@@ -1196,23 +1203,25 @@
               <div class="dp-section">
                 <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-file-invoice"></i></div><div class="dp-section-title">Détails de la Commande</div></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${mariage.quantite} copie(s)${(mariage.qty_simple>0&&mariage.qty_integral>0)?` <small style="color:#64748b;font-weight:400;">(${mariage.qty_simple||0}s + ${mariage.qty_integral||0}i)</small>`:''}</span></div>
+                <div class="dp-row"><span class="dp-label"><i class="fas fa-user-friends"></i> Pour</span><span class="dp-value">${mariage.pour === 'proprie' ? 'Lui-même' : (mariage.pour === 'tiers' ? 'Un tiers' : (mariage.pour || '--'))}</span></div>
+                ${mariage.relation ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-project-diagram"></i> Relation</span><span class="dp-value">${mariage.relation}</span></div>` : ''}
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-circle"></i> Statut</span><span class="dp-value"><span class="dp-badge" style="background:${status.bg};color:${status.color};border:1px solid ${status.border};"><i class="fas ${status.icon}"></i> ${status.label}</span></span></div>
               </div>
             </div>
             <div class="dp-panel" id="dpPM-livraison">
               ${mariage.choix_option === 'livraison' ? `
-                      <div class="dp-section">
-                        <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${mariage.nom_destinataire||'--'} ${mariage.prenom_destinataire||''}</span></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${mariage.contact_destinataire||'--'}</span></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${mariage.email_destinataire||'--'}</span></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${mariage.adresse_livraison||'--'}</span></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${mariage.ville||'--'}</span></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${mariage.commune_livraison||'--'}</span></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${mariage.quartier||'--'}</span></div>
-                        <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${mariage.code_postal||'--'}</span></div>
-                      </div>
-                      ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                          <div class="dp-section">
+                            <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${mariage.nom_destinataire||'--'} ${mariage.prenom_destinataire||''}</span></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${mariage.contact_destinataire||'--'}</span></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${mariage.email_destinataire||'--'}</span></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${mariage.adresse_livraison||'--'}</span></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${mariage.ville||'--'}</span></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${mariage.commune_livraison||'--'}</span></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${mariage.quartier||'--'}</span></div>
+                            <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${mariage.code_postal||'--'}</span></div>
+                          </div>
+                          ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
             </div>
             <div class="dp-panel" id="dpPM-docs">
               <div class="dp-section">

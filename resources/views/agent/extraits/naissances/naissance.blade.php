@@ -699,8 +699,7 @@
                                 <tr>
                                     <td style="text-align: center">
                                         @if ($naissance->choix_option == 'livraison' && $naissance->etat == 'terminé')
-                                            <button class="download-btn"
-                                                onclick="imprimerEtiquette({{ $naissance->id }})">
+                                            <button class="download-btn" onclick="imprimerEtiquette({{ $naissance->id }})">
                                                 <i class="fas fa-print me-1"></i>Imprimer
                                             </button>
                                         @else
@@ -1105,6 +1104,14 @@
                         isPdf: p.toLowerCase().endsWith('.pdf')
                     });
                 }
+                if (naissance.document_autorisation) {
+                    const p = '{{ asset('storage/') }}/' + naissance.document_autorisation;
+                    docs.push({
+                        label: "Document d'autorisation / Procuration",
+                        path: p,
+                        isPdf: p.toLowerCase().endsWith('.pdf')
+                    });
+                }
                 if (!docs.length)
                     return `<div style="text-align:center;padding:24px;color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:2rem;margin-bottom:8px;display:block;"></i><p style="margin:0;font-size:0.85rem;">Aucun document joint</p></div>`;
                 return docs.map(d => `
@@ -1153,7 +1160,6 @@
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${naissance.number||'--'}</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Date Reg.</span><span class="dp-value">${naissance.DateR||'--'}</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Commune</span><span class="dp-value">${naissance.commune||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-heart"></i> Lien</span><span class="dp-value">${naissance.pour||'Non spécifié'}</span></div>
               </div>
               <div class="dp-section">
                 <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-user-circle"></i></div><div class="dp-section-title">Demandeur</div></div>
@@ -1167,23 +1173,25 @@
               <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-file-invoice"></i></div><div class="dp-section-title">Détails de la Commande</div></div>
               <div class="dp-row"><span class="dp-label"><i class="fas fa-file-alt"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">${documentType}</span></div>
               <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${naissance.quantite} copie(s)${naissance.type==='groupee'?` <small style="color:#64748b;font-weight:400;">(${naissance.qty_simple||0}s + ${naissance.qty_integral||0}i)</small>`:''}</span></div>
+              <div class="dp-row"><span class="dp-label"><i class="fas fa-user-friends"></i> Pour</span><span class="dp-value">${naissance.pour === 'proprie' ? 'Lui-même' : (naissance.pour === 'tiers' ? 'Un tiers' : (naissance.pour || '--'))}</span></div>
+              ${naissance.relation ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-project-diagram"></i> Relation</span><span class="dp-value">${naissance.relation}</span></div>` : ''}
               <div class="dp-row"><span class="dp-label"><i class="fas fa-circle"></i> Statut</span><span class="dp-value"><span class="dp-badge" style="background:${status.bg};color:${status.color};border:1px solid ${status.border};"><i class="fas ${status.icon}"></i> ${status.label}</span></span></div>
             </div>
           </div>
           <div class="dp-panel" id="dpPN-livraison">
             ${naissance.choix_option === 'livraison' ? `
-                    <div class="dp-section">
-                      <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${naissance.nom_destinataire||'--'}</span></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${naissance.contact_destinataire||'--'}</span></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${naissance.email_destinataire||'--'}</span></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${naissance.adresse_livraison||'--'}</span></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${naissance.ville||'--'}</span></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${naissance.commune_livraison||'--'}</span></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${naissance.quartier||'--'}</span></div>
-                      <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${naissance.code_postal||'--'}</span></div>
-                    </div>
-                    ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                        <div class="dp-section">
+                          <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${naissance.nom_destinataire||'--'}</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${naissance.contact_destinataire||'--'}</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${naissance.email_destinataire||'--'}</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${naissance.adresse_livraison||'--'}</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${naissance.ville||'--'}</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${naissance.commune_livraison||'--'}</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${naissance.quartier||'--'}</span></div>
+                          <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${naissance.code_postal||'--'}</span></div>
+                        </div>
+                        ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
           </div>
           <div class="dp-panel" id="dpPN-docs">
             <div class="dp-section">

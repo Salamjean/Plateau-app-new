@@ -104,6 +104,28 @@ class NaissanceGroupeController extends Controller
             'mtn_number' => 'required_if:payment_method,mtn|nullable|string|max:20',
         ]);
 
+        $geminiService = app(\App\Services\GeminiValidationService::class);
+
+        // Validation IA Gemini du CNI unique si présent
+        if ($request->hasFile('CNI')) {
+            $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
+            if (!$validation['isValid']) {
+                return $this->respondError($request, "La pièce d'identité (CNI) a été rejetée par l'IA de la mairie : " . $validation['reason']);
+            }
+        }
+
+        // Validation IA Gemini de chaque CNI dans les lignes
+        if ($request->has('lignes') && is_array($request->lignes)) {
+            foreach ($request->lignes as $index => $ligne) {
+                if ($request->hasFile("lignes.{$index}.CNI")) {
+                    $validation = $geminiService->validateIdentityDocument($request->file("lignes.{$index}.CNI"));
+                    if (!$validation['isValid']) {
+                        return $this->respondError($request, "La pièce d'identité (CNI) de l'acte n°" . ($index + 1) . " a été rejetée par l'IA : " . $validation['reason']);
+                    }
+                }
+            }
+        }
+
         $user = Auth::user();
 
         $qtySimple = (int) $request->qty_simple;

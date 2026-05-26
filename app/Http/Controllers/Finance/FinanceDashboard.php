@@ -18,6 +18,9 @@ class FinanceDashboard extends Controller
         return $query->where(function ($q) {
             $q->whereNull('choix_option')
                 ->orWhere('choix_option', '!=', 'Retrait sur place');
+        })->where(function ($q) {
+            $q->whereNull('is_free_request')
+                ->orWhere('is_free_request', '!=', 1);
         });
     }
 
@@ -531,17 +534,29 @@ class FinanceDashboard extends Controller
         $commune = $finance->communeM;
         $year = $request->input('year', Carbon::now()->format('Y'));
 
-        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
+        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets (en excluant les gratuites)
         $naissances = Naissance::where('commune', $finance->communeM)
             ->paye()
+            ->where(function ($q) {
+                $q->whereNull('is_free_request')
+                    ->orWhere('is_free_request', '!=', 1);
+            })
             ->get();
 
         $mariages = Mariage::where('commune', $finance->communeM)
             ->paye()
+            ->where(function ($q) {
+                $q->whereNull('is_free_request')
+                    ->orWhere('is_free_request', '!=', 1);
+            })
             ->get();
 
         $deces = Deces::where('commune', $finance->communeM)
             ->paye()
+            ->where(function ($q) {
+                $q->whereNull('is_free_request')
+                    ->orWhere('is_free_request', '!=', 1);
+            })
             ->get();
 
         $feed = collect();

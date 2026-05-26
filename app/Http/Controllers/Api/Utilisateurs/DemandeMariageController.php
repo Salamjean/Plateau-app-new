@@ -73,6 +73,22 @@ class DemandeMariageController extends Controller
             return response()->json(['success' => false, 'message' => 'Erreur de validation', 'errors' => $validator->errors()], 422);
         }
 
+        // Validation IA Gemini de la pièce d'identité pieceIdentite
+        if ($request->hasFile('pieceIdentite')) {
+            try {
+                $geminiService = app(\App\Services\GeminiValidationService::class);
+                $validation = $geminiService->validateIdentityDocument($request->file('pieceIdentite'));
+                if (!$validation['isValid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité a été rejetée par l'IA de la mairie : " . $validation['reason']
+                    ], 422);
+                }
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la validation Gemini pour l\'API Mariage : ' . $e->getMessage());
+            }
+        }
+
         try {
             $user = Auth::user();
 

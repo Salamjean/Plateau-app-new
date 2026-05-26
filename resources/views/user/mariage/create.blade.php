@@ -635,6 +635,105 @@
                 min-height: 48px;
             }
         }
+
+        /* Pills compactes pour "Cette demande est pour" */
+        .pour-toggle-group {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .pour-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .pour-toggle-row-label {
+            font-weight: 700;
+            color: var(--text-navy);
+            font-size: 0.92rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pour-toggle-row-label i {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .pour-toggle-label {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .pour-toggle-label input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .pour-toggle-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 1.1rem;
+            background: #fff;
+            border: 2px solid #e8edf5;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #718096;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .pour-toggle-content i {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            transition: 0.2s;
+        }
+
+        .pour-toggle-content .check-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e0;
+            flex-shrink: 0;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content i {
+            color: var(--primary);
+        }
+
+        .pour-toggle-label input:checked+.pour-toggle-content .check-dot {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
     </style>
 
     <div class="form-page-container">
@@ -667,7 +766,35 @@
                 <!-- ÉTAPE 1: Type de demande -->
                 <div class="form-step active" id="step-1">
                     <div class="form-section">
-                        <div class="form-section-title">
+                        <div class="pour-toggle-row">
+                            <span class="pour-toggle-row-label">
+                                <i class="fas fa-user-circle"></i> Cette demande est pour
+                            </span>
+                            <div class="pour-toggle-group" style="margin-bottom:0;">
+                                <label class="pour-toggle-label">
+                                    <input type="radio" name="pour" value="Moi"
+                                        {{ old('pour', 'Moi') !== 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
+                                    <div class="pour-toggle-content">
+                                        <span class="check-dot"></span>
+                                        <i class="fas fa-user"></i>
+                                        Mon propre mariage
+                                    </div>
+                                </label>
+                                <label class="pour-toggle-label">
+                                    <input type="radio" name="pour" value="une_autre_personne"
+                                        {{ old('pour') === 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
+                                    <div class="pour-toggle-content">
+                                        <span class="check-dot"></span>
+                                        <i class="fas fa-users"></i>
+                                        Un autre couple
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-section-title" style="margin-top:1.5rem;">
                             <i class="fas fa-file-signature"></i> Quel type d'acte souhaitez-vous ?
                         </div>
 
@@ -701,6 +828,34 @@
                             </label>
                         </div>
 
+                        <!-- Blocs dynamiques de relation et procuration -->
+                        <div class="input-group-custom" id="relation-block" style="display: none; margin-top: 1.5rem;">
+                            <label>Quel est votre lien avec les époux ? <span class="text-danger">*</span></label>
+                            <div class="input-wrapper">
+                                <select id="relation" name="relation" class="form-control-custom"
+                                    onchange="onRelationChange()">
+                                    <option value="">-- Choisir le lien de parenté --</option>
+                                    <option value="enfant">Je suis leur enfant</option>
+                                    <option value="parent">Je suis leur parent</option>
+                                    <option value="connaissance">Autre / Mandataire</option>
+                                </select>
+                                <i class="fas fa-link"></i>
+                            </div>
+                        </div>
+
+                        <div class="input-group-custom" id="document-autorisation-block"
+                            style="display: none; margin-top: 1.5rem;">
+                            <label>Document d'autorisation / Procuration <span class="text-danger">*</span></label>
+                            <label class="file-upload-area">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h6 id="autorisation-file-name" class="text-navy-bold mb-1">Téléverser le justificatif
+                                    d'autorisation</h6>
+                                <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 2Mo)</p>
+                                <input type="file" id="document_autorisation" name="document_autorisation" class="d-none"
+                                    onchange="updateAutorisationFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
+                            </label>
+                        </div>
+
                         <!-- Quantité -->
                         <div class="qty-section">
                             <div class="qty-section-label" id="qty-label-mariage"><i class="fas fa-copy"
@@ -721,7 +876,8 @@
                                                 id="mQtySimpleMinus" disabled>-</button>
                                             <input type="number" name="qty_simple" id="qty_simple" class="qty-input"
                                                 value="1" min="1" max="20" readonly>
-                                            <button type="button" class="qty-btn" onclick="updateMQtySimple(1)">+</button>
+                                            <button type="button" class="qty-btn"
+                                                onclick="updateMQtySimple(1)">+</button>
                                         </div>
                                     </div>
                                     <div class="quantity-card-meta">500 FCFA / exemplaire</div>
@@ -739,8 +895,8 @@
                                         <div class="qty-stepper">
                                             <button type="button" class="qty-btn" onclick="updateMQtyIntegral(-1)"
                                                 id="mQtyIntegralMinus" disabled>-</button>
-                                            <input type="number" name="qty_integral" id="qty_integral" class="qty-input"
-                                                value="0" min="0" max="20" readonly>
+                                            <input type="number" name="qty_integral" id="qty_integral"
+                                                class="qty-input" value="0" min="0" max="20" readonly>
                                             <button type="button" class="qty-btn"
                                                 onclick="updateMQtyIntegral(1)">+</button>
                                         </div>
@@ -813,6 +969,9 @@
                             row.classList.add('single-card');
                             if (label) label.innerHTML =
                                 '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?';
+                        }
+                        if (typeof toggleRelationFields === 'function') {
+                            toggleRelationFields();
                         }
                     }
 
@@ -1005,12 +1164,70 @@
     <script>
         let formSubmitted = false;
 
+        function toggleRelationFields() {
+            const pourSelect = document.querySelector('input[name="pour"]:checked');
+            const typeSelect = document.querySelector('input[name="typeDemande"]:checked');
+
+            const relationBlock = document.getElementById('relation-block');
+            const relationSelect = document.getElementById('relation');
+            const documentBlock = document.getElementById('document-autorisation-block');
+
+            if (pourSelect && typeSelect) {
+                const isAutrePersonne = pourSelect.value === 'une_autre_personne';
+                const isIntegralOrGroupee = typeSelect.value === 'integrale' || typeSelect.value === 'groupee';
+
+                if (isAutrePersonne && isIntegralOrGroupee) {
+                    relationBlock.style.display = 'block';
+                } else {
+                    relationBlock.style.display = 'none';
+                    if (relationSelect) relationSelect.value = '';
+
+                    if (documentBlock) documentBlock.style.display = 'none';
+                    const docAuto = document.getElementById('document_autorisation');
+                    if (docAuto) docAuto.value = '';
+                    const autoFileName = document.getElementById('autorisation-file-name');
+                    if (autoFileName) autoFileName.textContent = 'Téléverser le justificatif d\'autorisation';
+                }
+            }
+        }
+
+        function onRelationChange() {
+            const relationSelect = document.getElementById('relation');
+            const documentBlock = document.getElementById('document-autorisation-block');
+
+            if (relationSelect && relationSelect.value === 'connaissance') {
+                if (documentBlock) documentBlock.style.display = 'block';
+            } else {
+                if (documentBlock) documentBlock.style.display = 'none';
+                const docAuto = document.getElementById('document_autorisation');
+                if (docAuto) docAuto.value = '';
+                const autoFileName = document.getElementById('autorisation-file-name');
+                if (autoFileName) autoFileName.textContent = 'Téléverser le justificatif d\'autorisation';
+            }
+        }
+
+        function updateAutorisationFileName(input) {
+            const fileName = input.files[0] ? input.files[0].name : 'Aucun document sélectionné';
+            const autoFileName = document.getElementById('autorisation-file-name');
+            if (autoFileName) autoFileName.textContent = fileName;
+        }
+
+        function updateFields() {
+            toggleRelationFields();
+        }
+
         document.querySelectorAll('input[name="typeDemande"]').forEach(function(radio) {
             radio.addEventListener('change', function() {
                 const infoEpoux = document.getElementById('infoEpoux');
                 infoEpoux.style.display = (this.value === 'integrale' || this.value ===
                     'groupee') ? 'block' : 'none';
+                toggleRelationFields();
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleRelationFields();
+            updateFields();
         });
 
         function nextStep(step) {
@@ -1049,7 +1266,26 @@
             container.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             container.querySelectorAll('.error-message').forEach(el => el.remove());
 
-            if (step === 2) {
+            if (step === 1) {
+                const pourSelect = document.querySelector('input[name="pour"]:checked');
+                const typeSelect = document.querySelector('input[name="typeDemande"]:checked');
+                if (pourSelect && typeSelect) {
+                    if (pourSelect.value === 'une_autre_personne' && (typeSelect.value === 'integrale' || typeSelect
+                            .value === 'groupee')) {
+                        const relation = document.getElementById('relation');
+                        if (!relation.value) {
+                            isValid = false;
+                            displayError(relation, "Veuillez préciser votre lien de parenté.");
+                        } else if (relation.value === 'connaissance') {
+                            const docInput = document.getElementById('document_autorisation');
+                            if (docInput.files.length === 0) {
+                                isValid = false;
+                                displayError(docInput, "Veuillez téléverser le document d'autorisation.");
+                            }
+                        }
+                    }
+                }
+            } else if (step === 2) {
                 const commune = document.getElementById('commune_mariage');
                 if (!commune.value.trim()) {
                     isValid = false;

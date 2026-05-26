@@ -17,6 +17,9 @@ class MairieDashboard extends Controller
         return $query->where(function ($q) {
             $q->whereNull('choix_option')
                 ->orWhere('choix_option', '!=', 'Retrait sur place');
+        })->where(function ($q) {
+            $q->whereNull('is_free_request')
+                ->orWhere('is_free_request', '!=', 1);
         });
     }
 
@@ -479,17 +482,29 @@ class MairieDashboard extends Controller
         $commune = $mairie->name; // Mairie name contient le nom de la commune
         $year = $request->input('year', Carbon::now()->format('Y'));
 
-        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
+        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets (en excluant les gratuites)
         $naissances = Naissance::where('commune', $mairie->name)
             ->paye()
+            ->where(function ($q) {
+                $q->whereNull('is_free_request')
+                    ->orWhere('is_free_request', '!=', 1);
+            })
             ->get();
 
         $mariages = Mariage::where('commune', $mairie->name)
             ->paye()
+            ->where(function ($q) {
+                $q->whereNull('is_free_request')
+                    ->orWhere('is_free_request', '!=', 1);
+            })
             ->get();
 
         $deces = Deces::where('commune', $mairie->name)
             ->paye()
+            ->where(function ($q) {
+                $q->whereNull('is_free_request')
+                    ->orWhere('is_free_request', '!=', 1);
+            })
             ->get();
 
         $feed = collect();

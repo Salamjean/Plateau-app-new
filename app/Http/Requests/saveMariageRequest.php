@@ -25,6 +25,9 @@ class saveMariageRequest extends FormRequest
             'pieceIdentite' => 'required|mimes:png,jpg,jpeg,pdf|max:25600',
             'extraitMariage' => 'nullable|mimes:png,jpg,jpeg,pdf|max:25600',
             'commune_mariage' => 'required|string|max:255',
+            'pour' => 'nullable|string',
+            'relation' => 'nullable|string',
+            'document_autorisation' => 'nullable|mimes:png,jpg,jpeg,pdf|max:25600',
         ];
     }
 

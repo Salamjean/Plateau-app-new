@@ -19,6 +19,9 @@ class ComptableDashboard extends Controller
         return $query->where(function ($q) {
             $q->whereNull('choix_option')
                 ->orWhere('choix_option', '!=', 'Retrait sur place');
+        })->where(function ($q) {
+            $q->whereNull('is_free_request')
+                ->orWhere('is_free_request', '!=', 1);
         });
     }
 

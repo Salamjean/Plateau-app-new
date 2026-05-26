@@ -68,9 +68,21 @@ class MariageController extends Controller
 
     public function store(saveMariageRequest $request, YellikaSmsService $yellikaSmsService, \App\Services\WaveService $waveService)
     {
+        // Validation IA Gemini de la pièce d'identité CNI
+        if ($request->hasFile('pieceIdentite')) {
+            $geminiService = app(\App\Services\GeminiValidationService::class);
+            $validation = $geminiService->validateIdentityDocument($request->file('pieceIdentite'));
+            if (!$validation['isValid']) {
+                return redirect()->back()
+                    ->withErrors(['pieceIdentite' => "La pièce d'identité a été rejetée par l'IA de la mairie : " . $validation['reason']])
+                    ->withInput();
+            }
+        }
+
         $filesToUpload = [
             'pieceIdentite' => 'identite',
             'extraitMariage' => 'extrait',
+            'document_autorisation' => 'autorisations',
         ];
 
         $uploadedPaths = [];
@@ -102,24 +114,37 @@ class MariageController extends Controller
         $increment = Mariage::getNextId();
         $reference = 'AM' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AM pour Acte de Mariage
 
-        // Récupérer les quantités simple et intégrale
+        // Récupérer les quantités simple et intégrale selon le type de demande
         $qtySimple = (int) $request->input('qty_simple', 0);
         $qtyIntegral = (int) $request->input('qty_integral', 0);
 
-        $totalQuantity = $qtySimple + $qtyIntegral;
-
-        if ($totalQuantity === 0) {
-            $totalQuantity = 1;
-            if ($request->typeDemande === 'integrale') {
-                $qtyIntegral = 1;
-            } else {
+        if ($request->typeDemande === 'simple') {
+            $qtyIntegral = 0;
+            if ($qtySimple <= 0) {
                 $qtySimple = 1;
             }
+        } elseif ($request->typeDemande === 'integrale') {
+            $qtySimple = 0;
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
+            }
+        } else {
+            // groupee (simple + integrale)
+            if ($qtySimple <= 0) {
+                $qtySimple = 1;
+            }
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
+            }
         }
+        $totalQuantity = $qtySimple + $qtyIntegral;
 
         // Enregistrement de l'objet Mariage
         $mariage = new Mariage();
         $mariage->type = $request->typeDemande;
+        $mariage->pour = $request->pour;
+        $mariage->relation = $request->relation;
+        $mariage->document_autorisation = $uploadedPaths['document_autorisation'] ?? null;
         $mariage->nomEpoux = $request->nomEpoux;
         $mariage->prenomEpoux = $request->prenomEpoux;
         $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux;

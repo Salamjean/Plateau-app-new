@@ -47,6 +47,9 @@ class DecesController extends Controller
     {
         $request->validate([
             'type' => 'required',
+            'pour' => 'nullable|string',
+            'relation' => 'nullable|string',
+            'document_autorisation' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:25600',
             'name' => 'required',
             'numberR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'dateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
@@ -72,12 +75,35 @@ class DecesController extends Controller
             'CNIdfnt.mimes' => 'Cet document doit être un format de fichier valide (png, jpg, jpeg, pdf).',
         ]);
 
+        $geminiService = app(\App\Services\GeminiValidationService::class);
+
+        // Validation IA Gemini de la pièce d'identité du défunt (CNIdfnt)
+        if ($request->hasFile('CNIdfnt')) {
+            $validation = $geminiService->validateIdentityDocument($request->file('CNIdfnt'));
+            if (!$validation['isValid']) {
+                return redirect()->back()
+                    ->withErrors(['CNIdfnt' => "La pièce d'identité du défunt a été rejetée par l'IA : " . $validation['reason']])
+                    ->withInput();
+            }
+        }
+
+        // Validation IA Gemini de la pièce d'identité du déclarant (CNIdcl)
+        if ($request->hasFile('CNIdcl')) {
+            $validation = $geminiService->validateIdentityDocument($request->file('CNIdcl'));
+            if (!$validation['isValid']) {
+                return redirect()->back()
+                    ->withErrors(['CNIdcl' => "La pièce d'identité du déclarant a été rejetée par l'IA : " . $validation['reason']])
+                    ->withInput();
+            }
+        }
+
         $filesToUpload = [
             'pActe' => '', // Pas de sous-dossier
             'CNIdfnt' => 'cnid',
             'CNIdcl' => 'cnid',
             'documentMariage' => 'mariage',
             'RequisPolice' => 'police',
+            'document_autorisation' => 'autorisations',
         ];
 
         $uploadedPaths = [];
@@ -111,17 +137,37 @@ class DecesController extends Controller
         $increment = Deces::getNextId();
         $reference = 'AD' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AD pour Acte de Decès
 
-        // Récupérer les quantités
+        // Récupérer les quantités selon le type de demande
         $qtySimple = (int) $request->input('qty_simple', 0);
         $qtyIntegral = (int) $request->input('qty_integral', 0);
-        if ($qtySimple === 0 && $qtyIntegral === 0) {
-            $qtySimple = 1;
+
+        if ($request->type === 'simple') {
+            $qtyIntegral = 0;
+            if ($qtySimple <= 0) {
+                $qtySimple = 1;
+            }
+        } elseif ($request->type === 'integrale') {
+            $qtySimple = 0;
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
+            }
+        } else {
+            // groupee (simple + integrale)
+            if ($qtySimple <= 0) {
+                $qtySimple = 1;
+            }
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
+            }
         }
         $totalQuantity = $qtySimple + $qtyIntegral;
 
         // Enregistrement de l'objet deces
         $deces = new Deces();
         $deces->type = $request->type;
+        $deces->pour = $request->pour;
+        $deces->relation = $request->relation;
+        $deces->document_autorisation = $uploadedPaths['document_autorisation'] ?? null;
         $deces->name = $request->name;
         $deces->nom_prenoms_pere = $request->nom_prenoms_pere;
         $deces->nom_prenoms_mere = $request->nom_prenoms_mere;
@@ -261,7 +307,6 @@ class DecesController extends Controller
 
                         Log::error('Échec CinetPay: ' . $response->body());
                         return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur de génération du lien CinetPay.');
-
                     } catch (\Exception $e) {
                         Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
                         return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur interne de paiement.');

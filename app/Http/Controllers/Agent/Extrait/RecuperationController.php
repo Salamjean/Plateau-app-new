@@ -24,26 +24,29 @@ class RecuperationController extends Controller
 
         // Compter uniquement les demandes qui NE SONT PAS dans les états finaux
         return Naissance::where('agent_id', $agentId)->whereNotIn('etat', $etatsFinaux)->count() +
-               Deces::where('agent_id', $agentId)->whereNotIn('etat', $etatsFinaux)->count() +
-               Mariage::where('agent_id', $agentId)->whereNotIn('etat', $etatsFinaux)->count();
+            Deces::where('agent_id', $agentId)->whereNotIn('etat', $etatsFinaux)->count() +
+            Mariage::where('agent_id', $agentId)->whereNotIn('etat', $etatsFinaux)->count();
     }
 
     private function traiterDemandeGenerique($modelClass, $id, $successRoute, $modelName)
     {
         $agent = Auth::guard('agent')->user();
-        
+
         // Ce compteur est maintenant correct grâce à la modification ci-dessus
         $pendingRequestsCount = $this->compterDemandesEnAttente($agent->id);
 
+        // Limitation retirée à la demande de l'utilisateur (pas de limite de récupération)
+        /*
         if ($pendingRequestsCount >= 2) {
             return redirect()->route('agent.dashboard')->with('error', 'Vous avez 2 demandes en attente. Veuillez terminer les demandes en attente.');
         }
+        */
 
         $demande = $modelClass::find($id);
 
         if (!$demande) {
             // Redirige vers la route d'index (ex: .../deces) en cas d'erreur
-            return redirect()->route($successRoute)->with('error', 'Demande introuvable.'); 
+            return redirect()->route($successRoute)->with('error', 'Demande introuvable.');
         }
 
         if ($demande->agent_id) {
@@ -52,7 +55,7 @@ class RecuperationController extends Controller
 
         // Sauvegarder l'ancien état
         $ancienEtat = $demande->etat ?? 'en attente';
-        
+
         $demande->is_read = true;
         $demande->agent_id = $agent->id;
         $demande->etat = 'réçu';
@@ -63,7 +66,7 @@ class RecuperationController extends Controller
         // =================================================================
         $demande->load('user');
         $user = $demande->user;
-        
+
         // Mapper le nom du modèle vers le type de notification
         $typeMapping = [
             'naissance' => 'naissance',
@@ -71,7 +74,7 @@ class RecuperationController extends Controller
             'mariage' => 'mariage',
         ];
         $notificationType = $typeMapping[$modelName] ?? $modelName;
-        
+
         if ($user) {
             UserNotification::notifyStatusChange(
                 $user->id,
@@ -102,12 +105,11 @@ class RecuperationController extends Controller
 
     public function RecupererDeces($id)
     {
-        return $this->traiterDemandeGenerique(Deces::class, $id,'agent.demandes.deces.index' , 'décès');
+        return $this->traiterDemandeGenerique(Deces::class, $id, 'agent.demandes.deces.index', 'décès');
     }
 
     public function RecupererMariage($id)
     {
-        return $this->traiterDemandeGenerique(Mariage::class, $id,'agent.demandes.wedding.index' , 'mariage');
+        return $this->traiterDemandeGenerique(Mariage::class, $id, 'agent.demandes.wedding.index', 'mariage');
     }
-
 }

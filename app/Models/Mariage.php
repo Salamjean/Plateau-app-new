@@ -8,6 +8,9 @@ class Mariage extends Model
 {
     protected $fillable = [
         'type',
+        'pour',
+        'relation',
+        'document_autorisation',
         'nomEpoux',
         'prenomEpoux',
         'dateNaissanceEpoux',
