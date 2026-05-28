@@ -81,7 +81,7 @@
                         <p class="text-muted mb-4">Commandez vos extraits d'acte de naissance ou copies intégrales en ligne.
                         </p>
                         <a href="{{ route('home.birth') }}" class="btn px-4 rounded-pill fw-800"
-                            style="border-color: #1f4083; color: white; background-color: #1f4083;">COMMANDER</a>
+                            style="border-color: #1f4083; color: white; background-color: #1f4083;">FAIRE UNE DEMANDE</a>
                     </div>
                 </div>
 
@@ -95,7 +95,7 @@
                         <p class="text-white text-opacity-75 mb-4">Réservez votre date de célébration et demandez vos
                             certificats.</p>
                         <a href="{{ route('home.wedding') }}" class="btn btn-light px-4 rounded-pill fw-800"
-                            style="color: #1f4083;">DÉCOUVRIR</a>
+                            style="color: #1f4083;">FAIRE UNE DEMANDE</a>
                     </div>
                 </div>
 
@@ -108,7 +108,7 @@
                         <h4 class="fw-900 mb-3" style="color: #1f4083;">Décès</h4>
                         <p class="text-muted mb-4">Démarches simplifiées pour l'obtention des actes de décès officiels.</p>
                         <a href="{{ route('home.death') }}" class="btn px-4 rounded-pill fw-800"
-                            style="border-color: #1f4083; color: white; background-color: #1f4083;">COMMENCER</a>
+                            style="border-color: #1f4083; color: white; background-color: #1f4083;">FAIRE UNE DEMANDE</a>
                     </div>
                 </div>
             </div>
