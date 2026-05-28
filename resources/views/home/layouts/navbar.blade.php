@@ -19,8 +19,6 @@
             <ul class="navbar-nav mx-auto text-center py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}"
                         href="{{ route('home') }}">ACCUEIL</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('about.demande') ? 'active' : '' }}"
-                        href="{{ route('about.demande') }}">A Propos</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center justify-content-center {{ request()->routeIs('home.birth', 'home.wedding', 'home.death', 'recherche.demande') ? 'active' : '' }}"
                         href="#" id="actesDropdown" role="button" data-bs-toggle="dropdown"

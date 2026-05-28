@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Validator;
 
 class LivraisonController extends Controller
@@ -251,6 +252,24 @@ class LivraisonController extends Controller
                 'statut_livraison' => 'livré',
                 'date_livraison' => now(),
             ]);
+
+            // Notification push + DB
+            try {
+                $demande->load('user');
+                $user = $demande->user;
+                $modelName = strtolower($this->getTypeDemande(Str::studly($request->demande_type)));
+
+                if ($user) {
+                    $user->notify(new GeneralPushNotification(
+                        'Demande livrée ✔',
+                        "Votre acte de {$modelName} ({$demande->reference}) a été livré avec succès.",
+                        ['type' => 'tracking', 'reference' => $demande->reference, 'url' => 'plateauapps://demande?reference=' . $demande->reference]
+                    ));
+                }
+            } catch (\Exception $ex) {
+                // Log l'erreur de notification sans impacter la confirmation de livraison
+                \Illuminate\Support\Facades\Log::error("Erreur d'envoi notification de livraison dans l'API : " . $ex->getMessage());
+            }
 
             return response()->json([
                 'success' => true,

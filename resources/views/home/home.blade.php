@@ -80,8 +80,8 @@
                         <h4 class="fw-900 mb-3" style="color: #1f4083;">Naissance</h4>
                         <p class="text-muted mb-4">Commandez vos extraits d'acte de naissance ou copies intégrales en ligne.
                         </p>
-                        <a href="{{ route('home.birth') }}" class="btn btn-outline-primary px-4 rounded-pill fw-800"
-                            style="border-color: #1f4083; color: #1f4083;">COMMANDER</a>
+                        <a href="{{ route('home.birth') }}" class="btn px-4 rounded-pill fw-800"
+                            style="border-color: #1f4083; color: white; background-color: #1f4083;">COMMANDER</a>
                     </div>
                 </div>
 
@@ -103,12 +103,12 @@
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
                     <div class="service-card-new p-5 text-center transition">
                         <div class="icon-wrapper mb-4 mx-auto">
-                            <i class="bi bi-file-earmark-diff text-danger fs-1"></i>
+                            <i class="bi bi-file-earmark-diff fs-1" style="color: #1f4083;"></i>
                         </div>
                         <h4 class="fw-900 mb-3" style="color: #1f4083;">Décès</h4>
                         <p class="text-muted mb-4">Démarches simplifiées pour l'obtention des actes de décès officiels.</p>
-                        <a href="{{ route('home.death') }}"
-                            class="btn btn-outline-danger px-4 rounded-pill fw-800">COMMENCER</a>
+                        <a href="{{ route('home.death') }}" class="btn px-4 rounded-pill fw-800"
+                            style="border-color: #1f4083; color: white; background-color: #1f4083;">COMMENCER</a>
                     </div>
                 </div>
             </div>

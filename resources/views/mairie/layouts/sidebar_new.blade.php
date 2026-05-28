@@ -21,6 +21,29 @@
 
         <div class="sidebar-divider"></div>
 
+        <!-- Actes -->
+        <a href="{{ route('mairie.request.birth') }}"
+            class="sidebar-link {{ request()->routeIs('mairie.request.birth') ? 'active' : '' }}"
+            title="Acte Naissance">
+            <i class="material-icons">child_care</i>
+            <span>Acte Naissance</span>
+        </a>
+
+        <a href="{{ route('mairie.request.death') }}"
+            class="sidebar-link {{ request()->routeIs('mairie.request.death') ? 'active' : '' }}" title="Acte Décès">
+            <i class="material-icons">spa</i>
+            <span>Acte Décès</span>
+        </a>
+
+        <a href="{{ route('mairie.request.wedding') }}"
+            class="sidebar-link {{ request()->routeIs('mairie.request.wedding') ? 'active' : '' }}"
+            title="Acte Mariage">
+            <i class="material-icons">favorite</i>
+            <span>Acte Mariage</span>
+        </a>
+        
+        <div class="sidebar-divider"></div>
+
         <!-- Etat civil -->
         <div class="sidebar-menu-item">
             <a href="#"
@@ -86,8 +109,7 @@
 
         <!-- Livraison -->
         <div class="sidebar-menu-item">
-            <a href="#"
-                class="sidebar-link has-submenu {{ request()->routeIs('post.*') ? 'active-parent' : '' }}"
+            <a href="#" class="sidebar-link has-submenu {{ request()->routeIs('post.*') ? 'active-parent' : '' }}"
                 data-submenu="livraison" title="Livraison">
                 <i class="material-icons">local_shipping</i>
                 <span>Livraison</span>
@@ -113,29 +135,6 @@
                 </a>
             </div>
         </div>
-
-        <div class="sidebar-divider"></div>
-
-        <!-- Actes -->
-        <a href="{{ route('mairie.request.birth') }}"
-            class="sidebar-link {{ request()->routeIs('mairie.request.birth') ? 'active' : '' }}"
-            title="Acte Naissance">
-            <i class="material-icons">child_care</i>
-            <span>Acte Naissance</span>
-        </a>
-
-        <a href="{{ route('mairie.request.death') }}"
-            class="sidebar-link {{ request()->routeIs('mairie.request.death') ? 'active' : '' }}" title="Acte Décès">
-            <i class="material-icons">spa</i>
-            <span>Acte Décès</span>
-        </a>
-
-        <a href="{{ route('mairie.request.wedding') }}"
-            class="sidebar-link {{ request()->routeIs('mairie.request.wedding') ? 'active' : '' }}"
-            title="Acte Mariage">
-            <i class="material-icons">favorite</i>
-            <span>Acte Mariage</span>
-        </a>
 
         <div class="sidebar-divider"></div>
 
@@ -504,7 +503,7 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Apply chevron rotation for already active submenus from server (no localStorage)
         document.querySelectorAll('.sidebar-submenu.active').forEach(submenu => {
             const parentLink = document.querySelector(`[data-submenu="${submenu.id}"]`);
@@ -518,7 +517,7 @@
         const submenuLinks = document.querySelectorAll('.sidebar-link.has-submenu');
 
         submenuLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
                 const submenuId = this.getAttribute('data-submenu');
                 const submenu = document.getElementById(submenuId);
