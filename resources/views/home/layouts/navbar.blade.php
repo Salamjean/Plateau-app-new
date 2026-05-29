@@ -1,10 +1,10 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-custom fixed-top" id="mainNav">
-    <div class="container">
+    <div class="container-fluid px-10percent">
         <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-            <img src="{{ asset('assets/assets/img/logo plateau.png') }}" alt="Mairie du Plateau">
+            <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Mairie du Plateau" style="height: 50px;">
             <div class="brand-text d-none d-sm-block">
-                <span class="d-block fw-800 fs-6 text-white text-uppercase"
+                <span class="d-block fw-800 fs-6 text-primary text-uppercase"
                     style="line-height: 1.1; letter-spacing: 1px;">PLATEAU-APPS</span>
             </div>
         </a>
@@ -12,18 +12,18 @@
         <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false"
             aria-label="Toggle navigation">
-            <i class="bi bi-list text-white fs-1"></i>
+            <i class="bi bi-list text-dark fs-1"></i>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarContent">
             <ul class="navbar-nav mx-auto text-center py-4 py-lg-0">
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}"
-                        href="{{ route('home') }}">ACCUEIL</a></li>
+                        href="{{ route('home') }}">Accueil</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center justify-content-center {{ request()->routeIs('home.birth', 'home.wedding', 'home.death', 'recherche.demande') ? 'active' : '' }}"
                         href="#" id="actesDropdown" role="button" data-bs-toggle="dropdown"
                         aria-expanded="false">
-                        ACTES CIVILS <i class="bi bi-chevron-down ms-2" style="font-size: 0.8rem;"></i>
+                        Actes civils <i class="bi bi-chevron-down ms-2" style="font-size: 0.8rem;"></i>
                     </a>
                     <ul class="dropdown-menu border-0 shadow-lg p-3" aria-labelledby="actesDropdown"
                         style="border-radius: 15px;">
@@ -45,12 +45,12 @@
                     </ul>
                 </li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('service.demande') ? 'active' : '' }}"
-                        href="{{ route('service.demande') }}">SERVICES</a></li>
+                        href="{{ route('service.demande') }}">Services</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('home.contact') ? 'active' : '' }}"
-                        href="{{ route('home.contact') }}">CONTACT</a></li>
+                        href="{{ route('home.contact') }}">Contact</a></li>
             </ul>
             <div class="d-flex align-items-center justify-content-center gap-4 mt-3 mt-lg-0">
-                <a href="{{ route('login') }}" class="btn-portal w-100 w-lg-auto text-center">MON ESPACE</a>
+                <a href="{{ route('login') }}" class="btn-portal w-100 w-lg-auto text-center">Mon espace citoyen</a>
             </div>
         </div>
     </div>
