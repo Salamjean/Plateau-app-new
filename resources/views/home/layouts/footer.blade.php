@@ -131,9 +131,9 @@
 
 <style>
     .footer {
-        background: linear-gradient(rgba(51, 65, 85, 0.97), rgba(51, 65, 85, 0.97)), url('{{ asset("assets/assets/img/arrierep.jpg") }}') repeat !important;
-        background-size: auto !important;
-        background-position: top center !important;
+        background: linear-gradient(rgba(51, 65, 85, 0.97), rgba(51, 65, 85, 0.97)), url('{{ asset("assets/assets/img/footerback.png") }}') no-repeat !important;
+        background-size: cover !important;
+        background-position: center !important;
         color: #e2e8f0;
         padding: 80px 0 30px;
         border-radius: 60px 60px 0 0;
