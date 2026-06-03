@@ -1,157 +1,244 @@
 <!-- FOOTER -->
 <footer class="footer">
     <div class="container-fluid px-10percent">
-        <div class="row g-5">
-            <!-- Colonne 1: Présentation & Contacts -->
-            <div class="col-lg-4 col-md-6">
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Logo Mairie du Plateau" class="footer-logo mb-0" style="height: 60px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.1)); background-color: white;">
-                    <div>
-                        <span class="d-block fw-900 fs-5 text-white text-uppercase" style="letter-spacing: 0.5px;">PLATEAU-APPS</span>
-                        <span class="d-block text-white-50 small font-weight-600">Portail Officiel des Démarches</span>
+        <!-- TOP INFO BAR -->
+        <div class="footer-top-bar mb-5">
+            <div class="row g-4">
+                <!-- Item 1 -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="footer-info-item">
+                        <div class="footer-info-line">
+                            <div class="footer-info-circle">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </div>
+                        </div>
+                        <a href="mailto:contact@mairieplateau.ci" class="footer-info-text d-block text-decoration-none text-white">contact@mairieplateau.ci</a>
+                        <span class="footer-info-subtext">Send a Email</span>
                     </div>
                 </div>
-                <p class="text-white-50 small mb-4 lh-lg">
-                    La Mairie du Plateau modernise ses services administratifs pour offrir aux citoyens une plateforme sécurisée, rapide et accessible 24h/7j pour toutes leurs demandes d'actes d'état civil.
-                </p>
-                <div class="d-flex flex-column gap-3 text-white-50 small">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-geo-alt text-primary fs-5"></i>
-                        <span>Hôtel de Ville du Plateau, Avenue Chardy, Abidjan</span>
+                <!-- Item 2 -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="footer-info-item">
+                        <div class="footer-info-line">
+                            <div class="footer-info-circle">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                        </div>
+                        <a href="tel:+22520212223" class="footer-info-text d-block text-decoration-none text-white">+225 20 21 22 23</a>
+                        <span class="footer-info-subtext">Appelez nous à tout moment</span>
+                    </div>
+                </div>
+                <!-- Item 3 -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="footer-info-item">
+                        <div class="footer-info-line">
+                            <div class="footer-info-circle">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                        </div>
+                        <span class="footer-info-text d-block">Hotel de la ville,Abidjan</span>
+                        <span class="footer-info-subtext">Notre Adresse</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN COLUMNS -->
+        <div class="row g-5 pt-4">
+            <!-- Colonne 1: Logo & Contacts -->
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="mb-4">
+                    <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Logo Mairie du Plateau" style="height: 48px;">
+                </div>
+                <div class="d-flex flex-column gap-3 small text-white-50">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="fa-solid fa-location-dot mt-1 text-white-50"></i>
+                        <span>Avenue Chardy, Plateau<br>Abidjan, Côte d'Ivoire</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-envelope text-primary fs-5"></i>
-                        <a href="mailto:contact@mairie-plateau.ci" class="text-white-50 text-decoration-none transition-color hover:text-white">contact@mairie-plateau.ci</a>
+                        <i class="fa-solid fa-envelope text-white-50"></i>
+                        <a href="mailto:contact@mairieplateau.ci" class="text-white-50 text-decoration-none hover-link">contact@mairieplateau.ci</a>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-telephone text-primary fs-5"></i>
-                        <a href="tel:+2250709500501" class="text-white-50 text-decoration-none transition-color hover:text-white">+225 07 095 005 01</a>
+                        <i class="fa-solid fa-phone text-white-50"></i>
+                        <a href="tel:+22520212223" class="text-white-50 text-decoration-none hover-link">+225 20 21 22 23</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Colonne 2: Services rapides -->
-            <div class="col-lg-3 col-md-6">
-                <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider" style="border-left: 3px solid #1f4083; padding-left: 10px;">Services en ligne</h5>
+            <!-- Colonne 2: Liens rapides -->
+            <div class="col-lg-2 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider">Liens Rapides</h5>
                 <ul class="list-unstyled d-flex flex-column gap-3 small">
-                    <li>
-                        <a href="{{ route('home.birth') }}" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> Acte de Naissance
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('home.wedding') }}" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> Acte de Mariage
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('home.death') }}" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> Acte de Décès
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('recherche.demande') }}" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> Suivre ma demande
-                        </a>
-                    </li>
+                    <li><a href="{{ route('home') }}" class="text-white-50 text-decoration-none hover-link">A propos</a></li>
+                    <li><a href="{{ route('service.demande') }}" class="text-white-50 text-decoration-none hover-link">Services</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Départements</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Contact</a></li>
+                </ul>
+                <div class="mt-4 pt-2">
+                    <a href="{{ route('login') }}" class="text-white-50 text-decoration-none hover-link fw-700" style="color: #60a5fa !important;">Mon espace citoyen</a>
+                </div>
+            </div>
+
+            <!-- Colonne 3: Nos Services -->
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider">Nos Services</h5>
+                <ul class="list-unstyled d-flex flex-column gap-3 small">
+                    <li><a href="{{ route('home.birth') }}" class="text-white-50 text-decoration-none hover-link">Acte de naissance</a></li>
+                    <li><a href="{{ route('home.wedding') }}" class="text-white-50 text-decoration-none hover-link">Acte de mariage</a></li>
+                    <li><a href="{{ route('home.death') }}" class="text-white-50 text-decoration-none hover-link">Acte de décès</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">CMU</a></li>
+                    <li><a href="{{ route('service.demande') }}" class="text-white-50 text-decoration-none hover-link">Légalisation</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Urbanisme</a></li>
                 </ul>
             </div>
 
-            <!-- Colonne 3: Municipalité & Utile -->
-            <div class="col-lg-2 col-md-6">
-                <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider" style="border-left: 3px solid #1f4083; padding-left: 10px;">Utile</h5>
-                <ul class="list-unstyled d-flex flex-column gap-3 small">
-                    <li>
-                        <a href="#" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> La Municipalité
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> Actualités
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> Guide des démarches
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('plateau.privacy') }}" class="text-white-50 text-decoration-none hover-link d-flex align-items-center gap-2 transition">
-                            <i class="bi bi-chevron-right text-primary small"></i> Confidentialité
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Colonne 4: Horaires & Réseaux -->
-            <div class="col-lg-3 col-md-6">
-                <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider" style="border-left: 3px solid #1f4083; padding-left: 10px;">Horaires & Réseaux</h5>
-                <div class="text-white-50 small mb-4 lh-lg">
-                    <div class="d-flex justify-content-between border-bottom border-secondary border-opacity-10 pb-2 mb-2">
-                        <span>Lundi - Vendredi</span>
-                        <span class="text-white">07h30 - 16h30</span>
-                    </div>
-                    <div class="d-flex justify-content-between border-bottom border-secondary border-opacity-10 pb-2 mb-2">
-                        <span>Samedi - Dimanche</span>
-                        <span class="text-danger fw-600">Fermé</span>
-                    </div>
-                    <p class="xsmall text-white-50 mt-2 italic"><i class="bi bi-info-circle me-1"></i>Déclarations de décès assurées d'urgence le week-end.</p>
+            <!-- Colonne 4: Suivez-nous & Message -->
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider">Suivez-nous</h5>
+                <div class="d-flex gap-3 mb-4">
+                    <a href="#" class="footer-social-link"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="footer-social-link"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#" class="footer-social-link"><i class="fa-brands fa-linkedin-in"></i></a>
                 </div>
-                <div class="d-flex gap-3">
-                    <a href="#" class="social-link facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="social-link twitter"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="social-link linkedin"><i class="bi bi-linkedin"></i></a>
-                    <a href="#" class="social-link youtube"><i class="bi bi-youtube"></i></a>
+                
+                <!-- Card box official portal -->
+                <div class="p-3 rounded-4" style="background-color: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <p class="text-white mb-2 fw-700 small">Portail officiel de la commune du Plateau.</p>
+                    <p class="text-white-50 mb-0 small">Moderniser pour mieux vous servir.</p>
                 </div>
             </div>
         </div>
 
         <hr class="my-5 border-white opacity-10">
-        
-        <div class="row align-items-center text-center text-md-start small text-white-50">
+
+        <!-- BOTTOM BAR -->
+        <div class="row align-items-center text-center text-md-start small text-white-50 pb-3">
             <div class="col-md-6 mb-3 mb-md-0">
-                <p class="mb-0">&copy; 2024 MAIRIE DU PLATEAU. TOUS DROITS RÉSERVÉS.</p>
+                <p class="mb-0">&copy; {{ date('Y') }} Mairie du Plateau &mdash; Tous droits réservés.</p>
             </div>
             <div class="col-md-6 text-center text-md-end">
-                <p class="mb-0">Développé pour la modernisation administrative de la commune du Plateau.</p>
+                <a href="{{ route('plateau.privacy') }}" class="text-white-50 text-decoration-none hover-link me-3">Politique de confidentialité</a>
+                <span class="text-white-50">|</span>
+                <a href="#" class="text-white-50 text-decoration-none hover-link ms-3">Mentions légales</a>
             </div>
         </div>
     </div>
 </footer>
 
 <style>
+    .footer {
+        background: linear-gradient(rgba(51, 65, 85, 0.97), rgba(51, 65, 85, 0.97)), url('{{ asset("assets/assets/img/arrierep.jpg") }}') repeat !important;
+        background-size: auto !important;
+        background-position: top center !important;
+        color: #e2e8f0;
+        padding: 80px 0 30px;
+        border-radius: 60px 60px 0 0;
+        position: relative;
+        margin-top: 140px;
+    }
+
     .hover-link {
         transition: all 0.3s ease;
+        display: inline-block;
     }
+    
     .hover-link:hover {
         color: #ffffff !important;
-        transform: translateX(5px);
+        transform: translateX(4px);
     }
-    .social-link {
-        background: rgba(255, 255, 255, 0.04) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
+    
+    /* --- FOOTER TOP BAR --- */
+    .footer-top-bar {
+        background-color: #103a83;
+        border-radius: 24px;
+        padding: 35px 40px;
+        margin-top: -130px;
+        position: relative;
+        z-index: 20;
+        box-shadow: 0 20px 40px rgba(16, 58, 131, 0.15);
+    }
+
+    .footer-info-item {
+        position: relative;
+    }
+
+    .footer-info-line {
+        height: 2px;
+        background-color: rgba(255, 255, 255, 0.2);
+        width: 100%;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .footer-info-circle {
+        position: absolute;
+        right: 0;
+        top: -17px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #0c2b62;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: rgba(255, 255, 255, 0.7) !important;
+        color: #ffffff;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .footer-info-text {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .footer-info-subtext {
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .footer-social-link {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 1.1rem;
         transition: all 0.3s ease;
         text-decoration: none !important;
     }
-    .social-link:hover {
-        background: #1f4083 !important;
-        color: #ffffff !important;
+
+    .footer-social-link:hover {
+        background-color: #103a83;
+        color: #ffffff;
         transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(31, 64, 131, 0.3);
+        box-shadow: 0 5px 15px rgba(16, 58, 131, 0.3);
     }
-    .xsmall {
-        font-size: 0.75rem;
+
+    @media (max-width: 991px) {
+        .footer-top-bar {
+            margin-top: -100px;
+            padding: 30px 20px;
+        }
     }
-    .italic {
-        font-style: italic;
+
+    @media (max-width: 768px) {
+        .footer-top-bar {
+            margin-top: -85px;
+            padding: 25px 20px;
+        }
+        
+        .footer-info-line {
+            margin-bottom: 10px;
+        }
+        
+        .footer-info-text {
+            font-size: 1.05rem;
+        }
     }
 </style>
-
