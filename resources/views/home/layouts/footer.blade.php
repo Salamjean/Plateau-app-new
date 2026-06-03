@@ -7,8 +7,9 @@
                 <!-- Item 1 -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
                     <div class="footer-info-item">
-                        <div class="footer-info-line">
-                            <div class="footer-info-circle">
+                        <div class="footer-info-line-wrapper d-flex align-items-center mb-3">
+                            <div class="footer-info-line flex-grow-1"></div>
+                            <div class="footer-info-circle ms-2">
                                 <i class="fa-solid fa-paper-plane"></i>
                             </div>
                         </div>
@@ -19,8 +20,9 @@
                 <!-- Item 2 -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
                     <div class="footer-info-item">
-                        <div class="footer-info-line">
-                            <div class="footer-info-circle">
+                        <div class="footer-info-line-wrapper d-flex align-items-center mb-3">
+                            <div class="footer-info-line flex-grow-1"></div>
+                            <div class="footer-info-circle ms-2">
                                 <i class="fa-solid fa-phone"></i>
                             </div>
                         </div>
@@ -31,8 +33,9 @@
                 <!-- Item 3 -->
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
                     <div class="footer-info-item">
-                        <div class="footer-info-line">
-                            <div class="footer-info-circle">
+                        <div class="footer-info-line-wrapper d-flex align-items-center mb-3">
+                            <div class="footer-info-line flex-grow-1"></div>
+                            <div class="footer-info-circle ms-2">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
                         </div>
@@ -163,18 +166,18 @@
         position: relative;
     }
 
+    .footer-info-line-wrapper {
+        width: 100%;
+        display: flex;
+        align-items: center;
+    }
+
     .footer-info-line {
         height: 2px;
         background-color: rgba(255, 255, 255, 0.2);
-        width: 100%;
-        margin-bottom: 20px;
-        position: relative;
     }
 
     .footer-info-circle {
-        position: absolute;
-        right: 0;
-        top: -17px;
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -185,6 +188,7 @@
         color: #ffffff;
         font-size: 0.95rem;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        flex-shrink: 0;
     }
 
     .footer-info-text {
