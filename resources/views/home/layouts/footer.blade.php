@@ -39,7 +39,7 @@
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
                         </div>
-                        <span class="footer-info-text d-block">Hotel de la ville,Abidjan</span>
+                        <span class="footer-info-text d-block text-white">Hotel de la ville,Abidjan</span>
                         <span class="footer-info-subtext">Notre Adresse</span>
                     </div>
                 </div>
@@ -131,7 +131,7 @@
 
 <style>
     .footer {
-        background: linear-gradient(rgba(51, 65, 85, 0.97), rgba(51, 65, 85, 0.97)), url('{{ asset("assets/assets/img/footerback.png") }}') no-repeat !important;
+        background: linear-gradient(rgba(100, 100, 113, 0.97), rgba(100, 100, 113, 0.97)), url('{{ asset("assets/assets/img/footerback.png") }}') no-repeat !important;
         background-size: cover !important;
         background-position: center !important;
         color: #e2e8f0;
@@ -155,15 +155,60 @@
     .footer-top-bar {
         background-color: #103a83;
         border-radius: 24px;
-        padding: 35px 40px;
+        padding: 25px 30px; /* slightly optimized padding to account for item margins */
         margin-top: -130px;
         position: relative;
         z-index: 20;
         box-shadow: 0 20px 40px rgba(16, 58, 131, 0.15);
     }
+    
+    .footer-top-bar .text-white {
+        color: #ffffff !important;
+    }
 
     .footer-info-item {
         position: relative;
+        padding: 20px;
+        border-radius: 20px;
+        border: 2px solid transparent;
+        background-color: transparent;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        cursor: pointer;
+    }
+
+    .footer-info-item:hover {
+        background-color: #ffffff !important;
+        border-color: #ffffff !important;
+        transform: translateY(-45px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Smooth color transitions for items inside the contact card */
+    .footer-info-text, 
+    .footer-info-subtext, 
+    .footer-info-line, 
+    .footer-info-circle,
+    .footer-info-item .text-white {
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Change colors to dark when hovered (white background card active) */
+    .footer-info-item:hover .footer-info-text,
+    .footer-info-item:hover .text-white {
+        color: #0f2c59 !important;
+    }
+
+    .footer-info-item:hover .footer-info-subtext {
+        color: #64748b !important;
+    }
+
+    .footer-info-item:hover .footer-info-line {
+        background: linear-gradient(to right, rgba(15, 44, 89, 0.1), #0f2c59) !important;
+    }
+
+    .footer-info-item:hover .footer-info-circle {
+        background-color: #103a83 !important;
+        box-shadow: 0 4px 12px rgba(16, 58, 131, 0.2);
     }
 
     .footer-info-line-wrapper {
@@ -173,8 +218,9 @@
     }
 
     .footer-info-line {
-        height: 2px;
-        background-color: rgba(255, 255, 255, 0.2);
+        height: 6px;
+        background: linear-gradient(to right, rgba(255, 255, 255, 0.3), #ffffff);
+        clip-path: polygon(0 48%, 100% 0, 100% 100%, 0 52%);
     }
 
     .footer-info-circle {
