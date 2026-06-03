@@ -112,17 +112,10 @@ class LivreurPasswordForgotController extends Controller
                 return response()->json(['message' => 'Le code de réinitialisation est invalide.'], 400);
             }
 
-            $secureToken = Str::random(60);
-
-            $resetRecord->update([
-                'code' => Hash::make($secureToken), 
-            ]);
-
             Log::info('LivreurPasswordForgotController@verifyResetCode: Code verified successfully', ['email' => $request->email]);
 
             return response()->json([
                 'message' => 'Code vérifié avec succès. Vous pouvez maintenant réinitialiser votre mot de passe.',
-                'reset_token' => $secureToken 
             ], 200);
 
         } catch (\Exception $e) {

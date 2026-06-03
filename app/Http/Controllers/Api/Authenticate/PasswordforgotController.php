@@ -123,18 +123,9 @@ class PasswordforgotController extends Controller
             return response()->json(['message' => 'Le code de réinitialisation est invalide.'], 400);
         }
 
-        // Si le code est bon, on génère un nouveau token sécurisé pour l'étape finale
-        $secureToken = Str::random(60);
-
-        // On met à jour l'enregistrement avec ce nouveau token
-        DB::table('password_reset_tokens')->where('email', $request->login_identifier)->update([
-            'token' => Hash::make($secureToken), // On le stocke haché pour la sécurité
-        ]);
-
-        // On renvoie le token non-haché à l'application mobile
+        // On renvoie un succès à l'application mobile
         return response()->json([
             'message' => 'Code vérifié avec succès. Vous pouvez maintenant réinitialiser votre mot de passe.',
-            'reset_token' => $secureToken // L'app mobile doit utiliser ce token pour la prochaine étape
         ], 200);
     }
 
