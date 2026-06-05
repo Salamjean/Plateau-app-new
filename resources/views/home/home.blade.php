@@ -7,11 +7,11 @@
             <div class="row align-items-center">
                 <!-- Colonne Gauche: Textes et Boutons -->
                 <div class="col-lg-7" data-aos="fade-right">
-                    <div class="badge-premium mb-4">
+                    {{-- <div class="badge-premium mb-4">
                         <span class="badge rounded-pill badge-maquette px-3 py-2 fw-600 shadow-sm">
                             <i class="bi bi-sparkles me-1 text-warning"></i> Portail officiel de la Mairie du Plateau
                         </span>
-                    </div>
+                    </div> --}}
                     <h1 class="display-3 fw-900 mb-4 hero-title" style="line-height: 1.1;">
                         La marie du Plateau,<br>
                         désormais dans<br>
@@ -23,7 +23,7 @@
                     </p>
 
                     <!-- Barre de recherche maquette -->
-                    <div class="search-box-maquette mb-5" data-aos="fade-up" data-aos-delay="200">
+                    {{-- <div class="search-box-maquette mb-5" data-aos="fade-up" data-aos-delay="200">
                         <form action="{{ route('recherche.demande') }}" method="POST"
                             class="d-flex align-items-center p-2 bg-white rounded-pill shadow-lg">
                             @csrf
@@ -34,7 +34,7 @@
                             </div>
                             <button type="submit" class="btn btn-search-maquette rounded-pill px-4 py-2 fw-700">Rechercher</button>
                         </form>
-                    </div>
+                    </div> --}}
 
                     <!-- Boutons raccourcis maquette -->
                     <div class="d-flex flex-wrap gap-2 gap-md-3 mb-4">

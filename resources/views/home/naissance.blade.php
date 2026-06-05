@@ -72,7 +72,7 @@
                                                 <p class="small text-muted mb-4">Par exemplaire (hors frais de timbre)</p>
                                                 <a href="{{ route('user.dashboard') }}"
                                                     class="btn btn-primary w-100 py-3 rounded-3 fw-800">
-                                                    FAIRE MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
+                                                    FAIRE UNE DEMANDE <i class="bi bi-arrow-right ms-2"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -118,7 +118,7 @@
                                                 <p class="small text-muted mb-4">Par exemplaire (hors frais de timbre)</p>
                                                 <a href="{{ route('user.dashboard') }}"
                                                     class="btn btn-primary w-100 py-3 rounded-3 fw-800">
-                                                    FAIRE MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
+                                                    FAIRE UNE DEMANDE <i class="bi bi-arrow-right ms-2"></i>
                                                 </a>
                                             </div>
                                         </div>

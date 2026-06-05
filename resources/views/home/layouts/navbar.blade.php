@@ -1,12 +1,9 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-custom fixed-top" id="mainNav">
     <div class="container-fluid px-10percent">
-        <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-            <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Mairie du Plateau" style="height: 50px;">
-            <div class="brand-text d-none d-sm-block">
-                <span class="d-block fw-800 fs-6 text-primary text-uppercase"
-                    style="line-height: 1.1; letter-spacing: 1px;">PLATEAU-APPS</span>
-            </div>
+        <a class="navbar-brand d-flex align-items-center py-1" href="{{ route('home') }}">
+            <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Mairie du Plateau"
+                style="height: 60px; width: 150px;">
         </a>
 
         <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
@@ -44,8 +41,8 @@
                                     class="bi bi-search me-2 text-secondary"></i>Suivre ma demande</a></li>
                     </ul>
                 </li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('service.demande') ? 'active' : '' }}"
-                        href="{{ route('service.demande') }}">Services</a></li>
+                {{-- <li class="nav-item"><a class="nav-link {{ request()->routeIs('service.demande') ? 'active' : '' }}"
+                        href="{{ route('service.demande') }}">Services</a></li> --}}
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('home.contact') ? 'active' : '' }}"
                         href="{{ route('home.contact') }}">Contact</a></li>
             </ul>
