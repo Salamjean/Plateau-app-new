@@ -72,7 +72,7 @@
                                                 <p class="small text-muted mb-4">Par exemplaire (hors frais de timbre)</p>
                                                 <a href="{{ route('user.dashboard') }}"
                                                     class="btn btn-primary w-100 py-3 rounded-3 fw-800">
-                                                    COMMANDER MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
+                                                    FAIRE MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -118,7 +118,7 @@
                                                 <p class="small text-muted mb-4">Par exemplaire (hors frais de timbre)</p>
                                                 <a href="{{ route('user.dashboard') }}"
                                                     class="btn btn-primary w-100 py-3 rounded-3 fw-800">
-                                                    COMMANDER MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
+                                                    FAIRE MAINTENANT <i class="bi bi-arrow-right ms-2"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -153,7 +153,7 @@
                     <div class="col-md-4">
                         <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition border-0">
                             <h4 class="fw-800 text-primary mb-3">En cas de perte ?</h4>
-                            <p class="text-muted mb-0">Vous pouvez commander un duplicata ou un nouvel extrait à tout moment
+                            <p class="text-muted mb-0">Vous pouvez FAIRE un duplicata ou un nouvel extrait à tout moment
                                 via cette plateforme.</p>
                         </div>
                     </div>
