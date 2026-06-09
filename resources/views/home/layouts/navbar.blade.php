@@ -2,7 +2,7 @@
 <nav class="navbar navbar-expand-lg navbar-custom fixed-top" id="mainNav">
     <div class="container-fluid px-10percent">
         <a class="navbar-brand d-flex align-items-center py-1" href="{{ route('home') }}">
-            <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Mairie du Plateau"
+            <img src="{{ asset('assets/assets/img/imahh.jpeg') }}" alt="Mairie du Plateau"
                 style="height: 60px; width: 150px;">
         </a>
 
