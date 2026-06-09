@@ -19,17 +19,19 @@ class RdvApiController extends Controller
     public function index(Request $request)
     {
         try {
-            // Récupérer l'utilisateur authentifié via Sanctum
             $user = $request->user();
 
-            // Récupérer les rendez-vous triés par date de création
             $rendezvous = Rendezvous::where('user_id', $user->id)
-                ->orderBy('created_at', 'desc') // J'ai mis 'desc' pour voir les plus récents en premier
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($rdv) {
+                    if ($rdv->statut === 'confirmé') {
+                        $rdv->statut = 'confirme';
+                    }
+                    return $rdv;
+                });
 
-            // Retourner les données en JSON
             return response()->json($rendezvous);
-
         } catch (Exception $e) {
             Log::error("Erreur API [RdvApiController@index]: " . $e->getMessage());
             return response()->json([
@@ -121,7 +123,6 @@ class RdvApiController extends Controller
                 $rendezvous,
                 201
             );
-
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
@@ -183,7 +184,6 @@ class RdvApiController extends Controller
                 'message' => 'Rendez-vous annulé avec succès.',
                 'rendezvous' => $rendezvous
             ], 200);
-
         } catch (Exception $e) {
             Log::error("Erreur API [RdvApiController@cancel]: " . $e->getMessage());
             return response()->json([
@@ -192,5 +192,4 @@ class RdvApiController extends Controller
             ], 500);
         }
     }
-
 }
