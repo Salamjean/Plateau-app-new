@@ -27,6 +27,8 @@ class RdvApiController extends Controller
                 ->map(function ($rdv) {
                     if ($rdv->statut === 'confirmé') {
                         $rdv->statut = 'confirme';
+                    } elseif ($rdv->statut === 'annulé') {
+                        $rdv->statut = 'annule';
                     }
                     return $rdv;
                 });

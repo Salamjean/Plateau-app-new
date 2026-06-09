@@ -11,10 +11,15 @@ use App\Models\Naissance;
 use App\Models\NaissanceGroupe;
 use App\Models\Paiement;
 use App\Models\User;
+use App\Notifications\DemandeNaissanceConfirmationNotification;
+use App\Notifications\DemandeMariageConfirmationNotification;
+use App\Notifications\DemandeDecesConfirmationNotification;
 use App\Services\WaveService;
+use App\Services\YellikaSmsService;
 use App\Traits\HandlesFreeRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class PaymentController extends Controller
 {
@@ -141,6 +146,13 @@ class PaymentController extends Controller
 
             // Incrémenter le compteur de demandes gratuites si applicable
             $this->incrementFreeRequestsFromDemande($demande);
+
+            // ✅ Envoi SMS + email de confirmation
+            //    (uniquement dans le fallback car le webhook s'en charge déjà s'il arrive en premier)
+            $user = User::find($demande->user_id);
+            if ($user) {
+                $this->sendPaymentNotifications($user, $demande, $type);
+            }
         } else {
             Log::info("Paiement déjà enregistré (webhook reçu). Paiement ID: {$paiement->id}");
         }
@@ -150,6 +162,47 @@ class PaymentController extends Controller
             'type' => $type,
             'reference' => $reference
         ]);
+    }
+
+    /**
+     * Envoie SMS + email de confirmation après paiement (fallback web).
+     * N'est appelé que si le webhook n'a pas encore reçu/traité.
+     */
+    private function sendPaymentNotifications($user, $demande, $type)
+    {
+        try {
+            $yellikaSmsService = app(YellikaSmsService::class);
+            $phoneNumber = $user->indicatif . $user->contact;
+
+            // Normaliser le type pour les groupes
+            $typeLabel = match (true) {
+                str_contains($type, 'naissance') => 'naissance',
+                str_contains($type, 'mariage')   => 'mariage',
+                str_contains($type, 'deces')     => 'décès',
+                default                          => $type,
+            };
+
+            $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de {$typeLabel} a été confirmé. Référence : {$demande->reference}. Votre demande est maintenant en attente de traitement par la mairie du plateau.";
+
+            $yellikaSmsService->sendSms($phoneNumber, $message);
+
+            // Envoi email
+            $notificationClass = match (true) {
+                str_contains($type, 'naissance') => DemandeNaissanceConfirmationNotification::class,
+                str_contains($type, 'mariage')   => DemandeMariageConfirmationNotification::class,
+                str_contains($type, 'deces')     => DemandeDecesConfirmationNotification::class,
+                default                          => null,
+            };
+
+            if ($notificationClass) {
+                Notification::send($user, new $notificationClass($user, $demande));
+            }
+
+            Log::info("PaymentController fallback: SMS + email envoyés pour {$demande->reference}");
+
+        } catch (\Exception $e) {
+            Log::error("Erreur notifications fallback PaymentController pour {$demande->reference}: " . $e->getMessage());
+        }
     }
 
     public function cancel(Request $request)
@@ -241,6 +294,12 @@ class PaymentController extends Controller
 
                     // Incrémenter le compteur de demandes gratuites si applicable
                     $this->incrementFreeRequestsFromDemande($demande);
+
+                    // ✅ Envoi SMS + email de confirmation (paiement MTN confirmé via polling)
+                    $user = User::find($demande->user_id);
+                    if ($user) {
+                        $this->sendPaymentNotifications($user, $demande, $type);
+                    }
                 }
             }
             return response()->json(['status' => 'SUCCESSFUL', 'redirect' => route('payment.success', ['reference' => $reference, 'type' => $type])]);

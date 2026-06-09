@@ -20,7 +20,9 @@
       "Bash(php -l app/Models/Finance.php)",
       "Bash(php -l app/Models/Poste.php)",
       "Bash(php -l app/Http/Controllers/EtatCivil/EtatCivilController.php)",
-      "Bash(php -l app/Http/Controllers/Finance/FinanceController.php)"
+      "Bash(php -l app/Http/Controllers/Finance/FinanceController.php)",
+      "Bash(grep -rn \"use App\\\\\\\\\\\\\\\\Services\\\\\\\\\\\\\\\\FcmService\\\\|FcmService\" \"C:/Users/THEWAYNE/Plateau-app-new/app/Services/FcmService.php\")",
+      "Bash(php -l app/Http/Controllers/Mairie/MairieRendezVousController.php)"
     ]
   }
 }

@@ -70,6 +70,12 @@ class MairieRendezVousController extends Controller
             "La date de votre rendez-vous a été modifiée au " . $dateLitterale . " à " . $rendezvous->heure_souhaitee
         );
 
+        // ✅ SMS de notification — fallback fiable même si le push FCM échoue
+        $this->sendSms(
+            $rendezvous,
+            "Bonjour {nom}, votre rendez-vous de mariage (Réf: RDV-{$rendezvous->id}) a été reprogrammé au {$dateLitterale} à {$rendezvous->heure_souhaitee} par la mairie du plateau."
+        );
+
         return redirect()->route('mairie.rendezvous.index')->with('success', 'Rendez-vous modifié avec succès');
     }
 
@@ -113,6 +119,12 @@ class MairieRendezVousController extends Controller
                 "Votre demande de rendez-vous a été acceptée par la mairie."
             );
 
+            // ✅ SMS de notification — fallback fiable même si le push FCM échoue
+            $this->sendSms(
+                $rendezvous,
+                "Bonjour {nom}, votre rendez-vous de mariage (Réf: RDV-{$rendezvous->id}) a été confirmé par la mairie du plateau."
+            );
+
             return response()->json(['success' => true, 'message' => 'Rendez-vous confirmé avec succès']);
         } catch (\Exception $e) {
             Log::error("Erreur confirmation RDV: " . $e->getMessage());
@@ -153,18 +165,11 @@ class MairieRendezVousController extends Controller
                 "Votre rendez-vous de mariage a été annulé."
             );
 
-            // SMS notification
-            if ($rendezvous->user) {
-                $user = $rendezvous->user;
-                $phoneNumber = $user->indicatif . $user->contact;
-                $message = "Bonjour {$user->name}, votre rendez-vous de mariage (Réf: RDV-{$rendezvous->id}) a été annulé par la mairie.";
-                try {
-                    $yellikaSmsService = app(YellikaSmsService::class);
-                    $yellikaSmsService->sendSms($phoneNumber, $message);
-                } catch (\Exception $e) {
-                    Log::error("Erreur lors de l'envoi du SMS d'annulation (rendezvous) : " . $e->getMessage());
-                }
-            }
+            // ✅ SMS de notification
+            $this->sendSms(
+                $rendezvous,
+                "Bonjour {nom}, votre rendez-vous de mariage (Réf: RDV-{$rendezvous->id}) a été annulé par la mairie du plateau."
+            );
 
             return response()->json(['success' => true, 'message' => 'Rendez-vous annulé avec succès']);
         } catch (\Exception $e) {
@@ -174,7 +179,8 @@ class MairieRendezVousController extends Controller
     }
 
     /**
-     * Helper pour préparer et envoyer la notification push + DB
+     * Helper pour préparer et envoyer la notification push + DB.
+     * Logs détaillés pour diagnostiquer pourquoi le mobile ne reçoit pas la notif.
      */
     private function triggerNotification($rendezvous, string $title, string $body): void
     {
@@ -182,15 +188,60 @@ class MairieRendezVousController extends Controller
             $rendezvous->load('user');
             $user = $rendezvous->user;
 
-            if ($user) {
-                $user->notify(new GeneralPushNotification(
-                    $title,
-                    $body,
-                    ['type' => 'rendezvous', 'id' => (string) $rendezvous->id, 'url' => 'plateauapps://rendez-vous-details?id=' . $rendezvous->id]
-                ));
+            if (!$user) {
+                Log::warning("RDV #{$rendezvous->id} : aucun user associé — push impossible.");
+                return;
             }
+
+            // Diagnostic : pourquoi la push notification pourrait ne pas arriver
+            Log::info("RDV #{$rendezvous->id} push notify", [
+                'user_id'                => $user->id,
+                'has_push_token'         => !empty($user->push_notification),
+                'push_token_preview'     => $user->push_notification ? substr($user->push_notification, 0, 20) . '...' : null,
+                'title'                  => $title,
+            ]);
+
+            $user->notify(new GeneralPushNotification(
+                $title,
+                $body,
+                ['type' => 'rendezvous', 'id' => (string) $rendezvous->id, 'url' => 'plateauapps://rendez-vous-details?id=' . $rendezvous->id]
+            ));
+
+            if (empty($user->push_notification)) {
+                Log::warning("RDV #{$rendezvous->id} : push notification skipped — token FCM manquant pour user #{$user->id}. Seul le SMS arrivera.");
+            }
+
         } catch (\Exception $e) {
             Log::error("Erreur notification RDV #{$rendezvous->id}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie un SMS au user du rendez-vous.
+     * Le placeholder {nom} dans $messageTemplate est remplacé par le nom de l'utilisateur.
+     */
+    private function sendSms($rendezvous, string $messageTemplate): void
+    {
+        try {
+            if (!$rendezvous->user) {
+                $rendezvous->load('user');
+            }
+            $user = $rendezvous->user;
+            if (!$user) {
+                Log::warning("RDV #{$rendezvous->id} : aucun user — SMS impossible.");
+                return;
+            }
+
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = str_replace('{nom}', $user->name ?? 'Madame/Monsieur', $messageTemplate);
+
+            $yellikaSmsService = app(YellikaSmsService::class);
+            $yellikaSmsService->sendSms($phoneNumber, $message);
+
+            Log::info("RDV #{$rendezvous->id} : SMS envoyé à {$phoneNumber}");
+
+        } catch (\Exception $e) {
+            Log::error("Erreur SMS RDV #{$rendezvous->id}: " . $e->getMessage());
         }
     }
 }

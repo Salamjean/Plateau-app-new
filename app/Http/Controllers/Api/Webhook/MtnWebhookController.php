@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Api\Webhook;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use App\Models\Paiement;
 use App\Models\Naissance;
 use App\Models\Mariage;
 use App\Models\Deces;
+use App\Models\User;
+use App\Notifications\DemandeNaissanceConfirmationNotification;
+use App\Notifications\DemandeMariageConfirmationNotification;
+use App\Notifications\DemandeDecesConfirmationNotification;
+use App\Services\YellikaSmsService;
+use App\Traits\HandlesFreeRequests;
 
 class MtnWebhookController extends Controller
 {
+    use HandlesFreeRequests;
     /**
      * Handle MTN Collection Webhook for RequestToPay.
      * MTN will send a PUT or POST request here with the transaction details.
@@ -91,9 +99,53 @@ class MtnWebhookController extends Controller
             }
             $demande->save();
 
+            // Incrémenter les free_requests si applicable
+            try {
+                $this->incrementFreeRequestsFromDemande($demande);
+            } catch (\Exception $e) {
+                Log::warning("MTN Webhook: free_requests incrément échoué pour {$reference} : " . $e->getMessage());
+            }
+
+            // ✅ Envoi SMS + email de confirmation à l'utilisateur
+            $user = User::find($demande->user_id);
+            if ($user) {
+                $this->sendNotifications($user, $demande, $type);
+            }
+
             Log::info("MTN Webhook: Successfully processed payment for $reference ($type)");
         } else {
             Log::error("MTN Webhook: Could not find model for reference $reference");
+        }
+    }
+
+    /**
+     * Envoie SMS + email de confirmation après paiement MTN réussi.
+     */
+    private function sendNotifications($user, $demande, $type)
+    {
+        try {
+            $yellikaSmsService = app(YellikaSmsService::class);
+            $phoneNumber = $user->indicatif . $user->contact;
+            $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de {$type} a été confirmé. Référence : {$demande->reference}. Votre demande est maintenant en attente de traitement par la mairie du plateau.";
+
+            $yellikaSmsService->sendSms($phoneNumber, $message);
+
+            // Envoi email
+            $notificationClass = match($type) {
+                'naissance' => DemandeNaissanceConfirmationNotification::class,
+                'mariage'   => DemandeMariageConfirmationNotification::class,
+                'deces'     => DemandeDecesConfirmationNotification::class,
+                default     => null,
+            };
+
+            if ($notificationClass) {
+                Notification::send($user, new $notificationClass($user, $demande));
+            }
+
+            Log::info("MTN Webhook: SMS + email envoyés pour {$demande->reference}");
+
+        } catch (\Exception $e) {
+            Log::error("Erreur notifications Webhook MTN pour {$demande->reference}: " . $e->getMessage());
         }
     }
 }
