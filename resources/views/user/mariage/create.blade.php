@@ -1636,6 +1636,14 @@
                             }
                         });
                     });
+
+                    // Google Maps Autocomplete
+                    const addressInput = document.getElementById('swal-adresse_livraison');
+                    if (addressInput && typeof google !== 'undefined' && google.maps && google.maps.places) {
+                        new google.maps.places.Autocomplete(addressInput, {
+                            types: ['geocode', 'establishment']
+                        });
+                    }
                 },
                 preConfirm: () => {
                     const d = {

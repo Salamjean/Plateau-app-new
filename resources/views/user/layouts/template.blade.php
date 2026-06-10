@@ -22,6 +22,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        .pac-container {
+            z-index: 12000 !important;
+        }
         :root {
             --primary: #1f4083;
             --primary-light: rgba(31, 64, 131, 0.1);
@@ -115,6 +118,11 @@
             });
         });
     </script>
+
+    <!-- Google Maps Places API -->
+    @if(config('services.google.maps_api_key'))
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places"></script>
+    @endif
 
     @stack('scripts')
 

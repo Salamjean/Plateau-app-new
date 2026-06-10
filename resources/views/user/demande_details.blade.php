@@ -754,6 +754,14 @@
                             confirmButton: 'rounded-lg px-4',
                             cancelButton: 'rounded-lg px-4'
                         },
+                        didOpen: () => {
+                            const addressInput = document.getElementById('swal-adresse');
+                            if (addressInput && typeof google !== 'undefined' && google.maps && google.maps.places) {
+                                new google.maps.places.Autocomplete(addressInput, {
+                                    types: ['geocode', 'establishment']
+                                });
+                            }
+                        },
                         preConfirm: () => {
                             const prenom_destinataire = $('#swal-prenom').val().trim();
                             const nom_destinataire = $('#swal-nom').val().trim();

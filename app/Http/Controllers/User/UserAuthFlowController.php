@@ -42,20 +42,21 @@ class UserAuthFlowController extends Controller
             $verifier = IdTokenVerifier::createWithProjectId(
                 config('firebase.projects.app.project_id', 'plateau-apps-user')
             );
-            $token   = $verifier->verifyIdToken($request->id_token);
+            $token = $verifier->verifyIdToken($request->id_token);
             $payload = $token->payload();
 
-            $googleId   = $payload['sub'];
-            $email      = $payload['email'] ?? null;
-            $nameStr    = $payload['name'] ?? 'Utilisateur';
+            $googleId = $payload['sub'];
+            $email = $payload['email'] ?? null;
+            $nameStr = $payload['name'] ?? 'Utilisateur';
             $pictureUrl = $payload['picture'] ?? null;
 
             // Chercher un compte existant
             $user = User::where('google_id', $googleId)
-                        ->orWhere(function ($q) use ($email) {
-                            if ($email) $q->where('email', $email);
-                        })
-                        ->first();
+                ->orWhere(function ($q) use ($email) {
+                    if ($email)
+                        $q->where('email', $email);
+                })
+                ->first();
 
             // ── COMPTE EXISTANT ──────────────────────────────────────────────
             if ($user) {
@@ -69,44 +70,44 @@ class UserAuthFlowController extends Controller
                 // Profil incomplet → finalisation
                 if (empty($user->contact) || empty($user->prenom)) {
                     return response()->json([
-                        'success'  => true,
+                        'success' => true,
                         'redirect' => route('user.auth.profile.complete'),
-                        'message'  => 'Veuillez finaliser votre profil.'
+                        'message' => 'Veuillez finaliser votre profil.'
                     ]);
                 }
 
                 return response()->json([
-                    'success'  => true,
+                    'success' => true,
                     'redirect' => route('user.dashboard'),
-                    'message'  => 'Connexion réussie.'
+                    'message' => 'Connexion réussie.'
                 ]);
             }
 
             // ── NOUVEAU COMPTE : stocker en session, PAS en base ─────────────
-            $parts  = explode(' ', $nameStr, 2);
+            $parts = explode(' ', $nameStr, 2);
             $prenom = $parts[0];
-            $nom    = $parts[1] ?? $parts[0];
+            $nom = $parts[1] ?? $parts[0];
 
             session([
                 'pending_google_auth' => [
-                    'name'            => $nom,
-                    'prenom'          => $prenom,
-                    'email'           => $email,
-                    'google_id'       => $googleId,
+                    'name' => $nom,
+                    'prenom' => $prenom,
+                    'email' => $email,
+                    'google_id' => $googleId,
                     'profile_picture' => $pictureUrl,
                 ],
                 'pending_apple_auth' => null,
             ]);
 
             Log::info('Google Auth Web - Nouveau compte en attente de finalisation', [
-                'email'     => $email,
+                'email' => $email,
                 'google_id' => $googleId,
             ]);
 
             return response()->json([
-                'success'  => true,
+                'success' => true,
                 'redirect' => route('user.auth.profile.complete'),
-                'message'  => 'Compte Google détecté. Veuillez finaliser votre profil.'
+                'message' => 'Compte Google détecté. Veuillez finaliser votre profil.'
             ]);
 
         } catch (IdTokenVerificationFailed $e) {
@@ -120,13 +121,13 @@ class UserAuthFlowController extends Controller
             return response()->json(['success' => false, 'message' => 'Impossible de vérifier votre identité Google. Problème réseau.'], 503);
         } catch (\Exception $e) {
             Log::error('Google Auth Web Error [' . get_class($e) . ']: ' . $e->getMessage(), [
-                'file'  => $e->getFile(),
-                'line'  => $e->getLine(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur serveur lors de l\'authentification Google.',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
@@ -149,11 +150,11 @@ class UserAuthFlowController extends Controller
             $verifier = IdTokenVerifier::createWithProjectId(
                 config('firebase.projects.app.project_id', 'plateau-apps-user')
             );
-            $token   = $verifier->verifyIdToken($request->id_token);
+            $token = $verifier->verifyIdToken($request->id_token);
             $payload = $token->payload();
 
             $appleId = $payload['firebase']['identities']['apple.com'][0] ?? null;
-            $email   = $payload['email'] ?? null;
+            $email = $payload['email'] ?? null;
 
             if (!$appleId) {
                 return response()->json([
@@ -163,10 +164,11 @@ class UserAuthFlowController extends Controller
             }
 
             $user = User::where('apple_id', $appleId)
-                        ->orWhere(function ($q) use ($email) {
-                            if ($email) $q->where('email', $email);
-                        })
-                        ->first();
+                ->orWhere(function ($q) use ($email) {
+                    if ($email)
+                        $q->where('email', $email);
+                })
+                ->first();
 
             // ── COMPTE EXISTANT ──────────────────────────────────────────────
             if ($user) {
@@ -179,37 +181,37 @@ class UserAuthFlowController extends Controller
 
                 if (empty($user->contact) || empty($user->prenom)) {
                     return response()->json([
-                        'success'  => true,
+                        'success' => true,
                         'redirect' => route('user.auth.profile.complete'),
-                        'message'  => 'Veuillez finaliser votre profil.'
+                        'message' => 'Veuillez finaliser votre profil.'
                     ]);
                 }
 
                 return response()->json([
-                    'success'  => true,
+                    'success' => true,
                     'redirect' => route('user.dashboard'),
-                    'message'  => 'Connexion Apple réussie.'
+                    'message' => 'Connexion Apple réussie.'
                 ]);
             }
 
             // ── NOUVEAU COMPTE : stocker en session, PAS en base ─────────────
             session([
                 'pending_apple_auth' => [
-                    'email'    => $email,
+                    'email' => $email,
                     'apple_id' => $appleId,
                 ],
                 'pending_google_auth' => null,
             ]);
 
             Log::info('Apple Auth Web - Nouveau compte en attente de finalisation', [
-                'email'    => $email,
+                'email' => $email,
                 'apple_id' => $appleId,
             ]);
 
             return response()->json([
-                'success'  => true,
+                'success' => true,
                 'redirect' => route('user.auth.profile.complete'),
-                'message'  => 'Compte Apple détecté. Veuillez finaliser votre profil.'
+                'message' => 'Compte Apple détecté. Veuillez finaliser votre profil.'
             ]);
 
         } catch (IdTokenVerificationFailed $e) {
@@ -220,7 +222,7 @@ class UserAuthFlowController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur serveur lors de l\'authentification Apple.',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
@@ -236,7 +238,7 @@ class UserAuthFlowController extends Controller
     {
         $request->validate([
             'indicatif' => 'required|string',
-            'contact'   => 'required|string',
+            'contact' => 'required|string',
         ]);
 
         try {
@@ -254,7 +256,7 @@ class UserAuthFlowController extends Controller
             Cache::put('otp_' . $phone, $otp, now()->addMinutes(10));
 
             $smsService = app(YellikaSmsService::class);
-            $result     = $smsService->sendSms($phone, "Votre code de vérification Plateau App est : " . $otp);
+            $result = $smsService->sendSms($phone, "Votre code de vérification Plateau App est : " . $otp);
 
             if ($result && isset($result['success']) && $result['success']) {
                 return response()->json(['success' => true, 'message' => 'Code envoyé.']);
@@ -277,11 +279,11 @@ class UserAuthFlowController extends Controller
     {
         $request->validate([
             'indicatif' => 'required|string',
-            'contact'   => 'required|string',
-            'otp'       => 'required|string',
+            'contact' => 'required|string',
+            'otp' => 'required|string',
         ]);
 
-        $phone     = preg_replace('/[^0-9]/', '', $request->indicatif . $request->contact);
+        $phone = preg_replace('/[^0-9]/', '', $request->indicatif . $request->contact);
         $cachedOtp = Cache::get('otp_' . $phone);
 
         if (!$cachedOtp || (string) $cachedOtp !== (string) $request->otp) {
@@ -293,42 +295,42 @@ class UserAuthFlowController extends Controller
         try {
             // Compte déjà finalisé ?
             $user = User::where('contact', $request->contact)
-                        ->where('indicatif', $request->indicatif)
-                        ->whereNotNull('name')
-                        ->whereNotNull('password')
-                        ->first();
+                ->where('indicatif', $request->indicatif)
+                ->whereNotNull('name')
+                ->whereNotNull('password')
+                ->first();
 
             if ($user) {
                 Auth::login($user);
                 return response()->json([
-                    'success'  => true,
+                    'success' => true,
                     'redirect' => route('user.dashboard'),
-                    'message'  => 'Connexion réussie.'
+                    'message' => 'Connexion réussie.'
                 ]);
             }
 
             // Nouveau numéro → stocker en session, PAS en base
             session([
-                'pending_phone_auth'  => [
-                    'indicatif'         => $request->indicatif,
-                    'contact'           => $request->contact,
+                'pending_phone_auth' => [
+                    'indicatif' => $request->indicatif,
+                    'contact' => $request->contact,
                     'phone_verified_at' => now()->toDateTimeString(),
-                    'diaspora'          => $request->input('diaspora') ? true : false,
-                    'pays_residence'    => $request->input('pays_residence'),
+                    'diaspora' => $request->input('diaspora') ? true : false,
+                    'pays_residence' => $request->input('pays_residence'),
                 ],
                 'pending_google_auth' => null,
-                'pending_apple_auth'  => null,
+                'pending_apple_auth' => null,
             ]);
 
             Log::info('OTP Web vérifié - Nouveau compte en attente de finalisation', [
                 'indicatif' => $request->indicatif,
-                'contact'   => $request->contact,
+                'contact' => $request->contact,
             ]);
 
             return response()->json([
-                'success'  => true,
+                'success' => true,
                 'redirect' => route('user.auth.profile.complete'),
-                'message'  => 'Téléphone vérifié. Veuillez finaliser votre profil.'
+                'message' => 'Téléphone vérifié. Veuillez finaliser votre profil.'
             ]);
 
         } catch (\Exception $e) {
@@ -348,9 +350,9 @@ class UserAuthFlowController extends Controller
     public function showFinalizeProfile()
     {
         $pendingGoogle = session('pending_google_auth');
-        $pendingApple  = session('pending_apple_auth');
-        $pendingPhone  = session('pending_phone_auth');
-        $user          = Auth::user();
+        $pendingApple = session('pending_apple_auth');
+        $pendingPhone = session('pending_phone_auth');
+        $user = Auth::user();
 
         // Aucune donnée en session ET pas d'utilisateur → login
         if (!$pendingGoogle && !$pendingApple && !$pendingPhone && !$user) {
@@ -359,7 +361,7 @@ class UserAuthFlowController extends Controller
 
         // Utilisateur connecté avec profil complet → dashboard
         if ($user && !$pendingGoogle && !$pendingApple && !$pendingPhone) {
-            $isSocial   = !empty($user->google_id) || !empty($user->apple_id);
+            $isSocial = !empty($user->google_id) || !empty($user->apple_id);
             $isComplete = !empty($user->name) && !empty($user->prenom);
             if (!$isSocial) {
                 $isComplete = $isComplete && !empty($user->contact) && $user->password !== null;
@@ -371,9 +373,9 @@ class UserAuthFlowController extends Controller
 
         // Données à pré-remplir
         $pendingData = $pendingGoogle ?? $pendingApple ?? [];
-        $isSocial    = !empty($pendingGoogle) || !empty($pendingApple)
-                       || ($user && (!empty($user->google_id) || !empty($user->apple_id)));
-        $isPhoneNew  = !empty($pendingPhone);
+        $isSocial = !empty($pendingGoogle) || !empty($pendingApple)
+            || ($user && (!empty($user->google_id) || !empty($user->apple_id)));
+        $isPhoneNew = !empty($pendingPhone);
 
         return view('user.auth.finalize-profile', compact('user', 'pendingData', 'isSocial', 'isPhoneNew', 'pendingPhone'));
     }
@@ -384,36 +386,36 @@ class UserAuthFlowController extends Controller
     public function submitFinalizeProfile(Request $request)
     {
         $pendingGoogle = session('pending_google_auth');
-        $pendingApple  = session('pending_apple_auth');
-        $pendingPhone  = session('pending_phone_auth');
-        $user          = Auth::user();
+        $pendingApple = session('pending_apple_auth');
+        $pendingPhone = session('pending_phone_auth');
+        $user = Auth::user();
 
         $isNewSocialUser = !empty($pendingGoogle) || !empty($pendingApple);
-        $isNewPhoneUser  = !empty($pendingPhone);
-        $isSocial        = $isNewSocialUser
-                           || ($user && (!empty($user->google_id) || !empty($user->apple_id)));
+        $isNewPhoneUser = !empty($pendingPhone);
+        $isSocial = $isNewSocialUser
+            || ($user && (!empty($user->google_id) || !empty($user->apple_id)));
 
         // ── Règles de validation ─────────────────────────────────────────────
         $rules = [
-            'name'              => 'required|string|max:255',
-            'prenom'            => 'required|string|max:255',
-            'NNI'               => 'nullable|string|max:50',
-            'diaspora'          => 'nullable|boolean',
-            'pays_residence'    => 'required_if:diaspora,1|nullable|string|max:255',
-            'ville_residence'   => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'NNI' => 'nullable|string|max:50',
+            'diaspora' => 'nullable|boolean',
+            'pays_residence' => 'required_if:diaspora,1|nullable|string|max:255',
+            'ville_residence' => 'nullable|string|max:255',
             'adresse_etrangere' => 'nullable|string|max:500',
         ];
 
         if (!$isSocial) {
             // Inscription téléphone ou utilisateur normal existant
             $rules['password'] = 'required|string|min:8|confirmed';
-            $rules['email']    = 'nullable|email|unique:users,email' . ($user ? ',' . $user->id : '');
+            $rules['email'] = 'nullable|email|unique:users,email' . ($user ? ',' . $user->id : '');
         }
 
         if ($isNewSocialUser) {
             // Nouveau compte Google/Apple : numéro obligatoire
             $rules['indicatif'] = 'required|string|max:10';
-            $rules['contact']   = 'required|string|max:20|unique:users,contact';
+            $rules['contact'] = 'required|string|max:20|unique:users,contact';
         }
 
         $request->validate($rules, [
@@ -424,50 +426,50 @@ class UserAuthFlowController extends Controller
             // ── CAS 1 : Nouveau compte téléphone ─────────────────────────────
             if ($isNewPhoneUser) {
                 $user = User::create([
-                    'name'               => $request->name,
-                    'prenom'             => $request->prenom,
-                    'email'              => $request->email,
-                    'indicatif'          => $pendingPhone['indicatif'],
-                    'contact'            => $pendingPhone['contact'],
-                    'commune'            => 'plateau',
-                    'password'           => Hash::make($request->password),
-                    'NNI'                => $request->NNI,
-                    'diaspora'           => $request->has('diaspora'),
-                    'pays_residence'     => $request->pays_residence,
-                    'ville_residence'    => $request->ville_residence,
-                    'adresse_etrangere'  => $request->adresse_etrangere,
-                    'phone_verified_at'  => $pendingPhone['phone_verified_at'],
+                    'name' => $request->name,
+                    'prenom' => $request->prenom,
+                    'email' => $request->email,
+                    'indicatif' => $pendingPhone['indicatif'],
+                    'contact' => $pendingPhone['contact'],
+                    'commune' => 'plateau',
+                    'password' => Hash::make($request->password),
+                    'NNI' => $request->NNI,
+                    'diaspora' => $request->has('diaspora'),
+                    'pays_residence' => $request->pays_residence,
+                    'ville_residence' => $request->ville_residence,
+                    'adresse_etrangere' => $request->adresse_etrangere,
+                    'phone_verified_at' => $pendingPhone['phone_verified_at'],
                 ]);
 
                 session()->forget('pending_phone_auth');
                 Auth::login($user);
 
                 Log::info('Phone Auth Web - Compte créé et finalisé', [
-                    'user_id'  => $user->id,
-                    'contact'  => $user->contact,
+                    'user_id' => $user->id,
+                    'contact' => $user->contact,
                 ]);
 
                 return redirect()->route('user.dashboard')
-                                 ->with('success', 'Inscription finalisée avec succès !');
+                    ->with('success', 'Inscription finalisée avec succès !');
             }
 
             // ── CAS 2 : Nouveau compte Google ────────────────────────────────
             if ($pendingGoogle) {
                 $user = User::create([
-                    'name'               => $request->name,
-                    'prenom'             => $request->prenom,
-                    'email'              => $pendingGoogle['email'],
-                    'google_id'          => $pendingGoogle['google_id'],
-                    'profile_picture'    => $pendingGoogle['profile_picture'] ?? null,
-                    'commune'            => 'plateau',
-                    'password'           => Hash::make(Str::random(24)),
-                    'indicatif'          => $request->indicatif,
-                    'contact'            => $request->contact,
-                    'NNI'                => $request->NNI,
-                    'diaspora'           => $request->has('diaspora'),
-                    'pays_residence'     => $request->pays_residence,
-                    'ville_residence'    => $request->ville_residence,
-                    'adresse_etrangere'  => $request->adresse_etrangere,
+                    'name' => $request->name,
+                    'prenom' => $request->prenom,
+                    'email' => $pendingGoogle['email'],
+                    'google_id' => $pendingGoogle['google_id'],
+                    'profile_picture' => $pendingGoogle['profile_picture'] ?? null,
+                    'commune' => 'plateau',
+                    'password' => Hash::make(Str::random(24)),
+                    'indicatif' => $request->indicatif,
+                    'contact' => $request->contact,
+                    'NNI' => $request->NNI,
+                    'diaspora' => $request->has('diaspora'),
+                    'pays_residence' => $request->pays_residence,
+                    'ville_residence' => $request->ville_residence,
+                    'adresse_etrangere' => $request->adresse_etrangere,
                 ]);
 
                 session()->forget('pending_google_auth');
@@ -475,52 +477,52 @@ class UserAuthFlowController extends Controller
 
                 Log::info('Google Auth Web - Compte créé et finalisé', [
                     'user_id' => $user->id,
-                    'email'   => $user->email,
+                    'email' => $user->email,
                 ]);
 
                 return redirect()->route('user.dashboard')
-                                 ->with('success', 'Inscription Google finalisée avec succès !');
+                    ->with('success', 'Inscription Google finalisée avec succès !');
             }
 
             // ── CAS 3 : Nouveau compte Apple ─────────────────────────────────
             if ($pendingApple) {
                 $user = User::create([
-                    'name'               => $request->name,
-                    'prenom'             => $request->prenom,
-                    'email'              => $pendingApple['email'],
-                    'apple_id'           => $pendingApple['apple_id'],
-                    'commune'            => 'plateau',
-                    'password'           => Hash::make(Str::random(24)),
-                    'indicatif'          => $request->indicatif,
-                    'contact'            => $request->contact,
-                    'NNI'                => $request->NNI,
-                    'diaspora'           => $request->has('diaspora'),
-                    'pays_residence'     => $request->pays_residence,
-                    'ville_residence'    => $request->ville_residence,
-                    'adresse_etrangere'  => $request->adresse_etrangere,
+                    'name' => $request->name,
+                    'prenom' => $request->prenom,
+                    'email' => $pendingApple['email'],
+                    'apple_id' => $pendingApple['apple_id'],
+                    'commune' => 'plateau',
+                    'password' => Hash::make(Str::random(24)),
+                    'indicatif' => $request->indicatif,
+                    'contact' => $request->contact,
+                    'NNI' => $request->NNI,
+                    'diaspora' => $request->has('diaspora'),
+                    'pays_residence' => $request->pays_residence,
+                    'ville_residence' => $request->ville_residence,
+                    'adresse_etrangere' => $request->adresse_etrangere,
                 ]);
 
                 session()->forget('pending_apple_auth');
                 Auth::login($user);
 
                 Log::info('Apple Auth Web - Compte créé et finalisé', [
-                    'user_id'  => $user->id,
+                    'user_id' => $user->id,
                     'apple_id' => $user->apple_id,
                 ]);
 
                 return redirect()->route('user.dashboard')
-                                 ->with('success', 'Inscription Apple finalisée avec succès !');
+                    ->with('success', 'Inscription Apple finalisée avec succès !');
             }
 
             // ── CAS 4 : Utilisateur déjà en base (social existant) ───────────
             $data = [
-                'name'               => $request->name,
-                'prenom'             => $request->prenom,
-                'NNI'                => $request->NNI,
-                'diaspora'           => $request->has('diaspora'),
-                'pays_residence'     => $request->pays_residence,
-                'ville_residence'    => $request->ville_residence,
-                'adresse_etrangere'  => $request->adresse_etrangere,
+                'name' => $request->name,
+                'prenom' => $request->prenom,
+                'NNI' => $request->NNI,
+                'diaspora' => $request->has('diaspora'),
+                'pays_residence' => $request->pays_residence,
+                'ville_residence' => $request->ville_residence,
+                'adresse_etrangere' => $request->adresse_etrangere,
             ];
 
             if (!$isSocial && $request->password) {
@@ -533,7 +535,7 @@ class UserAuthFlowController extends Controller
             $user->update($data);
 
             return redirect()->route('user.dashboard')
-                             ->with('success', 'Profil finalisé avec succès !');
+                ->with('success', 'Profil finalisé avec succès !');
 
         } catch (\Exception $e) {
             Log::error('Finalize Profile Error: ' . $e->getMessage());
