@@ -31,76 +31,168 @@ class NaissanceController extends Controller
     }
 
     /**
-     * Modifier une demande rejetée
+     * Modifier une demande rejetée ou non encore attribuée à un agent
      */
     public function modifierDemande(Request $request, $id)
     {
         $demande = Naissance::where('user_id', Auth::id())
             ->where('id', $id)
-            ->where('peut_modifier', true)
+            ->where(function ($query) {
+                $query->where('peut_modifier', true)
+                    ->orWhereNull('agent_id');
+            })
             ->firstOrFail();
 
-        // Valider uniquement les champs qui étaient à modifier
-        $champsAModifier = json_decode($demande->champs_a_modifier, true);
-        $rules = [];
+        $originalChoixOption = $demande->choix_option;
 
-        // Définir les règles de validation par champ
-        foreach ($champsAModifier as $champ) {
-            switch ($champ) {
-                case 'name':
-                    $rules['name'] = 'required|string|max:255';
-                    break;
-                case 'prenom':
-                    $rules['prenom'] = 'required|string|max:255';
-                    break;
-                case 'number':
-                    $rules['number'] = 'required|string|max:50';
-                    break;
-                case 'DateR':
-                    $rules['DateR'] = 'required|date';
-                    break;
-                case 'commune':
-                    $rules['commune'] = 'required|string';
-                    break;
-                case 'type':
-                    $rules['type'] = 'required|string|in:simple,extrait_integral';
-                    break;
-                case 'quantite':
-                    $rules['quantite'] = 'required|integer|min:1|max:10';
-                    break;
-                case 'CNI':
-                    $rules['CNI'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
-                    break;
-            }
-        }
+        $rules = [
+            'type' => 'required',
+            'name' => 'required',
+            'prenom' => 'required',
+            'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
+            'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
+            'nom_prenoms_pere' => 'nullable|string|max:255',
+            'nom_prenoms_mere' => 'nullable|string|max:255',
+            'commune' => 'required',
+            'commune_naissance' => 'required|string|max:255',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
+            'CNI' => $demande->CNI ? 'nullable' : 'required',
+            'relation' => [
+                \Illuminate\Validation\Rule::requiredIf(function () use ($request) {
+                    return $request->pour === 'une_autre_personne' && in_array($request->type, ['integrale', 'groupee']);
+                }),
+                'nullable',
+                'string',
+                'in:enfant,parent,connaissance'
+            ],
+            'document_autorisation' => [
+                \Illuminate\Validation\Rule::requiredIf(function () use ($request, $demande) {
+                    return $request->pour === 'une_autre_personne' && $request->relation === 'connaissance' && !$demande->document_autorisation;
+                }),
+                'nullable',
+                'file',
+                'mimes:jpeg,png,jpg,pdf',
+                'max:2048'
+            ],
+        ];
 
         $validated = $request->validate($rules);
 
-        // Mettre à jour uniquement les champs spécifiés
-        foreach ($champsAModifier as $champ) {
-            if ($champ === 'CNI' && $request->hasFile('CNI')) {
-                // Validation IA Gemini de la pièce d'identité CNI
-                $geminiService = app(\App\Services\GeminiValidationService::class);
-                $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
-                if (!$validation['isValid']) {
+        // Validation IA Gemini de la pièce d'identité CNI
+        if ($request->hasFile('CNI')) {
+            $geminiService = app(\App\Services\GeminiValidationService::class);
+            $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
+            if (!$validation['isValid']) {
+                if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false,
                         'message' => "La pièce d'identité (CNI) a été rejetée par l'IA : " . $validation['reason']
                     ], 422);
                 }
-
-                // Supprimer l'ancien fichier si existe
-                if ($demande->CNI) {
-                    Storage::delete($demande->CNI);
-                }
-
-                // Enregistrer le nouveau fichier
-                $file = $request->file('CNI');
-                $path = $file->store('pieces-identite', 'public');
-                $demande->CNI = $path;
-            } elseif (isset($validated[$champ])) {
-                $demande->$champ = $validated[$champ];
+                return redirect()->back()
+                    ->withErrors(['CNI' => "La pièce d'identité (CNI) a été rejetée par l'IA de la mairie : " . $validation['reason']])
+                    ->withInput();
             }
+        }
+
+        // Upload files
+        if ($request->hasFile('CNI')) {
+            if ($demande->CNI) {
+                Storage::disk('public')->delete($demande->CNI);
+            }
+            $file = $request->file('CNI');
+            $extension = $file->getClientOriginalExtension();
+            $newFileName = (string) Str::uuid() . '.' . $extension;
+            $file->storeAs("images/naissances/cni/", $newFileName, 'public');
+            $demande->CNI = "images/naissances/cni/$newFileName";
+        }
+
+        if ($request->hasFile('document_autorisation')) {
+            if ($demande->document_autorisation) {
+                Storage::disk('public')->delete($demande->document_autorisation);
+            }
+            $file = $request->file('document_autorisation');
+            $extension = $file->getClientOriginalExtension();
+            $newFileName = (string) Str::uuid() . '.' . $extension;
+            $file->storeAs("images/naissances/autorisations/", $newFileName, 'public');
+            $demande->document_autorisation = "images/naissances/autorisations/$newFileName";
+        }
+
+        // Update fields
+        $demande->pour = $request->pour;
+        $demande->type = $request->type;
+        $demande->name = $request->name;
+        $demande->prenom = $request->prenom;
+        $demande->commune = $request->commune;
+        $demande->commune_naissance = $request->commune_naissance;
+        $demande->number = $request->number;
+        $demande->DateR = $request->DateR;
+        $demande->nom_prenoms_pere = $request->nom_prenoms_pere;
+        $demande->nom_prenoms_mere = $request->nom_prenoms_mere;
+        $demande->relation = $request->relation;
+
+        // Quantities
+        $qtySimple = (int) $request->input('qty_simple', 0);
+        $qtyIntegral = (int) $request->input('qty_integral', 0);
+
+        if ($request->type === 'simple') {
+            $qtyIntegral = 0;
+            if ($qtySimple <= 0) $qtySimple = 1;
+        } elseif ($request->type === 'integrale' || $request->type === 'extrait_integral') {
+            $qtySimple = 0;
+            if ($qtyIntegral <= 0) $qtyIntegral = 1;
+        } else {
+            if ($qtySimple <= 0) $qtySimple = 1;
+            if ($qtyIntegral <= 0) $qtyIntegral = 1;
+        }
+        $demande->qty_simple = $qtySimple;
+        $demande->qty_integral = $qtyIntegral;
+        $demande->quantite = $qtySimple + $qtyIntegral;
+
+        // Delivery
+        $needsPayment = ($request->input('choix_option') === 'livraison' && $originalChoixOption !== 'livraison');
+        $pendingDeliveryData = null;
+
+        if ($request->input('choix_option') === 'livraison') {
+            $deliveryData = [
+                'choix_option' => 'livraison',
+                'montant_timbre' => $request->input('montant_timbre'),
+                'montant_livraison' => $request->input('montant_livraison'),
+                'nom_destinataire' => $request->input('nom_destinataire'),
+                'prenom_destinataire' => $request->input('prenom_destinataire'),
+                'email_destinataire' => $request->input('email_destinataire'),
+                'contact_destinataire' => $request->input('contact_destinataire'),
+                'adresse_livraison' => $request->input('adresse_livraison'),
+                'code_postal' => $request->input('code_postal'),
+                'ville' => $request->input('ville'),
+                'commune_livraison' => $request->input('commune_livraison'),
+                'quartier' => $request->input('quartier'),
+                'date_livraison' => $request->input('date_livraison'),
+                'heure_livraison' => $request->input('heure_livraison'),
+            ];
+
+            if ($needsPayment) {
+                $pendingDeliveryData = $deliveryData;
+                $demande->choix_option = $originalChoixOption; // Conserver l'ancien choix (retrait) en BDD avant paiement
+            } else {
+                $demande->choix_option = 'livraison';
+                $demande->montant_timbre = $request->input('montant_timbre');
+                $demande->montant_livraison = $request->input('montant_livraison');
+                $demande->nom_destinataire = $request->input('nom_destinataire');
+                $demande->prenom_destinataire = $request->input('prenom_destinataire');
+                $demande->email_destinataire = $request->input('email_destinataire');
+                $demande->contact_destinataire = $request->input('contact_destinataire');
+                $demande->adresse_livraison = $request->input('adresse_livraison');
+                $demande->code_postal = $request->input('code_postal');
+                $demande->ville = $request->input('ville');
+                $demande->commune_livraison = $request->input('commune_livraison');
+                $demande->quartier = $request->input('quartier');
+                $demande->date_livraison = $request->input('date_livraison');
+                $demande->heure_livraison = $request->input('heure_livraison');
+            }
+        } else {
+            $demande->choix_option = $request->choix_option;
         }
 
         // Réinitialiser l'état et désactiver la modification
@@ -110,13 +202,158 @@ class NaissanceController extends Controller
         $demande->motif_de_rejet = null;
         $demande->save();
 
-        // Notification à l'admin/agent
-        // Vous pouvez ajouter ici une notification ou un email
+        if ($needsPayment && $pendingDeliveryData) {
+            $user = Auth::user();
+            $user->refresh();
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) ($demande->qty_simple + $demande->qty_integral));
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
+            $totalAmount = $montantTimbreTotal + $montantLivraison;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Demande modifiée avec succès et soumise à nouveau.',
-            'demande' => $demande
+            $demande->montant_timbre = $montantTimbreTotal;
+            $demande->is_free_request = $freeCalc['free_timbres'] > 0;
+            $demande->free_timbres_count = $freeCalc['free_timbres'];
+            $demande->save();
+
+            // Mettre en cache les données de livraison
+            \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $demande->reference, $pendingDeliveryData, now()->addDays(7));
+
+            if ($totalAmount > 0) {
+                $paymentMethod = $request->input('payment_method', 'wave');
+                $baseUrl = config('app.url');
+                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($demande->reference) . "&type=naissance";
+                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($demande->reference) . "&type=naissance";
+
+                if (strtolower($paymentMethod) === 'wave') {
+                    $waveService = app(\App\Services\WaveService::class);
+                    $checkoutSession = $waveService->createCheckoutSession(
+                        $totalAmount,
+                        'XOF',
+                        $successUrl,
+                        $errorUrl,
+                        $demande->reference
+                    );
+
+                    if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => $checkoutSession['wave_launch_url']
+                            ]);
+                        }
+                        return redirect($checkoutSession['wave_launch_url']);
+                    }
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'mtn') {
+                    $mtnPhoneNumber = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
+                    if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
+                        $mtnPhoneNumber = '225' . $mtnPhoneNumber;
+                    }
+
+                    $mtnService = new \App\Services\MtnService();
+                    $response = $mtnService->requestToPay(
+                        $totalAmount,
+                        $mtnPhoneNumber,
+                        $demande->reference,
+                        'Extrait Naissance',
+                        'Mairie Plateau'
+                    );
+
+                    if ($response && $response['status'] === 'PENDING') {
+                        session(['mtn_ref_' . $demande->reference => $response['referenceId']]);
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => route('user.payment.mtn.waiting', [
+                                    'reference' => $demande->reference,
+                                    'type' => 'naissance'
+                                ])
+                            ]);
+                        }
+                        return redirect()->route('user.payment.mtn.waiting', [
+                            'reference' => $demande->reference,
+                            'type' => 'naissance'
+                        ]);
+                    }
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+                } else {
+                    $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
+                    $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+                    try {
+                        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
+                            'apikey' => $cinetpayApiKey,
+                            'site_id' => $cinetpaySiteId,
+                            'transaction_id' => $demande->reference,
+                            'amount' => $totalAmount,
+                            'currency' => 'XOF',
+                            'description' => "Paiement pour " . $demande->reference,
+                            'return_url' => $successUrl,
+                            'notify_url' => $baseUrl . '/api/webhook/cinetpay',
+                            'channels' => 'ALL',
+                        ]);
+
+                        if ($response->successful()) {
+                            $data = $response->json();
+                            if (isset($data['data']['payment_url'])) {
+                                if ($request->expectsJson()) {
+                                    return response()->json([
+                                        'success' => true,
+                                        'redirect_url' => $data['data']['payment_url']
+                                    ]);
+                                }
+                                return redirect($data['data']['payment_url']);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Exception CinetPay: ' . $e->getMessage());
+                    }
+                }
+            } else {
+                $demande->etat = 'en attente';
+                $demande->save();
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                }
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+                'demande' => $demande
+            ]);
+        }
+
+        return redirect()->route('user.extrait.index')->with('success', 'Votre demande a été modifiée avec succès.');
+    }
+
+    public function edit($id)
+    {
+        $demande = Naissance::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->where(function ($query) {
+                $query->where('peut_modifier', true)
+                    ->orWhereNull('agent_id');
+            })
+            ->firstOrFail();
+
+        $user = Auth::user();
+        $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+        $freeRequestsRemaining = $this->getRemainingFreeRequests($user);
+
+        return view('user.naissance.simple.create', [
+            'naissance' => $demande,
+            'user' => $user,
+            'userName' => $user ? $user->name : '',
+            'userPrenom' => $user ? $user->prenom : '',
+            'userEmail' => $user ? $user->email : '',
+            'userContact' => $user ? $user->contact : '',
+            'userCommune' => $user ? $user->commune : '',
+            'userCMU' => $user ? $user->CMU : '',
+            'freeRequestsModeActive' => $freeRequestsModeActive,
+            'freeRequestsRemaining' => $freeRequestsRemaining,
         ]);
     }
 

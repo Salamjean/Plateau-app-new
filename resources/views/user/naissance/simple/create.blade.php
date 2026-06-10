@@ -773,7 +773,7 @@
     <div class="form-page-container">
         <div class="form-glass-card">
             <div class="form-header-box">
-                <h2>Demande d'acte de naissance</h2>
+                <h2>{{ isset($naissance) ? 'Modification de la demande de naissance' : "Demande d'acte de naissance" }}</h2>
                 <p>Processus simplifié en 3 étapes</p>
             </div>
 
@@ -793,9 +793,13 @@
                 </div>
             </div>
 
-            <form id="naissanceForm" action="{{ route('user.extrait.store') }}" method="POST"
-                enctype="multipart/form-data">
+            <form id="naissanceForm"
+                action="{{ isset($naissance) ? route('user.naissances.modifier', $naissance->id) : route('user.extrait.store') }}"
+                method="POST" enctype="multipart/form-data">
                 @csrf
+                @if (isset($naissance))
+                    @method('PUT')
+                @endif
                 <input type="hidden" name="commune" value="Plateau">
 
                 <!-- ÉTAPE 1: Type de demande -->
@@ -808,7 +812,7 @@
                             <div class="pour-toggle-group" style="margin-bottom:0;">
                                 <label class="pour-toggle-label">
                                     <input type="radio" name="pour" value="Moi"
-                                        {{ old('pour', 'Moi') !== 'une_autre_personne' ? 'checked' : '' }}
+                                        {{ old('pour', isset($naissance) ? $naissance->pour : 'Moi') !== 'une_autre_personne' ? 'checked' : '' }}
                                         onchange="updateFields()">
                                     <div class="pour-toggle-content">
                                         <span class="check-dot"></span>
@@ -818,7 +822,7 @@
                                 </label>
                                 <label class="pour-toggle-label">
                                     <input type="radio" name="pour" value="une_autre_personne"
-                                        {{ old('pour') === 'une_autre_personne' ? 'checked' : '' }}
+                                        {{ old('pour', isset($naissance) ? $naissance->pour : '') === 'une_autre_personne' ? 'checked' : '' }}
                                         onchange="updateFields()">
                                     <div class="pour-toggle-content">
                                         <span class="check-dot"></span>
@@ -835,7 +839,8 @@
                         <div class="type-cards-grid grid-3">
                             <label class="type-option-card">
                                 <input type="radio" name="type" value="simple"
-                                    {{ old('type', 'simple') === 'simple' ? 'checked' : '' }} onchange="onTypeChange(this)">
+                                    {{ old('type', isset($naissance) ? $naissance->type : 'simple') === 'simple' ? 'checked' : '' }}
+                                    onchange="onTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-alt"></i>
                                     <h6>Acte simple</h6>
@@ -844,7 +849,8 @@
                             </label>
                             <label class="type-option-card">
                                 <input type="radio" name="type" value="integrale"
-                                    {{ old('type') === 'integrale' ? 'checked' : '' }} onchange="onTypeChange(this)">
+                                    {{ old('type', isset($naissance) ? $naissance->type : '') === 'integrale' ? 'checked' : '' }}
+                                    onchange="onTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-contract"></i>
                                     <h6>Acte intégral</h6>
@@ -853,7 +859,8 @@
                             </label>
                             <label class="type-option-card">
                                 <input type="radio" name="type" value="groupee"
-                                    {{ old('type') === 'groupee' ? 'checked' : '' }} onchange="onTypeChange(this)">
+                                    {{ old('type', isset($naissance) ? $naissance->type : '') === 'groupee' ? 'checked' : '' }}
+                                    onchange="onTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-copy"></i>
                                     <h6>Simple + Intégral</h6>
@@ -864,9 +871,11 @@
 
                         <!-- Blocs dynamiques de relation et procuration -->
                         <div class="input-group-custom" id="relation-block" style="display: none; margin-top: 1.5rem;">
-                            <label>Quel est votre lien avec le titulaire de l'acte ? <span class="text-danger">*</span></label>
+                            <label>Quel est votre lien avec le titulaire de l'acte ? <span
+                                    class="text-danger">*</span></label>
                             <div class="input-wrapper">
-                                <select id="relation" name="relation" class="form-control-custom" onchange="onRelationChange()">
+                                <select id="relation" name="relation" class="form-control-custom"
+                                    onchange="onRelationChange()">
                                     <option value="">-- Choisir le lien de parenté --</option>
                                     <option value="enfant">C'est mon enfant</option>
                                     <option value="parent">C'est mon parent</option>
@@ -876,11 +885,13 @@
                             </div>
                         </div>
 
-                        <div class="input-group-custom" id="document-autorisation-block" style="display: none; margin-top: 1.5rem;">
+                        <div class="input-group-custom" id="document-autorisation-block"
+                            style="display: none; margin-top: 1.5rem;">
                             <label>Document d'autorisation / Procuration <span class="text-danger">*</span></label>
                             <label class="file-upload-area">
                                 <i class="fas fa-cloud-upload-alt"></i>
-                                <h6 id="autorisation-file-name" class="text-navy-bold mb-1">Téléverser le justificatif d'autorisation</h6>
+                                <h6 id="autorisation-file-name" class="text-navy-bold mb-1">Téléverser le justificatif
+                                    d'autorisation</h6>
                                 <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 2Mo)</p>
                                 <input type="file" id="document_autorisation" name="document_autorisation" class="d-none"
                                     onchange="updateAutorisationFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
@@ -890,10 +901,14 @@
                         <!-- Section quantités (toujours visible) -->
                         <div id="qty-section" class="qty-section">
                             <div id="qty-section-label" class="qty-section-label" style="text-align:center;">
-                                <i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?
+                                <i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous
+                                ?
                             </div>
+                            @php
+                                $isDeliveryDisabled = isset($naissance) && $naissance->choix_option === 'livraison';
+                            @endphp
                             <div class="quantity-cards-row single-card" id="qty-cards-row">
-                                <div class="quantity-card has-value" id="sq-card-simple">
+                                <div class="quantity-card has-value" id="sq-card-simple" @if($isDeliveryDisabled) style="pointer-events: none; opacity: 0.6;" @endif>
                                     <div class="quantity-card-header">
                                         <div class="quantity-card-title">
                                             <i class="fas fa-file-alt"
@@ -904,7 +919,9 @@
                                             <button type="button" class="qty-btn"
                                                 onclick="updateSQty('sq_simple',-1)">−</button>
                                             <input type="number" id="sq_simple" name="qty_simple" class="qty-input"
-                                                min="1" max="10" value="1" readonly>
+                                                min="1" max="10"
+                                                value="{{ old('qty_simple', isset($naissance) ? $naissance->qty_simple : 1) }}"
+                                                readonly>
                                             <button type="button" class="qty-btn"
                                                 onclick="updateSQty('sq_simple',1)">+</button>
                                         </div>
@@ -913,7 +930,7 @@
                                         {{ \App\Http\Controllers\User\Extrait\Naissance\NaissanceGroupeController::TARIF_TIMBRE }}
                                         FCFA / copie</div>
                                 </div>
-                                <div class="quantity-card has-value" id="sq-card-integral" style="display:none;">
+                                <div class="quantity-card has-value" id="sq-card-integral" style="display:none;{{ $isDeliveryDisabled ? ' pointer-events: none; opacity: 0.6;' : '' }}">
                                     <div class="quantity-card-header">
                                         <div class="quantity-card-title">
                                             <i class="fas fa-file-contract"
@@ -924,7 +941,9 @@
                                             <button type="button" class="qty-btn"
                                                 onclick="updateSQty('sq_integral',-1)">−</button>
                                             <input type="number" id="sq_integral" name="qty_integral" class="qty-input"
-                                                min="1" max="10" value="1" readonly disabled>
+                                                min="1" max="10"
+                                                value="{{ old('qty_integral', isset($naissance) ? $naissance->qty_integral : 1) }}"
+                                                readonly disabled>
                                             <button type="button" class="qty-btn"
                                                 onclick="updateSQty('sq_integral',1)">+</button>
                                         </div>
@@ -958,7 +977,8 @@
                                     <label>Nom :</label>
                                     <div class="input-wrapper">
                                         <input type="text" id="name" name="name" class="form-control-custom"
-                                            value="{{ old('name', $userName) }}" placeholder="Nom sur l'acte">
+                                            value="{{ old('name', isset($naissance) ? $naissance->name : $userName) }}"
+                                            placeholder="Nom sur l'acte">
                                         <i class="fas fa-id-card"></i>
                                     </div>
                                 </div>
@@ -968,7 +988,8 @@
                                     <label>Prénoms :</label>
                                     <div class="input-wrapper">
                                         <input type="text" id="prenom" name="prenom" class="form-control-custom"
-                                            value="{{ old('prenom', $userPrenom) }}" placeholder="Prénoms sur l'acte">
+                                            value="{{ old('prenom', isset($naissance) ? $naissance->prenom : $userPrenom) }}"
+                                            placeholder="Prénoms sur l'acte">
                                         <i class="fas fa-id-card"></i>
                                     </div>
                                 </div>
@@ -978,7 +999,8 @@
                                     <label>Lieu de naissance :</label>
                                     <div class="input-wrapper">
                                         <input type="text" id="commune_naissance" name="commune_naissance"
-                                            class="form-control-custom" value="{{ old('commune_naissance') }}"
+                                            class="form-control-custom"
+                                            value="{{ old('commune_naissance', isset($naissance) ? $naissance->commune_naissance : '') }}"
                                             placeholder="Commune">
                                         <i class="fas fa-map-marker-alt"></i>
                                     </div>
@@ -993,7 +1015,8 @@
                                     <label>N° Registre :</label>
                                     <div class="input-wrapper">
                                         <input type="text" id="number" name="number" class="form-control-custom"
-                                            value="{{ old('number') }}" placeholder="Ex: 123/2024">
+                                            value="{{ old('number', isset($naissance) ? $naissance->number : '') }}"
+                                            placeholder="Ex: 123/2024">
                                         <i class="fas fa-hashtag"></i>
                                     </div>
                                 </div>
@@ -1003,7 +1026,8 @@
                                     <label>Date Registre :</label>
                                     <div class="input-wrapper">
                                         <input type="date" id="DateR" name="DateR" class="form-control-custom"
-                                            value="{{ old('DateR') }}" onclick="this.showPicker()">
+                                            value="{{ old('DateR', isset($naissance) && $naissance->DateR ? \Carbon\Carbon::parse($naissance->DateR)->format('Y-m-d') : '') }}"
+                                            onclick="this.showPicker()">
                                         <i class="fas fa-calendar-alt"></i>
                                     </div>
                                 </div>
@@ -1013,7 +1037,8 @@
                                     <label>Nom et Prénoms du père :</label>
                                     <div class="input-wrapper">
                                         <input type="text" id="nom_prenoms_pere" name="nom_prenoms_pere"
-                                            class="form-control-custom" value="{{ old('nom_prenoms_pere') }}"
+                                            class="form-control-custom"
+                                            value="{{ old('nom_prenoms_pere', isset($naissance) ? $naissance->nom_prenoms_pere : '') }}"
                                             placeholder="Nom complet du père">
                                         <i class="fas fa-male"></i>
                                     </div>
@@ -1024,13 +1049,15 @@
                                     <label>Nom et Prénoms de la mère :</label>
                                     <div class="input-wrapper">
                                         <input type="text" id="nom_prenoms_mere" name="nom_prenoms_mere"
-                                            class="form-control-custom" value="{{ old('nom_prenoms_mere') }}"
+                                            class="form-control-custom"
+                                            value="{{ old('nom_prenoms_mere', isset($naissance) ? $naissance->nom_prenoms_mere : '') }}"
                                             placeholder="Nom complet de la mère">
                                         <i class="fas fa-female"></i>
                                     </div>
                                 </div>
                             </div>
-                            <input type="hidden" id="quantite" name="quantite" value="{{ old('quantite', 1) }}">
+                            <input type="hidden" id="quantite" name="quantite"
+                                value="{{ old('quantite', isset($naissance) ? $naissance->quantite : 1) }}">
                         </div>
                     </div>
                     <div class="stepper-footer">
@@ -1054,7 +1081,9 @@
                             <label>Pièce d'identité (CNI, Passeport, Livret) :</label>
                             <label class="file-upload-area">
                                 <i class="fas fa-cloud-upload-alt"></i>
-                                <h6 id="file-name" class="text-navy-bold mb-1">Téléverser votre pièce</h6>
+                                <h6 id="file-name" class="text-navy-bold mb-1">
+                                    {{ isset($naissance) && $naissance->CNI ? 'Pièce d\'identité déjà téléversée (cliquez pour remplacer)' : 'Téléverser votre pièce' }}
+                                </h6>
                                 <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 1Mo)</p>
                                 <input type="file" id="CNI" name="CNI" class="d-none"
                                     onchange="updateFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
@@ -1068,9 +1097,11 @@
                             <i class="fas fa-truck"></i> Mode de retrait
                         </div>
                         <div class="delivery-card-grid">
-                            <label class="delivery-option-card">
+                            <label class="delivery-option-card"
+                                style="{{ isset($naissance) && $naissance->choix_option === 'livraison' ? 'opacity: 0.5; pointer-events: none;' : '' }}">
                                 <input type="radio" id="option1" name="choix_option" value="Retrait sur place"
-                                    checked>
+                                    {{ old('choix_option', isset($naissance) ? $naissance->choix_option : 'Retrait sur place') === 'Retrait sur place' ? 'checked' : '' }}
+                                    {{ isset($naissance) && $naissance->choix_option === 'livraison' ? 'disabled' : '' }}>
                                 <div class="delivery-option-content">
                                     <i class="fas fa-university"></i>
                                     <h5>Retrait en Mairie</h5>
@@ -1078,7 +1109,8 @@
                                 </div>
                             </label>
                             <label class="delivery-option-card">
-                                <input type="radio" id="option2" name="choix_option" value="livraison">
+                                <input type="radio" id="option2" name="choix_option" value="livraison"
+                                    {{ old('choix_option', isset($naissance) ? $naissance->choix_option : '') === 'livraison' ? 'checked' : '' }}>
                                 <div class="delivery-option-content">
                                     <i class="fas fa-motorcycle"></i>
                                     <h5>Livraison Express</h5>
@@ -1108,7 +1140,7 @@
         function toggleRelationFields() {
             const pourSelect = document.querySelector('input[name="pour"]:checked');
             const typeSelect = document.querySelector('input[name="type"]:checked');
-            
+
             const relationBlock = document.getElementById('relation-block');
             const relationSelect = document.getElementById('relation');
             const documentBlock = document.getElementById('document-autorisation-block');
@@ -1122,10 +1154,11 @@
                 } else {
                     relationBlock.style.display = 'none';
                     relationSelect.value = '';
-                    
+
                     documentBlock.style.display = 'none';
                     document.getElementById('document_autorisation').value = '';
-                    document.getElementById('autorisation-file-name').textContent = 'Téléverser le justificatif d\'autorisation';
+                    document.getElementById('autorisation-file-name').textContent =
+                        'Téléverser le justificatif d\'autorisation';
                 }
             }
         }
@@ -1139,7 +1172,8 @@
             } else {
                 documentBlock.style.display = 'none';
                 document.getElementById('document_autorisation').value = '';
-                document.getElementById('autorisation-file-name').textContent = 'Téléverser le justificatif d\'autorisation';
+                document.getElementById('autorisation-file-name').textContent =
+                    'Téléverser le justificatif d\'autorisation';
             }
         }
 
@@ -1246,7 +1280,9 @@
             }
 
             syncQuantite();
-            document.getElementById('naissanceForm').action = ROUTE_SIMPLE_STORE;
+            if (!{{ isset($naissance) ? 'true' : 'false' }}) {
+                document.getElementById('naissanceForm').action = isGroupee ? ROUTE_GROUPEE_STORE : ROUTE_SIMPLE_STORE;
+            }
             toggleRelationFields();
         }
 
@@ -1256,7 +1292,7 @@
             if (!qEl) return;
             if (type === 'simple') {
                 qEl.value = parseInt(document.getElementById('sq_simple').value) || 1;
-            } else if (type === 'extrait_integral') {
+            } else if (type === 'integrale') {
                 qEl.value = parseInt(document.getElementById('sq_integral').value) || 1;
             } else if (type === 'groupee') {
                 const s = parseInt(document.getElementById('sq_simple').value) || 0;
@@ -1290,7 +1326,7 @@
                     alert('Veuillez choisir au moins 1 copie.');
                     return;
                 }
-                if (type === 'extrait_integral' && qI < 1) {
+                if (type === 'integrale' && qI < 1) {
                     alert('Veuillez choisir au moins 1 copie.');
                     return;
                 }
@@ -1342,9 +1378,12 @@
                         displayClientError(relation, "Veuillez préciser votre lien de parenté.");
                     } else if (relation.value === 'connaissance') {
                         const docInput = document.getElementById('document_autorisation');
-                        if (docInput.files.length === 0) {
+                        const hasExistingDoc =
+                            {{ isset($naissance) && $naissance->document_autorisation ? 'true' : 'false' }};
+                        if (docInput.files.length === 0 && !hasExistingDoc) {
                             isValid = false;
-                            displayClientError(docInput.closest('.input-group-custom'), "Veuillez téléverser le document d'autorisation.");
+                            displayClientError(docInput.closest('.input-group-custom'),
+                                "Veuillez téléverser le document d'autorisation.");
                         }
                     }
                 }
@@ -1400,7 +1439,8 @@
                 }
             } else if (step === 3) {
                 const cni = document.getElementById('CNI');
-                if (cni.files.length === 0) {
+                const hasExistingCNI = {{ isset($naissance) && $naissance->CNI ? 'true' : 'false' }};
+                if (cni.files.length === 0 && !hasExistingCNI) {
                     isValid = false;
                     displayClientError(cni.closest('.input-group-custom'), "Veuillez téléverser votre pièce d'identité.");
                 }
@@ -1475,12 +1515,15 @@
             ];
 
             // Validation conditionnelle : Registre OU Parents
-            const number = document.getElementById('number').value.trim();
-            const dateR = document.getElementById('DateR').value.trim();
-            const nomPrenomsPere = document.getElementById('nom_prenoms_pere').value.trim();
-            const nomPrenomsMere = document.getElementById('nom_prenoms_mere').value.trim();
+            const number = document.getElementById('number') ? document.getElementById('number').value.trim() : '';
+            const dateR = document.getElementById('DateR') ? document.getElementById('DateR').value.trim() : '';
+            const nomPrenomsPere = document.getElementById('nom_prenoms_pere') ? document.getElementById('nom_prenoms_pere')
+                .value.trim() : '';
+            const nomPrenomsMere = document.getElementById('nom_prenoms_mere') ? document.getElementById('nom_prenoms_mere')
+                .value.trim() : '';
 
-            const typeVal = document.querySelector('input[name="type"]:checked').value;
+            const typeEl = document.querySelector('input[name="type"]:checked');
+            const typeVal = typeEl ? typeEl.value : 'simple';
             if (typeVal === 'groupee') {
                 if (!nomPrenomsPere) {
                     isValid = false;
@@ -1524,9 +1567,12 @@
                     }
                     // Pour les fichiers, nous vérifions si un fichier a été sélectionné
                     else if (fieldInfo.id === 'CNI') {
+                        const hasExistingCNI = {{ isset($naissance) && $naissance->CNI ? 'true' : 'false' }};
                         if (inputElement.files.length === 0) {
-                            isValid = false;
-                            displayClientError(inputElement, fieldInfo.message);
+                            if (!hasExistingCNI) {
+                                isValid = false;
+                                displayClientError(inputElement, fieldInfo.message);
+                            }
                         } else {
                             // Optionnel: Ajouter ici une validation pour le type de fichier et la taille
                             const file = inputElement.files[0];
@@ -1550,7 +1596,8 @@
             });
 
             // Validation de la relation et procuration (si requis)
-            const pourSelectVal = document.querySelector('input[name="pour"]:checked').value;
+            const pourSelect = document.querySelector('input[name="pour"]:checked');
+            const pourSelectVal = pourSelect ? pourSelect.value : 'Moi';
             if (pourSelectVal === 'une_autre_personne' && (typeVal === 'integrale' || typeVal === 'groupee')) {
                 const relation = document.getElementById('relation');
                 if (!relation.value) {
@@ -1558,19 +1605,23 @@
                     displayClientError(relation, "Veuillez préciser votre lien de parenté.");
                 } else if (relation.value === 'connaissance') {
                     const docInput = document.getElementById('document_autorisation');
-                    if (docInput.files.length === 0) {
+                    const hasExistingDoc = {{ isset($naissance) && $naissance->document_autorisation ? 'true' : 'false' }};
+                    if (docInput.files.length === 0 && !hasExistingDoc) {
                         isValid = false;
-                        displayClientError(docInput.closest('.input-group-custom'), "Veuillez téléverser le document d'autorisation.");
-                    } else {
+                        displayClientError(docInput.closest('.input-group-custom'),
+                            "Veuillez téléverser le document d'autorisation.");
+                    } else if (docInput.files.length > 0) {
                         const file = docInput.files[0];
                         const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
                         const maxSize = 2000 * 1024; // 2 Mo
                         if (!allowedTypes.includes(file.type)) {
                             isValid = false;
-                            displayClientError(docInput.closest('.input-group-custom'), 'Le format du document doit être PNG, JPG, JPEG ou PDF.');
+                            displayClientError(docInput.closest('.input-group-custom'),
+                                'Le format du document doit être PNG, JPG, JPEG ou PDF.');
                         } else if (file.size > maxSize) {
                             isValid = false;
-                            displayClientError(docInput.closest('.input-group-custom'), 'Le document ne doit pas dépasser 2Mo.');
+                            displayClientError(docInput.closest('.input-group-custom'),
+                                'Le document ne doit pas dépasser 2Mo.');
                         }
                     }
                 }
@@ -1616,7 +1667,7 @@
                     totalTimbres = qtySimple + qtyIntegral;
                 } else if (type === 'simple') {
                     totalTimbres = parseInt(document.getElementById('sq_simple').value) || 0;
-                } else if (type === 'extrait_integral') {
+                } else if (type === 'integrale') {
                     totalTimbres = parseInt(document.getElementById('sq_integral').value) || 0;
                 }
 
@@ -1698,7 +1749,7 @@
             } else if (type === 'simple') {
                 qtySimple = parseInt(document.getElementById('sq_simple').value) || 0;
                 totalTimbres = qtySimple;
-            } else if (type === 'extrait_integral') {
+            } else if (type === 'integrale') {
                 qtyIntegral = parseInt(document.getElementById('sq_integral').value) || 0;
                 totalTimbres = qtyIntegral;
             }
@@ -1718,11 +1769,18 @@
             const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
             const montantTotal = montantTimbreTotal + montantLivraison;
 
+            // Déterminer s'il faut payer
+            const isEditMode = @json(isset($naissance));
+            const initialChoixOption = @json($naissance->choix_option ?? null);
+            const needsPayment = !isEditMode || (initialChoixOption !== 'livraison');
+            const finalTotalAmount = needsPayment ? montantTotal : 0;
+
             // Stocker globalement pour accès dans preConfirm
             window.livraisonData = {
                 montantTimbreTotal: montantTimbreTotal,
                 montantLivraison: montantLivraison,
-                totalTimbres: totalTimbres
+                totalTimbres: totalTimbres,
+                needsPayment: needsPayment
             };
 
             // Élément d'affichage pour les timbres gratuits
@@ -1734,7 +1792,7 @@
                 exemplaireText = `Simple: ${qtySimple}, Intégral: ${qtyIntegral}`;
             } else if (type === 'simple') {
                 exemplaireText = `Simple: ${qtySimple}`;
-            } else if (type === 'extrait_integral') {
+            } else if (type === 'integrale') {
                 exemplaireText = `Intégral: ${qtyIntegral}`;
             }
 
@@ -1768,58 +1826,55 @@
 
                 <!-- Formulaire (Partie gauche) -->
                 <div style="flex: 1 1 400px;">
-                    <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍 Vos coordonnées</h4>
+                    <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📍Informations de livraisons</h4>
+
+                    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #555; text-transform: uppercase;">Réceptionnaire :</span>
+                        <div style="display: flex; gap: 15px;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: #1f4083; cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0;">
+                                <input type="radio" name="swal-destinataire-type" value="moi" {{ !isset($naissance) || ($naissance->nom_destinataire === Auth::user()->name && $naissance->prenom_destinataire === Auth::user()->prenom) ? 'checked' : '' }} style="cursor: pointer; width: auto; margin: 0;"> Moi-même
+                            </label>
+                            <label style="font-size: 0.85rem; font-weight: 600; color: #555; cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0;">
+                                <input type="radio" name="swal-destinataire-type" value="autre" {{ isset($naissance) && ($naissance->nom_destinataire !== Auth::user()->name || $naissance->prenom_destinataire !== Auth::user()->prenom) ? 'checked' : '' }} style="cursor: pointer; width: auto; margin: 0;"> Autre personne
+                            </label>
+                        </div>
+                    </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
                             <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Nom</label>
-                            <input id="swal-nom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Nom" value="{{ Auth::user()->name }}">
+                            <input id="swal-nom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Nom" value="{{ isset($naissance) && $naissance->nom_destinataire ? $naissance->nom_destinataire : Auth::user()->name }}">
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Prénom</label>
-                            <input id="swal-prenom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Prénom" value="{{ Auth::user()->prenom }}">
+                            <input id="swal-prenom_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Prénom" value="{{ isset($naissance) && $naissance->prenom_destinataire ? $naissance->prenom_destinataire : Auth::user()->prenom }}">
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
                         <div>
                             <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Email</label>
-                            <input id="swal-email_destinataire" type="email" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="mail@exemple.com" value="{{ Auth::user()->email }}">
+                            <input id="swal-email_destinataire" type="email" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="mail@exemple.com" value="{{ isset($naissance) && $naissance->email_destinataire ? $naissance->email_destinataire : Auth::user()->email }}">
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Téléphone</label>
-                            <input id="swal-contact_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="0123456789" value="{{ Auth::user()->contact }}">
+                            <input id="swal-contact_destinataire" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="0123456789" value="{{ isset($naissance) && $naissance->contact_destinataire ? $naissance->contact_destinataire : Auth::user()->contact }}">
                         </div>
                     </div>
 
                     <div style="margin-top: 10px;">
-                        <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Adresse précise</label>
-                        <input id="swal-adresse_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="N° de rue, immeuble...">
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
-                        <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Ville</label>
-                            <input id="swal-ville" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Ville" value="Abidjan">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Commune</label>
-                            <input id="swal-commune_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Commune">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Quartier</label>
-                            <input id="swal-quartier" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Quartier">
-                        </div>
+                        <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Adresse précise (Commune, Quartier, Rue, etc.)</label>
+                        <input id="swal-adresse_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Ex: Cocody, Angré, Rue L12, Immeuble..." value="{{ isset($naissance) && $naissance->adresse_livraison ? $naissance->adresse_livraison : '' }}">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
                         <div>
                             <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Date</label>
-                            <input type="date" id="swal-date_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;" min="{{ date('Y-m-d') }}" onclick="this.showPicker()">
+                            <input type="date" id="swal-date_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;" {{ isset($naissance) ? '' : 'min="' . date('Y-m-d') . '"' }} onclick="this.showPicker()" value="{{ isset($naissance) && $naissance->date_livraison ? $naissance->date_livraison : '' }}">
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Heure</label>
-                            <input type="time" id="swal-heure_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;" onclick="this.showPicker()">
+                            <input type="time" id="swal-heure_livraison" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;" onclick="this.showPicker()" value="{{ isset($naissance) && $naissance->heure_livraison ? \Carbon\Carbon::parse($naissance->heure_livraison)->format('H:i') : '' }}">
                         </div>
                     </div>
                 </div>
@@ -1842,62 +1897,100 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; border-top: 2px dashed #b8d4ed; padding-top: 8px; margin-top: 8px;">
                             <span style="color: #1f4083; font-weight: 800; font-size: 0.9rem;">TOTAL:</span>
-                            <span style="color: #1f4083; font-weight: 800; font-size: 1.1rem;">${montantTotal} FCFA</span>
+                            <span style="color: #1f4083; font-weight: 800; font-size: 1.1rem;">${finalTotalAmount} FCFA</span>
                         </div>
                     </div>
 
-                    <div>
-                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                            </button>
-                            <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                            </button>
-                            <button type="button" id="btn-pay-mtn" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('mtn')">
-                                <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                            </button>
-                            <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
-                            </button>
-                        </div>
-                        <input type="hidden" id="swal-payment_method" value="wave">
-                        <div id="payment-phone-container" style="display: none; margin-top: 10px;">
-                            <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                            <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
-                        </div>
+                    <div id="payment-section-container">
+                        ${!needsPayment ? `
+                                <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
+                                    <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
+                                    <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
+                                    La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
+                                </div>
+                                <input type="hidden" id="swal-payment_method" value="deja_paye">
+                                <input type="hidden" id="swal-mtn_number" value="">
+                            ` : `
+                                <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                    <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                    <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                    <button type="button" id="btn-pay-mtn" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('mtn')">
+                                        <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                    <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                        <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
+                                    </button>
+                                </div>
+                                <input type="hidden" id="swal-payment_method" value="wave">
+                                <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
+                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                </div>
+                            `}
                     </div>
                 </div>
             </div>
         `,
                 icon: 'info',
                 showCancelButton: true,
-                confirmButtonText: `Payer`,
+                confirmButtonText: needsPayment ? (isEditMode ? 'Enregistrer & Payer' : 'Payer') :
+                    'Enregistrer & Soumettre',
                 cancelButtonText: 'Annuler',
                 confirmButtonColor: '#1f4083',
                 focusConfirm: false,
+                didOpen: () => {
+                    const radios = document.getElementsByName('swal-destinataire-type');
+                    radios.forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            const type = e.target.value;
+                            const inputNom = document.getElementById('swal-nom_destinataire');
+                            const inputPrenom = document.getElementById(
+                                'swal-prenom_destinataire');
+                            const inputEmail = document.getElementById(
+                                'swal-email_destinataire');
+                            const inputContact = document.getElementById(
+                                'swal-contact_destinataire');
+
+                            if (type === 'moi') {
+                                inputNom.value = "{{ Auth::user()->name }}";
+                                inputPrenom.value = "{{ Auth::user()->prenom }}";
+                                inputEmail.value = "{{ Auth::user()->email }}";
+                                inputContact.value = "{{ Auth::user()->contact }}";
+                            } else {
+                                inputNom.value = "";
+                                inputPrenom.value = "";
+                                inputEmail.value = "";
+                                inputContact.value = "";
+                            }
+                        });
+                    });
+                },
                 preConfirm: () => {
                     const nom_destinataire = document.getElementById('swal-nom_destinataire').value;
                     const prenom_destinataire = document.getElementById('swal-prenom_destinataire').value;
                     const email_destinataire = document.getElementById('swal-email_destinataire').value;
                     const contact_destinataire = document.getElementById('swal-contact_destinataire').value;
                     const adresse_livraison = document.getElementById('swal-adresse_livraison').value;
-                    const ville = document.getElementById('swal-ville').value;
-                    const commune_livraison = document.getElementById('swal-commune_livraison').value;
-                    const quartier = document.getElementById('swal-quartier').value;
+                    const ville = "";
+                    const commune_livraison = "";
+                    const quartier = "";
                     const date_livraison = document.getElementById('swal-date_livraison').value;
                     const heure_livraison = document.getElementById('swal-heure_livraison').value;
 
                     if (!nom_destinataire || !prenom_destinataire || !contact_destinataire || !
-                        adresse_livraison || !ville || !commune_livraison || !quartier) {
+                        adresse_livraison) {
                         Swal.showValidationMessage(
                             "Veuillez remplir tous les champs obligatoires."
                         );
                         return false;
                     }
 
-                    if (date_livraison) {
+                    if (!{{ isset($naissance) ? 'true' : 'false' }} && date_livraison) {
                         const selectedDate = new Date(date_livraison);
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
@@ -1931,8 +2024,10 @@
                         }
                     }
 
-                    // Ouvrir la fenêtre de paiement de manière synchrone pour contourner le bloqueur
-                    window.PaymentPopup = window.open('', 'PaymentPopup');
+                    if (needsPayment) {
+                        // Ouvrir la fenêtre de paiement de manière synchrone pour contourner le bloqueur
+                        window.PaymentPopup = window.open('', 'PaymentPopup');
+                    }
 
                     return {
                         nom_destinataire: nom_destinataire,
@@ -1947,8 +2042,8 @@
                         heure_livraison: heure_livraison,
                         quantite: window.livraisonData.totalTimbres,
                         montant_timbre_unitaire: 500,
-                        montant_timbre: window.livraisonData.montantTimbreTotal,
-                        montant_livraison: window.livraisonData.montantLivraison,
+                        montant_timbre: needsPayment ? window.livraisonData.montantTimbreTotal : 0,
+                        montant_livraison: needsPayment ? window.livraisonData.montantLivraison : 0,
                         payment_method: payment_method,
                         mtn_number: payment_number
                     };
@@ -2037,60 +2132,74 @@
 
                     window.paymentSuccess = false;
 
-                    if (window.PaymentPopup) {
-                        form.target = 'PaymentPopup';
-                    } else {
-                        form.target = '_blank';
-                    }
+                    if (needsPayment) {
+                        if (window.PaymentPopup) {
+                            form.target = 'PaymentPopup';
+                        } else {
+                            form.target = '_blank';
+                        }
 
-                    if (formData.payment_method === 'wave') {
+                        if (formData.payment_method === 'wave') {
+                            Swal.fire({
+                                title: 'Paiement en cours',
+                                html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            const timer = setInterval(() => {
+                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                    clearInterval(timer);
+                                    Swal.close();
+                                    // Vérifier d'abord window.paymentSuccess (opener accessible)
+                                    if (window.paymentSuccess) {
+                                        window.location.href = window.paymentSuccessUrl ||
+                                            "{{ route('user.extrait.index') }}";
+                                        return;
+                                    }
+                                    // Fallback : lire localStorage (cas où COOP a rompu window.opener)
+                                    try {
+                                        var result = JSON.parse(localStorage.getItem(
+                                                'plateauPaymentResult') ||
+                                            '{}');
+                                        var age = Date.now() - (result.timestamp || 0);
+                                        if (result.status === 'success' && age < 120000) {
+                                            localStorage.removeItem('plateauPaymentResult');
+                                            window.location.href = result.listUrl ||
+                                                "{{ route('user.extrait.index') }}";
+                                            return;
+                                        }
+                                    } catch (e) {}
+                                    // Paiement annulé ou inconnu : recharger le formulaire
+                                    window.location.reload();
+                                }
+                            }, 1000);
+                        } else {
+                            // Pour les autres paiements (MTN, etc.)
+                            Swal.fire({
+                                title: 'Redirection en cours',
+                                html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
+                                icon: 'info',
+                                confirmButtonText: 'Fermer',
+                                confirmButtonColor: '#1f4083',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                window.location.href = "{{ route('user.extrait.index') }}";
+                            });
+                        }
+                    } else {
+                        // Modification: afficher un spinner d'enregistrement simple
                         Swal.fire({
-                            title: 'Paiement en cours',
-                            html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
+                            title: 'Enregistrement de la modification...',
+                            html: 'Veuillez patienter pendant la mise à jour de votre demande.',
                             allowOutsideClick: false,
                             showConfirmButton: false,
                             didOpen: () => {
                                 Swal.showLoading();
                             }
-                        });
-
-                        const timer = setInterval(() => {
-                            if (window.PaymentPopup && window.PaymentPopup.closed) {
-                                clearInterval(timer);
-                                Swal.close();
-                                // Vérifier d'abord window.paymentSuccess (opener accessible)
-                                if (window.paymentSuccess) {
-                                    window.location.href = window.paymentSuccessUrl ||
-                                        "{{ route('user.extrait.index') }}";
-                                    return;
-                                }
-                                // Fallback : lire localStorage (cas où COOP a rompu window.opener)
-                                try {
-                                    var result = JSON.parse(localStorage.getItem('plateauPaymentResult') ||
-                                        '{}');
-                                    var age = Date.now() - (result.timestamp || 0);
-                                    if (result.status === 'success' && age < 120000) {
-                                        localStorage.removeItem('plateauPaymentResult');
-                                        window.location.href = result.listUrl ||
-                                            "{{ route('user.extrait.index') }}";
-                                        return;
-                                    }
-                                } catch (e) {}
-                                // Paiement annulé ou inconnu : recharger le formulaire
-                                window.location.reload();
-                            }
-                        }, 1000);
-                    } else {
-                        // Pour les autres paiements (MTN, etc.)
-                        Swal.fire({
-                            title: 'Redirection en cours',
-                            html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
-                            icon: 'info',
-                            confirmButtonText: 'Fermer',
-                            confirmButtonColor: '#1f4083',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = "{{ route('user.extrait.index') }}";
                         });
                     }
 

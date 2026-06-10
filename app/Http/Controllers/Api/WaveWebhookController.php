@@ -167,7 +167,11 @@ class WaveWebhookController extends Controller
             }
 
             // 2. Mettre à jour l'état de la demande
+            $this->applyPendingDeliveryUpdate($demande);
             $demande->etat = 'en attente';
+            if ($demande->choix_option === 'livraison') {
+                $demande->statut_livraison = 'en attente';
+            }
             $demande->save();
 
             // 2bis. Si c'est un groupe, propager l'état aux lignes filles

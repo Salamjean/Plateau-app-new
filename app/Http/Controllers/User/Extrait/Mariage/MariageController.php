@@ -323,86 +323,176 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     }
 
     /**
-     * Modifier une demande rejetée
+     * Modifier une demande rejetée ou non encore attribuée à un agent
      */
     public function modifierDemande(Request $request, $id)
     {
         $demande = Mariage::where('user_id', Auth::id())
             ->where('id', $id)
-            ->where('peut_modifier', true)
+            ->where(function ($query) {
+                $query->where('peut_modifier', true)
+                    ->orWhereNull('agent_id');
+            })
             ->firstOrFail();
 
-        // Valider uniquement les champs qui étaient à modifier
-        $champsAModifier = json_decode($demande->champs_a_modifier, true);
-        $rules = [];
+        $originalChoixOption = $demande->choix_option;
 
-        // Définir les règles de validation par champ
-        foreach ($champsAModifier as $champ) {
-            switch ($champ) {
-                case 'typeDemande':
-                    $rules['typeDemande'] = 'required|string|in:extraitSimple,copieIntegrale';
-                    break;
-                case 'nomEpoux':
-                    $rules['nomEpoux'] = 'required|string|max:255';
-                    break;
-                case 'prenomEpoux':
-                    $rules['prenomEpoux'] = 'required|string|max:255';
-                    break;
-                case 'dateNaissanceEpoux':
-                    $rules['dateNaissanceEpoux'] = 'required|date';
-                    break;
-                case 'lieuNaissanceEpoux':
-                    $rules['lieuNaissanceEpoux'] = 'required|string|max:255';
-                    break;
-                case 'commune':
-                    $rules['commune'] = 'required|string';
-                    break;
-                case 'commune_mariage':
-                    $rules['commune_mariage'] = 'required|string|max:255';
-                    break;
-                case 'quantite':
-                    $rules['quantite'] = 'required|integer|min:1|max:10';
-                    break;
-                case 'pieceIdentite':
-                    $rules['pieceIdentite'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
-                    break;
-                case 'extraitMariage':
-                    $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf|max:25600';
-                    break;
-                case 'CMU':
-                    $rules['CMU'] = 'required|string|max:50';
-                    break;
-            }
-        }
+        $rules = [
+            'typeDemande' => 'required|string',
+            'pour' => 'nullable|string',
+            'relation' => 'nullable|string',
+            'nomEpoux' => 'nullable|string|max:255',
+            'prenomEpoux' => 'nullable|string|max:255',
+            'dateNaissanceEpoux' => 'nullable|date',
+            'lieuNaissanceEpoux' => 'nullable|string|max:255',
+            'nomEpouse' => 'nullable|string|max:255',
+            'prenomEpouse' => 'nullable|string|max:255',
+            'dateNaissanceEpouse' => 'nullable|date',
+            'lieuNaissanceEpouse' => 'nullable|string|max:255',
+            'commune' => 'required|string',
+            'commune_mariage' => 'required|string|max:255',
+            'qty_simple' => 'nullable|integer|min:0|max:10',
+            'qty_integral' => 'nullable|integer|min:0|max:10',
+            'pieceIdentite' => $demande->pieceIdentite ? 'nullable|mimes:png,jpg,jpeg,pdf|max:25600' : 'required|mimes:png,jpg,jpeg,pdf|max:25600',
+            'extraitMariage' => 'nullable|mimes:png,jpg,jpeg,pdf|max:25600',
+            'document_autorisation' => [
+                \Illuminate\Validation\Rule::requiredIf(function () use ($request, $demande) {
+                    return $request->pour === 'une_autre_personne' && $request->relation === 'connaissance' && !$demande->document_autorisation;
+                }),
+                'nullable',
+                'file',
+                'mimes:jpeg,png,jpg,pdf',
+                'max:25600'
+            ],
+            'CMU' => 'nullable|string|max:50',
+        ];
 
         $validated = $request->validate($rules);
 
-        // Mettre à jour uniquement les champs spécifiés
-        foreach ($champsAModifier as $champ) {
-            if (in_array($champ, ['pieceIdentite', 'extraitMariage']) && $request->hasFile($champ)) {
-                // Supprimer l'ancien fichier si existe
-                if ($demande->$champ) {
-                    Storage::delete($demande->$champ);
+        // Validation IA Gemini de la pièce d'identité
+        if ($request->hasFile('pieceIdentite')) {
+            $geminiService = app(\App\Services\GeminiValidationService::class);
+            $validation = $geminiService->validateIdentityDocument($request->file('pieceIdentite'));
+            if (!$validation['isValid']) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité a été rejetée par l'IA : " . $validation['reason']
+                    ], 422);
                 }
+                return redirect()->back()
+                    ->withErrors(['pieceIdentite' => "La pièce d'identité a été rejetée par l'IA de la mairie : " . $validation['reason']])
+                    ->withInput();
+            }
+        }
 
-                // Enregistrer le nouveau fichier
-                $file = $request->file($champ);
+        // Upload files
+        $filesToUpload = [
+            'pieceIdentite' => 'identite',
+            'extraitMariage' => 'extrait',
+            'document_autorisation' => 'autorisations',
+        ];
 
-                // Déterminer le sous-dossier
-                $subDir = match ($champ) {
-                    'pieceIdentite' => 'pieces-identite',
-                    'extraitMariage' => 'extraits-mariage',
-                    default => ''
-                };
-
+        foreach ($filesToUpload as $fileKey => $subDir) {
+            if ($request->hasFile($fileKey)) {
+                if ($demande->$fileKey) {
+                    Storage::disk('public')->delete($demande->$fileKey);
+                }
+                $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
-                $path = $file->storeAs("images/mariage/$subDir", $newFileName, 'public');
-
-                $demande->$champ = "images/mariage/$subDir/$newFileName";
-            } elseif (isset($validated[$champ])) {
-                $demande->$champ = $validated[$champ];
+                $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
+                $demande->$fileKey = "images/mariages/$subDir/$newFileName";
             }
+        }
+
+        // Calculate quantities
+        $qtySimple = (int) $request->input('qty_simple', 0);
+        $qtyIntegral = (int) $request->input('qty_integral', 0);
+
+        if ($request->typeDemande === 'simple') {
+            $qtyIntegral = 0;
+            if ($qtySimple <= 0) {
+                $qtySimple = 1;
+            }
+        } elseif ($request->typeDemande === 'integrale') {
+            $qtySimple = 0;
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
+            }
+        } else {
+            // groupee
+            if ($qtySimple <= 0) {
+                $qtySimple = 1;
+            }
+            if ($qtyIntegral <= 0) {
+                $qtyIntegral = 1;
+            }
+        }
+        $totalQuantity = $qtySimple + $qtyIntegral;
+
+        // Update fields
+        $demande->type = $request->input('typeDemande');
+        $demande->pour = $request->input('pour');
+        $demande->relation = $request->input('relation');
+        $demande->nomEpoux = $request->input('nomEpoux');
+        $demande->prenomEpoux = $request->input('prenomEpoux');
+        $demande->dateNaissanceEpoux = $request->input('dateNaissanceEpoux');
+        $demande->lieuNaissanceEpoux = $request->input('lieuNaissanceEpoux');
+        $demande->nomEpouse = $request->input('nomEpouse');
+        $demande->prenomEpouse = $request->input('prenomEpouse');
+        $demande->dateNaissanceEpouse = $request->input('dateNaissanceEpouse');
+        $demande->lieuNaissanceEpouse = $request->input('lieuNaissanceEpouse');
+        $demande->commune = $request->input('commune');
+        $demande->commune_mariage = $request->input('commune_mariage');
+        $demande->qty_simple = $qtySimple;
+        $demande->qty_integral = $qtyIntegral;
+        $demande->quantite = $totalQuantity;
+        $demande->CMU = $request->input('CMU');
+
+        // Delivery
+        $needsPayment = ($request->input('choix_option') === 'livraison' && $originalChoixOption !== 'livraison');
+        $pendingDeliveryData = null;
+
+        if ($request->input('choix_option') === 'livraison') {
+            $deliveryData = [
+                'choix_option' => 'livraison',
+                'montant_timbre' => $request->input('montant_timbre'),
+                'montant_livraison' => $request->input('montant_livraison'),
+                'nom_destinataire' => $request->input('nom_destinataire'),
+                'prenom_destinataire' => $request->input('prenom_destinataire'),
+                'email_destinataire' => $request->input('email_destinataire'),
+                'contact_destinataire' => $request->input('contact_destinataire'),
+                'adresse_livraison' => $request->input('adresse_livraison'),
+                'code_postal' => $request->input('code_postal'),
+                'ville' => $request->input('ville'),
+                'commune_livraison' => $request->input('commune_livraison'),
+                'quartier' => $request->input('quartier'),
+                'date_livraison' => $request->input('date_livraison'),
+                'heure_livraison' => $request->input('heure_livraison'),
+            ];
+
+            if ($needsPayment) {
+                $pendingDeliveryData = $deliveryData;
+                $demande->choix_option = $originalChoixOption; // Conserver l'ancien choix (retrait) en BDD avant paiement
+            } else {
+                $demande->choix_option = 'livraison';
+                $demande->montant_timbre = $request->input('montant_timbre');
+                $demande->montant_livraison = $request->input('montant_livraison');
+                $demande->nom_destinataire = $request->input('nom_destinataire');
+                $demande->prenom_destinataire = $request->input('prenom_destinataire');
+                $demande->email_destinataire = $request->input('email_destinataire');
+                $demande->contact_destinataire = $request->input('contact_destinataire');
+                $demande->adresse_livraison = $request->input('adresse_livraison');
+                $demande->code_postal = $request->input('code_postal');
+                $demande->ville = $request->input('ville');
+                $demande->commune_livraison = $request->input('commune_livraison');
+                $demande->quartier = $request->input('quartier');
+                $demande->date_livraison = $request->input('date_livraison');
+                $demande->heure_livraison = $request->input('heure_livraison');
+            }
+        } else {
+            $demande->choix_option = $request->choix_option;
         }
 
         // Réinitialiser l'état et désactiver la modification
@@ -412,10 +502,152 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         $demande->motif_de_rejet = null;
         $demande->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Demande modifiée avec succès et soumise à nouveau.',
-            'demande' => $demande
+        if ($needsPayment && $pendingDeliveryData) {
+            $user = Auth::user();
+            $user->refresh();
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) ($demande->qty_simple + $demande->qty_integral));
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
+            $totalAmount = $montantTimbreTotal + $montantLivraison;
+
+            $demande->montant_timbre = $montantTimbreTotal;
+            $demande->is_free_request = $freeCalc['free_timbres'] > 0;
+            $demande->free_timbres_count = $freeCalc['free_timbres'];
+            $demande->save();
+
+            // Mettre en cache les données de livraison
+            \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $demande->reference, $pendingDeliveryData, now()->addDays(7));
+
+            if ($totalAmount > 0) {
+                $paymentMethod = $request->input('payment_method', 'wave');
+                $baseUrl = config('app.url');
+                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($demande->reference) . "&type=mariage";
+                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($demande->reference) . "&type=mariage";
+
+                if (strtolower($paymentMethod) === 'wave') {
+                    $waveService = app(\App\Services\WaveService::class);
+                    $checkoutSession = $waveService->createCheckoutSession(
+                        $totalAmount,
+                        'XOF',
+                        $successUrl,
+                        $errorUrl,
+                        $demande->reference
+                    );
+
+                    if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => $checkoutSession['wave_launch_url']
+                            ]);
+                        }
+                        return redirect($checkoutSession['wave_launch_url']);
+                    }
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'mtn') {
+                    $mtnPhoneNumber = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
+                    if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
+                        $mtnPhoneNumber = '225' . $mtnPhoneNumber;
+                    }
+
+                    $mtnService = new \App\Services\MtnService();
+                    $response = $mtnService->requestToPay(
+                        $totalAmount,
+                        $mtnPhoneNumber,
+                        $demande->reference,
+                        'Extrait Mariage',
+                        'Mairie Plateau'
+                    );
+
+                    if ($response && $response['status'] === 'PENDING') {
+                        session(['mtn_ref_' . $demande->reference => $response['referenceId']]);
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => route('user.payment.mtn.waiting', [
+                                    'reference' => $demande->reference,
+                                    'type' => 'mariage'
+                                ])
+                            ]);
+                        }
+                        return redirect()->route('user.payment.mtn.waiting', [
+                            'reference' => $demande->reference,
+                            'type' => 'mariage'
+                        ]);
+                    }
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+                } else {
+                    $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
+                    $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+                    try {
+                        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
+                            'apikey' => $cinetpayApiKey,
+                            'site_id' => $cinetpaySiteId,
+                            'transaction_id' => $demande->reference,
+                            'amount' => $totalAmount,
+                            'currency' => 'XOF',
+                            'description' => "Paiement pour " . $demande->reference,
+                            'return_url' => $successUrl,
+                            'notify_url' => $baseUrl . '/api/webhook/cinetpay',
+                            'channels' => 'ALL',
+                        ]);
+
+                        if ($response->successful()) {
+                            $data = $response->json();
+                            if (isset($data['data']['payment_url'])) {
+                                if ($request->expectsJson()) {
+                                    return response()->json([
+                                        'success' => true,
+                                        'redirect_url' => $data['data']['payment_url']
+                                    ]);
+                                }
+                                return redirect($data['data']['payment_url']);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Exception CinetPay: ' . $e->getMessage());
+                    }
+                }
+            } else {
+                $demande->etat = 'en attente';
+                $demande->save();
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                }
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+                'demande' => $demande
+            ]);
+        }
+
+        return redirect()->route('user.extrait.mariage.index')->with('success', 'Votre demande a été modifiée avec succès.');
+    }
+
+    public function edit($id)
+    {
+        $demande = Mariage::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->where(function ($query) {
+                $query->where('peut_modifier', true)
+                    ->orWhereNull('agent_id');
+            })
+            ->firstOrFail();
+
+        $user = Auth::user();
+        $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+        $freeRequestsRemaining = $this->getRemainingFreeRequests($user);
+
+        return view('user.mariage.create', [
+            'mariage' => $demande,
+            'user' => $user,
+            'freeRequestsModeActive' => $freeRequestsModeActive,
+            'freeRequestsRemaining' => $freeRequestsRemaining,
         ]);
     }
 

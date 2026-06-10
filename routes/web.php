@@ -537,6 +537,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/extract/index', [NaissanceController::class, 'index'])->name('user.extrait.index');
     Route::get('/extract', [NaissanceController::class, 'create'])->name('user.extrait.create');
     Route::post('/extract', [NaissanceController::class, 'store'])->name('user.extrait.store');
+    Route::get('/naissances/{id}/edit', [NaissanceController::class, 'edit'])->name('user.naissances.edit');
     Route::put('/naissances/{id}/modifier', [NaissanceController::class, 'modifierDemande'])->name('user.naissances.modifier');
     Route::get('/extract/delete/{naissance}', [NaissanceController::class, 'delete'])->name('user.extrait.delete');
 
@@ -548,6 +549,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/extract/death/index', [DecesController::class, 'index'])->name('user.extrait.deces.index');
     Route::get('/extract/death/simple', [DecesController::class, 'create'])->name('user.extrait.deces.create');
     Route::post('/extract/death/simple', [DecesController::class, 'store'])->name('user.extrait.deces.store');
+    Route::get('/extrait/deces/{id}/edit', [DecesController::class, 'edit'])->name('user.extrait.deces.edit');
     Route::put('/extrait/deces/{id}/modifier', [DecesController::class, 'modifierDemande'])->name('user.extrait.deces.modifier');
     Route::get('/extract/death/certificat{dece}/child', [DecesController::class, 'delete'])->name('user.extrait.deces.delete');
 
@@ -559,6 +561,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/wedding/index', [MariageController::class, 'index'])->name('user.extrait.mariage.index');
     Route::get('/create/wedding', [MariageController::class, 'create'])->name('user.extrait.mariage.create');
     Route::post('/create/wedding', [MariageController::class, 'store'])->name('user.extrait.mariage.store');
+    Route::get('/extrait/mariage/{id}/edit', [MariageController::class, 'edit'])->name('user.extrait.mariage.edit');
     Route::put('/extrait/mariage/{id}/modifier', [MariageController::class, 'modifierDemande'])->name('user.extrait.mariage.modifier');
     Route::get('/wedding/delete/{mariage}', [MariageController::class, 'delete'])->name('user.extrait.mariage.delete');
 
@@ -578,6 +581,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/pending-collections', [UserAuthenticate::class, 'pendingCollections'])->name('user.pending.collections');
     Route::get('/demande-details/{type}/{id}', [UserAuthenticate::class, 'getDemandeDetails'])->name('demande.details.json');
     Route::get('/demande-details-view/{type}/{id}', [UserAuthenticate::class, 'showDemandeDetails'])->name('demande.details.view');
+    Route::post('/demande-details-update-livraison/{type}/{id}', [UserAuthenticate::class, 'updateLivraison'])->name('user.demande.update-livraison');
     // Remplacez les anciennes routes de profil par celles-ci
     // Routes pour la gestion du profil utilisateur
     Route::get('/profile', [ProfiluserController::class, 'show'])->name('user.profile.show');

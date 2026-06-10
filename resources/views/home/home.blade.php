@@ -134,7 +134,7 @@
                             <div class="mb-4">
                                 <label class="form-label fw-800 text-uppercase small tracking-wider mb-2" style="color: #1e293b; font-size: 0.75rem;">Numéro de référence</label>
                                 <input type="text" name="reference_naissance" class="form-control rounded-4 border-0 py-3 px-4" 
-                                    placeholder="ex: PLT-2026-00423" required 
+                                    placeholder="ex: AN012345P8956" required 
                                     style="background-color: #e2e8f0; font-weight: 600; color: #1e293b; font-size: 0.95rem; box-shadow: none;">
                             </div>
                             <button type="submit" class="btn w-100 py-3 rounded-4 fw-700 d-flex align-items-center justify-content-center gap-2" 

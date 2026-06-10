@@ -906,8 +906,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
                 // Mettre à jour le Deces (quelque soit l'état antérieur)
                 // C'est ici que l'état passe à 'en attente' (de traitement/livraison)
+                $this->applyPendingDeliveryUpdate($deces);
                 $deces->etat = 'en attente';
-                $deces->statut_livraison = 'en attente';
+                if ($deces->choix_option === 'livraison') {
+                    $deces->statut_livraison = 'en attente';
+                }
                 $deces->save();
 
                 // ⚠️ CORRECTION : Utiliser la variable $cinetpayTransactionId pour les logs

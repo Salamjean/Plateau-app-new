@@ -208,8 +208,18 @@ class AgentMariageController extends Controller
 
         // SMS notification when marked as completed
         if ($user && $mariage->etat === 'terminé' && $ancienEtat !== 'terminé') {
-            $phoneNumber = $user->indicatif . $user->contact;
-            $message = "Bonjour {$user->name}, votre demande d'extrait de mariage (Réf: {$mariage->reference}) a été traitée.";
+            if ($mariage->choix_option === 'livraison') {
+                $phoneNumber = $mariage->contact_destinataire;
+                $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+                if (!str_starts_with($phoneNumber, '225') && strlen($phoneNumber) == 10) {
+                    $phoneNumber = '225' . $phoneNumber;
+                }
+                $destName = trim($mariage->prenom_destinataire . ' ' . $mariage->nom_destinataire);
+            } else {
+                $phoneNumber = $user->indicatif . $user->contact;
+                $destName = $user->name;
+            }
+            $message = "Bonjour {$destName}, votre demande d'extrait de mariage (Réf: {$mariage->reference}) a été traitée.";
             if ($mariage->livraison_code) {
                 $message .= " Code de livraison : " . $mariage->livraison_code . ".";
             }
@@ -223,8 +233,18 @@ class AgentMariageController extends Controller
 
         // SMS notification when marked as rejected
         if ($user && $mariage->etat === 'rejetée' && $ancienEtat !== 'rejetée') {
-            $phoneNumber = $user->indicatif . $user->contact;
-            $message = "Bonjour {$user->name}, votre demande d'extrait de mariage (Réf: {$mariage->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            if ($mariage->choix_option === 'livraison') {
+                $phoneNumber = $mariage->contact_destinataire;
+                $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+                if (!str_starts_with($phoneNumber, '225') && strlen($phoneNumber) == 10) {
+                    $phoneNumber = '225' . $phoneNumber;
+                }
+                $destName = trim($mariage->prenom_destinataire . ' ' . $mariage->nom_destinataire);
+            } else {
+                $phoneNumber = $user->indicatif . $user->contact;
+                $destName = $user->name;
+            }
+            $message = "Bonjour {$destName}, votre demande d'extrait de mariage (Réf: {$mariage->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
             try {
                 $yellikaSmsService = app(YellikaSmsService::class);
                 $yellikaSmsService->sendSms($phoneNumber, $message);

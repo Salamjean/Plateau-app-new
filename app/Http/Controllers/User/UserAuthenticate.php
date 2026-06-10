@@ -388,4 +388,91 @@ class UserAuthenticate extends Controller
             return back()->withErrors(['error' => 'Erreur lors de la mise à jour. Veuillez réessayer.'])->withInput();
         }
     }
+
+    public function updateLivraison(Request $request, $type, $id)
+    {
+        Log::info('Appel à updateLivraison', [
+            'type' => $type,
+            'id' => $id,
+            'user_id' => Auth::id(),
+            'payload' => $request->all()
+        ]);
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'prenom_destinataire' => 'required|string|max:255',
+            'nom_destinataire' => 'required|string|max:255',
+            'contact_destinataire' => 'required|string|max:255',
+            'email_destinataire' => 'nullable|email|max:255',
+            'adresse_livraison' => 'required|string|max:255',
+            'date_livraison' => 'nullable|date',
+            'heure_livraison' => 'nullable',
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning('Validation échouée pour updateLivraison', [
+                'errors' => $validator->errors()->toArray()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Certains champs sont invalides.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $userId = Auth::user()->id;
+            switch ($type) {
+                case 'naissance':
+                    $demande = Naissance::where('user_id', $userId)->findOrFail($id);
+                    break;
+                case 'deces':
+                    $demande = Deces::where('user_id', $userId)->findOrFail($id);
+                    break;
+                case 'mariage':
+                    $demande = Mariage::where('user_id', $userId)->findOrFail($id);
+                    break;
+                default:
+                    Log::warning('Type de demande inconnu pour updateLivraison', ['type' => $type]);
+                    return response()->json(['success' => false, 'message' => 'Type de demande inconnu'], 400);
+            }
+
+            // check if already shipped or delivered
+            $statutLiv = strtolower($demande->statut_livraison ?? 'en attente');
+            if (in_array($statutLiv, ['en cours', 'livré', 'livrée'])) {
+                Log::warning('Modification livraison impossible car déjà en cours ou livrée', ['status' => $statutLiv]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Impossible de modifier les informations de livraison car la livraison est en cours ou déjà effectuée.'
+                ], 400);
+            }
+
+            $demande->update([
+                'prenom_destinataire' => $request->prenom_destinataire,
+                'nom_destinataire' => $request->nom_destinataire,
+                'contact_destinataire' => $request->contact_destinataire,
+                'email_destinataire' => $request->email_destinataire,
+                'adresse_livraison' => $request->adresse_livraison,
+                'quartier' => null,
+                'commune_livraison' => null,
+                'date_livraison' => $request->date_livraison,
+                'heure_livraison' => $request->heure_livraison,
+            ]);
+
+            Log::info('Informations de livraison mises à jour avec succès', ['id' => $demande->id, 'type' => $type]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Informations de livraison mises à jour avec succès.',
+                'data' => $demande
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour de la livraison : ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la mise à jour : ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

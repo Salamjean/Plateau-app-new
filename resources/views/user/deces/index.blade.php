@@ -499,16 +499,19 @@
                                         </a>
 
                                         @if ($item->peut_modifier)
-                                            <button
-                                                onclick="showModificationPopup('{{ $item->id }}', {{ json_encode($item) }})"
+                                            <button onclick="showModificationPopup('{{ $item->id }}', {{ json_encode($item) }})"
                                                 class="btn-action btn-edit" title="Modifier">
                                                 <i class="fas fa-edit"></i>
                                             </button>
+                                        @elseif (is_null($item->agent_id))
+                                            <a href="{{ route('user.extrait.deces.edit', $item->id) }}" class="btn-action btn-edit"
+                                                title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                         @endif
 
                                         @if ($item->etat == 'en attente' || $item->etat == 'rejetée')
-                                            <button
-                                                onclick="confirmDelete('{{ route('user.extrait.deces.delete', $item->id) }}')"
+                                            <button onclick="confirmDelete('{{ route('user.extrait.deces.delete', $item->id) }}')"
                                                 class="btn-action btn-delete" title="Supprimer">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -550,7 +553,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#decesTable').DataTable({
                 responsive: true,
                 language: {
@@ -580,6 +583,15 @@
 
         function showModificationPopup(demandeId, demande) {
             let champsAModifier = JSON.parse(demande.champs_a_modifier || '[]');
+
+            // Si la demande n'a pas d'agent assigné et n'a pas de champs spécifiques à modifier définis par l'IA (peut_modifier est faux)
+            // On permet de modifier tous les champs principaux.
+            if (!demande.agent_id && !demande.peut_modifier) {
+                champsAModifier = ['name', 'numberR', 'dateR', 'quantite', 'CNIdfnt', 'CNIdcl', 'documentMariage',
+                    'RequisPolice', 'commune'
+                ];
+            }
+
             const fieldLabels = {
                 'name': 'Nom défunt',
                 'numberR': 'N° Registre',
@@ -589,17 +601,40 @@
                 'CNIdfnt': 'CNI défunt',
                 'CNIdcl': 'Certificat médical',
                 'documentMariage': 'Acte mariage',
-                'RequisPolice': 'Réquisition police'
+                'RequisPolice': 'Réquisition police',
+                'commune': 'Commune'
             };
 
-            let formHtml = `<form id="modificationForm" class="text-start" enctype="multipart/form-data">`;
+            let formHtml = '';
+            let motifAffichage = '';
+            if (demande.motif_de_rejet) {
+                let text = demande.motif_de_rejet;
+                if (text.includes('Commentaire additionnel :')) {
+                    motifAffichage = text.split('Commentaire additionnel :')[1].trim();
+                } else if (text.includes('Commentaire additionnel:')) {
+                    motifAffichage = text.split('Commentaire additionnel:')[1].trim();
+                } else {
+                    text = text.replace(/Les champs suivants contiennent des informations incorrectes ou incomplètes\s*:?/gi, '');
+                    const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('•'));
+                    motifAffichage = lines.join('\n').trim();
+                }
+            }
+
+            if (motifAffichage) {
+                formHtml += `<div class="alert alert-danger p-2  text-center" style="border-radius: 12px; background-color: #fff5f5; border: 1px solid #fed7d7; color: #c53030;">
+                        <p class="mb-0 small text-start" style="white-space: pre-wrap; font-weight: 500; line-height: 1.5; display: flex; justify-content: center;">
+                            <strong style="color: #9b2c2c;"><i class="fas fa-exclamation-triangle"></i> Motif :</strong> ${motifAffichage}
+                        </p>
+                    </div>`;
+            }
+            formHtml += `<form id="modificationForm" class="text-start" enctype="multipart/form-data">`;
             champsAModifier.forEach(field => {
                 const label = fieldLabels[field] || field;
                 let val = demande[field] || '';
                 if (field === 'dateR' && val) val = new Date(val).toISOString().split('T')[0];
 
                 formHtml += `<div class="mb-3">
-                    <label class="form-label fw-bold small text-uppercase">${label}</label>`;
+                        <label class="form-label fw-bold small text-uppercase">${label}</label>`;
 
                 if (['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice'].includes(field)) {
                     formHtml +=
@@ -608,10 +643,30 @@
                     formHtml += `<input type="date" name="${field}" class="form-control" value="${val}">`;
                 } else {
                     formHtml +=
-                        `<input type="${field==='quantite'?'number':'text'}" name="${field}" class="form-control" value="${val}">`;
+                        `<input type="${field === 'quantite' ? 'number' : 'text'}" name="${field}" class="form-control" value="${val}">`;
                 }
                 formHtml += `</div>`;
             });
+
+            // Ajouter les champs non modifiés en tant que champs cachés pour éviter qu'ils soient écrasés ou qu'ils échouent la validation
+            const allPossibleFields = [
+                'type', 'name', 'numberR', 'dateR', 'commune',
+                'qty_simple', 'qty_integral', 'quantite', 'choix_option'
+            ];
+
+            allPossibleFields.forEach(field => {
+                if (!champsAModifier.includes(field)) {
+                    if (field === 'qty_simple' || field === 'qty_integral') {
+                        if (champsAModifier.includes('quantite')) return;
+                    }
+                    if (field === 'quantite' && (champsAModifier.includes('qty_simple') || champsAModifier.includes('qty_integral'))) return;
+
+                    let val = demande[field] !== null && demande[field] !== undefined ? demande[field] : '';
+                    if (field === 'dateR' && val) val = new Date(val).toISOString().split('T')[0];
+                    formHtml += `<input type="hidden" name="${field}" value="${val}">`;
+                }
+            });
+
             formHtml += `</form>`;
 
             Swal.fire({
@@ -620,7 +675,39 @@
                 showCancelButton: true,
                 confirmButtonText: 'Enregistrer',
                 confirmButtonColor: '#1f4083',
-                preConfirm: () => new FormData(document.getElementById('modificationForm'))
+                cancelButtonText: 'Annuler',
+                preConfirm: () => {
+                    const form = document.getElementById('modificationForm');
+                    const formData = new FormData(form);
+
+                    const quantiteInput = form.querySelector('input[name="quantite"]');
+                    if (quantiteInput) {
+                        const typeInput = form.querySelector('[name="type"]');
+                        const typeVal = typeInput ? typeInput.value : (demande.type || 'simple');
+                        const qtyVal = parseInt(quantiteInput.value) || 1;
+
+                        if (typeVal === 'simple') {
+                            formData.set('qty_simple', qtyVal);
+                            formData.set('qty_integral', 0);
+                        } else if (typeVal === 'integrale') {
+                            formData.set('qty_simple', 0);
+                            formData.set('qty_integral', qtyVal);
+                        } else if (typeVal === 'groupee') {
+                            const oldSimple = parseInt(demande.qty_simple) || 1;
+                            const oldIntegral = parseInt(demande.qty_integral) || 1;
+                            const oldTotal = oldSimple + oldIntegral;
+                            if (oldTotal > 0) {
+                                const ratio = qtyVal / oldTotal;
+                                formData.set('qty_simple', Math.round(oldSimple * ratio) || 1);
+                                formData.set('qty_integral', Math.round(oldIntegral * ratio) || 1);
+                            } else {
+                                formData.set('qty_simple', Math.ceil(qtyVal / 2));
+                                formData.set('qty_integral', Math.floor(qtyVal / 2));
+                            }
+                        }
+                    }
+                    return formData;
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     const formData = result.value;
@@ -628,19 +715,34 @@
 
                     Swal.showLoading();
                     fetch(`/user/extrait/deces/${demandeId}/modifier`, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                        .then(r => {
+                            if (!r.ok) {
+                                return r.json().then(err => { throw err; });
                             }
+                            return r.json();
                         })
-                        .then(r => r.json())
                         .then(data => {
                             if (data.success) {
-                                Swal.fire('Succès', data.message, 'success').then(() => location.reload());
+                                if (data.redirect_url) {
+                                    window.location.href = data.redirect_url;
+                                } else {
+                                    Swal.fire('Succès', data.message, 'success').then(() => location.reload());
+                                }
                             } else {
-                                Swal.fire('Erreur', data.message, 'error');
+                                Swal.fire('Erreur', data.message || 'Une erreur est survenue.', 'error');
                             }
+                        })
+                        .catch(err => {
+                            Swal.close();
+                            const msg = err.message || (err.errors ? Object.values(err.errors).flat().join('<br>') : 'Une erreur de communication est survenue.');
+                            Swal.fire('Erreur', msg, 'error');
                         });
                 }
             });

@@ -129,8 +129,18 @@ class AgentDecesGroupeController extends Controller
         // Envoi SMS
         $user = $groupe->user;
         if ($user) {
-            $phoneNumber = $user->indicatif . $user->contact;
-            $message = "Bonjour {$user->name}, votre demande groupée d'extraits de décès (Réf: {$groupe->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            if ($groupe->choix_option === 'livraison') {
+                $phoneNumber = $groupe->contact_destinataire;
+                $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+                if (!str_starts_with($phoneNumber, '225') && strlen($phoneNumber) == 10) {
+                    $phoneNumber = '225' . $phoneNumber;
+                }
+                $destName = trim($groupe->prenom_destinataire . ' ' . $groupe->nom_destinataire);
+            } else {
+                $phoneNumber = $user->indicatif . $user->contact;
+                $destName = $user->name;
+            }
+            $message = "Bonjour {$destName}, votre demande groupée d'extraits de décès (Réf: {$groupe->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
             try {
                 $yellikaSmsService = app(YellikaSmsService::class);
                 $yellikaSmsService->sendSms($phoneNumber, $message);

@@ -845,8 +845,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
 
                 // Mettre à jour le Mariage
+                $this->applyPendingDeliveryUpdate($mariage);
                 $mariage->etat = 'en attente';
-                $mariage->statut_livraison = 'en attente';
+                if ($mariage->choix_option === 'livraison') {
+                    $mariage->statut_livraison = 'en attente';
+                }
                 $mariage->save();
 
                 Log::info("Demande (Mariage) {$cinetpayTransactionId} mise à jour : en attente");

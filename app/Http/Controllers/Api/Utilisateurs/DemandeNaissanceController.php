@@ -878,8 +878,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     Log::error("Erreur enregistrement paiement (Naissance) {$cinetpayTransactionId}: " . $e->getMessage(), ['exception' => $e]);
                 }
 
+                $this->applyPendingDeliveryUpdate($naissance);
                 $naissance->etat = 'en attente';
-                $naissance->statut_livraison = 'en attente';
+                if ($naissance->choix_option === 'livraison') {
+                    $naissance->statut_livraison = 'en attente';
+                }
                 $naissance->save();
 
                 Log::info("Demande Naissance {$reference} mise à jour : en attente");

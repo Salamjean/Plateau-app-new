@@ -17,6 +17,7 @@ class HomeController extends Controller
 
     public function recherche(Request $request)
     {
+        $demande = null; // Initialisation de l'objet demande complet
         $etatDemande = null; // Initialisation de l'état de la demande
         $statutDemande = null; // Initialisation de l'état de la demande
         $reference = null; // Initialisation de la référence recherchée
@@ -28,31 +29,34 @@ class HomeController extends Controller
                 // Rechercher dans la table 'naissances'
                 $naissance = Naissance::where('reference', $reference)->first();
                 if ($naissance) {
+                    $demande = $naissance;
                     $etatDemande = $naissance->etat;
                     $statutDemande = $naissance->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande')); // Passer $etatDemande et $reference à la vue
+                    return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande')); // Passer $demande, $etatDemande et $reference à la vue
                 }
                 // Rechercher dans la table 'deces'
                 $deces = Deces::where('reference', $reference)->first();
                 if ($deces) {
+                    $demande = $deces;
                     $etatDemande = $deces->etat;
                     $statutDemande = $deces->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande'));
+                    return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande'));
                 }
 
                 // Rechercher dans la table 'mariages'
                 $mariage = Mariage::where('reference', $reference)->first();
                 if ($mariage) {
+                    $demande = $mariage;
                     $etatDemande = $mariage->etat;
                     $statutDemande = $mariage->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande'));
+                    return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande'));
                 }
 
                 $etatDemande = false; // Aucune demande trouvée pour cette référence dans aucune table
             }
         }
 
-        return view('home.recherche', compact('etatDemande', 'reference', 'statutDemande')); // Passer $etatDemande et $reference à la vue
+        return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande')); // Passer $demande, $etatDemande et $reference à la vue
     }
 
     public function about()

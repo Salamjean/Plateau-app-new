@@ -93,6 +93,7 @@ class MtnWebhookController extends Controller
                 "{$type}_id" => $demande->id,
             ]);
 
+            $this->applyPendingDeliveryUpdate($demande);
             $demande->etat = 'en attente';
             if ($demande->choix_option === 'livraison') {
                 $demande->statut_livraison = 'en attente';

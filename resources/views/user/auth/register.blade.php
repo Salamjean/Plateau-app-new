@@ -395,36 +395,46 @@
                 <span style="font-weight: 700; color: #1a1a1a;">Je réside à l'étranger (Diaspora)</span>
             </label>
 
-            <div class="form-group">
-                <label class="form-label">Numéro de téléphone</label>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <div id="indicatif-wrapper" style="display: none; width: 120px;">
-                        <div class="input-wrapper">
-                            <i class="fas fa-globe input-icon" style="left: 15px;"></i>
-                            <input type="text" id="otp_indicatif" class="input-field" value="+225" style="padding: 0 15px 0 40px; text-align: center;" placeholder="+225">
+            <!-- Message d'information pour la Diaspora -->
+            <div id="diaspora-info-msg" style="display: none; background: #eef2fa; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 12px; margin-bottom: 20px; animation: fadeIn 0.4s ease;">
+                <p style="font-size: 0.95rem; color: #1f4083; line-height: 1.4; font-weight: 600;">
+                    <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                    En tant que résident à l'étranger (Diaspora), l'inscription se fait uniquement via la connexion sociale Google ou Apple ci-dessous.
+                </p>
+            </div>
+
+            <div id="phone-fields-wrapper">
+                <div class="form-group">
+                    <label class="form-label">Numéro de téléphone</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div id="indicatif-wrapper" style="display: none; width: 120px;">
+                            <div class="input-wrapper">
+                                <i class="fas fa-globe input-icon" style="left: 15px;"></i>
+                                <input type="text" id="otp_indicatif" class="input-field" value="+225" style="padding: 0 15px 0 40px; text-align: center;" placeholder="+225">
+                            </div>
+                        </div>
+                        <div class="input-wrapper" style="flex: 1;">
+                            <i class="fas fa-mobile-alt input-icon"></i>
+                            <input id="otp_contact" class="input-field" type="tel" placeholder="Ex: 0700000000">
                         </div>
                     </div>
-                    <div class="input-wrapper" style="flex: 1;">
-                        <i class="fas fa-mobile-alt input-icon"></i>
-                        <input id="otp_contact" class="input-field" type="tel" placeholder="Ex: 0700000000">
+                </div>
+
+                <!-- Pays de résidence (uniquement si diaspora) -->
+                <div id="pays-residence-wrapper" style="display: none; margin-top: 15px; animation: fadeIn 0.4s ease;">
+                    <div class="form-group">
+                        <label class="form-label">Pays de résidence</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-map-marker-alt input-icon"></i>
+                            <input id="otp_pays_residence" class="input-field" type="text" placeholder="Ex: France">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Pays de résidence (uniquement si diaspora) -->
-            <div id="pays-residence-wrapper" style="display: none; margin-top: 15px; animation: fadeIn 0.4s ease;">
-                <div class="form-group">
-                    <label class="form-label">Pays de résidence</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-map-marker-alt input-icon"></i>
-                        <input id="otp_pays_residence" class="input-field" type="text" placeholder="Ex: France">
-                    </div>
-                </div>
+                <button type="button" class="submit-btn" id="btnSendOtp">
+                    <i class="fas fa-paper-plane"></i> Recevoir le code par SMS
+                </button>
             </div>
-
-            <button type="button" class="submit-btn" id="btnSendOtp">
-                <i class="fas fa-paper-plane"></i> Recevoir le code par SMS
-            </button>
 
             <div class="otp-box" id="otpBox">
                 <div class="form-group">
@@ -487,13 +497,21 @@
 
             if (diasporaChoice) {
                 diasporaChoice.addEventListener('change', function() {
+                    const phoneFieldsWrapper = document.getElementById('phone-fields-wrapper');
+                    const diasporaInfoMsg = document.getElementById('diaspora-info-msg');
+
                     if (this.checked) {
-                        indicatifWrapper.style.display = 'block';
-                        paysResidenceWrapper.style.display = 'block';
-                        otpIndicatif.value = '';
-                        otpIndicatif.placeholder = '+33';
-                        otpIndicatif.focus();
+                        // Masquer les champs téléphone et le bouton SMS
+                        phoneFieldsWrapper.style.display = 'none';
+                        // Afficher le message d'inscription par réseaux sociaux
+                        diasporaInfoMsg.style.display = 'block';
                     } else {
+                        // Réafficher les champs téléphone et le bouton SMS
+                        phoneFieldsWrapper.style.display = 'block';
+                        // Cacher le message
+                        diasporaInfoMsg.style.display = 'none';
+
+                        // Réinitialiser les états internes par défaut
                         indicatifWrapper.style.display = 'none';
                         paysResidenceWrapper.style.display = 'none';
                         otpIndicatif.value = '+225';

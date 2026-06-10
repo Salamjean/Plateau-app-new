@@ -185,8 +185,18 @@ class AgentNaissanceController extends Controller
 
         // SMS notification when marked as completed
         if ($user && $naissance->etat === 'terminé' && $ancienEtat !== 'terminé') {
-            $phoneNumber = $user->indicatif . $user->contact;
-            $message = "Bonjour {$user->name}, votre demande d'extrait de naissance (Réf: {$naissance->reference}) a été traitée.";
+            if ($naissance->choix_option === 'livraison') {
+                $phoneNumber = $naissance->contact_destinataire;
+                $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+                if (!str_starts_with($phoneNumber, '225') && strlen($phoneNumber) == 10) {
+                    $phoneNumber = '225' . $phoneNumber;
+                }
+                $destName = trim($naissance->prenom_destinataire . ' ' . $naissance->nom_destinataire);
+            } else {
+                $phoneNumber = $user->indicatif . $user->contact;
+                $destName = $user->name;
+            }
+            $message = "Bonjour {$destName}, votre demande d'extrait de naissance (Réf: {$naissance->reference}) a été traitée.";
             if ($naissance->livraison_code) {
                 $message .= " Code de livraison : " . $naissance->livraison_code . ".";
             }
@@ -200,8 +210,18 @@ class AgentNaissanceController extends Controller
 
         // SMS notification when marked as rejected
         if ($user && $naissance->etat === 'rejetée' && $ancienEtat !== 'rejetée') {
-            $phoneNumber = $user->indicatif . $user->contact;
-            $message = "Bonjour {$user->name}, votre demande d'extrait de naissance (Réf: {$naissance->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
+            if ($naissance->choix_option === 'livraison') {
+                $phoneNumber = $naissance->contact_destinataire;
+                $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+                if (!str_starts_with($phoneNumber, '225') && strlen($phoneNumber) == 10) {
+                    $phoneNumber = '225' . $phoneNumber;
+                }
+                $destName = trim($naissance->prenom_destinataire . ' ' . $naissance->nom_destinataire);
+            } else {
+                $phoneNumber = $user->indicatif . $user->contact;
+                $destName = $user->name;
+            }
+            $message = "Bonjour {$destName}, votre demande d'extrait de naissance (Réf: {$naissance->reference}) a été rejetée. Veuillez consulter l'application pour plus de détails.";
             try {
                 $yellikaSmsService = app(YellikaSmsService::class);
                 $yellikaSmsService->sendSms($phoneNumber, $message);
