@@ -593,7 +593,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'qty_integral' => 'nullable|integer|min:0|max:10',
                     'CNI' => $naissance->CNI ? 'nullable' : 'required',
                     'relation' => 'nullable|string|in:enfant,parent,connaissance',
-                    'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+                    'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf,heic',
                     'choix_option' => 'required|in:retrait,livraison',
                 ];
             } else {
