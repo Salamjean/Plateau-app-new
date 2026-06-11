@@ -126,6 +126,7 @@ class PasswordforgotController extends Controller
         // On renvoie un succès à l'application mobile
         return response()->json([
             'message' => 'Code vérifié avec succès. Vous pouvez maintenant réinitialiser votre mot de passe.',
+            'reset_token' => $request->token,
         ], 200);
     }
 

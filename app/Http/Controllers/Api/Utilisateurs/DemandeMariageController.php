@@ -513,53 +513,119 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
             }
 
-            // 2. Vérifier que la demande peut être modifiée
-            if (!$mariage->peut_modifier) {
+            // 2. Vérifier que la demande peut être modifiée (peut_modifier == true OU agent_id IS NULL)
+            $isNotAssigned = is_null($mariage->agent_id);
+            if (!$mariage->peut_modifier && !$isNotAssigned) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cette demande ne peut pas être modifiée'
+                    'message' => 'Cette demande ne peut pas être modifiée (déjà attribuée à un agent)'
                 ], 400);
             }
 
-            // 3. Récupérer les champs à modifier
-            $champsAModifier = json_decode($mariage->champs_a_modifier, true) ?? [];
-
-            if (empty($champsAModifier)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Aucun champ à modifier spécifié'
-                ], 400);
+            // 3. Déterminer si modification complète (si agent_id null) ou partielle (si rejetée)
+            $champsAModifier = [];
+            if ($mariage->peut_modifier) {
+                $champsAModifier = json_decode($mariage->champs_a_modifier, true) ?? [];
             }
 
-            // 4. Définir les règles de validation par champ
+            // 4. Définir les règles de validation
             $rules = [];
-            foreach ($champsAModifier as $champ) {
-                switch ($champ) {
-                    case 'nomEpoux':
-                        $rules['nomEpoux'] = 'required|string|max:255';
-                        break;
-                    case 'prenomEpoux':
-                        $rules['prenomEpoux'] = 'required|string|max:255';
-                        break;
-                    case 'dateNaissanceEpoux':
-                        $rules['dateNaissanceEpoux'] = 'required|date';
-                        break;
-                    case 'lieuNaissanceEpoux':
-                        $rules['lieuNaissanceEpoux'] = 'required|string|max:255';
-                        break;
-                    case 'commune':
-                        $rules['commune'] = 'required|string';
-                        break;
-                    case 'quantite':
-                        $rules['quantite'] = 'required|integer|min:1|max:10';
-                        break;
-                    case 'pieceIdentite':
-                        $rules['pieceIdentite'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:25600';
-                        break;
-                    case 'extraitMariage':
-                        $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:25600';
-                        break;
+            if ($isNotAssigned) {
+                $rules = [
+                    'typeDemande' => 'required|string',
+                    'pour' => 'nullable|string',
+                    'relation' => 'nullable|string',
+                    'nomEpoux' => 'nullable|string|max:255',
+                    'prenomEpoux' => 'nullable|string|max:255',
+                    'dateNaissanceEpoux' => 'nullable|date',
+                    'lieuNaissanceEpoux' => 'nullable|string|max:255',
+                    'nomEpouse' => 'nullable|string|max:255',
+                    'prenomEpouse' => 'nullable|string|max:255',
+                    'dateNaissanceEpouse' => 'nullable|date',
+                    'lieuNaissanceEpouse' => 'nullable|string|max:255',
+                    'commune' => 'required|string',
+                    'commune_mariage' => 'required|string|max:255',
+                    'qty_simple' => 'nullable|integer|min:0|max:10',
+                    'qty_integral' => 'nullable|integer|min:0|max:10',
+                    'pieceIdentite' => $mariage->pieceIdentite ? 'nullable' : 'required',
+                    'extraitMariage' => 'nullable',
+                    'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:25600',
+                    'CMU' => 'nullable|string|max:50',
+                    'choix_option' => 'required|in:retrait,livraison',
+                ];
+            } else {
+                // Si la demande est rejetée (peut_modifier == true)
+                if (empty($champsAModifier)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Aucun champ à modifier spécifié par la mairie'
+                    ], 400);
                 }
+
+                foreach ($champsAModifier as $champ) {
+                    switch ($champ) {
+                        case 'typeDemande':
+                            $rules['typeDemande'] = 'required|string';
+                            break;
+                        case 'nomEpoux':
+                            $rules['nomEpoux'] = 'required|string|max:255';
+                            break;
+                        case 'prenomEpoux':
+                            $rules['prenomEpoux'] = 'required|string|max:255';
+                            break;
+                        case 'dateNaissanceEpoux':
+                            $rules['dateNaissanceEpoux'] = 'required|date';
+                            break;
+                        case 'lieuNaissanceEpoux':
+                            $rules['lieuNaissanceEpoux'] = 'required|string|max:255';
+                            break;
+                        case 'nomEpouse':
+                            $rules['nomEpouse'] = 'required|string|max:255';
+                            break;
+                        case 'prenomEpouse':
+                            $rules['prenomEpouse'] = 'required|string|max:255';
+                            break;
+                        case 'dateNaissanceEpouse':
+                            $rules['dateNaissanceEpouse'] = 'required|date';
+                            break;
+                        case 'lieuNaissanceEpouse':
+                            $rules['lieuNaissanceEpouse'] = 'required|string|max:255';
+                            break;
+                        case 'commune':
+                            $rules['commune'] = 'required|string';
+                            break;
+                        case 'quantite':
+                            $rules['quantite'] = 'required|integer|min:1|max:10';
+                            break;
+                        case 'pieceIdentite':
+                            $rules['pieceIdentite'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:25600';
+                            break;
+                        case 'extraitMariage':
+                            $rules['extraitMariage'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:25600';
+                            break;
+                    }
+                }
+                
+                // Toujours permettre de modifier le choix d'option si présent dans la requête
+                if ($request->has('choix_option')) {
+                    $rules['choix_option'] = 'required|in:retrait,livraison';
+                }
+            }
+
+            // Règles de livraison si choix_option est livraison
+            if ($request->input('choix_option') === 'livraison') {
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay';
+                $rules['montant_timbre'] = 'required|numeric';
+                $rules['montant_livraison'] = 'required|numeric';
+                $rules['nom_destinataire'] = 'required|string|max:255';
+                $rules['prenom_destinataire'] = 'required|string|max:255';
+                $rules['email_destinataire'] = 'nullable|email';
+                $rules['contact_destinataire'] = 'required|string|max:20';
+                $rules['adresse_livraison'] = 'required|string|max:500';
+                $rules['code_postal'] = 'nullable|string|max:10';
+                $rules['ville'] = 'nullable|string|max:255';
+                $rules['commune_livraison'] = 'nullable|string|max:255';
+                $rules['quartier'] = 'nullable|string|max:255';
             }
 
             // 5. Valider les données
@@ -574,48 +640,239 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             $validated = $validator->validated();
 
-            // 6. Mettre à jour les champs
-            $fileFields = ['pieceIdentite', 'extraitMariage'];
-            $subDirs = [
-                'pieceIdentite' => 'identite',
-                'extraitMariage' => 'extrait',
-            ];
-
-            foreach ($champsAModifier as $champ) {
-                if (in_array($champ, $fileFields) && $request->hasFile($champ)) {
-                    // Supprimer l'ancien fichier si existe
-                    if ($mariage->$champ && Storage::disk('public')->exists($mariage->$champ)) {
-                        Storage::disk('public')->delete($mariage->$champ);
-                    }
-
-                    // Enregistrer le nouveau fichier
-                    $file = $request->file($champ);
-                    $extension = $file->getClientOriginalExtension();
-                    $newFileName = (string) Str::uuid() . '.' . $extension;
-                    $subDir = $subDirs[$champ] ?? '';
-                    $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
-                    $mariage->$champ = $path;
-                } elseif (isset($validated[$champ])) {
-                    $mariage->$champ = $validated[$champ];
+            // 6. Validation IA Gemini de la pièce d'identité si elle est fournie
+            if ($request->hasFile('pieceIdentite')) {
+                $geminiService = app(\App\Services\GeminiValidationService::class);
+                $validation = $geminiService->validateIdentityDocument($request->file('pieceIdentite'));
+                if (!$validation['isValid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité a été rejetée par l'IA de la mairie : " . $validation['reason']
+                    ], 422);
                 }
             }
 
-            // 7. Réinitialiser l'état et désactiver la modification
+            // 7. Enregistrer les fichiers
+            $filesToUpload = [
+                'pieceIdentite' => 'identite',
+                'extraitMariage' => 'extrait',
+                'document_autorisation' => 'autorisations',
+            ];
+
+            foreach ($filesToUpload as $fileKey => $subDir) {
+                if ($request->hasFile($fileKey)) {
+                    if ($mariage->$fileKey && Storage::disk('public')->exists($mariage->$fileKey)) {
+                        Storage::disk('public')->delete($mariage->$fileKey);
+                    }
+                    $file = $request->file($fileKey);
+                    $extension = $file->getClientOriginalExtension();
+                    $newFileName = (string) Str::uuid() . '.' . $extension;
+                    $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
+                    $mariage->$fileKey = $path;
+                }
+            }
+
+            // 8. Mettre à jour les champs textuels
+            if ($isNotAssigned) {
+                // Modification complète
+                $mariage->pour = $request->input('pour', $mariage->pour);
+                $mariage->relation = $request->input('relation', $mariage->relation);
+                $mariage->type = $request->input('typeDemande', $mariage->type);
+                $mariage->nomEpoux = $request->input('nomEpoux', $mariage->nomEpoux);
+                $mariage->prenomEpoux = $request->input('prenomEpoux', $mariage->prenomEpoux);
+                $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux ? Carbon::parse($request->dateNaissanceEpoux)->format('Y-m-d') : $mariage->dateNaissanceEpoux;
+                $mariage->lieuNaissanceEpoux = $request->input('lieuNaissanceEpoux', $mariage->lieuNaissanceEpoux);
+                $mariage->nomEpouse = $request->input('nomEpouse', $mariage->nomEpouse);
+                $mariage->prenomEpouse = $request->input('prenomEpouse', $mariage->prenomEpouse);
+                $mariage->dateNaissanceEpouse = $request->dateNaissanceEpouse ? Carbon::parse($request->dateNaissanceEpouse)->format('Y-m-d') : $mariage->dateNaissanceEpouse;
+                $mariage->lieuNaissanceEpouse = $request->input('lieuNaissanceEpouse', $mariage->lieuNaissanceEpouse);
+                $mariage->commune = $request->input('commune', $mariage->commune);
+                $mariage->commune_mariage = $request->input('commune_mariage', $mariage->commune_mariage);
+                $mariage->CMU = $request->input('CMU', $mariage->CMU);
+
+                // Quantités
+                $qtySimple = (int) $request->input('qty_simple', 0);
+                $qtyIntegral = (int) $request->input('qty_integral', 0);
+                if ($mariage->type === 'simple') {
+                    $qtyIntegral = 0;
+                    if ($qtySimple <= 0) $qtySimple = 1;
+                } elseif ($mariage->type === 'integrale') {
+                    $qtySimple = 0;
+                    if ($qtyIntegral <= 0) $qtyIntegral = 1;
+                } else {
+                    if ($qtySimple <= 0) $qtySimple = 1;
+                    if ($qtyIntegral <= 0) $qtyIntegral = 1;
+                }
+                $mariage->qty_simple = $qtySimple;
+                $mariage->qty_integral = $qtyIntegral;
+                $mariage->quantite = $qtySimple + $qtyIntegral;
+            } else {
+                // Modification après rejet : uniquement les champs rejetés
+                foreach ($champsAModifier as $champ) {
+                    if (in_array($champ, ['dateNaissanceEpoux', 'dateNaissanceEpouse']) && isset($validated[$champ])) {
+                        $mariage->$champ = Carbon::parse($validated[$champ])->format('Y-m-d');
+                    } elseif ($champ === 'typeDemande') {
+                        $mariage->type = $validated['typeDemande'];
+                    } elseif (!in_array($champ, ['pieceIdentite', 'extraitMariage']) && isset($validated[$champ])) {
+                        $mariage->$champ = $validated[$champ];
+                    }
+                }
+                // Si la quantité a été modifiée ou le type dans les champs rejetés
+                if (in_array('quantite', $champsAModifier) || in_array('typeDemande', $champsAModifier)) {
+                    $mariage->quantite = (int) $request->input('quantite', $mariage->quantite);
+                    if ($mariage->type === 'integrale') {
+                        $mariage->qty_integral = $mariage->quantite;
+                        $mariage->qty_simple = 0;
+                    } else {
+                        $mariage->qty_simple = $mariage->quantite;
+                        $mariage->qty_integral = 0;
+                    }
+                }
+            }
+
+            // 9. Gestion de la livraison et du paiement
+            $originalChoixOption = $mariage->choix_option;
+            $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
+            
+            // Normaliser le choix option
+            $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+            $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+
+            $needsPayment = ($nouveauChoixOptionNormalise === 'livraison' && $originalChoixOptionNormalise !== 'livraison');
+            $pendingDeliveryData = null;
+
+            if ($nouveauChoixOptionNormalise === 'livraison') {
+                $deliveryData = [
+                    'choix_option' => 'livraison',
+                    'montant_timbre' => $request->input('montant_timbre'),
+                    'montant_livraison' => $request->input('montant_livraison'),
+                    'nom_destinataire' => $request->input('nom_destinataire'),
+                    'prenom_destinataire' => $request->input('prenom_destinataire'),
+                    'email_destinataire' => $request->input('email_destinataire'),
+                    'contact_destinataire' => $request->input('contact_destinataire'),
+                    'adresse_livraison' => $request->input('adresse_livraison'),
+                    'code_postal' => $request->input('code_postal'),
+                    'ville' => $request->input('ville'),
+                    'commune_livraison' => $request->input('commune_livraison'),
+                    'quartier' => $request->input('quartier'),
+                    'date_livraison' => $request->input('date_livraison'),
+                    'heure_livraison' => $request->input('heure_livraison'),
+                ];
+
+                if ($needsPayment) {
+                    $pendingDeliveryData = $deliveryData;
+                    $mariage->choix_option = $originalChoixOption;
+                } else {
+                    $mariage->choix_option = 'livraison';
+                    $mariage->montant_timbre = $request->input('montant_timbre');
+                    $mariage->montant_livraison = $request->input('montant_livraison');
+                    $mariage->nom_destinataire = $request->input('nom_destinataire');
+                    $mariage->prenom_destinataire = $request->input('prenom_destinataire');
+                    $mariage->email_destinataire = $request->input('email_destinataire');
+                    $mariage->contact_destinataire = $request->input('contact_destinataire');
+                    $mariage->adresse_livraison = $request->input('adresse_livraison');
+                    $mariage->code_postal = $request->input('code_postal');
+                    $mariage->ville = $request->input('ville');
+                    $mariage->commune_livraison = $request->input('commune_livraison');
+                    $mariage->quartier = $request->input('quartier');
+                    $mariage->date_livraison = $request->input('date_livraison');
+                    $mariage->heure_livraison = $request->input('heure_livraison');
+                }
+            } else {
+                $mariage->choix_option = 'Retrait sur place';
+            }
+
+            // Réinitialiser l'état et désactiver la modification
             $mariage->etat = 'en attente';
             $mariage->peut_modifier = false;
             $mariage->champs_a_modifier = null;
             $mariage->motif_de_rejet = null;
             $mariage->save();
 
+            // Gestion de l'initiation du paiement si nécessaire
+            if ($needsPayment && $pendingDeliveryData) {
+                $user->refresh();
+                $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
+                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+                $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
+                $totalAmount = $montantTimbreTotal + $montantLivraison;
+
+                $mariage->montant_timbre = $montantTimbreTotal;
+                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
+                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+                $mariage->save();
+
+                // Mettre en cache les données de livraison
+                \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $mariage->reference, $pendingDeliveryData, now()->addDays(7));
+
+                if ($totalAmount > 0) {
+                    $paymentMethod = $request->input('payment_method', 'wave');
+                    $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod);
+
+                    if (!$paymentLinkResult['success']) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Demande modifiée, mais échec de la génération du lien de paiement.',
+                            'error_details' => $paymentLinkResult['error_details']
+                        ], 500);
+                    }
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Demande modifiée. Utilisez le payment_url pour payer.',
+                        'requires_payment' => true,
+                        'free_requests' => [
+                            'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
+                            'economie' => $freeCalc['montant_timbre_gratuit'],
+                            'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
+                        ],
+                        'payment_details' => [
+                            'payment_url' => $paymentLinkResult['payment_url'],
+                            'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                            'mode' => 'PRODUCTION',
+                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                        ],
+                        'data' => [
+                            'demande' => $this->formatDemandeResponse($mariage, true)
+                        ]
+                    ]);
+                } else {
+                    $mariage->etat = 'en attente';
+                    if ($freeCalc['free_timbres'] > 0) {
+                        $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                    }
+                    $mariage->save();
+                    
+                    // Appliquer la livraison en attente
+                    $this->applyPendingDeliveryUpdate($mariage);
+                }
+            } else {
+                if ($nouveauChoixOptionNormalise !== 'livraison') {
+                    $user->refresh();
+                    $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
+                    $mariage->montant_timbre = $freeCalc['montant_timbre_total'];
+                    $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
+                    $mariage->free_timbres_count = $freeCalc['free_timbres'];
+                    if ($freeCalc['free_timbres'] > 0) {
+                        $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                    }
+                    $mariage->save();
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+                'requires_payment' => false,
                 'data' => [
                     'demande' => $this->formatDemandeResponse($mariage, true)
                 ]
             ]);
         } catch (\Exception $e) {
-            Log::error('Erreur DemandeMariageController@modifierDemande: ' . $e->getMessage(), ['mariage_id' => $mariage->id]);
+            Log::error('Erreur DemandeMariageController@modifierDemande: ' . $e->getMessage() . ' Ligne: ' . $e->getLine(), ['mariage_id' => $mariage->id]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la modification: ' . $e->getMessage()
