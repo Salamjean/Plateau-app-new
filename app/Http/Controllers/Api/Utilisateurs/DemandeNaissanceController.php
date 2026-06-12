@@ -559,88 +559,383 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
             }
 
-            // 2. Vérifier que la demande peut être modifiée (peut_modifier == true OU agent_id IS NULL)
-            $isNotAssigned = is_null($naissance->agent_id);
-            if (!$naissance->peut_modifier && !$isNotAssigned) {
+            // 2. Vérifier si la demande a été rejetée (peut_modifier == true ou etat == 'rejetée')
+            if ($naissance->peut_modifier || $naissance->etat === 'rejetée') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cette demande ne peut pas être modifiée (déjà attribuée à un agent)'
+                    'message' => 'Cette demande a été rejetée. Veuillez utiliser l\'API de modification des informations rejetées pour corriger les champs requis.'
                 ], 400);
             }
 
-            // 3. Déterminer si modification complète (si agent_id null) ou partielle (si rejetée)
-            $champsAModifier = [];
-            if ($naissance->peut_modifier) {
-                $champsAModifier = json_decode($naissance->champs_a_modifier, true) ?? [];
+            // 3. Vérifier que la demande est libre de modification (agent_id est NULL)
+            $isNotAssigned = is_null($naissance->agent_id);
+            if (!$isNotAssigned) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée complètement (déjà attribuée à un agent)'
+                ], 400);
             }
 
-            // 4. Définir les règles de validation
-            $rules = [];
-            // Si la demande est modifiable car non affectée, on valide tous les champs principaux
-            if ($isNotAssigned) {
-                $rules = [
-                    'pour' => 'nullable|string|max:255',
-                    'type' => 'required|string|max:255',
-                    'name' => 'required|string|max:255',
-                    'prenom' => 'required|string|max:255',
-                    'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere|nullable|string|max:255',
-                    'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere|nullable|date',
-                    'nom_prenoms_pere' => 'nullable|string|max:255',
-                    'nom_prenoms_mere' => 'nullable|string|max:255',
-                    'commune' => 'required|string|max:255',
-                    'commune_naissance' => 'required|string|max:255',
-                    'qty_simple' => 'nullable|integer|min:0|max:10',
-                    'qty_integral' => 'nullable|integer|min:0|max:10',
-                    'CNI' => $naissance->CNI ? 'nullable' : 'required',
-                    'relation' => 'nullable|string|in:enfant,parent,connaissance',
-                    'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf,heic',
-                    'choix_option' => 'required|in:retrait,livraison',
-                ];
-            } else {
-                // Si la demande est rejetée (peut_modifier == true), on valide uniquement les champs indiqués par la mairie
-                if (empty($champsAModifier)) {
+            // 3. Règles de validation pour modification complète
+            $rules = [
+                'pour' => 'nullable|string|max:255',
+                'type' => 'required|string|max:255',
+                'name' => 'required|string|max:255',
+                'prenom' => 'required|string|max:255',
+                'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere|nullable|string|max:255',
+                'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere|nullable|date',
+                'nom_prenoms_pere' => 'nullable|string|max:255',
+                'nom_prenoms_mere' => 'nullable|string|max:255',
+                'commune' => 'required|string|max:255',
+                'commune_naissance' => 'required|string|max:255',
+                'qty_simple' => 'nullable|integer|min:0|max:10',
+                'qty_integral' => 'nullable|integer|min:0|max:10',
+                'CNI' => $naissance->CNI ? 'nullable' : 'required',
+                'relation' => 'nullable|string|in:enfant,parent,connaissance',
+                'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf,heic',
+                'choix_option' => 'required|in:retrait,livraison',
+            ];
+
+            // Règles de livraison si choix_option est livraison
+            if ($request->input('choix_option') === 'livraison') {
+                $rules['montant_timbre'] = 'required|numeric';
+                $rules['montant_livraison'] = 'required|numeric';
+                $rules['nom_destinataire'] = 'required|string|max:255';
+                $rules['prenom_destinataire'] = 'required|string|max:255';
+                $rules['email_destinataire'] = 'nullable|email';
+                $rules['contact_destinataire'] = 'required|string|max:20';
+                $rules['adresse_livraison'] = 'required|string|max:500';
+                $rules['code_postal'] = 'nullable|string|max:10';
+                $rules['ville'] = 'nullable|string|max:255';
+                $rules['commune_livraison'] = 'nullable|string|max:255';
+                $rules['quartier'] = 'nullable|string|max:255';
+            }
+
+            // 4. Valider les données
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur de validation',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // 5. Validation IA Gemini de la pièce d'identité CNI si elle est fournie
+            if ($request->hasFile('CNI')) {
+                $geminiService = app(\App\Services\GeminiValidationService::class);
+                $validation = $geminiService->validateIdentityDocument($request->file('CNI'));
+                if (!$validation['isValid']) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Aucun champ à modifier spécifié par la mairie'
-                    ], 400);
+                        'message' => "La pièce d'identité (CNI) a été rejetée par l'IA de la mairie : " . $validation['reason']
+                    ], 422);
                 }
+            }
 
-                foreach ($champsAModifier as $champ) {
-                    switch ($champ) {
-                        case 'type':
-                            $rules['type'] = 'required|string|max:255';
-                            break;
-                        case 'pour':
-                            $rules['pour'] = 'nullable|string|max:255';
-                            break;
-                        case 'name':
-                            $rules['name'] = 'required|string|max:255';
-                            break;
-                        case 'prenom':
-                            $rules['prenom'] = 'required|string|max:255';
-                            break;
-                        case 'number':
-                            $rules['number'] = 'required|string|max:50';
-                            break;
-                        case 'DateR':
-                            $rules['DateR'] = 'required|date';
-                            break;
-                        case 'commune':
-                            $rules['commune'] = 'required|string';
-                            break;
-                        case 'quantite':
-                            $rules['quantite'] = 'required|integer|min:1|max:10';
-                            break;
-                        case 'CNI':
-                            $rules['CNI'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:25600';
-                            break;
+            // 6. Enregistrer les fichiers
+            if ($request->hasFile('CNI')) {
+                if ($naissance->CNI && Storage::disk('public')->exists($naissance->CNI)) {
+                    Storage::disk('public')->delete($naissance->CNI);
+                }
+                $file = $request->file('CNI');
+                $extension = $file->getClientOriginalExtension();
+                $newFileName = (string) Str::uuid() . '.' . $extension;
+                $path = $file->storeAs('images/naissances/cni', $newFileName, 'public');
+                $naissance->CNI = $path;
+            }
+
+            if ($request->hasFile('document_autorisation')) {
+                if ($naissance->document_autorisation && Storage::disk('public')->exists($naissance->document_autorisation)) {
+                    Storage::disk('public')->delete($naissance->document_autorisation);
+                }
+                $file = $request->file('document_autorisation');
+                $extension = $file->getClientOriginalExtension();
+                $newFileName = (string) Str::uuid() . '.' . $extension;
+                $path = $file->storeAs('images/naissances/autorisations', $newFileName, 'public');
+                $naissance->document_autorisation = $path;
+            }
+
+            // 7. Mettre à jour tous les champs pour la modification complète
+            $naissance->pour = $request->input('pour', $naissance->pour);
+            $naissance->type = $request->input('type', $naissance->type);
+            $naissance->name = $request->input('name', $naissance->name);
+            $naissance->prenom = $request->input('prenom', $naissance->prenom);
+            $naissance->nom_prenoms_pere = $request->input('nom_prenoms_pere', $naissance->nom_prenoms_pere);
+            $naissance->nom_prenoms_mere = $request->input('nom_prenoms_mere', $naissance->nom_prenoms_mere);
+            $naissance->number = $request->input('number', $naissance->number);
+            $naissance->DateR = $request->DateR ? Carbon::parse($request->DateR)->format('Y-m-d') : $naissance->DateR;
+            $naissance->commune = $request->input('commune', $naissance->commune);
+            $naissance->commune_naissance = $request->input('commune_naissance', $naissance->commune_naissance);
+            $naissance->relation = $request->input('relation', $naissance->relation);
+
+            // Quantités
+            $qtySimple = (int) $request->input('qty_simple', 0);
+            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            if ($naissance->type === 'simple') {
+                $qtyIntegral = 0;
+                if ($qtySimple <= 0) $qtySimple = 1;
+            } elseif ($naissance->type === 'integrale') {
+                $qtySimple = 0;
+                if ($qtyIntegral <= 0) $qtyIntegral = 1;
+            } else {
+                if ($qtySimple <= 0) $qtySimple = 1;
+                if ($qtyIntegral <= 0) $qtyIntegral = 1;
+            }
+            $naissance->qty_simple = $qtySimple;
+            $naissance->qty_integral = $qtyIntegral;
+            $naissance->quantite = $qtySimple + $qtyIntegral;
+
+            // 8. Gestion de la livraison et du paiement
+            $originalChoixOption = $naissance->choix_option;
+            $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
+            
+            // Normaliser le choix option
+            $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+            $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+
+            $needsPayment = ($nouveauChoixOptionNormalise === 'livraison' && $originalChoixOptionNormalise !== 'livraison');
+            $pendingDeliveryData = null;
+
+            if ($nouveauChoixOptionNormalise === 'livraison') {
+                $deliveryData = [
+                    'choix_option' => 'livraison',
+                    'montant_timbre' => $request->input('montant_timbre'),
+                    'montant_livraison' => $request->input('montant_livraison'),
+                    'nom_destinataire' => $request->input('nom_destinataire'),
+                    'prenom_destinataire' => $request->input('prenom_destinataire'),
+                    'email_destinataire' => $request->input('email_destinataire'),
+                    'contact_destinataire' => $request->input('contact_destinataire'),
+                    'adresse_livraison' => $request->input('adresse_livraison'),
+                    'code_postal' => $request->input('code_postal'),
+                    'ville' => $request->input('ville'),
+                    'commune_livraison' => $request->input('commune_livraison'),
+                    'quartier' => $request->input('quartier'),
+                    'date_livraison' => $request->input('date_livraison'),
+                    'heure_livraison' => $request->input('heure_livraison'),
+                ];
+
+                if ($needsPayment) {
+                    $pendingDeliveryData = $deliveryData;
+                    // Conserver l'ancienne option jusqu'au paiement
+                    $naissance->choix_option = $originalChoixOption;
+                } else {
+                    $naissance->choix_option = 'livraison';
+                    $naissance->montant_timbre = $request->input('montant_timbre');
+                    $naissance->montant_livraison = $request->input('montant_livraison');
+                    $naissance->nom_destinataire = $request->input('nom_destinataire');
+                    $naissance->prenom_destinataire = $request->input('prenom_destinataire');
+                    $naissance->email_destinataire = $request->input('email_destinataire');
+                    $naissance->contact_destinataire = $request->input('contact_destinataire');
+                    $naissance->adresse_livraison = $request->input('adresse_livraison');
+                    $naissance->code_postal = $request->input('code_postal');
+                    $naissance->ville = $request->input('ville');
+                    $naissance->commune_livraison = $request->input('commune_livraison');
+                    $naissance->quartier = $request->input('quartier');
+                    $naissance->date_livraison = $request->input('date_livraison');
+                    $naissance->heure_livraison = $request->input('heure_livraison');
+                }
+            } else {
+                $naissance->choix_option = 'Retrait sur place';
+            }
+
+            // Réinitialiser l'état et désactiver la modification
+            $naissance->etat = 'en attente';
+            $naissance->peut_modifier = false;
+            $naissance->champs_a_modifier = null;
+            $naissance->motif_de_rejet = null;
+            $naissance->save();
+
+            // Gestion de l'initiation du paiement si nécessaire
+            if ($needsPayment && $pendingDeliveryData) {
+                $user->refresh();
+                $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+                $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
+                $totalAmount = $montantTimbreTotal + $montantLivraison;
+
+                $naissance->montant_timbre = $montantTimbreTotal;
+                $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
+                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+                $naissance->save();
+
+                // Mettre en cache les données de livraison
+                \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $naissance->reference, $pendingDeliveryData, now()->addDays(7));
+
+                if ($totalAmount > 0) {
+                    $paymentMethod = $request->input('payment_method', 'wave');
+                    $paymentLinkResult = $this->generatePaymentLink($naissance, $totalAmount, $paymentMethod);
+
+                    if (!$paymentLinkResult['success']) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Demande modifiée, mais échec de la génération du lien de paiement.',
+                            'error_details' => $paymentLinkResult['error_details']
+                        ], 500);
+                    }
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Demande modifiée. Utilisez le payment_url pour payer.',
+                        'requires_payment' => true,
+                        'free_requests' => [
+                            'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
+                            'economie' => $freeCalc['montant_timbre_gratuit'],
+                            'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
+                        ],
+                        'payment_details' => [
+                            'payment_url' => $paymentLinkResult['payment_url'],
+                            'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                            'mode' => 'PRODUCTION',
+                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
+                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
+                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
+                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                        ],
+                        'data' => [
+                            'demande' => $this->formatDemandeResponse($naissance, true)
+                        ]
+                    ]);
+                } else {
+                    // Si le total est de 0
+                    $naissance->etat = 'en attente';
+                    if ($freeCalc['free_timbres'] > 0) {
+                        $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                    }
+                    $naissance->save();
+                    
+                    // Appliquer directement la livraison en attente
+                    $this->applyPendingDeliveryUpdate($naissance);
+                }
+            } else {
+                // Si c'est un retrait ou livraison gratuite
+                if ($nouveauChoixOptionNormalise !== 'livraison') {
+                    $user->refresh();
+                    $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+                    $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
+                    $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
+                    $naissance->free_timbres_count = $freeCalc['free_timbres'];
+                    if ($freeCalc['free_timbres'] > 0) {
+                        $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                    }
+                    $naissance->save();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande modifiée avec succès et soumise à nouveau.',
+                'requires_payment' => false,
+                'data' => [
+                    'demande' => $this->formatDemandeResponse($naissance, true)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur DemandeNaissanceController@modifierDemande: ' . $e->getMessage() . ' Ligne: ' . $e->getLine(), ['naissance_id' => $naissance->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la modification: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Modifier uniquement les informations rejetées d'une demande de naissance
+     * POST /api/utilisateurs/demandes/naissance/{naissance}/modifier-rejete
+     */
+    public function modifierDemandeRejete(Request $request, Naissance $naissance): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // 1. Vérifier l'autorisation
+            if ($naissance->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
+            }
+
+            // 2. Vérifier que la demande a bien été rejetée et marquée comme modifiable par la mairie
+            if (!$naissance->peut_modifier) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cette demande ne peut pas être modifiée via cette API (elle n\'a pas été marquée comme rejetée/modifiable par la mairie)'
+                ], 400);
+            }
+
+            // 3. Déterminer les champs rejetés à modifier
+            $champsAModifier = json_decode($naissance->champs_a_modifier, true) ?? [];
+            if (empty($champsAModifier)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun champ à modifier spécifié par la mairie'
+                ], 400);
+            }
+
+            // Vérification restrictive : rejeter la modification de champs non spécifiés par la mairie
+            $champsDemande = ['type', 'pour', 'name', 'prenom', 'number', 'DateR', 'commune', 'commune_naissance', 'quantite', 'qty_simple', 'qty_integral', 'CNI', 'relation', 'document_autorisation', 'nom_prenoms_pere', 'nom_prenoms_mere'];
+            $champsEnvoyes = array_keys($request->all());
+            $champsNonAutorises = [];
+
+            foreach ($champsEnvoyes as $champ) {
+                if (in_array($champ, $champsDemande)) {
+                    $isAllowed = false;
+                    if (in_array($champ, $champsAModifier)) {
+                        $isAllowed = true;
+                    }
+                    // Gérer les équivalences de quantité
+                    if (($champ === 'qty_simple' || $champ === 'qty_integral') && in_array('quantite', $champsAModifier)) {
+                        $isAllowed = true;
+                    }
+                    if (!$isAllowed) {
+                        $champsNonAutorises[] = $champ;
                     }
                 }
-                
-                // Toujours permettre de modifier le choix d'option si présent dans la requête
-                if ($request->has('choix_option')) {
-                    $rules['choix_option'] = 'required|in:retrait,livraison';
+            }
+
+            if (!empty($champsNonAutorises)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous ne pouvez modifier que les champs rejetés par l\'agent.',
+                    'champs_autorises' => $champsAModifier
+                ], 400);
+            }
+
+            // 4. Définir dynamiquement les règles de validation
+            $rules = [];
+            foreach ($champsAModifier as $champ) {
+                switch ($champ) {
+                    case 'type':
+                        $rules['type'] = 'required|string|max:255';
+                        break;
+                    case 'pour':
+                        $rules['pour'] = 'nullable|string|max:255';
+                        break;
+                    case 'name':
+                        $rules['name'] = 'required|string|max:255';
+                        break;
+                    case 'prenom':
+                        $rules['prenom'] = 'required|string|max:255';
+                        break;
+                    case 'number':
+                        $rules['number'] = 'required|string|max:50';
+                        break;
+                    case 'DateR':
+                        $rules['DateR'] = 'required|date';
+                        break;
+                    case 'commune':
+                        $rules['commune'] = 'required|string';
+                        break;
+                    case 'quantite':
+                        $rules['quantite'] = 'required|integer|min:1|max:10';
+                        break;
+                    case 'CNI':
+                        $rules['CNI'] = 'required|file|mimes:jpeg,png,jpg,pdf,heic|max:25600';
+                        break;
                 }
+            }
+            
+            // Toujours permettre de modifier le choix d'option si présent dans la requête
+            if ($request->has('choix_option')) {
+                $rules['choix_option'] = 'required|in:retrait,livraison';
             }
 
             // Règles de livraison si choix_option est livraison
@@ -706,57 +1001,24 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $naissance->document_autorisation = $path;
             }
 
-            // 8. Mettre à jour les champs textuels
-            if ($isNotAssigned) {
-                // Modification complète : on met à jour tous les champs
-                $naissance->pour = $request->input('pour', $naissance->pour);
-                $naissance->type = $request->input('type', $naissance->type);
-                $naissance->name = $request->input('name', $naissance->name);
-                $naissance->prenom = $request->input('prenom', $naissance->prenom);
-                $naissance->nom_prenoms_pere = $request->input('nom_prenoms_pere', $naissance->nom_prenoms_pere);
-                $naissance->nom_prenoms_mere = $request->input('nom_prenoms_mere', $naissance->nom_prenoms_mere);
-                $naissance->number = $request->input('number', $naissance->number);
-                $naissance->DateR = $request->DateR ? Carbon::parse($request->DateR)->format('Y-m-d') : $naissance->DateR;
-                $naissance->commune = $request->input('commune', $naissance->commune);
-                $naissance->commune_naissance = $request->input('commune_naissance', $naissance->commune_naissance);
-                $naissance->relation = $request->input('relation', $naissance->relation);
+            // 8. Mettre à jour uniquement les champs rejetés
+            foreach ($champsAModifier as $champ) {
+                if ($champ === 'DateR' && isset($validated['DateR'])) {
+                    $naissance->DateR = Carbon::parse($validated['DateR'])->format('Y-m-d');
+                } elseif ($champ !== 'CNI' && isset($validated[$champ])) {
+                    $naissance->$champ = $validated[$champ];
+                }
+            }
 
-                // Quantités
-                $qtySimple = (int) $request->input('qty_simple', 0);
-                $qtyIntegral = (int) $request->input('qty_integral', 0);
-                if ($naissance->type === 'simple') {
-                    $qtyIntegral = 0;
-                    if ($qtySimple <= 0) $qtySimple = 1;
-                } elseif ($naissance->type === 'integrale') {
-                    $qtySimple = 0;
-                    if ($qtyIntegral <= 0) $qtyIntegral = 1;
+            // Si la quantité a été modifiée ou que le type de document a changé dans les champs rejetés
+            if (in_array('quantite', $champsAModifier) || in_array('type', $champsAModifier)) {
+                $naissance->quantite = (int) $request->input('quantite', $naissance->quantite);
+                if ($naissance->type === 'integrale') {
+                    $naissance->qty_integral = $naissance->quantite;
+                    $naissance->qty_simple = 0;
                 } else {
-                    if ($qtySimple <= 0) $qtySimple = 1;
-                    if ($qtyIntegral <= 0) $qtyIntegral = 1;
-                }
-                $naissance->qty_simple = $qtySimple;
-                $naissance->qty_integral = $qtyIntegral;
-                $naissance->quantite = $qtySimple + $qtyIntegral;
-            } else {
-                // Modification après rejet : uniquement les champs rejetés
-                foreach ($champsAModifier as $champ) {
-                    if ($champ === 'DateR' && isset($validated['DateR'])) {
-                        $naissance->DateR = Carbon::parse($validated['DateR'])->format('Y-m-d');
-                    } elseif ($champ !== 'CNI' && isset($validated[$champ])) {
-                        $naissance->$champ = $validated[$champ];
-                    }
-                }
-                // Si la quantité a été modifiée ou que le type de document a changé dans les champs rejetés
-                if (in_array('quantite', $champsAModifier) || in_array('type', $champsAModifier)) {
-                    $naissance->quantite = (int) $request->input('quantite', $naissance->quantite);
-                    // Harmoniser qty_simple/qty_integral
-                    if ($naissance->type === 'integrale') {
-                        $naissance->qty_integral = $naissance->quantite;
-                        $naissance->qty_simple = 0;
-                    } else {
-                        $naissance->qty_simple = $naissance->quantite;
-                        $naissance->qty_integral = 0;
-                    }
+                    $naissance->qty_simple = $naissance->quantite;
+                    $naissance->qty_integral = 0;
                 }
             }
 
@@ -871,20 +1133,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         ]
                     ]);
                 } else {
-                    // Si le total est de 0 (timbres gratuits et livraison gratuite)
                     $naissance->etat = 'en attente';
                     if ($freeCalc['free_timbres'] > 0) {
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
                     $naissance->save();
                     
-                    // Appliquer directement la livraison en attente
+                    // Appliquer la livraison en attente
                     $this->applyPendingDeliveryUpdate($naissance);
                 }
             } else {
-                // Si c'est un retrait ou livraison gratuite
                 if ($nouveauChoixOptionNormalise !== 'livraison') {
-                    // retrait : recalculer les timbres
                     $user->refresh();
                     $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
                     $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
@@ -906,7 +1165,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ]
             ]);
         } catch (\Exception $e) {
-            Log::error('Erreur DemandeNaissanceController@modifierDemande: ' . $e->getMessage() . ' Ligne: ' . $e->getLine(), ['naissance_id' => $naissance->id]);
+            Log::error('Erreur DemandeNaissanceController@modifierDemandeRejete: ' . $e->getMessage() . ' Ligne: ' . $e->getLine(), ['naissance_id' => $naissance->id]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la modification: ' . $e->getMessage()

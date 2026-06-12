@@ -99,6 +99,7 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::post('/{naissance}/retry-payment', [DemandeNaissanceController::class, 'retryPayment']);
             Route::post('/{naissance}/relancer', [DemandeNaissanceController::class, 'relancerDemande']);
             Route::post('/{naissance}/modifier', [DemandeNaissanceController::class, 'modifierDemande']);
+            Route::post('/{naissance}/modifier-rejete', [DemandeNaissanceController::class, 'modifierDemandeRejete']);
             Route::get('/{naissance}/champs-a-modifier', [DemandeNaissanceController::class, 'getChampsAModifier']);
             Route::delete('/{naissance}', [DemandeNaissanceController::class, 'destroy']);
         });
@@ -112,6 +113,7 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::post('/{mariage}/retry-payment', [DemandeMariageController::class, 'retryPayment']);
             Route::post('/{mariage}/relancer', [DemandeMariageController::class, 'relancerDemande']);
             Route::post('/{mariage}/modifier', [DemandeMariageController::class, 'modifierDemande']);
+            Route::post('/{mariage}/modifier-rejete', [DemandeMariageController::class, 'modifierDemandeRejete']);
             Route::get('/{mariage}/champs-a-modifier', [DemandeMariageController::class, 'getChampsAModifier']);
             Route::delete('/{mariage}', [DemandeMariageController::class, 'destroy']);
         });
@@ -125,6 +127,7 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::post('/{deces}/retry-payment', [DemandeDecesController::class, 'retryPayment']);
             Route::post('/{deces}/relancer', [DemandeDecesController::class, 'relancerDemande']);
             Route::post('/{deces}/modifier', [DemandeDecesController::class, 'modifierDemande']);
+            Route::post('/{deces}/modifier-rejete', [DemandeDecesController::class, 'modifierDemandeRejete']);
             Route::get('/{deces}/champs-a-modifier', [DemandeDecesController::class, 'getChampsAModifier']);
             Route::delete('/{deces}', [DemandeDecesController::class, 'destroy']);
         });
@@ -158,9 +161,10 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::get('/', [RdvApiController::class, 'index']);
             Route::post('/', [RdvApiController::class, 'store']);
             Route::put('/{id}/cancel', [RdvApiController::class, 'cancel']);
+            Route::delete('/{id}', [RdvApiController::class, 'destroy']);
             Route::get('/statistiques/{id}', [StatistiqueController::class, 'statistiquesRendezvousParId']);
-        Route::get('/statistiques', [StatistiqueController::class, 'statistiquesRendezvousComplet']);
-        Route::get('/{id}/details', [StatistiqueController::class, 'getRendezvousDetails']);
+            Route::get('/statistiques', [StatistiqueController::class, 'statistiquesRendezvousComplet']);
+            Route::get('/{id}/details', [StatistiqueController::class, 'getRendezvousDetails']);
         });
 
     }); // Fin groupe utilisateurs

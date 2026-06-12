@@ -194,4 +194,49 @@ class RdvApiController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Supprime un rendez-vous (uniquement s'il est "en attente").
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $user = $request->user();
+            $rendezvous = Rendezvous::find($id);
+
+            if (!$rendezvous) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Rendez-vous introuvable.'
+                ], 404);
+            }
+
+            if ($rendezvous->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous n\'êtes pas autorisé à supprimer ce rendez-vous.'
+                ], 403);
+            }
+
+            if ($rendezvous->statut !== 'en attente') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce rendez-vous ne peut plus être supprimé car il a déjà été traité.'
+                ], 400);
+            }
+
+            $rendezvous->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Demande de rendez-vous supprimée avec succès.'
+            ], 200);
+        } catch (Exception $e) {
+            Log::error("Erreur API [RdvApiController@destroy]: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur interne est survenue lors de la suppression du rendez-vous.'
+            ], 500);
+        }
+    }
 }

@@ -93,5 +93,34 @@ class RendezVousController extends Controller
         return redirect()->route('user.rendezvous.index')
                         ->with('success', 'Votre demande de rendez-vous a été soumise avec succès.');
     }
+
+    public function destroy($id)
+    {
+        try {
+            $user = Auth::user();
+            $rendezvous = Rendezvous::findOrFail($id);
+
+            // Vérifier que le rendez-vous appartient bien à l'utilisateur
+            if ($rendezvous->user_id !== $user->id) {
+                return redirect()->route('user.rendezvous.index')
+                                 ->with('error', 'Vous n\'êtes pas autorisé à supprimer ce rendez-vous.');
+            }
+
+            // Optionnel : on ne supprime que si c'est en attente
+            if ($rendezvous->statut !== 'en attente') {
+                return redirect()->route('user.rendezvous.index')
+                                 ->with('error', 'Vous ne pouvez plus supprimer ce rendez-vous car il a déjà été traité.');
+            }
+
+            $rendezvous->delete();
+
+            return redirect()->route('user.rendezvous.index')
+                            ->with('success', 'Votre rendez-vous a été supprimé avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la suppression du rendez-vous: ' . $e->getMessage());
+            return redirect()->route('user.rendezvous.index')
+                            ->with('error', 'Une erreur est survenue lors de la suppression du rendez-vous.');
+        }
+    }
 }
 

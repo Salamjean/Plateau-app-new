@@ -299,6 +299,7 @@
                                     <th>Informations épouse</th>
                                     <th>Contact</th>
                                     <th>Rendez-vous</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -374,10 +375,25 @@
                                                 </div>
                                             </div>
                                         </td>
+                                        <td class="text-center" style="text-align: center">
+                                            @if ($item->statut === 'en attente')
+                                                <form action="{{ route('user.rendezvous.destroy', $item->id) }}" method="POST" id="delete-form-{{ $item->id }}" style="display:inline-block;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="btn btn-sm btn-danger text-white" onclick="confirmDeleteRdv({{ $item->id }})" title="Supprimer ce rendez-vous">
+                                                        <i class="fas fa-trash-alt me-1"></i> Supprimer
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <button type="button" class="btn btn-sm btn-secondary btn-disabled text-white" onclick="showDisabledRdvMessage()" title="Ce rendez-vous ne peut plus être supprimé">
+                                                    <i class="fas fa-ban me-1"></i> Supprimer
+                                                </button>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8">
+                                        <td colspan="5">
                                             <div class="empty-state">
                                                 <i class="fas fa-inbox"></i>
                                                 <h5 class="mt-3">Aucun rendez vous trouvée</h5>
@@ -461,6 +477,33 @@
             Swal.fire({
                 title: 'Action non autorisée',
                 text: 'Cette demande ne peut pas être supprimée car elle est en cours de traitement ou déjà finalisée.',
+                icon: 'info',
+                confirmButtonColor: '#1f4083'
+            });
+        }
+
+        function confirmDeleteRdv(id) {
+            Swal.fire({
+                title: 'Confirmer la suppression',
+                text: "Voulez-vous vraiment supprimer ce rendez-vous ? Cette action est irréversible.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#1f4083',
+                cancelButtonColor: '#e74c3c',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
+
+        function showDisabledRdvMessage() {
+            Swal.fire({
+                title: 'Action non autorisée',
+                text: 'Ce rendez-vous ne peut pas être supprimé car il a déjà été traité.',
                 icon: 'info',
                 confirmButtonColor: '#1f4083'
             });

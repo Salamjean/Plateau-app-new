@@ -575,6 +575,7 @@ Route::middleware('auth')->prefix('user')->group(function () {
     Route::get('/rendezvous/index', [RendezVousController::class, 'index'])->name('user.rendezvous.index');
     Route::get('/rendezvous/create', [RendezvousController::class, 'create'])->name('user.rendezvous.create');
     Route::post('/rendezvous', [RendezvousController::class, 'store'])->name('user.rendezvous.store');
+    Route::delete('/rendezvous/{id}', [RendezVousController::class, 'destroy'])->name('user.rendezvous.destroy');
 
     //la route de gestion des historiques 
     Route::get('/history/ends', [UserAuthenticate::class, 'history'])->name('user.history');
