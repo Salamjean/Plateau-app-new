@@ -265,7 +265,7 @@
                     title: '<span class="text-primary font-weight-bold">BIENVENUE ! 🎊</span>',
                     html: `
                         <div class="p-3">
-                            <h4 class="text-navy font-weight-bold mb-3">Pour la phase pilote, bénéficiez de deux (2) timbres gratuits.</h4>
+                            <h4 class="text-navy font-weight-bold mb-3">Pour la phase pilote, vous bénéficiez de deux (2) timbres gratuits.</h4>
                         </div>
                     `,
                     confirmButtonText: 'OK',
