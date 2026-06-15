@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Services\YellikaSmsService;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DemandeRejeteeMail;
 
 /**
  * Gère le traitement par l'agent des demandes groupées d'actes de naissance.
@@ -177,6 +179,25 @@ class AgentNaissanceGroupeController extends Controller
                     $phoneNumber = '225' . $phoneNumber;
                 }
                 $destName = trim($groupe->prenom_destinataire . ' ' . $groupe->nom_destinataire);
+
+                // Récupérer les motifs de rejet de chaque ligne
+                $motifsRejet = [];
+                foreach ($groupe->lignes as $ligne) {
+                    if (($decisions[$ligne->id] ?? null) === 'rejeter') {
+                        $motifsRejet[] = "• Acte #" . $ligne->position_in_groupe . " (" . $ligne->name . " " . $ligne->prenom . ") : " . ($motifs[$ligne->id] ?? 'sans précision');
+                    }
+                }
+                if ($motifGlobal) {
+                    $motifsRejet[] = "Commentaire général : " . $motifGlobal;
+                }
+                $emailMotif = implode("\n", $motifsRejet);
+
+                // Envoi d'un e-mail de notification de rejet au demandeur
+                try {
+                    Mail::to($user->email)->send(new DemandeRejeteeMail($user, $groupe, 'naissance_groupe', $emailMotif));
+                } catch (\Exception $e) {
+                    Log::error("Erreur lors de l'envoi du mail de rejet (naissance groupe) : " . $e->getMessage());
+                }
             } else {
                 $phoneNumber = $user->indicatif . $user->contact;
                 $destName = $user->name;

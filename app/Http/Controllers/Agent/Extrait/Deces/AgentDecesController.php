@@ -18,6 +18,8 @@ use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Services\YellikaSmsService;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DemandeRejeteeMail;
 
 class AgentDecesController extends Controller
 {
@@ -219,6 +221,13 @@ class AgentDecesController extends Controller
                     $phoneNumber = '225' . $phoneNumber;
                 }
                 $destName = trim($deces->prenom_destinataire . ' ' . $deces->nom_destinataire);
+
+                // Envoi d'un e-mail de notification de rejet au demandeur
+                try {
+                    Mail::to($user->email)->send(new DemandeRejeteeMail($user, $deces, 'deces', $deces->motif_de_rejet));
+                } catch (\Exception $e) {
+                    Log::error("Erreur lors de l'envoi du mail de rejet (décès) : " . $e->getMessage());
+                }
             } else {
                 $phoneNumber = $user->indicatif . $user->contact;
                 $destName = $user->name;

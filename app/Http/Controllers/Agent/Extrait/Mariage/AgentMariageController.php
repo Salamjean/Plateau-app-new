@@ -17,6 +17,8 @@ use PDF;
 use App\Notifications\GeneralPushNotification;
 use Illuminate\Support\Facades\Log;
 use App\Services\YellikaSmsService;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DemandeRejeteeMail;
 
 class AgentMariageController extends Controller
 {
@@ -240,6 +242,13 @@ class AgentMariageController extends Controller
                     $phoneNumber = '225' . $phoneNumber;
                 }
                 $destName = trim($mariage->prenom_destinataire . ' ' . $mariage->nom_destinataire);
+
+                // Envoi d'un e-mail de notification de rejet au demandeur
+                try {
+                    Mail::to($user->email)->send(new DemandeRejeteeMail($user, $mariage, 'mariage', $mariage->motif_de_rejet));
+                } catch (\Exception $e) {
+                    Log::error("Erreur lors de l'envoi du mail de rejet (mariage) : " . $e->getMessage());
+                }
             } else {
                 $phoneNumber = $user->indicatif . $user->contact;
                 $destName = $user->name;
