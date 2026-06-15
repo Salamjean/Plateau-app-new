@@ -262,17 +262,13 @@
         @if(isset($showFreeRequestsMessage) && $showFreeRequestsMessage)
             setTimeout(() => {
                 Swal.fire({
-                    title: '<span class="text-primary font-weight-bold">FÉLICITATIONS ! 🎊</span>',
+                    title: '<span class="text-primary font-weight-bold">BIENVENUE ! 🎊</span>',
                     html: `
                         <div class="p-3">
-                            <h4 class="text-navy font-weight-bold mb-3">Vos premiers actes sont offerts !</h4>
-                            <p class="text-grey small mb-4">
-                                Pour célébrer votre arrivée sur Plateau App, nous vous offrons vos 
-                                <span class="text-primary font-weight-bold">{{ $freeRequestsRemaining }} prochaines demandes</span> entièrement gratuitement.
-                            </p>
+                            <h4 class="text-navy font-weight-bold mb-3">Pour la phase pilote, vous beneficiez de deux (2) timbres gratuits</h4>
                         </div>
                     `,
-                    confirmButtonText: 'C\'est génial ! 🚀',
+                    confirmButtonText: 'OK',
                     confirmButtonColor: '#1f4083',
                     borderRadius: '30px',
                     backdrop: `rgba(25, 119, 204, 0.2)`
