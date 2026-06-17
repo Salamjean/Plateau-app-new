@@ -12,124 +12,128 @@
             margin: 0;
             padding: 0;
         }
+
         :root {
-                --primary: #1f4083;
-                --accent-gold: #d4af37;
-                --success: #2ec4b6;
-                --danger: #e71d36;
-                --glass-bg: rgba(255, 255, 255, 0.08);
-                --glass-border: rgba(255, 255, 255, 0.15);
+            --primary: #1f4083;
+            --accent-gold: #d4af37;
+            --success: #2ec4b6;
+            --danger: #e71d36;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        .animate-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
             }
 
-            .animate-up {
-                animation: fadeInUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
+        }
 
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(25px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
 
-            .table-container {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-                overflow: hidden;
-            }
+        .badge-credit {
+            background-color: rgba(46, 196, 182, 0.15) !important;
+            color: var(--success) !important;
+            font-weight: 600;
+        }
 
-            .badge-credit {
-                background-color: rgba(46, 196, 182, 0.15) !important;
-                color: var(--success) !important;
-                font-weight: 600;
-            }
+        .back-btn {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            font-weight: 700;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(31, 64, 131, 0.15);
+        }
 
-            .back-btn {
-                background: white;
-                color: var(--primary);
-                border: 2px solid var(--primary);
-                font-weight: 700;
-                padding: 0.6rem 1.5rem;
-                border-radius: 50px;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 10px rgba(31, 64, 131, 0.15);
-            }
+        .back-btn:hover {
+            background: var(--primary);
+            box-shadow: 0 6px 15px rgba(31, 64, 131, 0.3);
+        }
 
-            .back-btn:hover {
-                background: var(--primary);
-                box-shadow: 0 6px 15px rgba(31, 64, 131, 0.3);
-            }
+        /* Styles Premium pour la Pagination */
+        .pagination-premium {
+            display: flex;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            margin: 0;
+        }
 
-            /* Styles Premium pour la Pagination */
-            .pagination-premium {
-                display: flex;
-                gap: 8px;
-                padding: 10px 20px;
-                background: rgba(255, 255, 255, 0.6);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.4);
-                border-radius: 50px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-                margin: 0;
-            }
+        .pagination-premium .page-item {
+            display: inline-block;
+        }
 
-            .pagination-premium .page-item {
-                display: inline-block;
-            }
+        .pagination-premium .page-item .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50% !important;
+            border: 1px solid var(--neutral-200);
+            background: white;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
 
-            .pagination-premium .page-item .page-link {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 42px;
-                height: 42px;
-                border-radius: 50% !important;
-                border: 1px solid var(--neutral-200);
-                background: white;
-                color: var(--primary);
-                font-weight: 700;
-                font-size: 0.95rem;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-            }
+        .pagination-premium .page-item .page-link:hover {
+            background: var(--primary);
+            color: white !important;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 15px rgba(31, 64, 131, 0.25);
+            border-color: var(--primary);
+        }
 
-            .pagination-premium .page-item .page-link:hover {
-                background: var(--primary);
-                color: white !important;
-                transform: translateY(-3px) scale(1.05);
-                box-shadow: 0 8px 15px rgba(31, 64, 131, 0.25);
-                border-color: var(--primary);
-            }
+        .pagination-premium .page-item.active .page-link {
+            background: var(--primary);
+            color: white !important;
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px rgba(31, 64, 131, 0.35);
+            transform: scale(1.05);
+        }
 
-            .pagination-premium .page-item.active .page-link {
-                background: var(--primary);
-                color: white !important;
-                border-color: var(--primary);
-                box-shadow: 0 8px 20px rgba(31, 64, 131, 0.35);
-                transform: scale(1.05);
-            }
-
-            .pagination-premium .page-item.disabled .page-link {
-                background: rgba(241, 245, 249, 0.5);
-                color: #94a3b8 !important;
-                border-color: #e2e8f0;
-                cursor: not-allowed;
-                box-shadow: none;
-            }
-        </style>
-        <div class="portefeuille-page">
-            <div class="container-fluid py-4">
+        .pagination-premium .page-item.disabled .page-link {
+            background: rgba(241, 245, 249, 0.5);
+            color: #94a3b8 !important;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+    </style>
+    <div class="portefeuille-page">
+        <div class="container-fluid py-4">
             <!-- Header avec bouton Retour -->
             <div class="d-flex justify-content-between align-items-center mb-4 animate-up" style="animation-delay: 0.1s;">
                 <div>
-                    <h2 class="fw-bold text-dark mb-1"><i class="fas fa-history text-primary me-2"></i>Historique Complet</h2>
-                    <p class="text-muted mb-0">Visualisez toutes les demandes transférées de votre portefeuille vers le Trésor Public.</p>
+                    <h2 class="fw-bold text-dark mb-1"><i class="fas fa-history text-primary me-2"></i>Historique Complet
+                    </h2>
+                    <p class="text-muted mb-0">Visualisez toutes les demandes transférées de votre portefeuille vers le
+                        Trésor Public.</p>
                 </div>
                 <div>
                     <a href="{{ route('mairie.portefeuille.index') }}" class="btn back-btn">
@@ -140,23 +144,29 @@
 
             <!-- Historique unifié des Transactions -->
             <div class="table-container animate-up" style="animation-delay: 0.2s;">
-                <div class="table-header p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3" style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i>Toutes les Demandes Transférées</h5>
+                <div class="table-header p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3"
+                    style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i>Tous les Timbres Transférés</h5>
                     <div class="d-flex align-items-center gap-3 flex-wrap">
                         <!-- Filtre par mois -->
-                        <form method="GET" action="{{ url()->current() }}" class="d-flex align-items-center" id="filterForm">
+                        <form method="GET" action="{{ url()->current() }}" class="d-flex align-items-center"
+                            id="filterForm">
                             <div class="input-group">
                                 <span class="input-group-text bg-white text-primary border-0 rounded-start-pill ps-3 pe-2">
                                     <i class="fas fa-filter text-muted"></i>
                                 </span>
-                                <select name="month" class="form-select border-0 rounded-end-pill pe-4 ps-2 fw-semibold text-primary" style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 160px; font-size: 0.9rem;" onchange="this.form.submit()">
+                                <select name="month"
+                                    class="form-select border-0 rounded-end-pill pe-4 ps-2 fw-semibold text-primary"
+                                    style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 160px; font-size: 0.9rem;"
+                                    onchange="this.form.submit()">
                                     <option value="" class="text-dark">Tous les mois</option>
-                                    @foreach($availableMonths as $month)
+                                    @foreach ($availableMonths as $month)
                                         @php
                                             $carbonDate = \Carbon\Carbon::createFromFormat('Y-m', $month);
                                             $monthLabel = ucwords($carbonDate->translatedFormat('F Y'));
                                         @endphp
-                                        <option value="{{ $month }}" {{ request('month') == $month ? 'selected' : '' }} class="text-dark">
+                                        <option value="{{ $month }}"
+                                            {{ request('month') == $month ? 'selected' : '' }} class="text-dark">
                                             {{ $monthLabel }}
                                         </option>
                                     @endforeach
@@ -165,25 +175,29 @@
                         </form>
 
                         <!-- Export PDF par année -->
-                        <form method="GET" action="{{ route('mairie.portefeuille.export_pdf') }}" class="d-flex align-items-center" target="_blank">
+                        <form method="GET" action="{{ route('mairie.portefeuille.export_pdf') }}"
+                            class="d-flex align-items-center" target="_blank">
                             <div class="input-group">
                                 <span class="input-group-text bg-white text-danger border-0 rounded-start-pill ps-3 pe-2">
                                     <i class="fas fa-file-pdf"></i>
                                 </span>
-                                <select name="year" class="form-select border-0 pe-4 ps-2 fw-semibold text-danger" style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 100px; font-size: 0.9rem;">
+                                <select name="year" class="form-select border-0 pe-4 ps-2 fw-semibold text-danger"
+                                    style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 100px; font-size: 0.9rem;">
                                     @forelse($availableYears as $year)
                                         <option value="{{ $year }}" class="text-dark">{{ $year }}</option>
                                     @empty
                                         <option value="{{ date('Y') }}" class="text-dark">{{ date('Y') }}</option>
                                     @endforelse
                                 </select>
-                                <button type="submit" class="btn btn-danger border-0 rounded-end-pill px-3 fw-bold" style="height: 38px; font-size: 0.85rem;">
+                                <button type="submit" class="btn btn-danger border-0 rounded-end-pill px-3 fw-bold"
+                                    style="height: 38px; font-size: 0.85rem;">
                                     Exporter PDF
                                 </button>
                             </div>
                         </form>
 
-                        <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold" style="font-size: 0.85rem; height: 38px; display: inline-flex; align-items: center;">
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold"
+                            style="font-size: 0.85rem; height: 38px; display: inline-flex; align-items: center;">
                             {{ $transactions->total() }} Transactions au total
                         </span>
                     </div>
@@ -195,7 +209,7 @@
                                 <th class="py-3 text-secondary text-center">DATE & HEURE</th>
                                 <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
                                 <th class="py-3 text-secondary text-center">DESTINATAIRE (TRÉSORPAY)</th>
-                                <th class="py-3 text-secondary text-center">MONTANT</th>
+                                <th class="py-3 text-secondary text-center">MONTANT TIMBRE</th>
                                 <th class="py-3 text-secondary text-center">STATUT</th>
                             </tr>
                         </thead>
@@ -208,7 +222,8 @@
                                                 <i class="fas fa-calendar-days text-muted"></i>
                                             </div>
                                             <div class="text-center">
-                                                <span class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
+                                                <span
+                                                    class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
                                                 <small class="text-muted">{{ $t->date->format('H:i') }}</small>
                                             </div>
                                         </div>
@@ -236,7 +251,8 @@
                                         <div class="py-4 text-center">
                                             <i class="fas fa-receipt fa-3x text-light mb-3"></i>
                                             <h5 class="text-muted">Aucun transfert effectué</h5>
-                                            <p class="text-muted small mb-0">Les transferts vers TrésorPay s'afficheront ici en temps réel au fil des paiements des citoyens.</p>
+                                            <p class="text-muted small mb-0">Les transferts vers TrésorPay s'afficheront ici
+                                                en temps réel au fil des paiements des citoyens.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -258,7 +274,9 @@
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $transactions->appends(request()->query())->previousPageUrl() }}" rel="prev"><i class="fas fa-chevron-left"></i></a>
+                                    <a class="page-link"
+                                        href="{{ $transactions->appends(request()->query())->previousPageUrl() }}"
+                                        rel="prev"><i class="fas fa-chevron-left"></i></a>
                                 </li>
                             @endif
 
@@ -278,7 +296,9 @@
                             {{-- Bouton Page Suivante --}}
                             @if ($transactions->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $transactions->appends(request()->query())->nextPageUrl() }}" rel="next"><i class="fas fa-chevron-right"></i></a>
+                                    <a class="page-link"
+                                        href="{{ $transactions->appends(request()->query())->nextPageUrl() }}"
+                                        rel="next"><i class="fas fa-chevron-right"></i></a>
                                 </li>
                             @else
                                 <li class="page-item disabled" aria-disabled="true">

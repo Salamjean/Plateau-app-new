@@ -68,6 +68,20 @@ class NaissanceGroupeController extends Controller
      */
     public function store(Request $request, YellikaSmsService $yellikaSmsService, WaveService $waveService)
     {
+        $user = Auth::user();
+        $qtySimple = (int) $request->input('qty_simple', 0);
+        $qtyIntegral = (int) $request->input('qty_integral', 0);
+        $qtyTotal = $qtySimple + $qtyIntegral;
+
+        $freeRequestsModeActive = MaintenanceSetting::isFreeRequestsModeActive();
+        $freeRequestsRemaining = $freeRequestsModeActive ? $this->getRemainingFreeRequests($user) : 0;
+        $paidTimbres = $freeRequestsModeActive ? max(0, $qtyTotal - $freeRequestsRemaining) : $qtyTotal;
+        $montantTimbreTotal = $paidTimbres * self::TARIF_TIMBRE;
+        $montantLivraison = $request->input('choix_option') === 'livraison' ? self::TARIF_LIVRAISON : 0;
+        $montantTotal = $montantTimbreTotal + $montantLivraison;
+
+        $paymentRequired = $montantTotal > 0;
+
         $request->validate([
             'qty_simple' => 'required|integer|min:0|max:10',
             'qty_integral' => 'required|integer|min:0|max:10',
@@ -99,9 +113,9 @@ class NaissanceGroupeController extends Controller
             'adresse_livraison' => 'required_if:choix_option,livraison|string|max:500',
             'date_livraison' => 'nullable|date|after_or_equal:today',
             'heure_livraison' => 'nullable',
-            // Paiement (requis si livraison)
-            'payment_method' => 'required_if:choix_option,livraison|in:wave,mtn,orange,moov',
-            'mtn_number' => 'required_if:payment_method,mtn|nullable|string|max:20',
+            // Paiement (requis si paiement requis)
+            'payment_method' => $paymentRequired ? 'required|in:wave,mtn,orange,moov' : 'nullable|in:wave,mtn,orange,moov',
+            'mtn_number' => ($paymentRequired && $request->input('payment_method') === 'mtn') ? 'required|string|max:20' : 'nullable|string|max:20',
         ]);
 
         $geminiService = app(\App\Services\GeminiValidationService::class);
@@ -126,12 +140,6 @@ class NaissanceGroupeController extends Controller
             }
         }
 
-        $user = Auth::user();
-
-        $qtySimple = (int) $request->qty_simple;
-        $qtyIntegral = (int) $request->qty_integral;
-        $qtyTotal = $qtySimple + $qtyIntegral;
-
         if ($qtyTotal === 0) {
             return $this->respondError($request, 'Veuillez choisir au moins un acte (simple ou intégral).');
         }
@@ -143,12 +151,8 @@ class NaissanceGroupeController extends Controller
             }
         }
 
-        // Calcul des free requests sur le total
+        // Calcul des free requests sur le total (déjà fait au début)
         $freeCalc = $this->calculateFreeRequestsDiscount($user, $qtyTotal);
-
-        $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-        $montantLivraison = $request->choix_option === 'livraison' ? self::TARIF_LIVRAISON : 0;
-        $montantTotal = $montantTimbreTotal + $montantLivraison;
 
         try {
             $groupeReference = NaissanceGroupe::generateReference($user->commune ?? null);
@@ -160,7 +164,7 @@ class NaissanceGroupeController extends Controller
                 'reference' => $groupeReference,
                 'user_id' => $user->id,
                 'commune' => $user->commune ?? 'plateau',
-                'etat' => $request->choix_option === 'livraison' && $montantTotal > 0
+                'etat' => $montantTotal > 0
                     ? 'en attente de paiement'
                     : 'en attente',
                 'choix_option' => $request->choix_option,
@@ -298,8 +302,8 @@ class NaissanceGroupeController extends Controller
 
             Log::info("Demande groupée créée [{$groupe->reference}] : {$qtySimple} simples + {$qtyIntegral} intégraux, total {$montantTotal} FCFA");
 
-            // 3. Si paiement requis (livraison + montant > 0), générer l'URL de paiement
-            if ($request->choix_option === 'livraison' && $montantTotal > 0) {
+            // 3. Si paiement requis (montant > 0), générer l'URL de paiement
+            if ($montantTotal > 0) {
                 $paymentUrl = $this->generatePaymentUrl($groupe, $request->input('payment_method', 'wave'), $waveService, $request);
 
                 if (!$paymentUrl) {

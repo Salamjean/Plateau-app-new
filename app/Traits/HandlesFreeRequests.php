@@ -131,59 +131,111 @@ trait HandlesFreeRequests
     }
 
     /**
+     * Applique les modifications d'informations en attente pour une demande payée avec succès.
+     *
+     * @param \App\Models\Naissance|\App\Models\Mariage|\App\Models\Deces $demande
+     */
+    protected function applyPendingModificationUpdate($demande): void
+    {
+        $cacheKey = 'pending_modification_update_' . $demande->reference;
+        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+            $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+            \Illuminate\Support\Facades\Log::info("Application des modifications d'informations en attente pour {$demande->reference} : ", $pendingData);
+
+            // 1. Suppression physique des anciens fichiers remplacés
+            if (isset($pendingData['old_files_to_delete']) && is_array($pendingData['old_files_to_delete'])) {
+                foreach ($pendingData['old_files_to_delete'] as $filePath) {
+                    if ($filePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($filePath)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($filePath);
+                    }
+                }
+            }
+
+            // 2. Application des nouveaux champs/attributs
+            if (isset($pendingData['attributes']) && is_array($pendingData['attributes'])) {
+                foreach ($pendingData['attributes'] as $key => $value) {
+                    $demande->$key = $value;
+                }
+            }
+
+            $demande->save();
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+        }
+    }
+
+    /**
      * Applique les modifications de livraison en attente pour une demande payée avec succès.
      *
      * @param \App\Models\Naissance|\App\Models\Mariage|\App\Models\Deces $demande
      */
     protected function applyPendingDeliveryUpdate($demande): void
     {
+        $this->applyPendingModificationUpdate($demande);
+
         $cacheKey = 'pending_delivery_update_' . $demande->reference;
         if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
             $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
-            \Illuminate\Support\Facades\Log::info("Application des données de livraison en attente pour {$demande->reference} : ", $pendingData);
+            \Illuminate\Support\Facades\Log::info("Application des données de livraison/retrait en attente pour {$demande->reference} : ", $pendingData);
 
-            $demande->choix_option = 'livraison';
+            $demande->choix_option = $pendingData['choix_option'] ?? 'livraison';
             if (isset($pendingData['montant_timbre'])) {
                 $demande->montant_timbre = $pendingData['montant_timbre'];
             }
             if (isset($pendingData['montant_livraison'])) {
                 $demande->montant_livraison = $pendingData['montant_livraison'];
             }
-            if (isset($pendingData['nom_destinataire'])) {
-                $demande->nom_destinataire = $pendingData['nom_destinataire'];
+
+            if ($demande->choix_option === 'livraison') {
+                if (isset($pendingData['nom_destinataire'])) {
+                    $demande->nom_destinataire = $pendingData['nom_destinataire'];
+                }
+                if (isset($pendingData['prenom_destinataire'])) {
+                    $demande->prenom_destinataire = $pendingData['prenom_destinataire'];
+                }
+                if (isset($pendingData['email_destinataire'])) {
+                    $demande->email_destinataire = $pendingData['email_destinataire'];
+                }
+                if (isset($pendingData['contact_destinataire'])) {
+                    $demande->contact_destinataire = $pendingData['contact_destinataire'];
+                }
+                if (isset($pendingData['adresse_livraison'])) {
+                    $demande->adresse_livraison = $pendingData['adresse_livraison'];
+                }
+                if (isset($pendingData['code_postal'])) {
+                    $demande->code_postal = $pendingData['code_postal'];
+                }
+                if (isset($pendingData['ville'])) {
+                    $demande->ville = $pendingData['ville'];
+                }
+                if (isset($pendingData['commune_livraison'])) {
+                    $demande->commune_livraison = $pendingData['commune_livraison'];
+                }
+                if (isset($pendingData['quartier'])) {
+                    $demande->quartier = $pendingData['quartier'];
+                }
+                if (isset($pendingData['date_livraison'])) {
+                    $demande->date_livraison = $pendingData['date_livraison'];
+                }
+                if (isset($pendingData['heure_livraison'])) {
+                    $demande->heure_livraison = $pendingData['heure_livraison'];
+                }
+
+                $demande->statut_livraison = 'en attente';
+            } else {
+                $demande->nom_destinataire = null;
+                $demande->prenom_destinataire = null;
+                $demande->email_destinataire = null;
+                $demande->contact_destinataire = null;
+                $demande->adresse_livraison = null;
+                $demande->code_postal = null;
+                $demande->ville = null;
+                $demande->commune_livraison = null;
+                $demande->quartier = null;
+                $demande->date_livraison = null;
+                $demande->heure_livraison = null;
+                $demande->statut_livraison = null;
             }
-            if (isset($pendingData['prenom_destinataire'])) {
-                $demande->prenom_destinataire = $pendingData['prenom_destinataire'];
-            }
-            if (isset($pendingData['email_destinataire'])) {
-                $demande->email_destinataire = $pendingData['email_destinataire'];
-            }
-            if (isset($pendingData['contact_destinataire'])) {
-                $demande->contact_destinataire = $pendingData['contact_destinataire'];
-            }
-            if (isset($pendingData['adresse_livraison'])) {
-                $demande->adresse_livraison = $pendingData['adresse_livraison'];
-            }
-            if (isset($pendingData['code_postal'])) {
-                $demande->code_postal = $pendingData['code_postal'];
-            }
-            if (isset($pendingData['ville'])) {
-                $demande->ville = $pendingData['ville'];
-            }
-            if (isset($pendingData['commune_livraison'])) {
-                $demande->commune_livraison = $pendingData['commune_livraison'];
-            }
-            if (isset($pendingData['quartier'])) {
-                $demande->quartier = $pendingData['quartier'];
-            }
-            if (isset($pendingData['date_livraison'])) {
-                $demande->date_livraison = $pendingData['date_livraison'];
-            }
-            if (isset($pendingData['heure_livraison'])) {
-                $demande->heure_livraison = $pendingData['heure_livraison'];
-            }
-            
-            $demande->statut_livraison = 'en attente';
+
             $demande->save();
 
             \Illuminate\Support\Facades\Cache::forget($cacheKey);

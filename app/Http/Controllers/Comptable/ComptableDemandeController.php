@@ -11,6 +11,7 @@ use App\Models\Naissance;
 use App\Models\NaissanceGroupe;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Timbre;
 
 class ComptableDemandeController extends Controller
@@ -41,74 +42,30 @@ class ComptableDemandeController extends Controller
             return $item;
         };
 
-        // Mappers pour les demandes groupées
-        $mapNaissanceGroupe = function ($item) {
-            $item->type_demande  = 'naissance_groupe';
-            $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
-            $item->contact       = $item->user->contact ?? '';
-            $item->quantite      = (int)$item->qty_simple + (int)$item->qty_integral;
-            return $item;
-        };
 
-        $mapDecesGroupe = function ($item) {
-            $item->type_demande  = 'deces_groupe';
-            $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
-            $item->contact       = $item->user->contact ?? '';
-            $item->quantite      = (int)$item->qty_simple + (int)$item->qty_integral;
-            return $item;
-        };
-
-        $mapMariageGroupe = function ($item) {
-            $item->type_demande  = 'mariage_groupe';
-            $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
-            $item->contact       = $item->user->contact ?? '';
-            $item->quantite      = (int)$item->qty_simple + (int)$item->qty_integral;
-            return $item;
-        };
-
-        // Filtre : Livraison OU (Retrait sur place + is_free_request)
-        // Utilise LOWER() pour être insensible à la casse (mobile envoie minuscules, web envoie capitalisé)
+        // Filtre : Livraison OU Retrait sur place / Retrait (toutes les demandes en ligne)
+        // Utilise LOWER() pour être insensible à la casse
         $filterRequests = function ($query) {
-            $query->whereRaw('LOWER(choix_option) = ?', ['livraison'])
-                ->orWhere(function ($q) {
-                    $q->whereRaw('LOWER(choix_option) IN (?, ?)', ['retrait sur place', 'retrait'])
-                        ->where('is_free_request', 1);
-                });
+            $query->whereIn(DB::raw('LOWER(choix_option)'), ['livraison', 'retrait sur place', 'retrait'])
+                ->orWhereNull('choix_option');
         };
 
         $naissances = Naissance::where('commune', $commune)
             ->where($filterRequests)
-            ->where('etat', 'terminé')
+            ->paye()
             ->get()->map($mapNaissance);
 
         $deces = Deces::where('commune', $commune)
             ->where($filterRequests)
-            ->where('etat', 'terminé')
+            ->paye()
             ->get()->map($mapDeces);
 
         $mariages = Mariage::where('commune', $commune)
             ->where($filterRequests)
-            ->where('etat', 'terminé')
+            ->paye()
             ->get()->map($mapMariage);
 
-        // Demandes groupées
-        $naissancesGroupes = NaissanceGroupe::where('commune', $commune)
-            ->where($filterRequests)
-            ->where('etat', 'terminé')
-            ->get()->map($mapNaissanceGroupe);
-
-        $decesGroupes = DecesGroupe::where('commune', $commune)
-            ->where($filterRequests)
-            ->where('etat', 'terminé')
-            ->get()->map($mapDecesGroupe);
-
-        $mariagesGroupes = MariageGroupe::where('commune', $commune)
-            ->where($filterRequests)
-            ->where('etat', 'terminé')
-            ->get()->map($mapMariageGroupe);
-
-        $all = $naissances->concat($deces)->concat($mariages)
-            ->concat($naissancesGroupes)->concat($decesGroupes)->concat($mariagesGroupes);
+        $all = $naissances->concat($deces)->concat($mariages);
 
         // Toggle : séparation par timbre_recupere
         $demandesEnAttente = $all->where('timbre_recupere', 0)->sortByDesc('created_at')->values();

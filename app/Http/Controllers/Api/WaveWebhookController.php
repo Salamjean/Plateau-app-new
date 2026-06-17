@@ -59,32 +59,39 @@ class WaveWebhookController extends Controller
             return response()->json(['success' => false, 'message' => 'Client reference manquant'], 200);
         }
 
+        // Extraire la référence de base si modification
+        $baseReference = $clientReference;
+        $isModification = str_contains($clientReference, '-MOD-');
+        if ($isModification) {
+            $baseReference = explode('-MOD-', $clientReference)[0];
+        }
+
         // Identifier le type de demande à partir de la référence
         $demande = null;
         $type = null;
 
-        if (str_starts_with($clientReference, 'GRN')) {
-            $demande = NaissanceGroupe::where('reference', $clientReference)->first();
+        if (str_starts_with($baseReference, 'GRN')) {
+            $demande = NaissanceGroupe::where('reference', $baseReference)->first();
             $type = 'naissance_groupe';
-        } elseif (str_starts_with($clientReference, 'GRM')) {
-            $demande = MariageGroupe::where('reference', $clientReference)->first();
+        } elseif (str_starts_with($baseReference, 'GRM')) {
+            $demande = MariageGroupe::where('reference', $baseReference)->first();
             $type = 'mariage_groupe';
-        } elseif (str_starts_with($clientReference, 'GRD')) {
-            $demande = DecesGroupe::where('reference', $clientReference)->first();
+        } elseif (str_starts_with($baseReference, 'GRD')) {
+            $demande = DecesGroupe::where('reference', $baseReference)->first();
             $type = 'deces_groupe';
-        } elseif (str_starts_with($clientReference, 'AN')) {
-            $demande = Naissance::where('reference', $clientReference)->first();
+        } elseif (str_starts_with($baseReference, 'AN')) {
+            $demande = Naissance::where('reference', $baseReference)->first();
             $type = 'naissance';
-        } elseif (str_starts_with($clientReference, 'AM')) {
-            $demande = Mariage::where('reference', $clientReference)->first();
+        } elseif (str_starts_with($baseReference, 'AM')) {
+            $demande = Mariage::where('reference', $baseReference)->first();
             $type = 'mariage';
-        } elseif (str_starts_with($clientReference, 'AD')) {
-            $demande = Deces::where('reference', $clientReference)->first();
+        } elseif (str_starts_with($baseReference, 'AD')) {
+            $demande = Deces::where('reference', $baseReference)->first();
             $type = 'deces';
         }
 
         if (!$demande) {
-            Log::warning("Webhook Wave: Aucune demande trouvée pour la référence {$clientReference}");
+            Log::warning("Webhook Wave: Aucune demande trouvée pour la référence {$clientReference} (base: {$baseReference})");
             return response()->json(['success' => true, 'message' => 'Demande non trouvée'], 200);
         }
 
@@ -132,16 +139,62 @@ class WaveWebhookController extends Controller
     private function processPaymentSuccess($demande, $type, $checkoutData, $rawBody): JsonResponse
     {
         try {
+            $clientReference = $checkoutData['client_reference'] ?? null;
+            $isModification = str_contains((string) $clientReference, '-MOD-');
+            $amount = isset($checkoutData['amount']) ? (float)$checkoutData['amount'] : 0;
+            $isGroupe = in_array($type, ['naissance_groupe', 'mariage_groupe', 'deces_groupe'], true);
+
+            $partTimbre = 0;
+            $partLivraison = 0;
+
+            if ($isModification) {
+                $dejaPayeTimbre = Paiement::where("{$type}_id", $demande->id)
+                    ->where('status', 'ACCEPTED')
+                    ->where('transaction_id', '!=', $clientReference)
+                    ->get()
+                    ->sum(function ($p) {
+                        return (float) ($p->raw_response['part_timbre'] ?? 0);
+                    });
+
+                $dejaPayeLivraison = Paiement::where("{$type}_id", $demande->id)
+                    ->where('status', 'ACCEPTED')
+                    ->where('transaction_id', '!=', $clientReference)
+                    ->get()
+                    ->sum(function ($p) {
+                        return (float) ($p->raw_response['part_livraison'] ?? 0);
+                    });
+
+                $cacheKey = 'pending_delivery_update_' . $demande->reference;
+                if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                    $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+                    $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
+
+                    $partLivraison = max(0.0, $nouveauMontantLivraison - $dejaPayeLivraison);
+                    $partTimbre = max(0.0, $amount - $partLivraison);
+                } else {
+                    $partTimbre = $amount;
+                    $partLivraison = 0.0;
+                }
+            } else {
+                $partTimbre = $isGroupe ? $amount : (float) ($demande->montant_timbre ?? 0);
+                $partLivraison = $isGroupe ? 0 : (float) ($demande->montant_livraison ?? 0);
+            }
+
+            $rawResponse = is_array($rawBody) ? $rawBody : [];
+            $rawResponse['part_timbre'] = $partTimbre;
+            $rawResponse['part_livraison'] = $partLivraison;
+            $rawResponse['is_modification'] = $isModification;
+
             // 1. Enregistrer le paiement
             $paiementData = [
                 'user_id' => $demande->user_id,
-                'transaction_id' => $checkoutData['client_reference'],
+                'transaction_id' => $clientReference,
                 'operator_id' => $checkoutData['id'],
-                'montant' => $checkoutData['amount'] ?? null,
+                'montant' => $amount,
                 'currency' => $checkoutData['currency'] ?? 'XOF',
                 'status' => 'ACCEPTED',
                 'paid_at' => isset($checkoutData['when_completed']) ? Carbon::parse($checkoutData['when_completed']) : now(),
-                'raw_response' => $rawBody,
+                'raw_response' => $rawResponse,
             ];
 
             // Associer l'ID de la demande selon le type
@@ -183,13 +236,13 @@ class WaveWebhookController extends Controller
             try {
                 $user = User::find($demande->user_id);
                 $montantTimbre = (int) ($demande->montant_timbre ?? 500);
-                
+
                 if ($montantTimbre > 0 && $user) {
                     $tresorPayService = app(\App\Services\TresorPayService::class);
                     $telephone = $user->contact;
                     $nom = $user->name ?? 'Client';
                     $referencePaiement = 'TP-AUTO-' . $demande->reference;
-                    
+
                     Log::info("Déclenchement du reversement automatique TrésorPay pour {$demande->reference}. Montant: {$montantTimbre}");
                     $tresorPayService->initierReversementDirect(
                         $telephone,
@@ -213,7 +266,6 @@ class WaveWebhookController extends Controller
             }
 
             return response()->json(['success' => true, 'message' => 'Paiement traité avec succès'], 200);
-
         } catch (\Exception $e) {
             Log::error("Erreur lors du traitement du paiement Wave pour {$demande->reference}: " . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Erreur interne de traitement'], 500);
@@ -229,13 +281,13 @@ class WaveWebhookController extends Controller
             $yellikaSmsService = app(YellikaSmsService::class);
             $phoneNumber = $user->indicatif . $user->contact;
             $typeLabel = ucfirst($type);
-            
+
             $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de {$type} a été confirmé. Référence : {$demande->reference}. Votre demande est maintenant en attente de traitement.";
-            
+
             $yellikaSmsService->sendSms($phoneNumber, $message);
 
             // Envoi de l'email
-            $notificationClass = match($type) {
+            $notificationClass = match ($type) {
                 'naissance' => DemandeNaissanceConfirmationNotification::class,
                 'mariage' => DemandeMariageConfirmationNotification::class,
                 'deces' => DemandeDecesConfirmationNotification::class,
@@ -245,7 +297,6 @@ class WaveWebhookController extends Controller
             if ($notificationClass) {
                 Notification::send($user, new $notificationClass($user, $demande));
             }
-            
         } catch (\Exception $e) {
             Log::error("Erreur notifications Webhook Wave: " . $e->getMessage());
         }

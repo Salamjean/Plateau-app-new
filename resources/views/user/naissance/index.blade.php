@@ -558,6 +558,11 @@
                 champsAModifier = ['name', 'prenom', 'number', 'DateR', 'type', 'quantite', 'CNI', 'commune'];
             }
 
+            // On s'assure que la quantité est toujours sélectionnable/modifiable pour calculer la différence
+            if (!champsAModifier.includes('quantite')) {
+                champsAModifier.push('quantite');
+            }
+
             const fieldLabels = {
                 'name': 'Nom',
                 'prenom': 'Prénoms',
@@ -578,7 +583,8 @@
                 } else if (text.includes('Commentaire additionnel:')) {
                     motifAffichage = text.split('Commentaire additionnel:')[1].trim();
                 } else {
-                    text = text.replace(/Les champs suivants contiennent des informations incorrectes ou incomplètes\s*:?/gi, '');
+                    text = text.replace(
+                        /Les champs suivants contiennent des informations incorrectes ou incomplètes\s*:?/gi, '');
                     const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('•'));
                     motifAffichage = lines.join('\n').trim();
                 }
@@ -617,8 +623,8 @@
 
             // Ajouter les champs non modifiés en tant que champs cachés pour éviter qu'ils soient écrasés ou qu'ils échouent la validation
             const allPossibleFields = [
-                'pour', 'type', 'name', 'prenom', 'commune', 'commune_naissance', 
-                'number', 'DateR', 'nom_prenoms_pere', 'nom_prenoms_mere', 
+                'pour', 'type', 'name', 'prenom', 'commune', 'commune_naissance',
+                'number', 'DateR', 'nom_prenoms_pere', 'nom_prenoms_mere',
                 'relation', 'qty_simple', 'qty_integral', 'quantite', 'choix_option'
             ];
 
@@ -627,13 +633,40 @@
                     if (field === 'qty_simple' || field === 'qty_integral') {
                         if (champsAModifier.includes('quantite')) return;
                     }
-                    if (field === 'quantite' && (champsAModifier.includes('qty_simple') || champsAModifier.includes('qty_integral'))) return;
+                    if (field === 'quantite' && (champsAModifier.includes('qty_simple') || champsAModifier.includes(
+                            'qty_integral'))) return;
 
                     let val = demande[field] !== null && demande[field] !== undefined ? demande[field] : '';
                     if (field === 'DateR' && val) val = new Date(val).toISOString().split('T')[0];
                     formHtml += `<input type="hidden" name="${field}" value="${val}">`;
                 }
             });
+
+            formHtml += `
+            <div id="payment-section-modification" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e0;">
+                <div style="background: #ebf8ff; border: 1px solid #bee3f8; padding: 12px; border-radius: 8px; margin-bottom: 12px; color: #2b6cb0;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem;">
+                        <span>Reste à payer :</span>
+                        <span id="modification-reste-payer-text">0 FCFA</span>
+                    </div>
+                </div>
+                
+                <h5 style="font-size: 0.85rem; font-weight: bold; color: #1f4083; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">💳 Moyen de paiement</h5>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                    <button type="button" id="btn-mod-pay-wave" class="payment-mod-method-btn" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 25px; object-fit: contain;">
+                    </button>
+                    <button type="button" id="btn-mod-pay-mtn" class="payment-mod-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 25px; object-fit: contain;">
+                    </button>
+                </div>
+                <input type="hidden" name="payment_method" id="mod-payment_method" value="wave">
+                <div id="mod-payment-phone-container" style="display: none; margin-top: 8px; text-align: left;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #4a5568; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN Money</label>
+                    <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || demande.number || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                </div>
+            </div>
+            `;
 
             formHtml += `</form>`;
 
@@ -644,16 +677,82 @@
                 confirmButtonText: 'Enregistrer',
                 confirmButtonColor: '#1f4083',
                 cancelButtonText: 'Annuler',
+                didOpen: (dom) => {
+                    const qtyInput = dom.querySelector('[name="quantite"]');
+                    const typeSelect = dom.querySelector('[name="type"]');
+                    const optionInput = dom.querySelector('[name="choix_option"]');
+                    const paymentSection = dom.querySelector('#payment-section-modification');
+                    const restePayerText = dom.querySelector('#modification-reste-payer-text');
+                    const btnWave = dom.querySelector('#btn-mod-pay-wave');
+                    const btnMtn = dom.querySelector('#btn-mod-pay-mtn');
+                    const inputPaymentMethod = dom.querySelector('#mod-payment_method');
+                    const phoneContainer = dom.querySelector('#mod-payment-phone-container');
+
+                    if (btnWave && btnMtn) {
+                        btnWave.addEventListener('click', () => {
+                            btnWave.style.background = '#eff6ff';
+                            btnWave.style.border = '2px solid #1e3a8a';
+                            btnMtn.style.background = 'white';
+                            btnMtn.style.border = '1px solid #edf2f7';
+                            inputPaymentMethod.value = 'wave';
+                            phoneContainer.style.display = 'none';
+                        });
+
+                        btnMtn.addEventListener('click', () => {
+                            btnMtn.style.background = '#eff6ff';
+                            btnMtn.style.border = '2px solid #1e3a8a';
+                            btnWave.style.background = 'white';
+                            btnWave.style.border = '1px solid #edf2f7';
+                            inputPaymentMethod.value = 'mtn';
+                            phoneContainer.style.display = 'block';
+                        });
+                    }
+
+                    const isDejaPaye = !['non_paye', 'paiement_en_attente', 'en attente de paiement'].includes(
+                        demande.etat);
+                    const ancienMontantPaye = isDejaPaye ? (parseFloat(demande.montant_timbre || 0) +
+                        parseFloat(demande.montant_livraison || 0)) : 0;
+                    const quantiteInitiale = parseInt(demande.quantite) || 1;
+                    const freeCountInitial = parseInt(demande.free_timbres_count) || 0;
+
+                    function updateCalcul() {
+                        const nouvelleQuantite = qtyInput ? (parseInt(qtyInput.value) || 1) : quantiteInitiale;
+                        const nouvelleOption = optionInput ? optionInput.value : (demande.choix_option ||
+                            'Retrait sur place');
+
+                        const nouveauMontantTimbres = Math.max(0, nouvelleQuantite - freeCountInitial) * 500;
+                        const nouveauMontantLivraison = (nouvelleOption === 'livraison') ? (parseFloat(demande
+                            .montant_livraison) || 1000) : 0;
+
+                        const nouveauMontantTotal = nouveauMontantTimbres + nouveauMontantLivraison;
+                        const resteAPayer = Math.max(0, nouveauMontantTotal - ancienMontantPaye);
+
+                        if (resteAPayer > 0) {
+                            restePayerText.innerText = resteAPayer + ' FCFA';
+                            paymentSection.style.display = 'block';
+                            Swal.getConfirmButton().innerText = 'Enregistrer & Payer (' + resteAPayer + ' F)';
+                        } else {
+                            paymentSection.style.display = 'none';
+                            Swal.getConfirmButton().innerText = 'Enregistrer';
+                        }
+                    }
+
+                    if (qtyInput) qtyInput.addEventListener('input', updateCalcul);
+                    if (typeSelect) typeSelect.addEventListener('change', updateCalcul);
+                    if (optionInput) optionInput.addEventListener('change', updateCalcul);
+
+                    updateCalcul();
+                },
                 preConfirm: () => {
                     const form = document.getElementById('modificationForm');
                     const formData = new FormData(form);
-                    
+
                     const quantiteInput = form.querySelector('input[name="quantite"]');
                     if (quantiteInput) {
                         const typeInput = form.querySelector('[name="type"]');
                         const typeVal = typeInput ? typeInput.value : (demande.type || 'simple');
                         const qtyVal = parseInt(quantiteInput.value) || 1;
-                        
+
                         if (typeVal === 'simple') {
                             formData.set('qty_simple', qtyVal);
                             formData.set('qty_integral', 0);
@@ -674,6 +773,19 @@
                             }
                         }
                     }
+
+                    const paymentMethodInput = form.querySelector('#mod-payment_method');
+                    if (paymentMethodInput && paymentMethodInput.value === 'mtn') {
+                        const mtnNumberInput = form.querySelector('#mod-mtn_number');
+                        const mtnVal = mtnNumberInput ? mtnNumberInput.value.replace(/\s+/g, '') : '';
+                        if (!/^\d{10}$/.test(mtnVal)) {
+                            Swal.showValidationMessage(
+                                'Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
+                            return false;
+                        }
+                        formData.set('mtn_number', mtnVal);
+                    }
+
                     return formData;
                 }
             }).then((result) => {
@@ -692,7 +804,9 @@
                         })
                         .then(r => {
                             if (!r.ok) {
-                                return r.json().then(err => { throw err; });
+                                return r.json().then(err => {
+                                    throw err;
+                                });
                             }
                             return r.json();
                         })
@@ -709,7 +823,8 @@
                         })
                         .catch(err => {
                             Swal.close();
-                            const msg = err.message || (err.errors ? Object.values(err.errors).flat().join('<br>') : 'Une erreur de communication est survenue.');
+                            const msg = err.message || (err.errors ? Object.values(err.errors).flat().join(
+                                '<br>') : 'Une erreur de communication est survenue.');
                             Swal.fire('Erreur', msg, 'error');
                         });
                 }

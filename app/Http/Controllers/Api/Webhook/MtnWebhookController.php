@@ -30,7 +30,7 @@ class MtnWebhookController extends Controller
 
         // MTN sends the reference ID, status, and other transaction details
         $statusInfo = $request->all();
-        
+
         $mtnRef = $statusInfo['referenceId'] ?? null;
         $status = $statusInfo['status'] ?? null;
         $externalId = $statusInfo['externalId'] ?? null; // This is our internal reference (e.g. AN...)
@@ -45,7 +45,6 @@ class MtnWebhookController extends Controller
 
             // Process payment completion
             $this->processSuccessfulPayment($externalId, $statusInfo);
-
         } elseif ($status === 'FAILED') {
             Log::warning("MTN Webhook: Transaction $externalId failed");
             // Optionally handle failed transaction logic here based on externalId
@@ -64,24 +63,68 @@ class MtnWebhookController extends Controller
             return;
         }
 
+        // Extraire la référence de base si modification
+        $baseReference = $reference;
+        $isModification = str_contains($reference, '-MOD-');
+        if ($isModification) {
+            $baseReference = explode('-MOD-', $reference)[0];
+        }
+
         // Determine request type
         $type = null;
         $demande = null;
-        if (str_starts_with($reference, 'AN')) {
+        if (str_starts_with($baseReference, 'AN')) {
             $type = 'naissance';
-            $demande = Naissance::where('reference', $reference)->first();
-        } elseif (str_starts_with($reference, 'AM')) {
+            $demande = Naissance::where('reference', $baseReference)->first();
+        } elseif (str_starts_with($baseReference, 'AM')) {
             $type = 'mariage';
-            $demande = Mariage::where('reference', $reference)->first();
-        } elseif (str_starts_with($reference, 'AD')) {
+            $demande = Mariage::where('reference', $baseReference)->first();
+        } elseif (str_starts_with($baseReference, 'AD')) {
             $type = 'deces';
-            $demande = Deces::where('reference', $reference)->first();
+            $demande = Deces::where('reference', $baseReference)->first();
         }
 
         if ($demande) {
             // MTN returns amount and currency
             $amount = isset($statusInfo['amount']) ? (float)$statusInfo['amount'] : 0;
-            
+
+            // Calculer la part timbre et part livraison de cette transaction
+            $partTimbre = 0;
+            $partLivraison = 0;
+
+            if ($isModification) {
+                $dejaPayeTimbre = Paiement::where("{$type}_id", $demande->id)
+                    ->where('status', 'ACCEPTED')
+                    ->where('transaction_id', '!=', $reference)
+                    ->get()
+                    ->sum(function ($p) {
+                        return (float) ($p->raw_response['part_timbre'] ?? 0);
+                    });
+
+                $dejaPayeLivraison = Paiement::where("{$type}_id", $demande->id)
+                    ->where('status', 'ACCEPTED')
+                    ->where('transaction_id', '!=', $reference)
+                    ->get()
+                    ->sum(function ($p) {
+                        return (float) ($p->raw_response['part_livraison'] ?? 0);
+                    });
+
+                $cacheKey = 'pending_delivery_update_' . $demande->reference;
+                if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                    $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+                    $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
+
+                    $partLivraison = max(0.0, $nouveauMontantLivraison - $dejaPayeLivraison);
+                    $partTimbre = max(0.0, $amount - $partLivraison);
+                } else {
+                    $partTimbre = $amount;
+                    $partLivraison = 0.0;
+                }
+            } else {
+                $partTimbre = (float) ($demande->montant_timbre ?? 0);
+                $partLivraison = (float) ($demande->montant_livraison ?? 0);
+            }
+
             Paiement::create([
                 'user_id' => $demande->user_id,
                 'transaction_id' => $reference,
@@ -91,6 +134,12 @@ class MtnWebhookController extends Controller
                 'status' => 'ACCEPTED',
                 'paid_at' => now(),
                 "{$type}_id" => $demande->id,
+                'raw_response' => [
+                    'part_timbre' => $partTimbre,
+                    'part_livraison' => $partLivraison,
+                    'is_modification' => $isModification,
+                    'mtn_status_info' => $statusInfo
+                ]
             ]);
 
             $this->applyPendingDeliveryUpdate($demande);
@@ -132,7 +181,7 @@ class MtnWebhookController extends Controller
             $yellikaSmsService->sendSms($phoneNumber, $message);
 
             // Envoi email
-            $notificationClass = match($type) {
+            $notificationClass = match ($type) {
                 'naissance' => DemandeNaissanceConfirmationNotification::class,
                 'mariage'   => DemandeMariageConfirmationNotification::class,
                 'deces'     => DemandeDecesConfirmationNotification::class,
@@ -144,7 +193,6 @@ class MtnWebhookController extends Controller
             }
 
             Log::info("MTN Webhook: SMS + email envoyés pour {$demande->reference}");
-
         } catch (\Exception $e) {
             Log::error("Erreur notifications Webhook MTN pour {$demande->reference}: " . $e->getMessage());
         }

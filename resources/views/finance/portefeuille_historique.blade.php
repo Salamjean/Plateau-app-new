@@ -11,6 +11,7 @@
             margin: 0;
             padding: 2.5rem;
         }
+
         :root {
             --primary: #1f4083;
             --accent-gold: #d4af37;
@@ -29,6 +30,7 @@
                 opacity: 0;
                 transform: translateY(25px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -131,7 +133,8 @@
             <div class="d-flex justify-content-between align-items-center mb-4 animate-up" style="animation-delay: 0.1s;">
                 <div>
                     <h2 class="fw-bold text-dark mb-1"><i class="fas fa-history text-primary me-2"></i>Historique Complet</h2>
-                    <p class="text-muted mb-0">Visualisez toutes les demandes transférées de votre portefeuille vers le Trésor Public.</p>
+                    <p class="text-muted mb-0">Visualisez toutes les demandes transférées de votre portefeuille vers le
+                        Trésor Public.</p>
                 </div>
                 <div>
                     <a href="{{ route('finance.portefeuille.index') }}" class="btn back-btn">
@@ -142,54 +145,64 @@
 
             <!-- Historique unifié des Transactions -->
             <div class="table-container animate-up" style="animation-delay: 0.2s;">
-                <div class="table-header p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3" style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
-                     <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i>Toutes les Demandes Transférées</h5>
-                     <div class="d-flex align-items-center gap-3 flex-wrap">
-                         <!-- Filtre par mois -->
-                         <form method="GET" action="{{ url()->current() }}" class="d-flex align-items-center" id="filterForm">
-                             <div class="input-group">
-                                 <span class="input-group-text bg-white text-primary border-0 rounded-start-pill ps-3 pe-2">
-                                     <i class="fas fa-filter text-muted"></i>
-                                 </span>
-                                 <select name="month" class="form-select border-0 rounded-end-pill pe-4 ps-2 fw-semibold text-primary" style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 160px; font-size: 0.9rem;" onchange="this.form.submit()">
-                                     <option value="" class="text-dark">Tous les mois</option>
-                                     @foreach($availableMonths as $month)
-                                         @php
-                                             $carbonDate = \Carbon\Carbon::createFromFormat('Y-m', $month);
-                                             $monthLabel = ucwords($carbonDate->translatedFormat('F Y'));
-                                         @endphp
-                                         <option value="{{ $month }}" {{ request('month') == $month ? 'selected' : '' }} class="text-dark">
-                                             {{ $monthLabel }}
-                                         </option>
-                                     @endforeach
-                                 </select>
-                             </div>
-                         </form>
+                <div class="table-header p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3"
+                    style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i>Tous les Timbres Transférés</h5>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <!-- Filtre par mois -->
+                        <form method="GET" action="{{ url()->current() }}" class="d-flex align-items-center"
+                            id="filterForm">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-primary border-0 rounded-start-pill ps-3 pe-2">
+                                    <i class="fas fa-filter text-muted"></i>
+                                </span>
+                                <select name="month"
+                                    class="form-select border-0 rounded-end-pill pe-4 ps-2 fw-semibold text-primary"
+                                    style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 160px; font-size: 0.9rem;"
+                                    onchange="this.form.submit()">
+                                    <option value="" class="text-dark">Tous les mois</option>
+                                    @foreach ($availableMonths as $month)
+                                        @php
+                                            $carbonDate = \Carbon\Carbon::createFromFormat('Y-m', $month);
+                                            $monthLabel = ucwords($carbonDate->translatedFormat('F Y'));
+                                        @endphp
+                                        <option value="{{ $month }}"
+                                            {{ request('month') == $month ? 'selected' : '' }} class="text-dark">
+                                            {{ $monthLabel }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </form>
 
-                         <!-- Export PDF par année -->
-                         <form method="GET" action="{{ route('finance.portefeuille.export_pdf') }}" class="d-flex align-items-center" target="_blank">
-                             <div class="input-group">
-                                 <span class="input-group-text bg-white text-danger border-0 rounded-start-pill ps-3 pe-2">
-                                     <i class="fas fa-file-pdf"></i>
-                                 </span>
-                                 <select name="year" class="form-select border-0 pe-4 ps-2 fw-semibold text-danger" style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 100px; font-size: 0.9rem;">
-                                     @forelse($availableYears as $year)
-                                         <option value="{{ $year }}" class="text-dark">{{ $year }}</option>
-                                     @empty
-                                         <option value="{{ date('Y') }}" class="text-dark">{{ date('Y') }}</option>
-                                     @endforelse
-                                 </select>
-                                 <button type="submit" class="btn btn-danger border-0 rounded-end-pill px-3 fw-bold" style="height: 38px; font-size: 0.85rem;">
-                                     Exporter PDF
-                                 </button>
-                             </div>
-                         </form>
+                        <!-- Export PDF par année -->
+                        <form method="GET" action="{{ route('finance.portefeuille.export_pdf') }}"
+                            class="d-flex align-items-center" target="_blank">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-danger border-0 rounded-start-pill ps-3 pe-2">
+                                    <i class="fas fa-file-pdf"></i>
+                                </span>
+                                <select name="year" class="form-select border-0 pe-4 ps-2 fw-semibold text-danger"
+                                    style="height: 38px; outline: none; box-shadow: none; cursor: pointer; min-width: 100px; font-size: 0.9rem;">
+                                    @forelse($availableYears as $year)
+                                        <option value="{{ $year }}" class="text-dark">{{ $year }}</option>
+                                    @empty
+                                        <option value="{{ date('Y') }}" class="text-dark">{{ date('Y') }}</option>
+                                    @endforelse
+                                </select>
+                                <button type="submit" class="btn btn-danger border-0 rounded-end-pill px-3 fw-bold"
+                                    style="height: 38px; font-size: 0.85rem;">
+                                    Exporter PDF
+                                </button>
+                            </div>
+                        </form>
 
-                         <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold" style="font-size: 0.85rem; height: 38px; display: inline-flex; align-items: center;">
-                             {{ $transactions->total() }} Transactions au total
-                         </span>
-                     </div>
-                 </div>
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold"
+                            style="font-size: 0.85rem; height: 38px; display: inline-flex; align-items: center;">
+                            {{ $transactions->total() }} Transactions au total
+                        </span>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 text-center">
                         <thead class="bg-light">
@@ -197,7 +210,7 @@
                                 <th class="py-3 text-secondary text-center">DATE & HEURE</th>
                                 <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
                                 <th class="py-3 text-secondary text-center">DESTINATAIRE (TRÉSORPAY)</th>
-                                <th class="py-3 text-secondary text-center">MONTANT</th>
+                                <th class="py-3 text-secondary text-center">MONTANT TIMBRE</th>
                                 <th class="py-3 text-secondary text-center">STATUT</th>
                             </tr>
                         </thead>
@@ -210,7 +223,8 @@
                                                 <i class="fas fa-calendar-days text-muted"></i>
                                             </div>
                                             <div class="text-center">
-                                                <span class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
+                                                <span
+                                                    class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
                                                 <small class="text-muted">{{ $t->date->format('H:i') }}</small>
                                             </div>
                                         </div>
@@ -238,7 +252,8 @@
                                         <div class="py-4 text-center">
                                             <i class="fas fa-receipt fa-3x text-light mb-3"></i>
                                             <h5 class="text-muted">Aucun transfert effectué</h5>
-                                            <p class="text-muted small mb-0">Les transferts vers TrésorPay s'afficheront ici en temps réel au fil des paiements des citoyens.</p>
+                                            <p class="text-muted small mb-0">Les transferts vers TrésorPay s'afficheront ici
+                                                en temps réel au fil des paiements des citoyens.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -260,7 +275,9 @@
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $transactions->appends(request()->query())->previousPageUrl() }}" rel="prev"><i class="fas fa-chevron-left"></i></a>
+                                    <a class="page-link"
+                                        href="{{ $transactions->appends(request()->query())->previousPageUrl() }}"
+                                        rel="prev"><i class="fas fa-chevron-left"></i></a>
                                 </li>
                             @endif
 
@@ -280,7 +297,9 @@
                             {{-- Bouton Page Suivante --}}
                             @if ($transactions->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $transactions->appends(request()->query())->nextPageUrl() }}" rel="next"><i class="fas fa-chevron-right"></i></a>
+                                    <a class="page-link"
+                                        href="{{ $transactions->appends(request()->query())->nextPageUrl() }}"
+                                        rel="next"><i class="fas fa-chevron-right"></i></a>
                                 </li>
                             @else
                                 <li class="page-item disabled" aria-disabled="true">

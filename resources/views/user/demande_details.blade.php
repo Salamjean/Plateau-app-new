@@ -503,7 +503,7 @@
                                 importante</span>
                         </div>
                         <p class="x-small text-muted leading-relaxed mb-0" style="font-size: 0.75rem;">
-                            Le délai de traitement standard est de 4 heures après validation de votre paiement.
+                            Le délai de traitement standard est de 3 heures après validation de votre paiement.
                         </p>
                     </div>
                 </div>

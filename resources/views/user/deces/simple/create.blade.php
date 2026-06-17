@@ -843,7 +843,8 @@
 
                         <div class="type-cards-grid">
                             <label class="type-option-card">
-                                <input type="radio" name="type" value="simple" checked
+                                <input type="radio" name="type" value="simple"
+                                    {{ old('type', isset($deces) ? $deces->type : 'simple') === 'simple' ? 'checked' : '' }}
                                     onchange="onDecesTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-alt"></i>
@@ -852,7 +853,9 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="type" value="integrale" onchange="onDecesTypeChange(this)">
+                                <input type="radio" name="type" value="integrale"
+                                    {{ old('type', isset($deces) ? $deces->type : '') === 'integrale' ? 'checked' : '' }}
+                                    onchange="onDecesTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-contract"></i>
                                     <h6>Copie intégrale</h6>
@@ -860,7 +863,9 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="type" value="groupee" onchange="onDecesTypeChange(this)">
+                                <input type="radio" name="type" value="groupee"
+                                    {{ old('type', isset($deces) ? $deces->type : '') === 'groupee' ? 'checked' : '' }}
+                                    onchange="onDecesTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-copy"></i>
                                     <h6>Simple + Intégrale</h6>
@@ -903,10 +908,11 @@
                             <div class="qty-section-label" id="qty-label-deces-section"><i class="fas fa-copy"
                                     style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?</div>
                             @php
-                                $isDeliveryDisabled = isset($deces) && $deces->choix_option === 'livraison';
+                                $isDeliveryDisabled = false;
                             @endphp
                             <div class="quantity-cards-row single-card" id="qty-row-deces">
-                                <div class="quantity-card has-value" id="qty-card-deces" @if($isDeliveryDisabled) style="pointer-events: none; opacity: 0.6;" @endif>
+                                <div class="quantity-card has-value" id="qty-card-deces"
+                                    @if ($isDeliveryDisabled) style="pointer-events: none; opacity: 0.6;" @endif>
                                     <div class="quantity-card-header">
                                         <div class="quantity-card-title">
                                             <div
@@ -916,16 +922,32 @@
                                             <span>Copie simple</span>
                                         </div>
                                         <div class="qty-stepper">
+                                            @php
+                                                $orig_min_simple =
+                                                    isset($deces) && $deces->qty_simple > 0
+                                                        ? (int) $deces->qty_simple
+                                                        : 1;
+                                                $current_val_simple = old(
+                                                    'qty_simple',
+                                                    isset($deces) ? $deces->qty_simple : 1,
+                                                );
+                                                if ($current_val_simple < $orig_min_simple) {
+                                                    $current_val_simple = $orig_min_simple;
+                                                }
+                                            @endphp
                                             <button type="button" class="qty-btn" onclick="updateDQty(-1)"
-                                                id="dQtyMinus" disabled>-</button>
+                                                id="dQtyMinus"
+                                                {{ $current_val_simple > $orig_min_simple ? '' : 'disabled' }}>-</button>
                                             <input type="number" name="qty_simple" id="qty_simple" class="qty-input"
-                                                value="{{ old('qty_simple', isset($deces) ? $deces->qty_simple : 1) }}" min="1" max="20" readonly>
+                                                value="{{ $current_val_simple }}" min="{{ $orig_min_simple }}"
+                                                data-original-min="{{ $orig_min_simple }}" max="20" readonly>
                                             <button type="button" class="qty-btn" onclick="updateDQty(1)">+</button>
                                         </div>
                                     </div>
                                     <div class="quantity-card-meta">500 FCFA / exemplaire</div>
                                 </div>
-                                <div class="quantity-card" id="qty-card-deces-integral" style="display:none;{{ $isDeliveryDisabled ? ' pointer-events: none; opacity: 0.6;' : '' }}">
+                                <div class="quantity-card" id="qty-card-deces-integral"
+                                    style="display:none;{{ $isDeliveryDisabled ? ' pointer-events: none; opacity: 0.6;' : '' }}">
                                     <div class="quantity-card-header">
                                         <div class="quantity-card-title">
                                             <div
@@ -935,10 +957,26 @@
                                             <span>Copie intégrale</span>
                                         </div>
                                         <div class="qty-stepper">
+                                            @php
+                                                $orig_min_integral =
+                                                    isset($deces) && $deces->qty_integral > 0
+                                                        ? (int) $deces->qty_integral
+                                                        : 1;
+                                                $current_val_integral = old(
+                                                    'qty_integral',
+                                                    isset($deces) ? $deces->qty_integral : 1,
+                                                );
+                                                if ($current_val_integral < $orig_min_integral) {
+                                                    $current_val_integral = $orig_min_integral;
+                                                }
+                                            @endphp
                                             <button type="button" class="qty-btn" onclick="updateDIntQty(-1)"
-                                                id="dIntQtyMinus" disabled>-</button>
+                                                id="dIntQtyMinus"
+                                                {{ $current_val_integral > $orig_min_integral ? '' : 'disabled' }}>-</button>
                                             <input type="number" name="qty_integral" id="qty_integral"
-                                                class="qty-input" value="{{ old('qty_integral', isset($deces) ? $deces->qty_integral : 1) }}" min="1" max="20" readonly>
+                                                class="qty-input" value="{{ $current_val_integral }}"
+                                                min="{{ $orig_min_integral }}"
+                                                data-original-min="{{ $orig_min_integral }}" max="20" readonly>
                                             <button type="button" class="qty-btn" onclick="updateDIntQty(1)">+</button>
                                         </div>
                                     </div>
@@ -1299,6 +1337,10 @@
 
         function updateFields() {
             toggleRelationFields();
+            const initialTypeInput = document.querySelector('input[name="type"]:checked');
+            if (initialTypeInput) {
+                onDecesTypeChange(initialTypeInput);
+            }
         }
 
         function toggleMarriageDoc(show) {
@@ -1314,6 +1356,8 @@
             const cardSimple = document.getElementById('qty-card-deces');
             const cardInteg = document.getElementById('qty-card-deces-integral');
             const sectionLbl = document.getElementById('qty-label-deces-section');
+            const qtySimple = document.getElementById('qty_simple');
+            const qtyInteg = document.getElementById('qty_integral');
 
             if (input.value === 'groupee') {
                 cardSimple.style.display = '';
@@ -1323,6 +1367,27 @@
                 rowDeces.className = 'quantity-cards-row dual-card';
                 if (sectionLbl) sectionLbl.innerHTML =
                     '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies de chaque type ?';
+
+                if (qtySimple) {
+                    qtySimple.disabled = false;
+                    const origMin = parseInt(qtySimple.getAttribute('data-original-min')) || 1;
+                    qtySimple.min = origMin;
+                    if (parseInt(qtySimple.value) < origMin) qtySimple.value = origMin;
+                }
+                if (qtyInteg) {
+                    qtyInteg.disabled = false;
+                    const origMin = parseInt(qtyInteg.getAttribute('data-original-min')) || 1;
+                    qtyInteg.min = origMin;
+                    if (parseInt(qtyInteg.value) < origMin) qtyInteg.value = origMin;
+                }
+                if (document.getElementById('dQtyMinus') && qtySimple) {
+                    const origMin = parseInt(qtySimple.getAttribute('data-original-min')) || 1;
+                    document.getElementById('dQtyMinus').disabled = (parseInt(qtySimple.value) <= origMin);
+                }
+                if (document.getElementById('dIntQtyMinus') && qtyInteg) {
+                    const origMin = parseInt(qtyInteg.getAttribute('data-original-min')) || 1;
+                    document.getElementById('dIntQtyMinus').disabled = (parseInt(qtyInteg.value) <= origMin);
+                }
             } else if (input.value === 'integrale') {
                 cardSimple.style.display = 'none';
                 cardSimple.classList.remove('has-value');
@@ -1331,6 +1396,21 @@
                 rowDeces.className = 'quantity-cards-row single-card';
                 if (sectionLbl) sectionLbl.innerHTML =
                     '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?';
+
+                if (qtySimple) {
+                    qtySimple.disabled = true;
+                    qtySimple.value = 0;
+                }
+                if (qtyInteg) {
+                    qtyInteg.disabled = false;
+                    const origMin = parseInt(qtyInteg.getAttribute('data-original-min')) || 1;
+                    qtyInteg.min = origMin;
+                    if (parseInt(qtyInteg.value) < origMin) qtyInteg.value = origMin;
+                }
+                if (document.getElementById('dIntQtyMinus') && qtyInteg) {
+                    const origMin = parseInt(qtyInteg.getAttribute('data-original-min')) || 1;
+                    document.getElementById('dIntQtyMinus').disabled = (parseInt(qtyInteg.value) <= origMin);
+                }
             } else {
                 cardSimple.style.display = '';
                 cardSimple.classList.add('has-value');
@@ -1339,26 +1419,43 @@
                 rowDeces.className = 'quantity-cards-row single-card';
                 if (sectionLbl) sectionLbl.innerHTML =
                     '<i class="fas fa-copy" style="color:var(--primary);"></i> Combien de copies souhaitez-vous ?';
+
+                if (qtyInteg) {
+                    qtyInteg.disabled = true;
+                    qtyInteg.value = 0;
+                }
+                if (qtySimple) {
+                    qtySimple.disabled = false;
+                    const origMin = parseInt(qtySimple.getAttribute('data-original-min')) || 1;
+                    qtySimple.min = origMin;
+                    if (parseInt(qtySimple.value) < origMin) qtySimple.value = origMin;
+                }
+                if (document.getElementById('dQtyMinus') && qtySimple) {
+                    const origMin = parseInt(qtySimple.getAttribute('data-original-min')) || 1;
+                    document.getElementById('dQtyMinus').disabled = (parseInt(qtySimple.value) <= origMin);
+                }
             }
             toggleRelationFields();
         }
 
         function updateDQty(delta) {
             const input = document.getElementById('qty_simple');
-            let val = parseInt(input.value) || 1;
-            val = Math.max(1, Math.min(20, val + delta));
+            const minVal = parseInt(input.getAttribute('min')) || 1;
+            let val = parseInt(input.value) || minVal;
+            val = Math.max(minVal, Math.min(20, val + delta));
             input.value = val;
-            document.getElementById('dQtyMinus').disabled = val <= 1;
+            document.getElementById('dQtyMinus').disabled = val <= minVal;
             const card = document.getElementById('qty-card-deces');
             if (card) card.classList.toggle('has-value', val >= 1);
         }
 
         function updateDIntQty(delta) {
             const input = document.getElementById('qty_integral');
-            let val = parseInt(input.value) || 1;
-            val = Math.max(1, Math.min(20, val + delta));
+            const minVal = parseInt(input.getAttribute('min')) || 1;
+            let val = parseInt(input.value) || minVal;
+            val = Math.max(minVal, Math.min(20, val + delta));
             input.value = val;
-            document.getElementById('dIntQtyMinus').disabled = val <= 1;
+            document.getElementById('dIntQtyMinus').disabled = val <= minVal;
             const card = document.getElementById('qty-card-deces-integral');
             if (card) card.classList.toggle('has-value', val >= 1);
         }
@@ -1485,7 +1582,7 @@
                 const typeVal = document.querySelector('input[name="type"]:checked').value;
                 const qtySimple = parseInt(document.getElementById('qty_simple').value) || 0;
                 const qtyIntegal = parseInt(document.getElementById('qty_integral').value) || 0;
-                const totalTimbres = typeVal === 'simpleIntegrale' ? qtySimple + qtyIntegal :
+                const totalTimbres = typeVal === 'groupee' ? qtySimple + qtyIntegal :
                     typeVal === 'integrale' ? qtyIntegal : qtySimple;
 
                 let freeTimbres = 0;
@@ -1508,30 +1605,45 @@
                     montantAPayer: montantAPayer
                 };
 
+                // Ajouter le champ montant_a_payer au formulaire
+                let montantAPayerInput = document.querySelector('input[name="montant_a_payer"]');
+                if (!montantAPayerInput) {
+                    montantAPayerInput = document.createElement('input');
+                    montantAPayerInput.type = 'hidden';
+                    montantAPayerInput.name = 'montant_a_payer';
+                    this.appendChild(montantAPayerInput);
+                }
+                montantAPayerInput.value = montantAPayer;
+
                 if (livraisonCheckbox.checked) {
                     showLivraisonPopup();
+                } else if (montantTimbreTotal > 0) {
+                    showRetraitPaymentPopup();
                 } else {
-                    // Pour retrait sur place
+                    // Pour retrait sur place gratuit
                     const form = this;
                     const fields = [{
+                            name: 'choix_option',
+                            value: 'Retrait sur place'
+                        },
+                        {
                             name: 'montant_timbre',
-                            value: montantTimbreTotal
+                            value: 0
                         },
                         {
                             name: 'montant_livraison',
                             value: 0
-                        },
-                        {
-                            name: 'montant_a_payer',
-                            value: montantTimbreTotal
                         }
                     ];
                     fields.forEach(f => {
-                        let input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = f.name;
+                        let input = document.querySelector(`input[name="${f.name}"]`);
+                        if (!input) {
+                            input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = f.name;
+                            form.appendChild(input);
+                        }
                         input.value = f.value;
-                        form.appendChild(input);
                     });
                     formSubmitted = true;
                     form.submit();
@@ -1539,24 +1651,332 @@
             }
         });
 
+        function showRetraitPaymentPopup() {
+            // Récupérer les quantités selon le type
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const montantTimbreUnitaire = 500;
+
+            let qtySimple = parseInt(document.getElementById('qty_simple').value) || 0;
+            let qtyIntegral = parseInt(document.getElementById('qty_integral').value) || 0;
+            let totalTimbres = type === 'groupee' ? qtySimple + qtyIntegral :
+                type === 'integrale' ? qtyIntegral : qtySimple;
+
+            // Calcul des timbres gratuits (max 2 demandes gratuites)
+            let freeTimbres = 0;
+            const originalFreeTimbresCount = @json(isset($deces) ? (int) $deces->free_timbres_count : 0);
+            const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
+            const freeRequestsRemaining = @json($freeRequestsRemaining ?? 0);
+
+            // Les timbres gratuits déjà accordés restent acquis pour cette demande
+            freeTimbres = Math.min(totalTimbres, originalFreeTimbresCount);
+
+            // Si la nouvelle quantité dépasse ce qui était accordé, on complète avec le quota restant si disponible
+            if (totalTimbres > originalFreeTimbresCount && freeRequestsModeActive && freeRequestsRemaining > 0) {
+                const extraTimbres = totalTimbres - originalFreeTimbresCount;
+                freeTimbres += Math.min(extraTimbres, freeRequestsRemaining);
+            }
+            const freeAmount = freeTimbres * montantTimbreUnitaire;
+
+            const paidTimbres = totalTimbres - freeTimbres;
+            const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
+
+            // Déterminer s'il faut payer
+            const isEditMode = @json(isset($deces));
+            const originalMontantTimbre = @json(isset($deces) ? (float) $deces->montant_timbre : 0);
+            const originalMontantLivraison = @json(isset($deces) ? (float) $deces->montant_livraison : 0);
+            const ancienMontantPaye = isEditMode ? (originalMontantTimbre + originalMontantLivraison) : 0;
+            const resteAPayer = Math.max(0, montantTimbreTotal - ancienMontantPaye);
+            const needsPayment = resteAPayer > 0;
+            const finalTotalAmount = resteAPayer;
+
+            // Stocker globalement pour accès dans preConfirm
+            window.retraitData = {
+                montantTimbreTotal: montantTimbreTotal,
+                totalTimbres: totalTimbres,
+                needsPayment: needsPayment
+            };
+
+            let freeTimbresHtml = '';
+            let originalTimbreHtml = '';
+            let exemplaireText = '';
+
+            if (type === 'groupee') {
+                exemplaireText = `Simple: ${qtySimple}, Intégral: ${qtyIntegral}`;
+            } else if (type === 'simple') {
+                exemplaireText = `Simple: ${qtySimple}`;
+            } else if (type === 'integrale') {
+                exemplaireText = `Intégral: ${qtyIntegral}`;
+            }
+
+            if (freeTimbres > 0) {
+                originalTimbreHtml = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 0.85rem; text-decoration: line-through; color: #a0aec0;">
+                        <span>Timbres (x${totalTimbres}):</span>
+                        <span>${totalTimbres * montantTimbreUnitaire} FCFA</span>
+                    </div>
+                `;
+                freeTimbresHtml = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; color: #28a745; font-weight: bold;">
+                        <span><i class="fas fa-gift mr-1"></i> Timbres offerts (x${freeTimbres}):</span>
+                        <span>- ${freeAmount} FCFA</span>
+                    </div>
+                `;
+            }
+
+            let finalTimbreHtml = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
+                    <span style="color: #555;">Timbres payants (x${paidTimbres}):</span>
+                    <span style="font-weight: 700">${montantTimbreTotal} FCFA</span>
+                </div>
+            `;
+
+            Swal.fire({
+                title: '<div class="flex items-center justify-center p-2"><i class="fas fa-receipt text-primary mr-2"></i> <span style="font-size: 1.2rem; font-weight: 800; color: #1f4083;">RÉSUMÉ DU PAIEMENT</span></div>',
+                width: '450px',
+                html: `
+                    <div style="text-align: left; padding: 10px;">
+                        <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; border: 1px solid #cce3f6; margin-bottom: 15px;">
+                            <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #cce3f6; padding-bottom: 5px;">🧾 Détails de la demande</h4>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
+                                <span style="color: #555;">Option:</span>
+                                <span style="font-weight: 700; color: #2b6cb0;">Retrait sur place (Mairie)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem;">
+                                <span style="color: #555;">Exemplaires:</span>
+                                <span style="font-weight: 700">${exemplaireText}</span>
+                            </div>
+                            ${originalTimbreHtml}
+                            ${freeTimbresHtml}
+                            ${finalTimbreHtml}
+                            <div style="display: flex; justify-content: space-between; border-top: 2px dashed #b8d4ed; padding-top: 8px; margin-top: 8px;">
+                                <span style="color: #1f4083; font-weight: 800; font-size: 0.9rem;">TOTAL A PAYER:</span>
+                                <span style="color: #1f4083; font-weight: 800; font-size: 1.1rem;">${finalTotalAmount} FCFA</span>
+                            </div>
+                        </div>
+
+                        <div id="payment-section-container">
+                            ${!needsPayment ? `
+                                                <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
+                                                    <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
+                                                    <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
+                                                    La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
+                                                </div>
+                                                <input type="hidden" id="swal-payment_method" value="deja_paye">
+                                                <input type="hidden" id="swal-mtn_number" value="">
+                                            ` : `
+                                                <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Moyen de paiement</h4>
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                    <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-mtn" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('mtn')">
+                                                        <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                                        <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                </div>
+                                                <input type="hidden" id="swal-payment_method" value="wave">
+                                                <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
+                                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                                </div>
+                                            `}
+                        </div>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: needsPayment ? (isEditMode ? 'Enregistrer & Payer' : 'Payer') :
+                    'Enregistrer & Soumettre',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1f4083',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const payment_method = document.getElementById('swal-payment_method').value;
+                    const cleanContact = "{{ Auth::user()->contact }}".replace(/\s+/g, '');
+                    const payment_number = document.getElementById('swal-mtn_number') ? document.getElementById(
+                        'swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
+
+                    if (payment_method === 'mtn') {
+                        if (!/^\d{10}$/.test(payment_number)) {
+                            Swal.showValidationMessage(
+                                'Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
+                            return false;
+                        }
+                    }
+
+                    if (needsPayment) {
+                        window.PaymentPopup = window.open('', 'PaymentPopup');
+                    }
+
+                    return {
+                        nom_destinataire: null,
+                        prenom_destinataire: null,
+                        email_destinataire: null,
+                        contact_destinataire: null,
+                        adresse_livraison: null,
+                        ville: null,
+                        commune_livraison: null,
+                        quartier: null,
+                        date_livraison: null,
+                        heure_livraison: null,
+                        quantite: window.retraitData.totalTimbres,
+                        montant_timbre_unitaire: 500,
+                        montant_timbre: needsPayment ? window.retraitData.montantTimbreTotal : 0,
+                        montant_livraison: 0,
+                        payment_method: payment_method,
+                        mtn_number: payment_number
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = result.value;
+                    const form = document.getElementById('deathForm');
+
+                    // Créer des champs cachés
+                    const hiddenFields = [{
+                            name: 'choix_option',
+                            value: 'Retrait sur place'
+                        },
+                        {
+                            name: 'montant_timbre_unitaire',
+                            value: formData.montant_timbre_unitaire
+                        },
+                        {
+                            name: 'montant_timbre',
+                            value: formData.montant_timbre
+                        },
+                        {
+                            name: 'montant_livraison',
+                            value: 0
+                        },
+                        {
+                            name: 'montant_a_payer',
+                            value: formData.montant_timbre
+                        },
+                        {
+                            name: 'payment_method',
+                            value: formData.payment_method
+                        },
+                        {
+                            name: 'mtn_number',
+                            value: formData.mtn_number
+                        }
+                    ];
+
+                    hiddenFields.forEach(field => {
+                        let input = document.querySelector(`input[name="${field.name}"]`);
+                        if (!input) {
+                            input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = field.name;
+                            form.appendChild(input);
+                        }
+                        input.value = field.value;
+                    });
+
+                    window.paymentSuccess = false;
+
+                    if (needsPayment) {
+                        if (window.PaymentPopup) {
+                            form.target = 'PaymentPopup';
+                        } else {
+                            form.target = '_blank';
+                        }
+
+                        if (formData.payment_method === 'wave') {
+                            Swal.fire({
+                                title: 'Paiement en cours',
+                                html: 'Suite de paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            const timer = setInterval(() => {
+                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                    clearInterval(timer);
+                                    Swal.close();
+                                    if (window.paymentSuccess) {
+                                        window.location.href = window.paymentSuccessUrl ||
+                                            "{{ route('user.extrait.deces.index') }}";
+                                        return;
+                                    }
+                                    try {
+                                        var result = JSON.parse(localStorage.getItem(
+                                            'plateauPaymentResult') || '{}');
+                                        var age = Date.now() - (result.timestamp || 0);
+                                        if (result.status === 'success' && age < 120000) {
+                                            localStorage.removeItem('plateauPaymentResult');
+                                            window.location.href = result.listUrl ||
+                                                "{{ route('user.extrait.deces.index') }}";
+                                            return;
+                                        }
+                                    } catch (e) {}
+                                    window.location.reload();
+                                }
+                            }, 1000);
+                        } else {
+                            Swal.fire({
+                                title: 'Redirection en cours',
+                                html: `Un nouvel onglet s'est ouvert pour le suivi du paiement...`,
+                                icon: 'info',
+                                confirmButtonText: 'Fermer',
+                                confirmButtonColor: '#1f4083',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                window.location.href = "{{ route('user.extrait.deces.index') }}";
+                            });
+                        }
+                    } else {
+                        Swal.fire({
+                            title: 'Enregistrement de la modification...',
+                            html: 'Veuillez patienter pendant la mise à jour de votre demande.',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    }
+
+                    formSubmitted = true;
+                    form.submit();
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    document.getElementById('option1').checked = true;
+                }
+            });
+        }
+
         function showLivraisonPopup() {
             const typeValP = document.querySelector('input[name="type"]:checked').value;
             const qtyS = parseInt(document.getElementById('qty_simple').value) || 0;
             const qtyI = parseInt(document.getElementById('qty_integral').value) || 0;
-            const quantite = typeValP === 'simpleIntegrale' ? qtyS + qtyI :
+            const quantite = typeValP === 'groupee' ? qtyS + qtyI :
                 typeValP === 'integrale' ? qtyI : qtyS;
             const montantTimbreUnitaire = 500;
             const montantLivraison = 1500;
 
             let freeTimbres = 0;
-            let freeAmount = 0;
+            const originalFreeTimbresCount = @json(isset($deces) ? (int) $deces->free_timbres_count : 0);
             const freeRequestsModeActive = @json($freeRequestsModeActive ?? false);
             const freeRequestsRemaining = @json($freeRequestsRemaining ?? 0);
 
-            if (freeRequestsModeActive && freeRequestsRemaining > 0) {
-                freeTimbres = Math.min(quantite, freeRequestsRemaining);
-                freeAmount = freeTimbres * montantTimbreUnitaire;
+            // Les timbres gratuits déjà accordés restent acquis pour cette demande
+            freeTimbres = Math.min(quantite, originalFreeTimbresCount);
+
+            // Si la nouvelle quantité dépasse ce qui était accordé, on complète avec le quota restant si disponible
+            if (quantite > originalFreeTimbresCount && freeRequestsModeActive && freeRequestsRemaining > 0) {
+                const extraTimbres = quantite - originalFreeTimbresCount;
+                freeTimbres += Math.min(extraTimbres, freeRequestsRemaining);
             }
+            const freeAmount = freeTimbres * montantTimbreUnitaire;
 
             const paidTimbres = quantite - freeTimbres;
             const montantTimbreTotal = paidTimbres * montantTimbreUnitaire;
@@ -1564,9 +1984,12 @@
 
             // Déterminer s'il faut payer
             const isEditMode = @json(isset($deces));
-            const initialChoixOption = @json($deces->choix_option ?? null);
-            const needsPayment = !isEditMode || (initialChoixOption !== 'livraison');
-            const finalTotalAmount = needsPayment ? montantTotal : 0;
+            const originalMontantTimbre = @json(isset($deces) ? (float) $deces->montant_timbre : 0);
+            const originalMontantLivraison = @json(isset($deces) ? (float) $deces->montant_livraison : 0);
+            const ancienMontantPaye = isEditMode ? (originalMontantTimbre + originalMontantLivraison) : 0;
+            const resteAPayer = Math.max(0, montantTotal - ancienMontantPaye);
+            const needsPayment = resteAPayer > 0;
+            const finalTotalAmount = resteAPayer;
 
             // Mise à jour des données globales
             window.livraisonData = {
@@ -1685,35 +2108,35 @@
 
                             <div id="payment-section-container">
                                 ${!needsPayment ? `
-                                            <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
-                                                <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
-                                                <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
-                                                La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
-                                            </div>
-                                            <input type="hidden" id="swal-payment_method" value="deja_paye">
-                                            <input type="hidden" id="swal-mtn_number" value="">
-                                        ` : `
-                                            <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
-                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                                <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                                                </button>
-                                                <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                    <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                                                </button>
-                                                <button type="button" id="btn-pay-mtn" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('mtn')">
-                                                    <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                                                </button>
-                                                <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                    <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
-                                                </button>
-                                            </div>
-                                            <input type="hidden" id="swal-payment_method" value="wave">
-                                            <div id="payment-phone-container" style="display: none; margin-top: 10px;">
-                                                <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                                                <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
-                                            </div>
-                                        `}
+                                                            <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
+                                                                <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
+                                                                <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
+                                                                La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
+                                                            </div>
+                                                            <input type="hidden" id="swal-payment_method" value="deja_paye">
+                                                            <input type="hidden" id="swal-mtn_number" value="">
+                                                        ` : `
+                                                            <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
+                                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                                <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                                                </button>
+                                                                <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                                                    <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
+                                                                </button>
+                                                                <button type="button" id="btn-pay-mtn" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('mtn')">
+                                                                    <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                                                </button>
+                                                                <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                                                    <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
+                                                                </button>
+                                                            </div>
+                                                            <input type="hidden" id="swal-payment_method" value="wave">
+                                                            <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                                                <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
+                                                                <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                                            </div>
+                                                        `}
                             </div>
                         </div>
                     </div>

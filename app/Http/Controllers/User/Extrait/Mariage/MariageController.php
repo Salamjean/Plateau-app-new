@@ -166,9 +166,20 @@ class MariageController extends Controller
         $mariage->reference = $reference; // Assignez la référence générée
 
 
+        // === GESTION DES DEMANDES GRATUITES (MODE TEST) & CALCULS ===
+        $user->refresh();
+        $freeCalc = $this->calculateFreeRequestsDiscount($user, $totalQuantity);
+
+        $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+        $montantLivraison = $request->input('choix_option') === 'livraison' ? (float) $request->input('montant_livraison') : 0;
+        $totalAmount = $montantTimbreTotal + $montantLivraison;
+
+        $mariage->montant_timbre = $montantTimbreTotal;
+        $mariage->montant_livraison = $montantLivraison;
+        $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
+        $mariage->free_timbres_count = $freeCalc['free_timbres'];
+
         if ($request->input('choix_option') === 'livraison') {
-            $mariage->montant_timbre = $request->input('montant_timbre');
-            $mariage->montant_livraison = $request->input('montant_livraison');
             $mariage->nom_destinataire = $request->input('nom_destinataire');
             $mariage->prenom_destinataire = $request->input('prenom_destinataire');
             $mariage->email_destinataire = $request->input('email_destinataire');
@@ -180,134 +191,119 @@ class MariageController extends Controller
             $mariage->quartier = $request->input('quartier');
             $mariage->date_livraison = $request->input('date_livraison');
             $mariage->heure_livraison = $request->input('heure_livraison');
+        } else {
+            $mariage->nom_destinataire = null;
+            $mariage->prenom_destinataire = null;
+            $mariage->email_destinataire = null;
+            $mariage->contact_destinataire = null;
+            $mariage->adresse_livraison = null;
+            $mariage->code_postal = null;
+            $mariage->ville = null;
+            $mariage->commune_livraison = null;
+            $mariage->quartier = null;
+            $mariage->date_livraison = null;
+            $mariage->heure_livraison = null;
         }
 
         $mariage->save();
 
-        // === GESTION DES DEMANDES GRATUITES (MODE TEST) ===
-        $user->refresh();
-        $freeCalc = $this->calculateFreeRequestsDiscount($user, $totalQuantity);
+        Log::info("Demandes gratuites - Mariage {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants. Total à payer: {$totalAmount}");
 
-        if ($request->input('choix_option') === 'livraison') {
-            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-            $montantLivraison = (float) $mariage->montant_livraison;
-            $totalAmount = $montantTimbreTotal + $montantLivraison;
+        if ($totalAmount > 0) {
+            // Paiement requis → le compteur sera incrémenté APRÈS confirmation du paiement
+            $paymentMethod = $request->input('payment_method', 'wave');
 
-            $mariage->montant_timbre = $montantTimbreTotal;
-            $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
-            $mariage->free_timbres_count = $freeCalc['free_timbres'];
-            $mariage->save();
+            $baseUrl = config('app.url');
+            $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference) . "&type=mariage";
+            $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($mariage->reference) . "&type=mariage";
 
-            Log::info("Demandes gratuites - Mariage {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} timbres payants");
+            if (strtolower($paymentMethod) === 'wave') {
+                $checkoutSession = $waveService->createCheckoutSession(
+                    $totalAmount,
+                    'XOF',
+                    $successUrl,
+                    $errorUrl,
+                    $mariage->reference
+                );
 
-            if ($totalAmount > 0) {
-                // Paiement requis → le compteur sera incrémenté APRÈS confirmation du paiement
-                $paymentMethod = $request->input('payment_method', 'wave');
-
-                $baseUrl = config('app.url');
-                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference) . "&type=mariage";
-                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($mariage->reference) . "&type=mariage";
-
-                if (strtolower($paymentMethod) === 'wave') {
-                    $checkoutSession = $waveService->createCheckoutSession(
-                        $totalAmount,
-                        'XOF',
-                        $successUrl,
-                        $errorUrl,
-                        $mariage->reference
-                    );
-
-                    if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
-                        return redirect($checkoutSession['wave_launch_url']);
-                    }
-
-                    Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
-                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
-                } elseif (strtolower($paymentMethod) === 'mtn') {
-                    $mtnPhoneNumber = $request->input('mtn_number');
-                    // Format number to international format (starting with 225)
-                    $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
-                    if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
-                        $mtnPhoneNumber = '225' . $mtnPhoneNumber;
-                    }
-
-                    $mtnService = new \App\Services\MtnService();
-                    $response = $mtnService->requestToPay(
-                        $totalAmount,
-                        $mtnPhoneNumber,
-                        $mariage->reference,
-                        'Extrait Mariage',
-                        'Mairie Plateau'
-                    );
-
-                    if ($response && $response['status'] === 'PENDING') {
-                        // Stocker le ReferenceId en session pour la vérification
-                        session(['mtn_ref_' . $mariage->reference => $response['referenceId']]);
-
-                        return redirect()->route('user.payment.mtn.waiting', [
-                            'reference' => $mariage->reference,
-                            'type' => 'mariage'
-                        ]);
-                    }
-
-                    Log::error('Échec de la création de la session MTN pour ' . $mariage->reference);
-                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
-                } else {
-                    // Générer la session CinetPay
-                    $channels = 'ALL';
-                    if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
-                        $channels = 'MOBILE_MONEY';
-                    }
-
-                    $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
-                    $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
-
-                    try {
-                        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
-                            'apikey' => $cinetpayApiKey,
-                            'site_id' => $cinetpaySiteId,
-                            'transaction_id' => $mariage->reference,
-                            'amount' => $totalAmount,
-                            'currency' => 'XOF',
-                            'description' => "Paiement pour " . $mariage->reference,
-                            'return_url' => $successUrl,
-                            'notify_url' => $baseUrl . '/api/webhook/cinetpay',
-                            'channels' => $channels,
-                        ]);
-
-                        if ($response->successful()) {
-                            $data = $response->json();
-                            if (isset($data['data']['payment_url'])) {
-                                return redirect($data['data']['payment_url']);
-                            }
-                        }
-
-                        Log::error('Échec CinetPay: ' . $response->body());
-                        return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur de génération du lien CinetPay.');
-                    } catch (\Exception $e) {
-                        Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
-                        return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur interne de paiement.');
-                    }
+                if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
+                    return redirect($checkoutSession['wave_launch_url']);
                 }
+
+                Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
+                return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'mtn') {
+                $mtnPhoneNumber = $request->input('mtn_number');
+                // Format number to international format (starting with 225)
+                $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
+                if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
+                    $mtnPhoneNumber = '225' . $mtnPhoneNumber;
+                }
+
+                $mtnService = new \App\Services\MtnService();
+                $response = $mtnService->requestToPay(
+                    $totalAmount,
+                    $mtnPhoneNumber,
+                    $mariage->reference,
+                    'Extrait Mariage',
+                    'Mairie Plateau'
+                );
+
+                if ($response && $response['status'] === 'PENDING') {
+                    // Stocker le ReferenceId en session pour la vérification
+                    session(['mtn_ref_' . $mariage->reference => $response['referenceId']]);
+
+                    return redirect()->route('user.payment.mtn.waiting', [
+                        'reference' => $mariage->reference,
+                        'type' => 'mariage'
+                    ]);
+                }
+
+                Log::error('Échec de la création de la session MTN pour ' . $mariage->reference);
+                return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
             } else {
-                // Livraison totalement gratuite (timbres + livraison = 0)
-                $mariage->etat = 'en attente';
-                $mariage->save();
-                if ($freeCalc['free_timbres'] > 0) {
-                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
+                // Générer la session CinetPay
+                $channels = 'ALL';
+                if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
+                    $channels = 'MOBILE_MONEY';
+                }
+
+                $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
+                $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
+
+                try {
+                    $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
+                        'apikey' => $cinetpayApiKey,
+                        'site_id' => $cinetpaySiteId,
+                        'transaction_id' => $mariage->reference,
+                        'amount' => $totalAmount,
+                        'currency' => 'XOF',
+                        'description' => "Paiement pour " . $mariage->reference,
+                        'return_url' => $successUrl,
+                        'notify_url' => $baseUrl . '/api/webhook/cinetpay',
+                        'channels' => $channels,
+                    ]);
+
+                    if ($response->successful()) {
+                        $data = $response->json();
+                        if (isset($data['data']['payment_url'])) {
+                            return redirect($data['data']['payment_url']);
+                        }
+                    }
+
+                    Log::error('Échec CinetPay: ' . $response->body());
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur de génération du lien CinetPay.');
+                } catch (\Exception $e) {
+                    Log::error('Erreur Exception CinetPay: ' . $e->getMessage());
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur interne de paiement.');
                 }
             }
         } else {
-            // Retrait sur place
+            // Pas de montant à payer (0 à payer) → incrémenter maintenant
             $mariage->etat = 'en attente';
-            $mariage->montant_timbre = $freeCalc['montant_timbre_total'];
+            $mariage->save();
             if ($freeCalc['free_timbres'] > 0) {
-                $mariage->is_free_request = true;
-                $mariage->free_timbres_count = $freeCalc['free_timbres'];
-                $mariage->save();
                 $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-            } else {
-                $mariage->save();
             }
         }
 
@@ -386,6 +382,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
         }
 
+        // Initialiser les tableaux de modification en attente
+        $pendingAttributes = [];
+        $oldFilesToDelete = [];
+
         // Upload files
         $filesToUpload = [
             'pieceIdentite' => 'identite',
@@ -395,14 +395,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
         foreach ($filesToUpload as $fileKey => $subDir) {
             if ($request->hasFile($fileKey)) {
-                if ($demande->$fileKey) {
-                    Storage::disk('public')->delete($demande->$fileKey);
-                }
                 $file = $request->file($fileKey);
                 $extension = $file->getClientOriginalExtension();
                 $newFileName = (string) Str::uuid() . '.' . $extension;
                 $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
-                $demande->$fileKey = "images/mariages/$subDir/$newFileName";
+
+                $pendingAttributes[$fileKey] = "images/mariages/$subDir/$newFileName";
+                if ($demande->$fileKey) {
+                    $oldFilesToDelete[] = $demande->$fileKey;
+                }
             }
         }
 
@@ -431,54 +432,105 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         }
         $totalQuantity = $qtySimple + $qtyIntegral;
 
-        // Update fields
-        $demande->type = $request->input('typeDemande');
-        $demande->pour = $request->input('pour');
-        $demande->relation = $request->input('relation');
-        $demande->nomEpoux = $request->input('nomEpoux');
-        $demande->prenomEpoux = $request->input('prenomEpoux');
-        $demande->dateNaissanceEpoux = $request->input('dateNaissanceEpoux');
-        $demande->lieuNaissanceEpoux = $request->input('lieuNaissanceEpoux');
-        $demande->nomEpouse = $request->input('nomEpouse');
-        $demande->prenomEpouse = $request->input('prenomEpouse');
-        $demande->dateNaissanceEpouse = $request->input('dateNaissanceEpouse');
-        $demande->lieuNaissanceEpouse = $request->input('lieuNaissanceEpouse');
-        $demande->commune = $request->input('commune');
-        $demande->commune_mariage = $request->input('commune_mariage');
-        $demande->qty_simple = $qtySimple;
-        $demande->qty_integral = $qtyIntegral;
-        $demande->quantite = $totalQuantity;
-        $demande->CMU = $request->input('CMU');
+        // Remplir les attributs modifiés
+        $pendingAttributes['type'] = $request->input('typeDemande');
+        $pendingAttributes['pour'] = $request->input('pour');
+        $pendingAttributes['relation'] = $request->input('relation');
+        $pendingAttributes['nomEpoux'] = $request->input('nomEpoux');
+        $pendingAttributes['prenomEpoux'] = $request->input('prenomEpoux');
+        $pendingAttributes['dateNaissanceEpoux'] = $request->input('dateNaissanceEpoux');
+        $pendingAttributes['lieuNaissanceEpoux'] = $request->input('lieuNaissanceEpoux');
+        $pendingAttributes['nomEpouse'] = $request->input('nomEpouse');
+        $pendingAttributes['prenomEpouse'] = $request->input('prenomEpouse');
+        $pendingAttributes['dateNaissanceEpouse'] = $request->input('dateNaissanceEpouse');
+        $pendingAttributes['lieuNaissanceEpouse'] = $request->input('lieuNaissanceEpouse');
+        $pendingAttributes['commune'] = $request->input('commune');
+        $pendingAttributes['commune_mariage'] = $request->input('commune_mariage');
+        $pendingAttributes['qty_simple'] = $qtySimple;
+        $pendingAttributes['qty_integral'] = $qtyIntegral;
+        $pendingAttributes['quantite'] = $totalQuantity;
+        $pendingAttributes['CMU'] = $request->input('CMU');
 
-        // Delivery
-        $needsPayment = ($request->input('choix_option') === 'livraison' && $originalChoixOption !== 'livraison');
+        // Verification des paiements requis
+        $user = Auth::user();
+        $user->refresh();
+
+        // Créditer temporairement les timbres gratuits déjà accordés à cette demande pour le calcul
+        $anciensTimbresGratuits = (int) $demande->free_timbres_count;
+        if ($anciensTimbresGratuits > 0) {
+            $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
+            $user->save();
+        }
+
+        $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) ($qtySimple + $qtyIntegral));
+        $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+
+        $newChoixOption = $request->input('choix_option');
+        $montantLivraisonCible = $newChoixOption === 'livraison' ? (float) $request->input('montant_livraison', 0) : 0;
+
+        $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
+
+        // Calcul du montant déjà payé s'il a déjà effectué un paiement
+        $demandeDejaPayee = !in_array($demande->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+        $ancienMontantPaye = $demandeDejaPayee ? ((float)$demande->montant_timbre + (float)$demande->montant_livraison) : 0;
+
+        $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+        $needsPayment = $resteAPayer > 0;
+
         $pendingDeliveryData = null;
 
-        if ($request->input('choix_option') === 'livraison') {
-            $deliveryData = [
-                'choix_option' => 'livraison',
-                'montant_timbre' => $request->input('montant_timbre'),
-                'montant_livraison' => $request->input('montant_livraison'),
-                'nom_destinataire' => $request->input('nom_destinataire'),
-                'prenom_destinataire' => $request->input('prenom_destinataire'),
-                'email_destinataire' => $request->input('email_destinataire'),
-                'contact_destinataire' => $request->input('contact_destinataire'),
-                'adresse_livraison' => $request->input('adresse_livraison'),
-                'code_postal' => $request->input('code_postal'),
-                'ville' => $request->input('ville'),
-                'commune_livraison' => $request->input('commune_livraison'),
-                'quartier' => $request->input('quartier'),
-                'date_livraison' => $request->input('date_livraison'),
-                'heure_livraison' => $request->input('heure_livraison'),
-            ];
+        if ($needsPayment) {
+            // Ajouter les modifications d'informations aux pendingAttributes
+            $pendingAttributes['montant_timbre'] = $montantTimbreTotal;
+            $pendingAttributes['is_free_request'] = $freeCalc['free_timbres'] > 0;
+            $pendingAttributes['free_timbres_count'] = $freeCalc['free_timbres'];
 
-            if ($needsPayment) {
-                $pendingDeliveryData = $deliveryData;
-                $demande->choix_option = $originalChoixOption; // Conserver l'ancien choix (retrait) en BDD avant paiement
+            // Mettre en cache les modifications d'informations
+            \Illuminate\Support\Facades\Cache::put('pending_modification_update_' . $demande->reference, [
+                'attributes' => $pendingAttributes,
+                'old_files_to_delete' => $oldFilesToDelete
+            ], now()->addDays(7));
+
+            if ($newChoixOption === 'livraison') {
+                $pendingDeliveryData = [
+                    'choix_option' => 'livraison',
+                    'montant_timbre' => $montantTimbreTotal,
+                    'montant_livraison' => $montantLivraisonCible,
+                    'nom_destinataire' => $request->input('nom_destinataire'),
+                    'prenom_destinataire' => $request->input('prenom_destinataire'),
+                    'email_destinataire' => $request->input('email_destinataire'),
+                    'contact_destinataire' => $request->input('contact_destinataire'),
+                    'adresse_livraison' => $request->input('adresse_livraison'),
+                    'code_postal' => $request->input('code_postal'),
+                    'ville' => $request->input('ville'),
+                    'commune_livraison' => $request->input('commune_livraison'),
+                    'quartier' => $request->input('quartier'),
+                    'date_livraison' => $request->input('date_livraison'),
+                    'heure_livraison' => $request->input('heure_livraison'),
+                ];
             } else {
-                $demande->choix_option = 'livraison';
-                $demande->montant_timbre = $request->input('montant_timbre');
-                $demande->montant_livraison = $request->input('montant_livraison');
+                $pendingDeliveryData = [
+                    'choix_option' => 'Retrait sur place',
+                    'montant_timbre' => $montantTimbreTotal,
+                    'montant_livraison' => 0,
+                ];
+            }
+        } else {
+            // Pas de paiement requis -> on enregistre directement les modifications d'informations
+            foreach ($pendingAttributes as $key => $value) {
+                $demande->$key = $value;
+            }
+            // Supprimer physiquement les anciens fichiers remplacés maintenant
+            foreach ($oldFilesToDelete as $filePath) {
+                if ($filePath && Storage::disk('public')->exists($filePath)) {
+                    Storage::disk('public')->delete($filePath);
+                }
+            }
+
+            $demande->choix_option = $newChoixOption;
+            if ($newChoixOption === 'livraison') {
+                $demande->montant_timbre = $montantTimbreTotal;
+                $demande->montant_livraison = $montantLivraisonCible;
                 $demande->nom_destinataire = $request->input('nom_destinataire');
                 $demande->prenom_destinataire = $request->input('prenom_destinataire');
                 $demande->email_destinataire = $request->input('email_destinataire');
@@ -490,39 +542,51 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $demande->quartier = $request->input('quartier');
                 $demande->date_livraison = $request->input('date_livraison');
                 $demande->heure_livraison = $request->input('heure_livraison');
+            } else {
+                $demande->montant_timbre = $montantTimbreTotal;
+                $demande->montant_livraison = 0;
+                // Vider les infos de livraison
+                $demande->nom_destinataire = null;
+                $demande->prenom_destinataire = null;
+                $demande->email_destinataire = null;
+                $demande->contact_destinataire = null;
+                $demande->adresse_livraison = null;
+                $demande->code_postal = null;
+                $demande->ville = null;
+                $demande->commune_livraison = null;
+                $demande->quartier = null;
+                $demande->date_livraison = null;
+                $demande->heure_livraison = null;
             }
-        } else {
-            $demande->choix_option = $request->choix_option;
-        }
 
-        // Réinitialiser l'état et désactiver la modification
-        $demande->etat = 'en attente';
-        $demande->peut_modifier = false;
-        $demande->champs_a_modifier = null;
-        $demande->motif_de_rejet = null;
-        $demande->save();
-
-        if ($needsPayment && $pendingDeliveryData) {
-            $user = Auth::user();
-            $user->refresh();
-            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) ($demande->qty_simple + $demande->qty_integral));
-            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-            $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
-            $totalAmount = $montantTimbreTotal + $montantLivraison;
-
-            $demande->montant_timbre = $montantTimbreTotal;
             $demande->is_free_request = $freeCalc['free_timbres'] > 0;
             $demande->free_timbres_count = $freeCalc['free_timbres'];
+
+            // Réinitialiser l'état et désactiver la modification
+            $demande->etat = 'en attente';
+            $demande->peut_modifier = false;
+            $demande->champs_a_modifier = null;
+            $demande->motif_de_rejet = null;
             $demande->save();
+
+            if ($freeCalc['free_timbres'] > 0) {
+                $user->free_requests_used = min(2, $user->free_requests_used + $freeCalc['free_timbres']);
+                $user->save();
+            }
+        }
+
+        if ($needsPayment && $pendingDeliveryData) {
+            $totalAmount = $resteAPayer; // C'est le reste à payer qui sera envoyé à la passerelle
 
             // Mettre en cache les données de livraison
             \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $demande->reference, $pendingDeliveryData, now()->addDays(7));
 
             if ($totalAmount > 0) {
+                $transactionReference = $demande->reference . '-MOD-' . time();
                 $paymentMethod = $request->input('payment_method', 'wave');
                 $baseUrl = config('app.url');
-                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($demande->reference) . "&type=mariage";
-                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($demande->reference) . "&type=mariage";
+                $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($transactionReference) . "&type=mariage";
+                $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($transactionReference) . "&type=mariage";
 
                 if (strtolower($paymentMethod) === 'wave') {
                     $waveService = app(\App\Services\WaveService::class);
@@ -531,7 +595,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'XOF',
                         $successUrl,
                         $errorUrl,
-                        $demande->reference
+                        $transactionReference
                     );
 
                     if ($checkoutSession && isset($checkoutSession['wave_launch_url'])) {
@@ -555,24 +619,24 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $response = $mtnService->requestToPay(
                         $totalAmount,
                         $mtnPhoneNumber,
-                        $demande->reference,
+                        $transactionReference,
                         'Extrait Mariage',
                         'Mairie Plateau'
                     );
 
                     if ($response && $response['status'] === 'PENDING') {
-                        session(['mtn_ref_' . $demande->reference => $response['referenceId']]);
+                        session(['mtn_ref_' . $transactionReference => $response['referenceId']]);
                         if ($request->expectsJson()) {
                             return response()->json([
                                 'success' => true,
                                 'redirect_url' => route('user.payment.mtn.waiting', [
-                                    'reference' => $demande->reference,
+                                    'reference' => $transactionReference,
                                     'type' => 'mariage'
                                 ])
                             ]);
                         }
                         return redirect()->route('user.payment.mtn.waiting', [
-                            'reference' => $demande->reference,
+                            'reference' => $transactionReference,
                             'type' => 'mariage'
                         ]);
                     }

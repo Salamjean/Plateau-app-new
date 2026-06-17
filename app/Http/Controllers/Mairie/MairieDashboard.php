@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Deces;
 use App\Models\Mariage;
 use App\Models\Naissance;
+use App\Models\Paiement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,8 +16,13 @@ class MairieDashboard extends Controller
     private function excludeRetraitSurPlace($query)
     {
         return $query->where(function ($q) {
-            $q->whereNull('choix_option')
-                ->orWhere('choix_option', '!=', 'Retrait sur place');
+            $q->where(function ($sub) {
+                $sub->whereNull('choix_option')
+                    ->orWhere('choix_option', '!=', 'Retrait sur place');
+            })->orWhere(function ($sub) {
+                $sub->where('choix_option', 'Retrait sur place')
+                    ->where('montant_timbre', '>', 0);
+            });
         })->where(function ($q) {
             $q->whereNull('is_free_request')
                 ->orWhere('is_free_request', '!=', 1);
@@ -85,34 +91,34 @@ class MairieDashboard extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = $this->excludeRetraitSurPlace(
-            Naissance::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-        $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $naissancesPaiementsMonth = Paiement::whereHas('naissance', function ($query) use ($mairie) {
+            $query->where('commune', $mairie->name);
+        })
+        ->where('status', 'ACCEPTED')
+        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+        ->get();
+        $totalNaissanceMonth = $naissancesPaiementsMonth->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
-        $mariagesMonth = $this->excludeRetraitSurPlace(
-            Mariage::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-        $totalMariageMonth = $mariagesMonth->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $mariagesPaiementsMonth = Paiement::whereHas('mariage', function ($query) use ($mairie) {
+            $query->where('commune', $mairie->name);
+        })
+        ->where('status', 'ACCEPTED')
+        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+        ->get();
+        $totalMariageMonth = $mariagesPaiementsMonth->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
-        $decesMonth = $this->excludeRetraitSurPlace(
-            Deces::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-        $totalDecesMonth = $decesMonth->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $decesPaiementsMonth = Paiement::whereHas('deces', function ($query) use ($mairie) {
+            $query->where('commune', $mairie->name);
+        })
+        ->where('status', 'ACCEPTED')
+        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+        ->get();
+        $totalDecesMonth = $decesPaiementsMonth->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
         $soldePortefeuille = $totalNaissanceMonth + $totalMariageMonth + $totalDecesMonth;
@@ -214,118 +220,127 @@ class MairieDashboard extends Controller
         ));
     }
 
+    private function getCommunePaymentsFeed($commune)
+    {
+        $payments = Paiement::where(function ($query) {
+            $query->whereNotNull('naissance_id')
+                ->orWhereNotNull('mariage_id')
+                ->orWhereNotNull('deces_id');
+        })
+        ->where('status', 'ACCEPTED')
+        ->where(function ($query) use ($commune) {
+            $query->whereHas('naissance', function ($q) use ($commune) {
+                $q->where('commune', $commune);
+            })
+            ->orWhereHas('mariage', function ($q) use ($commune) {
+                $q->where('commune', $commune);
+            })
+            ->orWhereHas('deces', function ($q) use ($commune) {
+                $q->where('commune', $commune);
+            });
+        })
+        ->with(['naissance', 'mariage', 'deces'])
+        ->get();
+
+        $feed = collect();
+        foreach ($payments as $p) {
+            $typeLabel = '';
+            $relation = '';
+            if ($p->naissance_id) {
+                $typeLabel = 'NAIS';
+                $relation = 'naissance';
+            } elseif ($p->mariage_id) {
+                $typeLabel = 'MAR';
+                $relation = 'mariage';
+            } elseif ($p->deces_id) {
+                $typeLabel = 'DEC';
+                $relation = 'deces';
+            } else {
+                continue;
+            }
+
+            $isModification = str_contains($p->transaction_id, '-MOD-');
+            $partTimbre = $this->getPaymentPartTimbre($p);
+
+            if ($partTimbre <= 0) {
+                continue;
+            }
+
+            $feed->push((object)[
+                'date' => Carbon::parse($p->paid_at ?? $p->created_at),
+                'reference' => 'TP-' . $typeLabel . '-' . str_pad($p->id, 5, '0', STR_PAD_LEFT) . ($isModification ? '-M' : ''),
+                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
+                'montant' => $partTimbre,
+                'status' => 'Transféré'
+            ]);
+        }
+
+        return $feed;
+    }
+
     public function portefeuille(Request $request)
     {
         $mairie = Auth::guard('mairie')->user();
 
         // Calcul dynamique des timbres Naissance perçus en ligne
-        $naissances = $this->excludeRetraitSurPlace(
-            Naissance::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->with('user')
-            ->get();
-        $totalNaissance = $naissances->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $naissancesPaiements = Paiement::whereHas('naissance', function ($query) use ($mairie) {
+            $query->where('commune', $mairie->name);
+        })
+        ->where('status', 'ACCEPTED')
+        ->with('naissance')
+        ->get();
+        $totalNaissance = $naissancesPaiements->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
         // Calcul dynamique des timbres Mariage perçus en ligne
-        $mariages = $this->excludeRetraitSurPlace(
-            Mariage::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->with('user')
-            ->get();
-        $totalMariage = $mariages->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $mariagesPaiements = Paiement::whereHas('mariage', function ($query) use ($mairie) {
+            $query->where('commune', $mairie->name);
+        })
+        ->where('status', 'ACCEPTED')
+        ->with('mariage')
+        ->get();
+        $totalMariage = $mariagesPaiements->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
         // Calcul dynamique des timbres Décès perçus en ligne
-        $deces = $this->excludeRetraitSurPlace(
-            Deces::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->with('user')
-            ->get();
-        $totalDeces = $deces->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $decesPaiements = Paiement::whereHas('deces', function ($query) use ($mairie) {
+            $query->where('commune', $mairie->name);
+        })
+        ->where('status', 'ACCEPTED')
+        ->with('deces')
+        ->get();
+        $totalDeces = $decesPaiements->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
         // Somme totale brute perçue en ligne
         $totalPerçuEnLigne = $totalNaissance + $totalMariage + $totalDeces;
 
         // Solution 1 : Tout est automatiquement et instantanément reversé à TrésorPay.
-        // Donc le total reversé est égal au total perçu en ligne.
         $totalReversements = $totalPerçuEnLigne;
 
         // Calcul dynamique du cumul du mois en cours
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        $naissancesMonth = $this->excludeRetraitSurPlace(
-            Naissance::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-        $totalNaissanceMonth = $naissancesMonth->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $totalNaissanceMonth = $naissancesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
-        $mariagesMonth = $this->excludeRetraitSurPlace(
-            Mariage::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-        $totalMariageMonth = $mariagesMonth->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $totalMariageMonth = $mariagesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
-        $decesMonth = $this->excludeRetraitSurPlace(
-            Deces::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-        $totalDecesMonth = $decesMonth->sum(function ($item) {
-            return $item->montant_timbre ?? 500;
+        $totalDecesMonth = $decesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
         });
 
         $soldePortefeuille = $totalNaissanceMonth + $totalMariageMonth + $totalDecesMonth;
 
         // Récupérer les derniers paiements réels de timbres pour alimenter l'historique des reversements instantanés
-        $derniersPaiements = collect();
-
-        foreach ($naissances as $n) {
-            $derniersPaiements->push((object)[
-                'date' => Carbon::parse($n->created_at),
-                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $n->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
-
-        foreach ($mariages as $m) {
-            $derniersPaiements->push((object)[
-                'date' => Carbon::parse($m->created_at),
-                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $m->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
-
-        foreach ($deces as $d) {
-            $derniersPaiements->push((object)[
-                'date' => Carbon::parse($d->created_at),
-                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $d->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
+        $derniersPaiements = $this->getCommunePaymentsFeed($mairie->name);
 
         $sortedFeed = $derniersPaiements->sortByDesc('date');
         $totalTransactionsCount = $sortedFeed->count();
@@ -342,24 +357,10 @@ class MairieDashboard extends Controller
             ];
         }
 
-        foreach ($naissances as $item) {
-            $date = Carbon::parse($item->created_at);
+        foreach ($derniersPaiements as $item) {
+            $date = Carbon::parse($item->date);
             if ($date->year == $currentYear) {
-                $comptabiliteMensuelle[$date->month]['montant'] += $item->montant_timbre ?? 500;
-            }
-        }
-
-        foreach ($mariages as $item) {
-            $date = Carbon::parse($item->created_at);
-            if ($date->year == $currentYear) {
-                $comptabiliteMensuelle[$date->month]['montant'] += $item->montant_timbre ?? 500;
-            }
-        }
-
-        foreach ($deces as $item) {
-            $date = Carbon::parse($item->created_at);
-            if ($date->year == $currentYear) {
-                $comptabiliteMensuelle[$date->month]['montant'] += $item->montant_timbre ?? 500;
+                $comptabiliteMensuelle[$date->month]['montant'] += (float) $item->montant;
             }
         }
 
@@ -382,59 +383,8 @@ class MairieDashboard extends Controller
     {
         $mairie = Auth::guard('mairie')->user();
 
-        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets
-        $naissances = $this->excludeRetraitSurPlace(
-            Naissance::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->with('user')
-            ->get();
-
-        $mariages = $this->excludeRetraitSurPlace(
-            Mariage::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->with('user')
-            ->get();
-
-        $deces = $this->excludeRetraitSurPlace(
-            Deces::where('commune', $mairie->name)
-                ->paye()
-        )
-            ->with('user')
-            ->get();
-
-        $feed = collect();
-
-        foreach ($naissances as $n) {
-            $feed->push((object)[
-                'date' => Carbon::parse($n->created_at),
-                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $n->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
-
-        foreach ($mariages as $m) {
-            $feed->push((object)[
-                'date' => Carbon::parse($m->created_at),
-                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $m->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
-
-        foreach ($deces as $d) {
-            $feed->push((object)[
-                'date' => Carbon::parse($d->created_at),
-                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $d->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
+        // Récupérer les transactions de timbres réels à partir des paiements
+        $feed = $this->getCommunePaymentsFeed($mairie->name);
 
         // Extraire la liste de tous les mois uniques de transactions (format 'Y-m') pour alimenter le filtre
         $availableMonths = $feed->map(function ($item) {
@@ -482,62 +432,8 @@ class MairieDashboard extends Controller
         $commune = $mairie->name; // Mairie name contient le nom de la commune
         $year = $request->input('year', Carbon::now()->format('Y'));
 
-        // Récupérer toutes les demandes payées pour reconstituer l'historique des transferts complets (en excluant les gratuites)
-        $naissances = Naissance::where('commune', $mairie->name)
-            ->paye()
-            ->where(function ($q) {
-                $q->whereNull('is_free_request')
-                    ->orWhere('is_free_request', '!=', 1);
-            })
-            ->get();
-
-        $mariages = Mariage::where('commune', $mairie->name)
-            ->paye()
-            ->where(function ($q) {
-                $q->whereNull('is_free_request')
-                    ->orWhere('is_free_request', '!=', 1);
-            })
-            ->get();
-
-        $deces = Deces::where('commune', $mairie->name)
-            ->paye()
-            ->where(function ($q) {
-                $q->whereNull('is_free_request')
-                    ->orWhere('is_free_request', '!=', 1);
-            })
-            ->get();
-
-        $feed = collect();
-
-        foreach ($naissances as $n) {
-            $feed->push((object)[
-                'date' => Carbon::parse($n->created_at),
-                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $n->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
-
-        foreach ($mariages as $m) {
-            $feed->push((object)[
-                'date' => Carbon::parse($m->created_at),
-                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $m->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
-
-        foreach ($deces as $d) {
-            $feed->push((object)[
-                'date' => Carbon::parse($d->created_at),
-                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $d->montant_timbre ?? 500,
-                'status' => 'Transféré'
-            ]);
-        }
+        // Récupérer les transferts de timbres réels à partir des paiements
+        $feed = $this->getCommunePaymentsFeed($commune);
 
         // Filtrer par année sélectionnée
         $feed = $feed->filter(function ($item) use ($year) {
@@ -620,5 +516,112 @@ class MairieDashboard extends Controller
             'status' => 'success',
             'message' => 'Reversement de ' . number_format($montant) . ' XOF effectué avec succès vers TrésorPay.'
         ]);
+    }
+
+    /**
+     * Calcule uniquement le montant des timbres (part_timbre) pour un paiement donné,
+     * en excluant tout montant de livraison.
+     *
+     * @param \App\Models\Paiement $p
+     * @return float
+     */
+    private function getPaymentPartTimbre($p): float
+    {
+        if (isset($p->raw_response['part_timbre'])) {
+            return (float) $p->raw_response['part_timbre'];
+        }
+
+        $isModification = str_contains((string) $p->transaction_id, '-MOD-');
+        $montant = (float) $p->montant;
+
+        // Déterminer la relation
+        $relation = null;
+        if ($p->naissance_id) {
+            $relation = 'naissance';
+        } elseif ($p->mariage_id) {
+            $relation = 'mariage';
+        } elseif ($p->deces_id) {
+            $relation = 'deces';
+        } elseif ($p->naissance_groupe_id || $p->mariage_groupe_id || $p->deces_groupe_id) {
+            // Les demandes groupées n'ont pas d'option de livraison individuelle
+            return $montant;
+        }
+
+        if (!$relation) {
+            return $montant;
+        }
+
+        $demande = $p->$relation;
+        if (!$demande) {
+            return $montant;
+        }
+
+        if ($demande->choix_option !== 'livraison') {
+            return $montant;
+        }
+
+        // Si la demande est en mode livraison, une seule des transactions de paiement accepted
+        // doit supporter le coût de la livraison (1500 FCFA).
+        // On récupère tous les paiements ACCEPTED pour cette demande.
+        $allPayments = Paiement::where("{$relation}_id", $demande->id)
+            ->where('status', 'ACCEPTED')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        if ($allPayments->isEmpty()) {
+            return $isModification ? $montant : max(0.0, $montant - 1500.0);
+        }
+
+        // Si l'un des paiements a déjà explicitement une part_livraison stockée en DB
+        $deliveryPaymentId = null;
+        foreach ($allPayments as $pay) {
+            if (isset($pay->raw_response['part_livraison']) && (float)$pay->raw_response['part_livraison'] > 0) {
+                $deliveryPaymentId = $pay->id;
+                break;
+            }
+        }
+
+        if ($deliveryPaymentId !== null) {
+            if ($p->id === $deliveryPaymentId) {
+                $partLivraison = (float)$p->raw_response['part_livraison'];
+                return max(0.0, $montant - $partLivraison);
+            }
+            return $montant;
+        }
+
+        // Pour les anciens paiements (legacy) sans part_livraison enregistrée:
+        if ($allPayments->count() === 1) {
+            return max(0.0, $montant - 1500.0);
+        }
+
+        $modificationPayment = $allPayments->first(function ($pay) {
+            return str_contains((string) $pay->transaction_id, '-MOD-');
+        });
+
+        $initialPayment = $allPayments->first(function ($pay) {
+            return !str_contains((string) $pay->transaction_id, '-MOD-');
+        });
+
+        if ($modificationPayment && $initialPayment) {
+            // Si le paiement initial est trop faible pour contenir la livraison, la livraison a été payée lors de la modif
+            if ((float)$initialPayment->montant < 1500.0) {
+                if ($p->id === $modificationPayment->id) {
+                    return max(0.0, $montant - 1500.0);
+                }
+                return $montant;
+            }
+            // Sinon, assumez que le paiement initial a payé la livraison
+            if ($p->id === $initialPayment->id) {
+                return max(0.0, $montant - 1500.0);
+            }
+            return $montant;
+        }
+
+        // Par défaut, déduire les 1500 de la toute première transaction acceptée
+        if ($p->id === $allPayments->first()->id) {
+            return max(0.0, $montant - 1500.0);
+        }
+
+        return $montant;
     }
 }

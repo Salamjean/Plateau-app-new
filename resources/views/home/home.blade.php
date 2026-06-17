@@ -160,7 +160,7 @@
                                 <div>
                                     <h6 class="fw-800 mb-1" style="color: #0f2c59; font-size: 0.98rem; font-family: 'Plus Jakarta Sans', sans-serif;">Demande d'extrait de naissance</h6>
                                     <small class="text-muted d-flex align-items-center gap-2" style="font-size: 0.8rem; font-weight: 500;">
-                                        <span class="dot-status green-dot"></span> Délai de traitement: 48h
+                                        <span class="dot-status green-dot"></span> Délai de traitement: 3h
                                     </small>
                                 </div>
                             </div>

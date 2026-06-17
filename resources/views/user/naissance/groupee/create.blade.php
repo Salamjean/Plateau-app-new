@@ -1333,12 +1333,28 @@
             goToStep(3);
         }
 
+        function getMontantAPayer() {
+            const qS = parseInt(document.getElementById('qty_simple').value || 0);
+            const qI = parseInt(document.getElementById('qty_integral').value || 0);
+            const qT = qS + qI;
+            const {
+                freeTimbres,
+                paidTimbres
+            } = calculateFreeBreakdown(qT);
+            const subTotal = paidTimbres * TARIF_TIMBRE;
+            const choix = document.querySelector('input[name="choix_option"]:checked').value;
+            const livraison = choix === 'livraison' ? TARIF_LIVRAISON : 0;
+            return subTotal + livraison;
+        }
+
         function onDeliveryChange() {
             const selected = document.querySelector('input[name="choix_option"]:checked').value;
             const isLivraison = selected === 'livraison';
             document.getElementById('livraison-fields').style.display = isLivraison ? 'block' : 'none';
             document.getElementById('final-livraison-row').style.display = isLivraison ? 'flex' : 'none';
-            document.getElementById('payment-method-section').style.display = isLivraison ? 'block' : 'none';
+            
+            const montantAPayer = getMontantAPayer();
+            document.getElementById('payment-method-section').style.display = montantAPayer > 0 ? 'block' : 'none';
             refreshRecapFinal();
         }
 
@@ -1355,6 +1371,22 @@
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
+                const montantAPayer = getMontantAPayer();
+                if (montantAPayer > 0) {
+                    const method = document.querySelector('input[name="payment_method"]:checked')?.value;
+                    if (!method) {
+                        alert('Veuillez sélectionner un mode de paiement.');
+                        return;
+                    }
+                    if (method === 'mtn') {
+                        const mtnNumber = document.querySelector('input[name="mtn_number"]').value.trim();
+                        if (!/^\d{10}$/.test(mtnNumber)) {
+                            alert('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
+                            return;
+                        }
+                    }
+                }
+
                 const submitBtn = form.querySelector('button[type="submit"]');
                 const originalLabel = submitBtn.innerHTML;
                 submitBtn.disabled = true;
@@ -1365,11 +1397,8 @@
 
                     // ⚠ Important : ouvrir le nouvel onglet AVANT le fetch (sinon les navigateurs
                     // bloquent window.open hors d'un événement utilisateur synchrone).
-                    // Si pas livraison : pas besoin de nouvel onglet.
-                    const isLivraison = document.querySelector('input[name="choix_option"]:checked')
-                        .value === 'livraison';
                     let paymentTab = null;
-                    if (isLivraison) {
+                    if (montantAPayer > 0) {
                         paymentTab = window.open('about:blank', '_blank');
                     }
 

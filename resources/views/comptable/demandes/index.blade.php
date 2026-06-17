@@ -651,9 +651,9 @@
                     <!-- Titre + Toggle -->
                     <div class="toolbar-row">
                         <h2 class="toolbar-title">
-                            Liste des Livraisons
+                            Liste des Retraits & Livraisons
                             <span style="font-size:0.75rem;font-weight:500;color:var(--text-muted);margin-left:0.5rem;">
-                                — demandes <span style="color:#059669;font-weight:700;">terminées</span> uniquement
+                                — demandes <span style="color:#059669;font-weight:700;">réglées</span> uniquement
                             </span>
                         </h2>
 

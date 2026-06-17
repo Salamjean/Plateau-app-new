@@ -146,7 +146,7 @@
                     <div class="col-md-4">
                         <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition border-0">
                             <h4 class="fw-800 text-primary mb-3">Quels sont les délais ?</h4>
-                            <p class="text-muted mb-0">Les demandes de copies sont traitées sous 48h. Les déclarations sont
+                            <p class="text-muted mb-0">Les demandes de copies sont traitées sous 3h. Les déclarations sont
                                 enregistrées immédiatement.</p>
                         </div>
                     </div>

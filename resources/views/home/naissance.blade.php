@@ -139,7 +139,7 @@
                     <div class="col-md-4">
                         <div class="faq-card p-4 bg-white rounded-4 shadow-sm h-100 transition">
                             <h4 class="fw-800 text-primary mb-3">Quel est le délai ?</h4>
-                            <p class="text-muted mb-0">Le traitement prend généralement 24h à 48h ouvrées après validation
+                            <p class="text-muted mb-0">Le traitement prend généralement 3 heures après validation
                                 de votre paiement.</p>
                         </div>
                     </div>
