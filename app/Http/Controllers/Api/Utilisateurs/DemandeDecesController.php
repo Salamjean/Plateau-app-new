@@ -700,34 +700,65 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
             $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
 
-            $needsPayment = ($nouveauChoixOptionNormalise === 'livraison' && $originalChoixOptionNormalise !== 'livraison');
+            // Calcul du reste à payer comme sur le web
+            $user->refresh();
+            // Créditer temporairement les timbres gratuits déjà accordés à cette demande pour le calcul
+            $anciensTimbresGratuits = (int) $deces->free_timbres_count;
+            if ($anciensTimbresGratuits > 0) {
+                $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
+                $user->save();
+            }
+
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraisonCible = $nouveauChoixOptionNormalise === 'livraison' ? (float) $request->input('montant_livraison', 0) : 0;
+            $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
+
+            // Calcul du montant déjà payé s'il a déjà effectué un paiement
+            $demandeDejaPayee = !in_array($deces->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            $ancienMontantPaye = $demandeDejaPayee ? ((float)$deces->montant_timbre + (float)$deces->montant_livraison) : 0;
+
+            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
-            if ($nouveauChoixOptionNormalise === 'livraison') {
-                $deliveryData = [
-                    'choix_option' => 'livraison',
-                    'montant_timbre' => $request->input('montant_timbre'),
-                    'montant_livraison' => $request->input('montant_livraison'),
-                    'nom_destinataire' => $request->input('nom_destinataire'),
-                    'prenom_destinataire' => $request->input('prenom_destinataire'),
-                    'email_destinataire' => $request->input('email_destinataire'),
-                    'contact_destinataire' => $request->input('contact_destinataire'),
-                    'adresse_livraison' => $request->input('adresse_livraison'),
-                    'code_postal' => $request->input('code_postal'),
-                    'ville' => $request->input('ville'),
-                    'commune_livraison' => $request->input('commune_livraison'),
-                    'quartier' => $request->input('quartier'),
-                    'date_livraison' => $request->input('date_livraison'),
-                    'heure_livraison' => $request->input('heure_livraison'),
-                ];
-
-                if ($needsPayment) {
-                    $pendingDeliveryData = $deliveryData;
+            if ($needsPayment) {
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $pendingDeliveryData = [
+                        'choix_option' => 'livraison',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => $montantLivraisonCible,
+                        'nom_destinataire' => $request->input('nom_destinataire'),
+                        'prenom_destinataire' => $request->input('prenom_destinataire'),
+                        'email_destinataire' => $request->input('email_destinataire'),
+                        'contact_destinataire' => $request->input('contact_destinataire'),
+                        'adresse_livraison' => $request->input('adresse_livraison'),
+                        'code_postal' => $request->input('code_postal'),
+                        'ville' => $request->input('ville'),
+                        'commune_livraison' => $request->input('commune_livraison'),
+                        'quartier' => $request->input('quartier'),
+                        'date_livraison' => $request->input('date_livraison'),
+                        'heure_livraison' => $request->input('heure_livraison'),
+                    ];
+                    // Conserver l'ancienne option jusqu'au paiement
                     $deces->choix_option = $originalChoixOption;
                 } else {
-                    $deces->choix_option = 'livraison';
-                    $deces->montant_timbre = $request->input('montant_timbre');
-                    $deces->montant_livraison = $request->input('montant_livraison');
+                    $pendingDeliveryData = [
+                        'choix_option' => 'Retrait sur place',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => 0,
+                    ];
+                    // Conserver l'ancienne option jusqu'au paiement
+                    $deces->choix_option = $originalChoixOption;
+                }
+            } else {
+                $deces->choix_option = $nouveauChoixOptionNormalise;
+                $deces->montant_timbre = $montantTimbreTotal;
+                $deces->is_free_request = $freeCalc['free_timbres'] > 0;
+                $deces->free_timbres_count = $freeCalc['free_timbres'];
+
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $deces->montant_livraison = $montantLivraisonCible;
                     $deces->nom_destinataire = $request->input('nom_destinataire');
                     $deces->prenom_destinataire = $request->input('prenom_destinataire');
                     $deces->email_destinataire = $request->input('email_destinataire');
@@ -739,13 +770,24 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $deces->quartier = $request->input('quartier');
                     $deces->date_livraison = $request->input('date_livraison');
                     $deces->heure_livraison = $request->input('heure_livraison');
+                } else {
+                    $deces->montant_livraison = 0;
+                    $deces->nom_destinataire = null;
+                    $deces->prenom_destinataire = null;
+                    $deces->email_destinataire = null;
+                    $deces->contact_destinataire = null;
+                    $deces->adresse_livraison = null;
+                    $deces->code_postal = null;
+                    $deces->ville = null;
+                    $deces->commune_livraison = null;
+                    $deces->quartier = null;
+                    $deces->date_livraison = null;
+                    $deces->heure_livraison = null;
                 }
-            } else {
-                $deces->choix_option = 'Retrait sur place';
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $deces->etat = 'en attente';
+            $deces->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
             $deces->peut_modifier = false;
             $deces->champs_a_modifier = null;
             $deces->motif_de_rejet = null;
@@ -753,11 +795,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $user->refresh();
-                $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
-                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-                $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
-                $totalAmount = $montantTimbreTotal + $montantLivraison;
+                $totalAmount = $resteAPayer; // C'est le reste à payer
 
                 $deces->montant_timbre = $montantTimbreTotal;
                 $deces->is_free_request = $freeCalc['free_timbres'] > 0;
@@ -813,11 +851,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             } else {
                 if ($nouveauChoixOptionNormalise !== 'livraison') {
-                    $user->refresh();
-                    $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
-                    $deces->montant_timbre = $freeCalc['montant_timbre_total'];
-                    $deces->is_free_request = $freeCalc['free_timbres'] > 0;
-                    $deces->free_timbres_count = $freeCalc['free_timbres'];
                     if ($freeCalc['free_timbres'] > 0) {
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }

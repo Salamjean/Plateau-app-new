@@ -658,34 +658,65 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
             $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
 
-            $needsPayment = ($nouveauChoixOptionNormalise === 'livraison' && $originalChoixOptionNormalise !== 'livraison');
+            // Calcul du reste à payer comme sur le web
+            $user->refresh();
+            // Créditer temporairement les timbres gratuits déjà accordés à cette demande pour le calcul
+            $anciensTimbresGratuits = (int) $mariage->free_timbres_count;
+            if ($anciensTimbresGratuits > 0) {
+                $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
+                $user->save();
+            }
+
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraisonCible = $nouveauChoixOptionNormalise === 'livraison' ? (float) $request->input('montant_livraison', 0) : 0;
+            $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
+
+            // Calcul du montant déjà payé s'il a déjà effectué un paiement
+            $demandeDejaPayee = !in_array($mariage->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            $ancienMontantPaye = $demandeDejaPayee ? ((float)$mariage->montant_timbre + (float)$mariage->montant_livraison) : 0;
+
+            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
-            if ($nouveauChoixOptionNormalise === 'livraison') {
-                $deliveryData = [
-                    'choix_option' => 'livraison',
-                    'montant_timbre' => $request->input('montant_timbre'),
-                    'montant_livraison' => $request->input('montant_livraison'),
-                    'nom_destinataire' => $request->input('nom_destinataire'),
-                    'prenom_destinataire' => $request->input('prenom_destinataire'),
-                    'email_destinataire' => $request->input('email_destinataire'),
-                    'contact_destinataire' => $request->input('contact_destinataire'),
-                    'adresse_livraison' => $request->input('adresse_livraison'),
-                    'code_postal' => $request->input('code_postal'),
-                    'ville' => $request->input('ville'),
-                    'commune_livraison' => $request->input('commune_livraison'),
-                    'quartier' => $request->input('quartier'),
-                    'date_livraison' => $request->input('date_livraison'),
-                    'heure_livraison' => $request->input('heure_livraison'),
-                ];
-
-                if ($needsPayment) {
-                    $pendingDeliveryData = $deliveryData;
+            if ($needsPayment) {
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $pendingDeliveryData = [
+                        'choix_option' => 'livraison',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => $montantLivraisonCible,
+                        'nom_destinataire' => $request->input('nom_destinataire'),
+                        'prenom_destinataire' => $request->input('prenom_destinataire'),
+                        'email_destinataire' => $request->input('email_destinataire'),
+                        'contact_destinataire' => $request->input('contact_destinataire'),
+                        'adresse_livraison' => $request->input('adresse_livraison'),
+                        'code_postal' => $request->input('code_postal'),
+                        'ville' => $request->input('ville'),
+                        'commune_livraison' => $request->input('commune_livraison'),
+                        'quartier' => $request->input('quartier'),
+                        'date_livraison' => $request->input('date_livraison'),
+                        'heure_livraison' => $request->input('heure_livraison'),
+                    ];
+                    // Conserver l'ancienne option jusqu'au paiement
                     $mariage->choix_option = $originalChoixOption;
                 } else {
-                    $mariage->choix_option = 'livraison';
-                    $mariage->montant_timbre = $request->input('montant_timbre');
-                    $mariage->montant_livraison = $request->input('montant_livraison');
+                    $pendingDeliveryData = [
+                        'choix_option' => 'Retrait sur place',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => 0,
+                    ];
+                    // Conserver l'ancienne option jusqu'au paiement
+                    $mariage->choix_option = $originalChoixOption;
+                }
+            } else {
+                $mariage->choix_option = $nouveauChoixOptionNormalise;
+                $mariage->montant_timbre = $montantTimbreTotal;
+                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
+                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $mariage->montant_livraison = $montantLivraisonCible;
                     $mariage->nom_destinataire = $request->input('nom_destinataire');
                     $mariage->prenom_destinataire = $request->input('prenom_destinataire');
                     $mariage->email_destinataire = $request->input('email_destinataire');
@@ -697,13 +728,24 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $mariage->quartier = $request->input('quartier');
                     $mariage->date_livraison = $request->input('date_livraison');
                     $mariage->heure_livraison = $request->input('heure_livraison');
+                } else {
+                    $mariage->montant_livraison = 0;
+                    $mariage->nom_destinataire = null;
+                    $mariage->prenom_destinataire = null;
+                    $mariage->email_destinataire = null;
+                    $mariage->contact_destinataire = null;
+                    $mariage->adresse_livraison = null;
+                    $mariage->code_postal = null;
+                    $mariage->ville = null;
+                    $mariage->commune_livraison = null;
+                    $mariage->quartier = null;
+                    $mariage->date_livraison = null;
+                    $mariage->heure_livraison = null;
                 }
-            } else {
-                $mariage->choix_option = 'Retrait sur place';
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $mariage->etat = 'en attente';
+            $mariage->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
             $mariage->peut_modifier = false;
             $mariage->champs_a_modifier = null;
             $mariage->motif_de_rejet = null;
@@ -711,11 +753,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $user->refresh();
-                $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
-                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-                $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
-                $totalAmount = $montantTimbreTotal + $montantLivraison;
+                $totalAmount = $resteAPayer; // C'est le reste à payer
 
                 $mariage->montant_timbre = $montantTimbreTotal;
                 $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
@@ -771,11 +809,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             } else {
                 if ($nouveauChoixOptionNormalise !== 'livraison') {
-                    $user->refresh();
-                    $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
-                    $mariage->montant_timbre = $freeCalc['montant_timbre_total'];
-                    $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
-                    $mariage->free_timbres_count = $freeCalc['free_timbres'];
                     if ($freeCalc['free_timbres'] > 0) {
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
