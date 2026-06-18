@@ -73,6 +73,12 @@ class MariageController extends Controller
             $geminiService = app(\App\Services\GeminiValidationService::class);
             $validation = $geminiService->validateIdentityDocument($request->file('pieceIdentite'));
             if (!$validation['isValid']) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité a été rejetée par l'IA de la mairie : " . $validation['reason']
+                    ], 422);
+                }
                 return redirect()->back()
                     ->withErrors(['pieceIdentite' => "La pièce d'identité a été rejetée par l'IA de la mairie : " . $validation['reason']])
                     ->withInput();
@@ -252,6 +258,18 @@ class MariageController extends Controller
                 if ($response && $response['status'] === 'PENDING') {
                     // Stocker le ReferenceId en session pour la vérification
                     session(['mtn_ref_' . $mariage->reference => $response['referenceId']]);
+
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('user.payment.mtn.waiting', [
+                                'reference' => $mariage->reference,
+                                'type' => 'mariage'
+                            ]),
+                            'reference' => $mariage->reference,
+                            'mtn_ref' => $response['referenceId']
+                        ]);
+                    }
 
                     return redirect()->route('user.payment.mtn.waiting', [
                         'reference' => $mariage->reference,
@@ -632,7 +650,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                                 'redirect_url' => route('user.payment.mtn.waiting', [
                                     'reference' => $transactionReference,
                                     'type' => 'mariage'
-                                ])
+                                ]),
+                                'reference' => $transactionReference,
+                                'mtn_ref' => $response['referenceId']
                             ]);
                         }
                         return redirect()->route('user.payment.mtn.waiting', [

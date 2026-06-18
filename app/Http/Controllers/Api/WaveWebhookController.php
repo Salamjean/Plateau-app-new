@@ -141,7 +141,7 @@ class WaveWebhookController extends Controller
         try {
             $clientReference = $checkoutData['client_reference'] ?? null;
             $isModification = str_contains((string) $clientReference, '-MOD-');
-            $amount = isset($checkoutData['amount']) ? (float)$checkoutData['amount'] : 0;
+            $amount = isset($checkoutData['amount']) ? (float) $checkoutData['amount'] : 0;
             $isGroupe = in_array($type, ['naissance_groupe', 'mariage_groupe', 'deces_groupe'], true);
 
             $partTimbre = 0;

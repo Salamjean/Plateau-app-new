@@ -195,9 +195,12 @@
                     <div id="mtn-phone-block" style="display:none; margin-top: 1rem;">
                         <div class="input-group-custom">
                             <label>Numéro MTN à débiter :</label>
-                            <div class="input-wrapper"><input type="tel" name="mtn_number" class="form-control-custom" placeholder="07XXXXXXXX (10 chiffres)" maxlength="10"><i class="fas fa-mobile-alt"></i></div>
+                            <div class="input-wrapper"><input type="tel" name="mtn_number" class="form-control-custom" placeholder="05XXXXXXXX (10 chiffres)" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"><i class="fas fa-mobile-alt"></i></div>
                         </div>
                     </div>
+
+
+
                 </div>
 
                 <div class="form-section">
@@ -441,6 +444,7 @@
     function onPaymentMethodChange() {
         const m = document.querySelector('input[name="payment_method"]:checked')?.value;
         document.getElementById('mtn-phone-block').style.display = m === 'mtn' ? 'block' : 'none';
+        document.getElementById('wave-phone-block').style.display = m === 'wave' ? 'block' : 'none';
     }
 
     function refreshRecapFinal() {
@@ -479,8 +483,8 @@
                 }
                 if (method === 'mtn') {
                     const mtnNumber = document.querySelector('input[name="mtn_number"]').value.trim();
-                    if (!/^\d{10}$/.test(mtnNumber)) {
-                        alert('Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
+                    if (!/^05\d{8}$/.test(mtnNumber)) {
+                        alert('Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
                         return;
                     }
                 }

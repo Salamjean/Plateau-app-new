@@ -99,6 +99,7 @@ class DemandeNaissanceController extends Controller
             'qty_simple' => 'nullable|integer|min:0|max:10',
             'qty_integral' => 'nullable|integer|min:0|max:10',
             'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
+            'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
             'CNI' => 'required',
             'nom_prenoms_pere' => 'nullable|string|max:255',
             'nom_prenoms_mere' => 'nullable|string|max:255',
@@ -116,6 +117,9 @@ class DemandeNaissanceController extends Controller
             'quartier' => 'nullable|string|max:255',
             'relation' => 'nullable|string|in:enfant,parent,connaissance',
             'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+        ], [
+            'mtn_number.required_if' => 'Le numéro MTN est obligatoire lorsque le moyen de paiement choisi est MTN.',
+            'mtn_number.regex' => 'Le numéro MTN doit comporter exactement 10 chiffres et commencer par 05.',
         ]);
 
         if ($validator->fails()) {
@@ -299,11 +303,16 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 9. Renvoyer la réponse JSON
+            $msg = strtolower($paymentMethod) === 'mtn'
+                ? 'Demande créée. Un message de validation de paiement (Push USSD) a été envoyé sur votre numéro MTN pour finaliser le paiement.'
+                : 'Demande créée. Utilisez le payment_url pour payer.';
+
             return response()->json([
                 'success' => true,
-                'message' => 'Demande créée. Utilisez le payment_url pour payer.',
+                'message' => $msg,
                 'requires_payment' => true,
                 'payment_method' => $paymentMethod,
+                'mtn_number' => $request->input('mtn_number'),
                 'free_requests' => [
                     'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
                     'economie' => $freeCalc['montant_timbre_gratuit'],
@@ -377,9 +386,52 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ];
             }
 
-            // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, MTN, Moov)
+            // Si c'est MTN, utiliser MTN MoMo API en direct (MtnService)
+            if (strtolower($paymentMethod) === 'mtn') {
+                $mtnPhoneNumber = request()->input('mtn_number') ?: $naissance->contact_destinataire ?: (auth()->check() ? auth()->user()->contact : '');
+
+                // Formater le numéro
+                $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
+                if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
+                    $mtnPhoneNumber = '225' . $mtnPhoneNumber;
+                }
+
+                $mtnService = new \App\Services\MtnService();
+                $response = $mtnService->requestToPay(
+                    $totalAmount,
+                    $mtnPhoneNumber,
+                    $naissance->reference,
+                    'Extrait Naissance',
+                    'Mairie Plateau'
+                );
+
+                if ($response && $response['status'] === 'PENDING') {
+                    // Stocker le ReferenceId en cache pour la vérification
+                    \Illuminate\Support\Facades\Cache::put('mtn_ref_' . $naissance->reference, $response['referenceId'], now()->addHours(1));
+
+                    return [
+                        'success' => true,
+                        'payment_url' => null, // Pas de lien de redirection pour le push USSD
+                        'is_ussd_push' => true,
+                        'mtn_ref' => $response['referenceId'],
+                        'generated_transaction_id' => $naissance->reference,
+                        'return_url_deep_link' => $returnUrl,
+                        'cancel_url_deep_link' => $cancelUrl,
+                        'return_url_web_fallback' => $fallbackReturnUrl,
+                        'cancel_url_web_fallback' => $fallbackCancelUrl,
+                    ];
+                }
+
+                return [
+                    'success' => false,
+                    'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
+                    'error_details' => $response
+                ];
+            }
+
+            // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, Moov)
             $channels = 'ALL';
-            if (in_array(strtolower($paymentMethod), ['orange', 'mtn', 'moov'])) {
+            if (in_array(strtolower($paymentMethod), ['orange', 'moov'])) {
                 $channels = 'MOBILE_MONEY';
             }
 
@@ -438,6 +490,22 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
      */
     public function retryPayment(Request $request, Naissance $naissance): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
+            'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
+        ], [
+            'mtn_number.required_if' => 'Le numéro MTN est obligatoire lorsque le moyen de paiement choisi est MTN.',
+            'mtn_number.regex' => 'Le numéro MTN doit comporter exactement 10 chiffres et commencer par 05.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
         try {
             $user = Auth::user();
 
@@ -480,9 +548,13 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 7. Succès !
+            $msg = strtolower($paymentMethod) === 'mtn'
+                ? 'Un message de validation de paiement (Push USSD) a été envoyé sur votre numéro MTN pour finaliser le paiement.'
+                : 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.';
+
             return response()->json([
                 'success' => true,
-                'message' => 'Nouveau lien de paiement généré. Utilisez le payment_url pour payer.',
+                'message' => $msg,
                 'requires_payment' => true,
 
                 'payment_details' => [
@@ -686,13 +758,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $qtyIntegral = (int) $request->input('qty_integral', 0);
             if ($naissance->type === 'simple') {
                 $qtyIntegral = 0;
-                if ($qtySimple <= 0) $qtySimple = 1;
+                if ($qtySimple <= 0)
+                    $qtySimple = 1;
             } elseif ($naissance->type === 'integrale') {
                 $qtySimple = 0;
-                if ($qtyIntegral <= 0) $qtyIntegral = 1;
+                if ($qtyIntegral <= 0)
+                    $qtyIntegral = 1;
             } else {
-                if ($qtySimple <= 0) $qtySimple = 1;
-                if ($qtyIntegral <= 0) $qtyIntegral = 1;
+                if ($qtySimple <= 0)
+                    $qtySimple = 1;
+                if ($qtyIntegral <= 0)
+                    $qtyIntegral = 1;
             }
             $naissance->qty_simple = $qtySimple;
             $naissance->qty_integral = $qtyIntegral;
@@ -701,7 +777,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // 8. Gestion de la livraison et du paiement (calcul selon la logique du web)
             $originalChoixOption = $naissance->choix_option;
             $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
-            
+
             // Normaliser le choix option
             $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
             $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
@@ -722,7 +798,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
             $demandeDejaPayee = !in_array($naissance->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
-            $ancienMontantPaye = $demandeDejaPayee ? ((float)$naissance->montant_timbre + (float)$naissance->montant_livraison) : 0;
+            $ancienMontantPaye = $demandeDejaPayee ? ((float) $naissance->montant_timbre + (float) $naissance->montant_livraison) : 0;
 
             $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
             $needsPayment = $resteAPayer > 0;
@@ -849,7 +925,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
                     $naissance->save();
-                    
+
                     // Appliquer la livraison en attente
                     $this->applyPendingDeliveryUpdate($naissance);
                 }
@@ -972,7 +1048,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         break;
                 }
             }
-            
+
             // Toujours permettre de modifier le choix d'option si présent dans la requête
             if ($request->has('choix_option')) {
                 $rules['choix_option'] = 'required|in:retrait,livraison';
@@ -1065,7 +1141,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // 9. Gestion de la livraison et du paiement (calcul selon la logique du web)
             $originalChoixOption = $naissance->choix_option;
             $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
-            
+
             // Normaliser le choix option
             $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
             $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
@@ -1086,7 +1162,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
             $demandeDejaPayee = !in_array($naissance->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
-            $ancienMontantPaye = $demandeDejaPayee ? ((float)$naissance->montant_timbre + (float)$naissance->montant_livraison) : 0;
+            $ancienMontantPaye = $demandeDejaPayee ? ((float) $naissance->montant_timbre + (float) $naissance->montant_livraison) : 0;
 
             $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
             $needsPayment = $resteAPayer > 0;
@@ -1213,7 +1289,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
                     $naissance->save();
-                    
+
                     // Appliquer la livraison en attente
                     $this->applyPendingDeliveryUpdate($naissance);
                 }
@@ -1522,6 +1598,133 @@ Votre demande est maintenant en attente de traitement.";
 
             if (!$naissance) {
                 return response()->json(['status' => 'not_found', 'message' => 'Demande non trouvée'], 404);
+            }
+
+            // Vérification en direct du statut MTN si applicable
+            if ($naissance->etat === 'en attente de paiement' || $naissance->etat === 'non_paye' || $naissance->etat === 'paiement_en_attente') {
+                $mtnRef = \Illuminate\Support\Facades\Cache::get('mtn_ref_' . $reference);
+                if ($mtnRef) {
+                    $mtnService = new \App\Services\MtnService();
+                    $statusInfo = $mtnService->getTransactionStatus($mtnRef);
+                    if ($statusInfo && isset($statusInfo['status'])) {
+                        $status = $statusInfo['status'];
+                        if ($status === 'SUCCESSFUL') {
+                            $paiement = Paiement::where('transaction_id', $reference)->where('operator_id', 'MTN')->first();
+                            if (!$paiement) {
+                                $baseReference = $reference;
+                                $isModification = str_contains($reference, '-MOD-');
+                                if ($isModification) {
+                                    $baseReference = explode('-MOD-', $reference)[0];
+                                }
+
+                                $montantTimbre = (float) ($naissance->montant_timbre ?? 0);
+                                $montantLivraison = (float) ($naissance->montant_livraison ?? 0);
+
+                                if ($isModification) {
+                                    $cacheKey = 'pending_delivery_update_' . $naissance->reference;
+                                    if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                                        $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+                                        $nouveauMontantTimbre = (float) ($pendingData['montant_timbre'] ?? 0);
+                                        $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
+                                        $nouveauMontantTotal = $nouveauMontantTimbre + $nouveauMontantLivraison;
+                                    } else {
+                                        $nouveauMontantTotal = $montantTimbre + $montantLivraison;
+                                    }
+
+                                    $dejaPaye = Paiement::where("naissance_id", $naissance->id)
+                                        ->where('status', 'ACCEPTED')
+                                        ->where('transaction_id', '!=', $reference)
+                                        ->sum('montant');
+
+                                    $defaultAmount = max(0.0, $nouveauMontantTotal - $dejaPaye);
+                                } else {
+                                    $defaultAmount = $montantTimbre + $montantLivraison;
+                                }
+
+                                $amount = isset($statusInfo['amount']) ? (float) $statusInfo['amount'] : $defaultAmount;
+
+                                $partTimbre = 0;
+                                $partLivraison = 0;
+
+                                if ($isModification) {
+                                    $dejaPayeTimbre = Paiement::where("naissance_id", $naissance->id)
+                                        ->where('status', 'ACCEPTED')
+                                        ->where('transaction_id', '!=', $reference)
+                                        ->get()
+                                        ->sum(function ($p) {
+                                            return (float) ($p->raw_response['part_timbre'] ?? 0);
+                                        });
+
+                                    $dejaPayeLivraison = Paiement::where("naissance_id", $naissance->id)
+                                        ->where('status', 'ACCEPTED')
+                                        ->where('transaction_id', '!=', $reference)
+                                        ->get()
+                                        ->sum(function ($p) {
+                                            return (float) ($p->raw_response['part_livraison'] ?? 0);
+                                        });
+
+                                    $cacheKey = 'pending_delivery_update_' . $naissance->reference;
+                                    if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                                        $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+                                        $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
+
+                                        $partLivraison = max(0.0, $nouveauMontantLivraison - $dejaPayeLivraison);
+                                        $partTimbre = max(0.0, $amount - $partLivraison);
+                                    } else {
+                                        $partTimbre = $amount;
+                                        $partLivraison = 0.0;
+                                    }
+                                } else {
+                                    $partTimbre = (float) ($naissance->montant_timbre ?? 0);
+                                    $partLivraison = (float) ($naissance->montant_livraison ?? 0);
+                                }
+
+                                Paiement::create([
+                                    'user_id' => $naissance->user_id,
+                                    'transaction_id' => $reference,
+                                    'operator_id' => 'MTN',
+                                    'montant' => $amount,
+                                    'currency' => $statusInfo['currency'] ?? 'XOF',
+                                    'status' => 'ACCEPTED',
+                                    'paid_at' => now(),
+                                    "naissance_id" => $naissance->id,
+                                    'raw_response' => [
+                                        'part_timbre' => $partTimbre,
+                                        'part_livraison' => $partLivraison,
+                                        'is_modification' => $isModification,
+                                        'mtn_status_info' => $statusInfo
+                                    ]
+                                ]);
+
+                                $this->applyPendingDeliveryUpdate($naissance);
+                                $naissance->etat = 'en attente';
+                                if ($naissance->choix_option === 'livraison') {
+                                    $naissance->statut_livraison = 'en attente';
+                                }
+                                $naissance->save();
+
+                                $this->incrementFreeRequestsFromDemande($naissance);
+
+                                $user = \App\Models\User::find($naissance->user_id);
+                                if ($user) {
+                                    try {
+                                        $yellikaSmsService = app(\App\Services\YellikaSmsService::class);
+                                        $phoneNumber = $user->indicatif . $user->contact;
+                                        $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de naissance a été confirmé. Référence : {$naissance->reference}. Votre demande est maintenant en attente de traitement.";
+                                        $yellikaSmsService->sendSms($phoneNumber, $message);
+
+                                        \Illuminate\Support\Facades\Notification::send($user, new \App\Notifications\DemandeNaissanceConfirmationNotification($user, $naissance));
+                                    } catch (\Exception $e) {
+                                        Log::error("Erreur notifications MTN API: " . $e->getMessage());
+                                    }
+                                }
+                            }
+                        } elseif ($status === 'FAILED') {
+                            $naissance->etat = 'paiement_echoue';
+                            $naissance->save();
+                        }
+                    }
+                }
             }
 
             // 2. Calculer le montant total

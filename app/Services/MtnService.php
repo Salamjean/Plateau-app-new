@@ -23,7 +23,7 @@ class MtnService
         $this->subscriptionKey = config('services.mtn.subscription_key');
         $this->targetEnvironment = config('services.mtn.target_environment');
         $this->baseUrl = config('services.mtn.base_url');
-        $this->currency = config('services.mtn.currency', 'EUR');
+        $this->currency = config('services.mtn.currency', 'XOF');
     }
 
     /**

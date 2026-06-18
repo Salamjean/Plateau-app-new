@@ -1781,8 +1781,8 @@
                                                 </div>
                                                 <input type="hidden" id="swal-payment_method" value="wave">
                                                 <div id="payment-phone-container" style="display: none; margin-top: 10px;">
-                                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN à débiter</label>
+                                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="05XXXXXXXX (10 chiffres)" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                                                 </div>
                                             `}
                         </div>
@@ -1802,15 +1802,17 @@
                         'swal-mtn_number').value.replace(/\s+/g, '') : cleanContact;
 
                     if (payment_method === 'mtn') {
-                        if (!/^\d{10}$/.test(payment_number)) {
+                        if (!/^05\d{8}$/.test(payment_number)) {
                             Swal.showValidationMessage(
-                                'Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
+                                'Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
                             return false;
                         }
                     }
 
                     if (needsPayment) {
-                        window.PaymentPopup = window.open('', 'PaymentPopup');
+                        if (payment_method === 'wave') {
+                            window.PaymentPopup = window.open('', 'PaymentPopup');
+                        }
                     }
 
                     return {
@@ -1829,7 +1831,8 @@
                         montant_timbre: needsPayment ? window.retraitData.montantTimbreTotal : 0,
                         montant_livraison: 0,
                         payment_method: payment_method,
-                        mtn_number: payment_number
+                        mtn_number: payment_method === 'mtn' ? payment_number : '',
+                        wave_number: ''
                     };
                 }
             }).then((result) => {
@@ -1865,6 +1868,10 @@
                         {
                             name: 'mtn_number',
                             value: formData.mtn_number
+                        },
+                        {
+                            name: 'wave_number',
+                            value: formData.wave_number
                         }
                     ];
 
@@ -1880,6 +1887,62 @@
                     });
 
                     window.paymentSuccess = false;
+
+                    if (needsPayment && formData.payment_method === 'mtn') {
+                        Swal.fire({
+                            title: 'Paiement MTN Money',
+                            html: `<div class="text-center">
+                                <div class="mtn-spinner" style="margin: 20px auto; width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #fcb711; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <p style="font-weight: 600; color: #1f4083;">Requête push envoyée au ${formData.mtn_number}</p>
+                                <p style="font-size: 0.9rem; color: #555;">Veuillez valider le paiement sur votre téléphone en saisissant votre code secret.<br><br>
+                                <span style="font-size: 0.8rem; color: #777;">En attente de validation... (Ne fermez pas cette page)</span></p>
+                            </div>`,
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                if (!document.getElementById('mtn-spin-style')) {
+                                    const style = document.createElement('style');
+                                    style.id = 'mtn-spin-style';
+                                    style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                                    document.head.appendChild(style);
+                                }
+                            }
+                        });
+
+                        formSubmitted = true;
+                        const formPayload = new FormData(form);
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formPayload,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw err; });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success && data.reference && data.mtn_ref) {
+                                startMtnPaymentPolling(data.reference, data.mtn_ref, 'deces');
+                            } else {
+                                throw new Error(data.message || 'Erreur lors de l\'initialisation du paiement.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur MTN:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: error.message || 'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
+                                confirmButtonColor: '#1f4083'
+                            });
+                        });
+                        return;
+                    }
 
                     if (needsPayment) {
                         if (window.PaymentPopup) {
@@ -2132,7 +2195,7 @@
                                                                 </button>
                                                             </div>
                                                             <input type="hidden" id="swal-payment_method" value="wave">
-                                                            <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                                            <div id="payment-phone-container" style="display: block; margin-top: 10px;">
                                                                 <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
                                                                 <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                                                             </div>
@@ -2202,8 +2265,16 @@
                         Swal.showValidationMessage('Veuillez remplir tous les champs obligatoires');
                         return false;
                     }
+                    if (d.method === 'mtn') {
+                        if (!/^05\d{8}$/.test(d.number.replace(/\s+/g, ''))) {
+                            Swal.showValidationMessage('Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
+                            return false;
+                        }
+                    }
                     if (needsPayment) {
-                        window.PaymentPopup = window.open('', 'PaymentPopup');
+                        if (d.method === 'wave') {
+                            window.PaymentPopup = window.open('', 'PaymentPopup');
+                        }
                     }
                     return d;
                 }
@@ -2233,6 +2304,62 @@
                         input.name = k;
                         input.value = fields[k];
                         form.appendChild(input);
+                    }
+
+                    if (needsPayment && d.method === 'mtn') {
+                        Swal.fire({
+                            title: 'Paiement MTN Money',
+                            html: `<div class="text-center">
+                                <div class="mtn-spinner" style="margin: 20px auto; width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #fcb711; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <p style="font-weight: 600; color: #1f4083;">Requête push envoyée au ${fields.mtn_number}</p>
+                                <p style="font-size: 0.9rem; color: #555;">Veuillez valider le paiement sur votre téléphone en saisissant votre code secret.<br><br>
+                                <span style="font-size: 0.8rem; color: #777;">En attente de validation... (Ne fermez pas cette page)</span></p>
+                            </div>`,
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                if (!document.getElementById('mtn-spin-style')) {
+                                    const style = document.createElement('style');
+                                    style.id = 'mtn-spin-style';
+                                    style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                                    document.head.appendChild(style);
+                                }
+                            }
+                        });
+
+                        formSubmitted = true;
+                        const formPayload = new FormData(form);
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formPayload,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw err; });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success && data.reference && data.mtn_ref) {
+                                startMtnPaymentPolling(data.reference, data.mtn_ref, 'deces');
+                            } else {
+                                throw new Error(data.message || 'Erreur lors de l\'initialisation du paiement.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur MTN:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: error.message || 'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
+                                confirmButtonColor: '#1f4083'
+                            });
+                        });
+                        return;
                     }
 
                     if (needsPayment) {
@@ -2294,6 +2421,62 @@
                 document.getElementById('payment-phone-container').style.display = 'block';
                 document.getElementById('payment-phone-label').innerText = 'Numéro MTN Money';
             }
+        }
+
+        // Fonction de polling pour paiement MTN
+        function startMtnPaymentPolling(reference, mtnRef, type) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]') ? 
+                document.querySelector('meta[name="csrf-token"]').getAttribute('content') : 
+                (document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value : '');
+
+            const checkStatus = () => {
+                fetch('{{ route("user.payment.mtn.check") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        reference: reference,
+                        type: type,
+                        mtn_ref: mtnRef
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'SUCCESSFUL') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Paiement Réussi',
+                            text: 'Votre paiement a été validé avec succès.',
+                            confirmButtonColor: '#1f4083',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = data.redirect || "{{ route('user.extrait.deces.index') }}";
+                        });
+                    } else if (data.status === 'FAILED') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Échec du paiement',
+                            text: data.message || 'Le paiement a échoué ou a été annulé.',
+                            confirmButtonColor: '#1f4083',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = data.redirect || "{{ route('user.extrait.deces.index') }}";
+                        });
+                    } else {
+                        // Si toujours PENDING, on continue le polling
+                        setTimeout(checkStatus, 4000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur de vérification:', error);
+                    setTimeout(checkStatus, 4000);
+                });
+            };
+
+            // Démarrer la vérification dans 4 secondes
+            setTimeout(checkStatus, 4000);
         }
 
         updateFields();

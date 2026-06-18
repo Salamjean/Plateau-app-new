@@ -88,7 +88,10 @@ class DecesGroupeController extends Controller
             'heure_livraison'         => 'nullable',
             // Paiement (requis si paiement requis)
             'payment_method'          => $paymentRequired ? 'required|in:wave,mtn,orange,moov' : 'nullable|in:wave,mtn,orange,moov',
-            'mtn_number'              => ($paymentRequired && $request->input('payment_method') === 'mtn') ? 'required|string|max:20' : 'nullable|string|max:20',
+            'mtn_number'              => ($paymentRequired && $request->input('payment_method') === 'mtn') ? 'required|regex:/^05[0-9]{8}$/' : 'nullable|regex:/^05[0-9]{8}$/',
+        ], [
+            'mtn_number.required' => 'Le numéro MTN Money est obligatoire.',
+            'mtn_number.regex' => 'Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.',
         ]);
 
         $geminiService = app(\App\Services\GeminiValidationService::class);

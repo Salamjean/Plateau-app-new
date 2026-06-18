@@ -149,11 +149,16 @@ class PaymentController extends Controller
                 }
             }
 
+            $operator = 'WAVE';
+            if (session()->has('mtn_ref_' . $reference) || session()->has('mtn_ref_' . $baseReference)) {
+                $operator = 'MTN';
+            }
+
             try {
                 $paiementData = [
                     'user_id' => $demande->user_id,
                     'transaction_id' => $reference,
-                    'operator_id' => 'WAVE',
+                    'operator_id' => $operator,
                     'montant' => $totalAmount,
                     'currency' => 'XOF',
                     'status' => 'ACCEPTED',
@@ -241,9 +246,9 @@ class PaymentController extends Controller
             // Normaliser le type pour les groupes
             $typeLabel = match (true) {
                 str_contains($type, 'naissance') => 'naissance',
-                str_contains($type, 'mariage')   => 'mariage',
-                str_contains($type, 'deces')     => 'décès',
-                default                          => $type,
+                str_contains($type, 'mariage') => 'mariage',
+                str_contains($type, 'deces') => 'décès',
+                default => $type,
             };
 
             $message = "Bonjour {$user->name}, votre paiement pour la demande d'extrait de {$typeLabel} a été confirmé. Référence : {$demande->reference}. Votre demande est maintenant en attente de traitement par la mairie du plateau.";
@@ -253,9 +258,9 @@ class PaymentController extends Controller
             // Envoi email
             $notificationClass = match (true) {
                 str_contains($type, 'naissance') => DemandeNaissanceConfirmationNotification::class,
-                str_contains($type, 'mariage')   => DemandeMariageConfirmationNotification::class,
-                str_contains($type, 'deces')     => DemandeDecesConfirmationNotification::class,
-                default                          => null,
+                str_contains($type, 'mariage') => DemandeMariageConfirmationNotification::class,
+                str_contains($type, 'deces') => DemandeDecesConfirmationNotification::class,
+                default => null,
             };
 
             if ($notificationClass) {
@@ -329,77 +334,101 @@ class PaymentController extends Controller
 
                 // Find demande 
                 $demande = null;
+                $isGroupe = false;
+                $groupeColumn = null;
+
                 if ($type === 'naissance') {
                     $demande = Naissance::where('reference', $baseReference)->first();
                 } elseif ($type === 'mariage') {
                     $demande = Mariage::where('reference', $baseReference)->first();
                 } elseif ($type === 'deces') {
                     $demande = Deces::where('reference', $baseReference)->first();
+                } elseif ($type === 'naissance_groupe') {
+                    $demande = NaissanceGroupe::where('reference', $baseReference)->first();
+                    $isGroupe = true;
+                    $groupeColumn = 'naissance_groupe_id';
+                } elseif ($type === 'mariage_groupe') {
+                    $demande = MariageGroupe::where('reference', $baseReference)->first();
+                    $isGroupe = true;
+                    $groupeColumn = 'mariage_groupe_id';
+                } elseif ($type === 'deces_groupe') {
+                    $demande = DecesGroupe::where('reference', $baseReference)->first();
+                    $isGroupe = true;
+                    $groupeColumn = 'deces_groupe_id';
                 }
 
                 if ($demande) {
-                    $montantTimbre = (float) ($demande->montant_timbre ?? 0);
-                    $montantLivraison = (float) ($demande->montant_livraison ?? 0);
-
-                    if ($isModification) {
-                        $cacheKey = 'pending_delivery_update_' . $demande->reference;
-                        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
-                            $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
-                            $nouveauMontantTimbre = (float) ($pendingData['montant_timbre'] ?? 0);
-                            $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
-                            $nouveauMontantTotal = $nouveauMontantTimbre + $nouveauMontantLivraison;
-                        } else {
-                            $nouveauMontantTotal = $montantTimbre + $montantLivraison;
-                        }
-
-                        $dejaPaye = Paiement::where("{$type}_id", $demande->id)
-                            ->where('status', 'ACCEPTED')
-                            ->where('transaction_id', '!=', $reference)
-                            ->sum('montant');
-
-                        $defaultAmount = max(0.0, $nouveauMontantTotal - $dejaPaye);
-                    } else {
-                        $defaultAmount = $montantTimbre + $montantLivraison;
-                    }
-
-                    $amount = isset($statusInfo['amount']) ? (float)$statusInfo['amount'] : $defaultAmount;
-
-                    // Calculer la part timbre et part livraison de cette transaction
                     $partTimbre = 0;
                     $partLivraison = 0;
 
-                    if ($isModification) {
-                        $dejaPayeTimbre = Paiement::where("{$type}_id", $demande->id)
-                            ->where('status', 'ACCEPTED')
-                            ->where('transaction_id', '!=', $reference)
-                            ->get()
-                            ->sum(function ($p) {
-                                return (float) ($p->raw_response['part_timbre'] ?? 0);
-                            });
-
-                        $dejaPayeLivraison = Paiement::where("{$type}_id", $demande->id)
-                            ->where('status', 'ACCEPTED')
-                            ->where('transaction_id', '!=', $reference)
-                            ->get()
-                            ->sum(function ($p) {
-                                return (float) ($p->raw_response['part_livraison'] ?? 0);
-                            });
-
-                        $cacheKey = 'pending_delivery_update_' . $demande->reference;
-                        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
-                            $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
-                            $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
-
-                            $partLivraison = max(0.0, $nouveauMontantLivraison - $dejaPayeLivraison);
-                            $partTimbre = max(0.0, $amount - $partLivraison);
-                        } else {
-                            $partTimbre = $amount;
-                            $partLivraison = 0.0;
-                        }
+                    if ($isGroupe) {
+                        $defaultAmount = (float) $demande->montant_total;
+                        $partTimbre = $defaultAmount;
+                        $partLivraison = 0.0;
                     } else {
-                        $partTimbre = (float) ($demande->montant_timbre ?? 0);
-                        $partLivraison = (float) ($demande->montant_livraison ?? 0);
+                        $montantTimbre = (float) ($demande->montant_timbre ?? 0);
+                        $montantLivraison = (float) ($demande->montant_livraison ?? 0);
+
+                        if ($isModification) {
+                            $cacheKey = 'pending_delivery_update_' . $demande->reference;
+                            if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                                $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+                                $nouveauMontantTimbre = (float) ($pendingData['montant_timbre'] ?? 0);
+                                $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
+                                $nouveauMontantTotal = $nouveauMontantTimbre + $nouveauMontantLivraison;
+                            } else {
+                                $nouveauMontantTotal = $montantTimbre + $montantLivraison;
+                            }
+
+                            $dejaPaye = Paiement::where("{$type}_id", $demande->id)
+                                ->where('status', 'ACCEPTED')
+                                ->where('transaction_id', '!=', $reference)
+                                ->sum('montant');
+
+                            $defaultAmount = max(0.0, $nouveauMontantTotal - $dejaPaye);
+                        } else {
+                            $defaultAmount = $montantTimbre + $montantLivraison;
+                        }
                     }
+
+                    $amount = isset($statusInfo['amount']) ? (float) $statusInfo['amount'] : $defaultAmount;
+
+                    if (!$isGroupe) {
+                        if ($isModification) {
+                            $dejaPayeTimbre = Paiement::where("{$type}_id", $demande->id)
+                                ->where('status', 'ACCEPTED')
+                                ->where('transaction_id', '!=', $reference)
+                                ->get()
+                                ->sum(function ($p) {
+                                    return (float) ($p->raw_response['part_timbre'] ?? 0);
+                                });
+
+                            $dejaPayeLivraison = Paiement::where("{$type}_id", $demande->id)
+                                ->where('status', 'ACCEPTED')
+                                ->where('transaction_id', '!=', $reference)
+                                ->get()
+                                ->sum(function ($p) {
+                                    return (float) ($p->raw_response['part_livraison'] ?? 0);
+                                });
+
+                            $cacheKey = 'pending_delivery_update_' . $demande->reference;
+                            if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                                $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+                                $nouveauMontantLivraison = (float) ($pendingData['montant_livraison'] ?? 0);
+
+                                $partLivraison = max(0.0, $nouveauMontantLivraison - $dejaPayeLivraison);
+                                $partTimbre = max(0.0, $amount - $partLivraison);
+                            } else {
+                                $partTimbre = $amount;
+                                $partLivraison = 0.0;
+                            }
+                        } else {
+                            $partTimbre = (float) ($demande->montant_timbre ?? 0);
+                            $partLivraison = (float) ($demande->montant_livraison ?? 0);
+                        }
+                    }
+
+                    $paiementColumn = $isGroupe ? $groupeColumn : "{$type}_id";
 
                     Paiement::create([
                         'user_id' => $demande->user_id,
@@ -409,7 +438,7 @@ class PaymentController extends Controller
                         'currency' => $statusInfo['currency'] ?? 'XOF',
                         'status' => 'ACCEPTED',
                         'paid_at' => now(),
-                        "{$type}_id" => $demande->id,
+                        $paiementColumn => $demande->id,
                         'raw_response' => [
                             'part_timbre' => $partTimbre,
                             'part_livraison' => $partLivraison,
@@ -425,10 +454,15 @@ class PaymentController extends Controller
                     }
                     $demande->save();
 
+                    // Pour un groupe : propager l'état aux lignes filles
+                    if ($isGroupe && method_exists($demande, 'lignes')) {
+                        $demande->lignes()->update(['etat' => 'en attente']);
+                    }
+
                     // Incrémenter le compteur de demandes gratuites si applicable
                     $this->incrementFreeRequestsFromDemande($demande);
 
-                    // ✅ Envoi SMS + email de confirmation (paiement MTN confirmé via polling)
+                    // ✅ Envoi SMS + email de confirmation (paiement MTN confirmed via polling)
                     $user = User::find($demande->user_id);
                     if ($user) {
                         $this->sendPaymentNotifications($user, $demande, $type);

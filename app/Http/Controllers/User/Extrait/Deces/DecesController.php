@@ -82,6 +82,12 @@ class DecesController extends Controller
         if ($request->hasFile('CNIdfnt')) {
             $validation = $geminiService->validateIdentityDocument($request->file('CNIdfnt'));
             if (!$validation['isValid']) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité du défunt a été rejetée par l'IA de la mairie : " . $validation['reason']
+                    ], 422);
+                }
                 return redirect()->back()
                     ->withErrors(['CNIdfnt' => "La pièce d'identité du défunt a été rejetée par l'IA : " . $validation['reason']])
                     ->withInput();
@@ -92,6 +98,12 @@ class DecesController extends Controller
         if ($request->hasFile('CNIdcl')) {
             $validation = $geminiService->validateIdentityDocument($request->file('CNIdcl'));
             if (!$validation['isValid']) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La pièce d'identité du déclarant a été rejetée par l'IA de la mairie : " . $validation['reason']
+                    ], 422);
+                }
                 return redirect()->back()
                     ->withErrors(['CNIdcl' => "La pièce d'identité du déclarant a été rejetée par l'IA : " . $validation['reason']])
                     ->withInput();
@@ -276,6 +288,18 @@ class DecesController extends Controller
                 if ($response && $response['status'] === 'PENDING') {
                     // Stocker le ReferenceId en session pour la vérification
                     session(['mtn_ref_' . $deces->reference => $response['referenceId']]);
+
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('user.payment.mtn.waiting', [
+                                'reference' => $deces->reference,
+                                'type' => 'deces'
+                            ]),
+                            'reference' => $deces->reference,
+                            'mtn_ref' => $response['referenceId']
+                        ]);
+                    }
 
                     return redirect()->route('user.payment.mtn.waiting', [
                         'reference' => $deces->reference,
@@ -604,7 +628,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                                 'redirect_url' => route('user.payment.mtn.waiting', [
                                     'reference' => $transactionReference,
                                     'type' => 'deces'
-                                ])
+                                ]),
+                                'reference' => $transactionReference,
+                                'mtn_ref' => $response['referenceId']
                             ]);
                         }
                         return redirect()->route('user.payment.mtn.waiting', [

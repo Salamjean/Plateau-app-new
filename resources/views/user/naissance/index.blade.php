@@ -661,8 +661,8 @@
                     </button>
                 </div>
                 <input type="hidden" name="payment_method" id="mod-payment_method" value="wave">
-                <div id="mod-payment-phone-container" style="display: none; margin-top: 8px; text-align: left;">
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #4a5568; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN Money</label>
+                <div id="mod-payment-phone-container" style="display: block; margin-top: 8px; text-align: left;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #4a5568; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
                     <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || demande.number || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                 </div>
             </div>
@@ -695,7 +695,8 @@
                             btnMtn.style.background = 'white';
                             btnMtn.style.border = '1px solid #edf2f7';
                             inputPaymentMethod.value = 'wave';
-                            phoneContainer.style.display = 'none';
+                            phoneContainer.style.display = 'block';
+                            phoneContainer.querySelector('label').innerText = 'Numéro Wave';
                         });
 
                         btnMtn.addEventListener('click', () => {
@@ -705,6 +706,7 @@
                             btnWave.style.border = '1px solid #edf2f7';
                             inputPaymentMethod.value = 'mtn';
                             phoneContainer.style.display = 'block';
+                            phoneContainer.querySelector('label').innerText = 'Numéro MTN Money';
                         });
                     }
 
@@ -775,15 +777,28 @@
                     }
 
                     const paymentMethodInput = form.querySelector('#mod-payment_method');
-                    if (paymentMethodInput && paymentMethodInput.value === 'mtn') {
-                        const mtnNumberInput = form.querySelector('#mod-mtn_number');
-                        const mtnVal = mtnNumberInput ? mtnNumberInput.value.replace(/\s+/g, '') : '';
-                        if (!/^\d{10}$/.test(mtnVal)) {
-                            Swal.showValidationMessage(
-                                'Veuillez entrer un numéro MTN Money valide à 10 chiffres.');
-                            return false;
+                    if (paymentMethodInput) {
+                        const method = paymentMethodInput.value;
+                        const phoneInput = form.querySelector('#mod-mtn_number');
+                        const phoneVal = phoneInput ? phoneInput.value.replace(/\s+/g, '') : '';
+                        
+                        if (method === 'mtn') {
+                            if (!/^05\d{8}$/.test(phoneVal)) {
+                                Swal.showValidationMessage(
+                                    'Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
+                                return false;
+                            }
+                            formData.set('mtn_number', phoneVal);
+                            formData.delete('wave_number');
+                        } else if (method === 'wave') {
+                            if (!/^0[157]\d{8}$/.test(phoneVal)) {
+                                Swal.showValidationMessage(
+                                    'Le numéro Wave doit comporter 10 chiffres et commencer par 01, 05 ou 07.');
+                                return false;
+                            }
+                            formData.set('wave_number', phoneVal);
+                            formData.delete('mtn_number');
                         }
-                        formData.set('mtn_number', mtnVal);
                     }
 
                     return formData;
@@ -812,7 +827,28 @@
                         })
                         .then(data => {
                             if (data.success) {
-                                if (data.redirect_url) {
+                                if (data.redirect_url && data.mtn_ref && data.reference) {
+                                    Swal.fire({
+                                        title: 'Paiement MTN Money',
+                                        html: `<div class="text-center">
+                                            <div class="mtn-spinner" style="margin: 20px auto; width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #fcb711; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                            <p style="font-weight: 600; color: #1f4083;">Requête push envoyée au numéro MTN</p>
+                                            <p style="font-size: 0.9rem; color: #555;">Veuillez valider le paiement sur votre téléphone en saisissant votre code secret.<br><br>
+                                            <span style="font-size: 0.8rem; color: #777;">En attente de validation... (Ne fermez pas cette page)</span></p>
+                                        </div>`,
+                                        allowOutsideClick: false,
+                                        showConfirmButton: false,
+                                        didOpen: () => {
+                                            if (!document.getElementById('mtn-spin-style')) {
+                                                const style = document.createElement('style');
+                                                style.id = 'mtn-spin-style';
+                                                style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                                                document.head.appendChild(style);
+                                            }
+                                        }
+                                    });
+                                    startMtnPaymentPolling(data.reference, data.mtn_ref, 'naissance');
+                                } else if (data.redirect_url) {
                                     window.location.href = data.redirect_url;
                                 } else {
                                     Swal.fire('Succès', data.message, 'success').then(() => location.reload());
@@ -829,6 +865,55 @@
                         });
                 }
             });
+        }
+
+        function startMtnPaymentPolling(reference, mtnRef, type) {
+            const csrfToken = '{{ csrf_token() }}';
+            const checkStatus = () => {
+                fetch('{{ route("user.payment.mtn.check") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        reference: reference,
+                        type: type,
+                        mtn_ref: mtnRef
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'SUCCESSFUL') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Paiement Réussi',
+                            text: 'Votre paiement a été validé avec succès.',
+                            confirmButtonColor: '#1f4083',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = data.redirect || "{{ route('user.extrait.index') }}";
+                        });
+                    } else if (data.status === 'FAILED') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Échec du paiement',
+                            text: data.message || 'Le paiement a échoué ou a été annulé.',
+                            confirmButtonColor: '#1f4083',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = data.redirect || "{{ route('user.extrait.index') }}";
+                        });
+                    } else {
+                        setTimeout(checkStatus, 4000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur de vérification:', error);
+                    setTimeout(checkStatus, 4000);
+                });
+            };
+            setTimeout(checkStatus, 4000);
         }
     </script>
 
