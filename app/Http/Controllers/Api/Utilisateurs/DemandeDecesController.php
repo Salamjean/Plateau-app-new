@@ -182,16 +182,17 @@ class DemandeDecesController extends Controller
             $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $deces->quantite);
             Log::info("Demandes gratuites - Deces (API) {$deces->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} payants");
 
-            if ($request->choix_option === 'livraison') {
-                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            // Calcul unifié du montant des timbres (indépendant du mode retrait/livraison)
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $deces->montant_timbre = $montantTimbreTotal;
+            $deces->is_free_request = $freeCalc['free_timbres'] > 0;
+            $deces->free_timbres_count = $freeCalc['free_timbres'];
+
+            if ($deces->choix_option === 'livraison') {
                 $montantLivraison = (float) $request->montant_livraison;
                 $totalAmount = $montantTimbreTotal + $montantLivraison;
 
-                $deces->montant_timbre = $montantTimbreTotal; // Remplacé par le montant total des timbres calculé
                 $deces->montant_livraison = $montantLivraison;
-                $deces->is_free_request = $freeCalc['free_timbres'] > 0;
-                $deces->free_timbres_count = $freeCalc['free_timbres'];
-
                 $deces->nom_destinataire = $request->nom_destinataire;
                 $deces->prenom_destinataire = $request->prenom_destinataire;
                 $deces->email_destinataire = $request->email_destinataire;
@@ -210,13 +211,15 @@ class DemandeDecesController extends Controller
                     $deces->statut_livraison = null;
                 }
             } else {
-                // Retrait sur place
-                $totalAmount = 0;
-                $deces->etat = 'en attente';
+                // Retrait sur place : les timbres sont toujours payants (comme sur le web)
+                $totalAmount = $montantTimbreTotal;
                 $deces->statut_livraison = null;
-                $deces->montant_timbre = $freeCalc['montant_timbre_total'];
-                $deces->is_free_request = $freeCalc['free_timbres'] > 0;
-                $deces->free_timbres_count = $freeCalc['free_timbres'];
+
+                if ($totalAmount > 0) {
+                    $deces->etat = 'en attente de paiement';
+                } else {
+                    $deces->etat = 'en attente';
+                }
             }
 
             $deces->save();
@@ -272,6 +275,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // 8. Succès ! Construire la réponse
             return response()->json([
                 'success' => true,
+                'payment_method' => $paymentMethod,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
                 'free_requests' => [
@@ -420,9 +424,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
             }
 
-            // 2. Vérifier si l'option est 'livraison' (seules celles-là ont un paiement)
-            if ($deces->choix_option !== 'livraison') {
-                return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+            // 2. Vérifier si un montant est dû (timbres + livraison éventuelle)
+            $totalAmountDue = (float) $deces->montant_timbre + (float) $deces->montant_livraison;
+            if ($totalAmountDue <= 0) {
+                return response()->json(['success' => false, 'message' => 'Cette demande ne nécessite pas de paiement (montant nul).'], 400);
             }
 
             // 3. Vérifier l'état
@@ -442,7 +447,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // 5. Générer le nouveau lien de paiement (par défaut Wave vu qu'on a pas de paramètre save)
             $paymentMethod = $request->input('payment_method', 'wave'); // Valeur par défaut si non passée
-            $totalAmount = (float) $deces->montant_timbre + (float) $deces->montant_livraison;
+            $totalAmount = $totalAmountDue; // Déjà calculé ci-dessus
             $paymentLinkResult = $this->generatePaymentLink($deces, $totalAmount, $paymentMethod);
 
             // 6. Gérer l'échec de la génération de lien
@@ -1262,10 +1267,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
      */
     private function formatDemandeResponse(Deces $deces, bool $includeFiles = false)
     {
-        // montant_timbre est le TOTAL des timbres payants (après déduction des timbres gratuits)
-        $montant_total = $deces->choix_option === 'livraison'
-            ? (float) ($deces->montant_timbre ?? 0) + (float) ($deces->montant_livraison ?? 0)
-            : 0;
+        // montant_total = timbres + livraison (les timbres sont dus pour retrait ET livraison)
+        $montant_total = (float) ($deces->montant_timbre ?? 0) + (float) ($deces->montant_livraison ?? 0);
 
         $data = [
             'id' => $deces->id,

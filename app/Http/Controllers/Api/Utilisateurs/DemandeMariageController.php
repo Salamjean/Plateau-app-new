@@ -157,16 +157,17 @@ class DemandeMariageController extends Controller
             $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $mariage->quantite);
             Log::info("Demandes gratuites - Mariage (API) {$mariage->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} payants");
 
-            if ($request->choix_option === 'livraison') {
-                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            // Calcul unifié du montant des timbres (indépendant du mode retrait/livraison)
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $mariage->montant_timbre = $montantTimbreTotal;
+            $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
+            $mariage->free_timbres_count = $freeCalc['free_timbres'];
+
+            if ($mariage->choix_option === 'livraison') {
                 $montantLivraison = (float) $request->montant_livraison;
                 $totalAmount = $montantTimbreTotal + $montantLivraison;
 
-                $mariage->montant_timbre = $montantTimbreTotal;
                 $mariage->montant_livraison = $montantLivraison;
-                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
-                $mariage->free_timbres_count = $freeCalc['free_timbres'];
-
                 $mariage->nom_destinataire = $request->nom_destinataire;
                 $mariage->prenom_destinataire = $request->prenom_destinataire;
                 $mariage->email_destinataire = $request->email_destinataire;
@@ -185,12 +186,15 @@ class DemandeMariageController extends Controller
                     $mariage->statut_livraison = null;
                 }
             } else {
-                $totalAmount = 0;
-                $mariage->etat = 'en attente';
+                // Retrait sur place : les timbres sont toujours payants (comme sur le web)
+                $totalAmount = $montantTimbreTotal;
                 $mariage->statut_livraison = null;
-                $mariage->montant_timbre = $freeCalc['montant_timbre_total'];
-                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
-                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+
+                if ($totalAmount > 0) {
+                    $mariage->etat = 'en attente de paiement';
+                } else {
+                    $mariage->etat = 'en attente';
+                }
             }
 
             $mariage->save();
@@ -245,6 +249,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             return response()->json([
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
+                'payment_method' => $paymentMethod,
                 'requires_payment' => true,
                 'free_requests' => [
                     'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
@@ -389,9 +394,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
             }
 
-            // 2. Vérifier si l'option est 'livraison'
-            if ($mariage->choix_option !== 'livraison') {
-                return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+            // 2. Vérifier si un montant est dû (timbres + livraison éventuelle)
+            $totalAmountDue = (float) $mariage->montant_timbre + (float) $mariage->montant_livraison;
+            if ($totalAmountDue <= 0) {
+                return response()->json(['success' => false, 'message' => 'Cette demande ne nécessite pas de paiement (montant nul).'], 400);
             }
 
             // 3. Vérifier l'état
@@ -409,7 +415,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // 5. Générer le nouveau lien de paiement 
             $paymentMethod = $request->input('payment_method', 'wave'); // Par défaut
-            $totalAmount = (float) $mariage->montant_timbre + (float) $mariage->montant_livraison;
+            $totalAmount = $totalAmountDue; // Déjà calculé ci-dessus
             $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod);
 
             // 6. Gérer l'échec de la génération
@@ -1219,10 +1225,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
      */
     private function formatDemandeResponse(Mariage $mariage, bool $includeFiles = false)
     {
-        // montant_timbre est le TOTAL des timbres payants (après déduction des timbres gratuits)
-        $montant_total = $mariage->choix_option === 'livraison'
-            ? (float) ($mariage->montant_timbre ?? 0) + (float) ($mariage->montant_livraison ?? 0)
-            : 0;
+        // montant_total = timbres + livraison (les timbres sont dus pour retrait ET livraison)
+        $montant_total = (float) ($mariage->montant_timbre ?? 0) + (float) ($mariage->montant_livraison ?? 0);
 
         $data = [
             'id' => $mariage->id,

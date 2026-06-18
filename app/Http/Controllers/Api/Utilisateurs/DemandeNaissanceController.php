@@ -200,17 +200,17 @@ class DemandeNaissanceController extends Controller
             $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
             Log::info("Demandes gratuites - Naissance (API) {$naissance->reference}: {$freeCalc['free_timbres']} timbres gratuits, {$freeCalc['paid_timbres']} payants");
 
-            // 5. Informations de livraison
-            if ($request->choix_option === 'livraison') {
-                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-                $montantLivraison = (float) $request->montant_livraison;
-                $totalAmount = $montantTimbreTotal + $montantLivraison;
+            // 5. Informations de livraison et paiement
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraison = strtolower($request->choix_option) === 'livraison' ? (float) $request->montant_livraison : 0;
+            $totalAmount = $montantTimbreTotal + $montantLivraison;
 
-                $naissance->montant_timbre = $montantTimbreTotal;
-                $naissance->montant_livraison = $montantLivraison;
-                $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
-                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+            $naissance->montant_timbre = $montantTimbreTotal;
+            $naissance->montant_livraison = $montantLivraison;
+            $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
+            $naissance->free_timbres_count = $freeCalc['free_timbres'];
 
+            if (strtolower($request->choix_option) === 'livraison') {
                 $naissance->nom_destinataire = $request->nom_destinataire;
                 $naissance->prenom_destinataire = $request->prenom_destinataire;
                 $naissance->email_destinataire = $request->email_destinataire;
@@ -229,12 +229,22 @@ class DemandeNaissanceController extends Controller
                     $naissance->statut_livraison = null;
                 }
             } else {
-                $totalAmount = 0;
-                $naissance->etat = 'en attente';
+                $naissance->nom_destinataire = null;
+                $naissance->prenom_destinataire = null;
+                $naissance->email_destinataire = null;
+                $naissance->contact_destinataire = null;
+                $naissance->adresse_livraison = null;
+                $naissance->code_postal = null;
+                $naissance->ville = null;
+                $naissance->commune_livraison = null;
+                $naissance->quartier = null;
+
+                if ($totalAmount > 0) {
+                    $naissance->etat = 'en attente de paiement';
+                } else {
+                    $naissance->etat = 'en attente';
+                }
                 $naissance->statut_livraison = null;
-                $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
-                $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
-                $naissance->free_timbres_count = $freeCalc['free_timbres'];
             }
 
             $naissance->save();
@@ -293,6 +303,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'success' => true,
                 'message' => 'Demande créée. Utilisez le payment_url pour payer.',
                 'requires_payment' => true,
+                'payment_method' => $paymentMethod,
                 'free_requests' => [
                     'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
                     'economie' => $freeCalc['montant_timbre_gratuit'],
@@ -435,9 +446,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return response()->json(['success' => false, 'message' => 'Non autorisé'], 403);
             }
 
-            // 2. Vérifier si l'option est 'livraison'
-            if ($naissance->choix_option !== 'livraison') {
-                return response()->json(['success' => false, 'message' => 'Cette demande (retrait) ne nécessite pas de paiement.'], 400);
+            // 2. Vérifier si le paiement est nécessaire
+            $totalAmount = (float) $naissance->montant_timbre + (float) $naissance->montant_livraison;
+            if ($totalAmount <= 0) {
+                return response()->json(['success' => false, 'message' => 'Cette demande ne nécessite pas de paiement.'], 400);
             }
 
             // 3. Vérifier l'état
@@ -686,7 +698,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $naissance->qty_integral = $qtyIntegral;
             $naissance->quantite = $qtySimple + $qtyIntegral;
 
-            // 8. Gestion de la livraison et du paiement
+            // 8. Gestion de la livraison et du paiement (calcul selon la logique du web)
             $originalChoixOption = $naissance->choix_option;
             $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
             
@@ -694,35 +706,65 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
             $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
 
-            $needsPayment = ($nouveauChoixOptionNormalise === 'livraison' && $originalChoixOptionNormalise !== 'livraison');
+            // Calcul du reste à payer comme sur le web
+            $user->refresh();
+            // Créditer temporairement les timbres gratuits déjà accordés à cette demande pour le calcul
+            $anciensTimbresGratuits = (int) $naissance->free_timbres_count;
+            if ($anciensTimbresGratuits > 0) {
+                $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
+                $user->save();
+            }
+
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraisonCible = $nouveauChoixOptionNormalise === 'livraison' ? (float) $request->input('montant_livraison', 0) : 0;
+            $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
+
+            // Calcul du montant déjà payé s'il a déjà effectué un paiement
+            $demandeDejaPayee = !in_array($naissance->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            $ancienMontantPaye = $demandeDejaPayee ? ((float)$naissance->montant_timbre + (float)$naissance->montant_livraison) : 0;
+
+            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
-            if ($nouveauChoixOptionNormalise === 'livraison') {
-                $deliveryData = [
-                    'choix_option' => 'livraison',
-                    'montant_timbre' => $request->input('montant_timbre'),
-                    'montant_livraison' => $request->input('montant_livraison'),
-                    'nom_destinataire' => $request->input('nom_destinataire'),
-                    'prenom_destinataire' => $request->input('prenom_destinataire'),
-                    'email_destinataire' => $request->input('email_destinataire'),
-                    'contact_destinataire' => $request->input('contact_destinataire'),
-                    'adresse_livraison' => $request->input('adresse_livraison'),
-                    'code_postal' => $request->input('code_postal'),
-                    'ville' => $request->input('ville'),
-                    'commune_livraison' => $request->input('commune_livraison'),
-                    'quartier' => $request->input('quartier'),
-                    'date_livraison' => $request->input('date_livraison'),
-                    'heure_livraison' => $request->input('heure_livraison'),
-                ];
-
-                if ($needsPayment) {
-                    $pendingDeliveryData = $deliveryData;
+            if ($needsPayment) {
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $pendingDeliveryData = [
+                        'choix_option' => 'livraison',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => $montantLivraisonCible,
+                        'nom_destinataire' => $request->input('nom_destinataire'),
+                        'prenom_destinataire' => $request->input('prenom_destinataire'),
+                        'email_destinataire' => $request->input('email_destinataire'),
+                        'contact_destinataire' => $request->input('contact_destinataire'),
+                        'adresse_livraison' => $request->input('adresse_livraison'),
+                        'code_postal' => $request->input('code_postal'),
+                        'ville' => $request->input('ville'),
+                        'commune_livraison' => $request->input('commune_livraison'),
+                        'quartier' => $request->input('quartier'),
+                        'date_livraison' => $request->input('date_livraison'),
+                        'heure_livraison' => $request->input('heure_livraison'),
+                    ];
                     // Conserver l'ancienne option jusqu'au paiement
                     $naissance->choix_option = $originalChoixOption;
                 } else {
-                    $naissance->choix_option = 'livraison';
-                    $naissance->montant_timbre = $request->input('montant_timbre');
-                    $naissance->montant_livraison = $request->input('montant_livraison');
+                    $pendingDeliveryData = [
+                        'choix_option' => 'Retrait sur place',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => 0,
+                    ];
+                    // Conserver l'ancienne option jusqu'au paiement
+                    $naissance->choix_option = $originalChoixOption;
+                }
+            } else {
+                $naissance->choix_option = $nouveauChoixOptionNormalise;
+                $naissance->montant_timbre = $montantTimbreTotal;
+                $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
+                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $naissance->montant_livraison = $montantLivraisonCible;
                     $naissance->nom_destinataire = $request->input('nom_destinataire');
                     $naissance->prenom_destinataire = $request->input('prenom_destinataire');
                     $naissance->email_destinataire = $request->input('email_destinataire');
@@ -734,13 +776,22 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $naissance->quartier = $request->input('quartier');
                     $naissance->date_livraison = $request->input('date_livraison');
                     $naissance->heure_livraison = $request->input('heure_livraison');
+                } else {
+                    $naissance->montant_livraison = 0;
+                    $naissance->nom_destinataire = null;
+                    $naissance->prenom_destinataire = null;
+                    $naissance->email_destinataire = null;
+                    $naissance->contact_destinataire = null;
+                    $naissance->adresse_livraison = null;
+                    $naissance->code_postal = null;
+                    $naissance->ville = null;
+                    $naissance->commune_livraison = null;
+                    $naissance->quartier = null;
                 }
-            } else {
-                $naissance->choix_option = 'Retrait sur place';
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $naissance->etat = 'en attente';
+            $naissance->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
             $naissance->peut_modifier = false;
             $naissance->champs_a_modifier = null;
             $naissance->motif_de_rejet = null;
@@ -748,11 +799,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $user->refresh();
-                $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
-                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-                $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
-                $totalAmount = $montantTimbreTotal + $montantLivraison;
+                $totalAmount = $resteAPayer; // C'est le reste à payer
 
                 $naissance->montant_timbre = $montantTimbreTotal;
                 $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
@@ -797,24 +844,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         ]
                     ]);
                 } else {
-                    // Si le total est de 0
                     $naissance->etat = 'en attente';
                     if ($freeCalc['free_timbres'] > 0) {
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
                     $naissance->save();
                     
-                    // Appliquer directement la livraison en attente
+                    // Appliquer la livraison en attente
                     $this->applyPendingDeliveryUpdate($naissance);
                 }
             } else {
-                // Si c'est un retrait ou livraison gratuite
                 if ($nouveauChoixOptionNormalise !== 'livraison') {
-                    $user->refresh();
-                    $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
-                    $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
-                    $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
-                    $naissance->free_timbres_count = $freeCalc['free_timbres'];
                     if ($freeCalc['free_timbres'] > 0) {
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
@@ -1022,7 +1062,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             }
 
-            // 9. Gestion de la livraison et du paiement
+            // 9. Gestion de la livraison et du paiement (calcul selon la logique du web)
             $originalChoixOption = $naissance->choix_option;
             $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
             
@@ -1030,35 +1070,65 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
             $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
 
-            $needsPayment = ($nouveauChoixOptionNormalise === 'livraison' && $originalChoixOptionNormalise !== 'livraison');
+            // Calcul du reste à payer comme sur le web
+            $user->refresh();
+            // Créditer temporairement les timbres gratuits déjà accordés à cette demande pour le calcul
+            $anciensTimbresGratuits = (int) $naissance->free_timbres_count;
+            if ($anciensTimbresGratuits > 0) {
+                $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
+                $user->save();
+            }
+
+            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+            $montantTimbreTotal = $freeCalc['montant_timbre_total'];
+            $montantLivraisonCible = $nouveauChoixOptionNormalise === 'livraison' ? (float) $request->input('montant_livraison', 0) : 0;
+            $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
+
+            // Calcul du montant déjà payé s'il a déjà effectué un paiement
+            $demandeDejaPayee = !in_array($naissance->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            $ancienMontantPaye = $demandeDejaPayee ? ((float)$naissance->montant_timbre + (float)$naissance->montant_livraison) : 0;
+
+            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
-            if ($nouveauChoixOptionNormalise === 'livraison') {
-                $deliveryData = [
-                    'choix_option' => 'livraison',
-                    'montant_timbre' => $request->input('montant_timbre'),
-                    'montant_livraison' => $request->input('montant_livraison'),
-                    'nom_destinataire' => $request->input('nom_destinataire'),
-                    'prenom_destinataire' => $request->input('prenom_destinataire'),
-                    'email_destinataire' => $request->input('email_destinataire'),
-                    'contact_destinataire' => $request->input('contact_destinataire'),
-                    'adresse_livraison' => $request->input('adresse_livraison'),
-                    'code_postal' => $request->input('code_postal'),
-                    'ville' => $request->input('ville'),
-                    'commune_livraison' => $request->input('commune_livraison'),
-                    'quartier' => $request->input('quartier'),
-                    'date_livraison' => $request->input('date_livraison'),
-                    'heure_livraison' => $request->input('heure_livraison'),
-                ];
-
-                if ($needsPayment) {
-                    $pendingDeliveryData = $deliveryData;
+            if ($needsPayment) {
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $pendingDeliveryData = [
+                        'choix_option' => 'livraison',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => $montantLivraisonCible,
+                        'nom_destinataire' => $request->input('nom_destinataire'),
+                        'prenom_destinataire' => $request->input('prenom_destinataire'),
+                        'email_destinataire' => $request->input('email_destinataire'),
+                        'contact_destinataire' => $request->input('contact_destinataire'),
+                        'adresse_livraison' => $request->input('adresse_livraison'),
+                        'code_postal' => $request->input('code_postal'),
+                        'ville' => $request->input('ville'),
+                        'commune_livraison' => $request->input('commune_livraison'),
+                        'quartier' => $request->input('quartier'),
+                        'date_livraison' => $request->input('date_livraison'),
+                        'heure_livraison' => $request->input('heure_livraison'),
+                    ];
                     // Conserver l'ancienne option jusqu'au paiement
                     $naissance->choix_option = $originalChoixOption;
                 } else {
-                    $naissance->choix_option = 'livraison';
-                    $naissance->montant_timbre = $request->input('montant_timbre');
-                    $naissance->montant_livraison = $request->input('montant_livraison');
+                    $pendingDeliveryData = [
+                        'choix_option' => 'Retrait sur place',
+                        'montant_timbre' => $montantTimbreTotal,
+                        'montant_livraison' => 0,
+                    ];
+                    // Conserver l'ancienne option jusqu'au paiement
+                    $naissance->choix_option = $originalChoixOption;
+                }
+            } else {
+                $naissance->choix_option = $nouveauChoixOptionNormalise;
+                $naissance->montant_timbre = $montantTimbreTotal;
+                $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
+                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+
+                if ($nouveauChoixOptionNormalise === 'livraison') {
+                    $naissance->montant_livraison = $montantLivraisonCible;
                     $naissance->nom_destinataire = $request->input('nom_destinataire');
                     $naissance->prenom_destinataire = $request->input('prenom_destinataire');
                     $naissance->email_destinataire = $request->input('email_destinataire');
@@ -1070,13 +1140,22 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $naissance->quartier = $request->input('quartier');
                     $naissance->date_livraison = $request->input('date_livraison');
                     $naissance->heure_livraison = $request->input('heure_livraison');
+                } else {
+                    $naissance->montant_livraison = 0;
+                    $naissance->nom_destinataire = null;
+                    $naissance->prenom_destinataire = null;
+                    $naissance->email_destinataire = null;
+                    $naissance->contact_destinataire = null;
+                    $naissance->adresse_livraison = null;
+                    $naissance->code_postal = null;
+                    $naissance->ville = null;
+                    $naissance->commune_livraison = null;
+                    $naissance->quartier = null;
                 }
-            } else {
-                $naissance->choix_option = 'Retrait sur place';
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $naissance->etat = 'en attente';
+            $naissance->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
             $naissance->peut_modifier = false;
             $naissance->champs_a_modifier = null;
             $naissance->motif_de_rejet = null;
@@ -1084,11 +1163,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $user->refresh();
-                $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
-                $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-                $montantLivraison = (float) $pendingDeliveryData['montant_livraison'];
-                $totalAmount = $montantTimbreTotal + $montantLivraison;
+                $totalAmount = $resteAPayer; // C'est le reste à payer
 
                 $naissance->montant_timbre = $montantTimbreTotal;
                 $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
@@ -1144,11 +1219,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             } else {
                 if ($nouveauChoixOptionNormalise !== 'livraison') {
-                    $user->refresh();
-                    $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
-                    $naissance->montant_timbre = $freeCalc['montant_timbre_total'];
-                    $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
-                    $naissance->free_timbres_count = $freeCalc['free_timbres'];
                     if ($freeCalc['free_timbres'] > 0) {
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
