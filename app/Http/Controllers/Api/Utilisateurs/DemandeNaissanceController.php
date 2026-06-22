@@ -346,15 +346,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     /**
      * Génère un nouveau lien de paiement (Wave ou CinetPay) pour une demande de naissance existante.
      */
-    private function generatePaymentLink(Naissance $naissance, $totalAmount, $paymentMethod): array
+    private function generatePaymentLink(Naissance $naissance, $totalAmount, $paymentMethod, $customReference = null): array
     {
         try {
+            $transactionReference = $customReference ?: $naissance->reference;
+
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$naissance->reference}";
-            $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$naissance->reference}";
-            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($naissance->reference) . "&type=naissance";
-            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($naissance->reference) . "&type=naissance";
+            $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$transactionReference}";
+            $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$transactionReference}";
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($transactionReference) . "&type=naissance";
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($transactionReference) . "&type=naissance";
 
             // Si c'est Wave, utiliser le service Wave
             if (strtolower($paymentMethod) === 'wave') {
@@ -364,7 +366,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'XOF',
                     $fallbackReturnUrl,
                     $fallbackCancelUrl,
-                    $naissance->reference
+                    $transactionReference
                 );
 
                 if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
@@ -378,7 +380,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return [
                     'success' => true,
                     'payment_url' => $checkoutSession['wave_launch_url'],
-                    'generated_transaction_id' => $naissance->reference,
+                    'generated_transaction_id' => $transactionReference,
                     'return_url_deep_link' => $returnUrl,
                     'cancel_url_deep_link' => $cancelUrl,
                     'return_url_web_fallback' => $fallbackReturnUrl,
@@ -400,21 +402,21 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $response = $mtnService->requestToPay(
                     $totalAmount,
                     $mtnPhoneNumber,
-                    $naissance->reference,
+                    $transactionReference,
                     'Extrait Naissance',
                     'Mairie Plateau'
                 );
 
                 if ($response && $response['status'] === 'PENDING') {
                     // Stocker le ReferenceId en cache pour la vérification
-                    \Illuminate\Support\Facades\Cache::put('mtn_ref_' . $naissance->reference, $response['referenceId'], now()->addHours(1));
+                    \Illuminate\Support\Facades\Cache::put('mtn_ref_' . $transactionReference, $response['referenceId'], now()->addHours(1));
 
                     return [
                         'success' => true,
                         'payment_url' => null, // Pas de lien de redirection pour le push USSD
                         'is_ussd_push' => true,
                         'mtn_ref' => $response['referenceId'],
-                        'generated_transaction_id' => $naissance->reference,
+                        'generated_transaction_id' => $transactionReference,
                         'return_url_deep_link' => $returnUrl,
                         'cancel_url_deep_link' => $cancelUrl,
                         'return_url_web_fallback' => $fallbackReturnUrl,
@@ -441,10 +443,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
-                'transaction_id' => $naissance->reference,
+                'transaction_id' => $transactionReference,
                 'amount' => $totalAmount,
                 'currency' => 'XOF',
-                'description' => "Paiement pour " . $naissance->reference,
+                'description' => "Paiement pour " . $transactionReference,
                 'return_url' => $fallbackReturnUrl,
                 'notify_url' => $baseUrl . '/api/webhook/cinetpay',
                 'channels' => $channels,
@@ -456,7 +458,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     return [
                         'success' => true,
                         'payment_url' => $data['data']['payment_url'],
-                        'generated_transaction_id' => $naissance->reference,
+                        'generated_transaction_id' => $transactionReference,
                         'return_url_deep_link' => $returnUrl,
                         'cancel_url_deep_link' => $cancelUrl,
                         'return_url_web_fallback' => $fallbackReturnUrl,
@@ -663,7 +665,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // 3. Règles de validation pour modification complète
             $rules = [
                 'pour' => 'nullable|string|max:255',
-                'type' => 'required|string|max:255',
+                'type' => 'nullable|string|in:simple,integrale,groupee',
                 'name' => 'required|string|max:255',
                 'prenom' => 'required|string|max:255',
                 'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere|nullable|string|max:255',
@@ -717,7 +719,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             }
 
-            // 6. Enregistrer les fichiers
+            // 6. Enregistrer les fichiers (toujours, les nouveaux fichiers sont utilisés dès maintenant)
+            // Sauvegarder les anciens chemins de fichiers pour pouvoir les restaurer si nécessaire
+            $ancienCNI = $naissance->CNI;
+            $ancienDocumentAutorisation = $naissance->document_autorisation;
+
             if ($request->hasFile('CNI')) {
                 if ($naissance->CNI && Storage::disk('public')->exists($naissance->CNI)) {
                     Storage::disk('public')->delete($naissance->CNI);
@@ -740,9 +746,41 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $naissance->document_autorisation = $path;
             }
 
-            // 7. Mettre à jour tous les champs pour la modification complète
+            $nouveauCNI = $naissance->CNI;
+            $nouveauDocumentAutorisation = $naissance->document_autorisation;
+
+            // Valeurs originales en base (avant modification) pour restauration si paiement requis
+            $originalData = [
+                'pour' => $naissance->pour,
+                'type' => $naissance->type,
+                'name' => $naissance->name,
+                'prenom' => $naissance->prenom,
+                'nom_prenoms_pere' => $naissance->nom_prenoms_pere,
+                'nom_prenoms_mere' => $naissance->nom_prenoms_mere,
+                'number' => $naissance->number,
+                'DateR' => $naissance->DateR,
+                'commune' => $naissance->commune,
+                'commune_naissance' => $naissance->commune_naissance,
+                'relation' => $naissance->relation,
+                'qty_simple' => $naissance->qty_simple,
+                'qty_integral' => $naissance->qty_integral,
+                'quantite' => $naissance->quantite,
+                'CNI' => $ancienCNI,
+                'document_autorisation' => $ancienDocumentAutorisation,
+                'montant_timbre' => $naissance->montant_timbre,
+                'is_free_request' => $naissance->is_free_request,
+                'free_timbres_count' => $naissance->free_timbres_count,
+                'etat' => $naissance->etat,
+            ];
+
+            // 7. Calculer les nouvelles valeurs en mémoire
             $naissance->pour = $request->input('pour', $naissance->pour);
-            $naissance->type = $request->input('type', $naissance->type);
+            // Ne mettre à jour le type que si une valeur valide est envoyée (simple/integrale/groupee)
+            $nouveauType = $request->input('type');
+            if (in_array($nouveauType, ['simple', 'integrale', 'groupee'])) {
+                $naissance->type = $nouveauType;
+            }
+            // Sinon : on garde le type existant en base (ex: si le mobile envoie 'naissance' par erreur)
             $naissance->name = $request->input('name', $naissance->name);
             $naissance->prenom = $request->input('prenom', $naissance->prenom);
             $naissance->nom_prenoms_pere = $request->input('nom_prenoms_pere', $naissance->nom_prenoms_pere);
@@ -753,22 +791,35 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $naissance->commune_naissance = $request->input('commune_naissance', $naissance->commune_naissance);
             $naissance->relation = $request->input('relation', $naissance->relation);
 
-            // Quantités
-            $qtySimple = (int) $request->input('qty_simple', 0);
-            $qtyIntegral = (int) $request->input('qty_integral', 0);
-            if ($naissance->type === 'simple') {
-                $qtyIntegral = 0;
-                if ($qtySimple <= 0)
-                    $qtySimple = 1;
-            } elseif ($naissance->type === 'integrale') {
-                $qtySimple = 0;
-                if ($qtyIntegral <= 0)
-                    $qtyIntegral = 1;
+            // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
+            $qtySimpleInput = $request->has('qty_simple') ? (int) $request->input('qty_simple') : null;
+            $qtyIntegralInput = $request->has('qty_integral') ? (int) $request->input('qty_integral') : null;
+
+            // Si aucune quantité n'est fournie ou si tout est à 0, utiliser les valeurs actuelles
+            if ($qtySimpleInput === null && $qtyIntegralInput === null) {
+                $qtySimple = (int) $naissance->qty_simple;
+                $qtyIntegral = (int) $naissance->qty_integral;
             } else {
-                if ($qtySimple <= 0)
-                    $qtySimple = 1;
-                if ($qtyIntegral <= 0)
-                    $qtyIntegral = 1;
+                $qtySimple = $qtySimpleInput ?? 0;
+                $qtyIntegral = $qtyIntegralInput ?? 0;
+
+                // Appliquer les contraintes selon le type (après mise à jour)
+                if ($naissance->type === 'simple') {
+                    $qtyIntegral = 0;
+                    if ($qtySimple <= 0)
+                        $qtySimple = max(1, (int) $naissance->qty_simple);
+                } elseif ($naissance->type === 'integrale') {
+                    $qtySimple = 0;
+                    if ($qtyIntegral <= 0)
+                        $qtyIntegral = max(1, (int) $naissance->qty_integral);
+                } else {
+                    // Type mixte : ne pas forcer 1 si 0 a été explicitement envoyé,
+                    // mais s'assurer qu'au moins un est > 0
+                    if ($qtySimple <= 0 && $qtyIntegral <= 0) {
+                        $qtySimple = (int) $naissance->qty_simple ?: 1;
+                        $qtyIntegral = (int) $naissance->qty_integral ?: 0;
+                    }
+                }
             }
             $naissance->qty_simple = $qtySimple;
             $naissance->qty_integral = $qtyIntegral;
@@ -788,7 +839,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $anciensTimbresGratuits = (int) $naissance->free_timbres_count;
             if ($anciensTimbresGratuits > 0) {
                 $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
-                $user->save();
             }
 
             // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
@@ -815,10 +865,18 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $demandeDejaPayee = !in_array($naissance->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            // États réellement payés (paiement confirmé) : on utilise une liste blanche
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $demandeDejaPayee = in_array(strtolower($naissance->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $naissance->montant_timbre + (float) $naissance->montant_livraison) : 0;
 
-            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            // Si le montant total ne change pas et que la demande n'est pas encore payée,
+            // il n'y a pas de reste à payer (même si ancienMontantPaye = 0)
+            if (!$demandeDejaPayee && $nouveauMontantTotal === (float) ($naissance->montant_timbre + $naissance->montant_livraison)) {
+                $resteAPayer = 0;
+            } else {
+                $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            }
             $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
@@ -885,27 +943,77 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $naissance->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
+            $naissance->etat = $needsPayment ? $originalData['etat'] : 'en attente';
             $naissance->peut_modifier = false;
             $naissance->champs_a_modifier = null;
             $naissance->motif_de_rejet = null;
-            $naissance->save();
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $totalAmount = $resteAPayer; // C'est le reste à payer
+                $totalAmount = $resteAPayer;
 
-                $naissance->montant_timbre = $montantTimbreTotal;
-                $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
-                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+                // *** RESTAURER les valeurs ORIGINALES en base (pas de modification avant paiement) ***
+                $naissance->pour = $originalData['pour'];
+                $naissance->type = $originalData['type'];
+                $naissance->name = $originalData['name'];
+                $naissance->prenom = $originalData['prenom'];
+                $naissance->nom_prenoms_pere = $originalData['nom_prenoms_pere'];
+                $naissance->nom_prenoms_mere = $originalData['nom_prenoms_mere'];
+                $naissance->number = $originalData['number'];
+                $naissance->DateR = $originalData['DateR'];
+                $naissance->commune = $originalData['commune'];
+                $naissance->commune_naissance = $originalData['commune_naissance'];
+                $naissance->relation = $originalData['relation'];
+                $naissance->qty_simple = $originalData['qty_simple'];
+                $naissance->qty_integral = $originalData['qty_integral'];
+                $naissance->quantite = $originalData['quantite'];
+                // Les fichiers déjà uploadés restent sur le disque (nouveaux chemins dans le cache)
+                $naissance->CNI = $originalData['CNI'];
+                $naissance->document_autorisation = $originalData['document_autorisation'];
+                // Conserver l'ancien état, l'ancien montant timbre, et l'ancien statut free
+                $naissance->montant_timbre = $originalData['montant_timbre'];
+                $naissance->is_free_request = $originalData['is_free_request'];
+                $naissance->free_timbres_count = $originalData['free_timbres_count'];
+                $naissance->etat = $originalData['etat'];
                 $naissance->save();
 
-                // Mettre en cache les données de livraison
+                // Stocker TOUTES les nouvelles valeurs dans le cache pending_modification_update_
+                $pendingModificationData = [
+                    'attributes' => [
+                        'pour' => $request->input('pour', $originalData['pour']),
+                        'type' => in_array($request->input('type'), ['simple', 'integrale', 'groupee']) ? $request->input('type') : $originalData['type'],
+                        'name' => $request->input('name', $originalData['name']),
+                        'prenom' => $request->input('prenom', $originalData['prenom']),
+                        'nom_prenoms_pere' => $request->input('nom_prenoms_pere', $originalData['nom_prenoms_pere']),
+                        'nom_prenoms_mere' => $request->input('nom_prenoms_mere', $originalData['nom_prenoms_mere']),
+                        'number' => $request->input('number', $originalData['number']),
+                        'DateR' => $request->DateR ? Carbon::parse($request->DateR)->format('Y-m-d') : $originalData['DateR'],
+                        'commune' => $request->input('commune', $originalData['commune']),
+                        'commune_naissance' => $request->input('commune_naissance', $originalData['commune_naissance']),
+                        'relation' => $request->input('relation', $originalData['relation']),
+                        'qty_simple' => $qtySimple,
+                        'qty_integral' => $qtyIntegral,
+                        'quantite' => $qtySimple + $qtyIntegral,
+                        'CNI' => $nouveauCNI,
+                        'document_autorisation' => $nouveauDocumentAutorisation,
+                        'is_free_request' => $freeCalc['free_timbres'] > 0,
+                        'free_timbres_count' => $freeCalc['free_timbres'],
+                    ],
+                ];
+
+                \Illuminate\Support\Facades\Cache::put(
+                    'pending_modification_update_' . $naissance->reference,
+                    $pendingModificationData,
+                    now()->addDays(7)
+                );
+
+                // Mettre en cache les données de livraison/retrait
                 \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $naissance->reference, $pendingDeliveryData, now()->addDays(7));
 
                 if ($totalAmount > 0) {
                     $paymentMethod = $request->input('payment_method', 'wave');
-                    $paymentLinkResult = $this->generatePaymentLink($naissance, $totalAmount, $paymentMethod);
+                    $transactionReference = $naissance->reference . '-MOD-' . time();
+                    $paymentLinkResult = $this->generatePaymentLink($naissance, $totalAmount, $paymentMethod, $transactionReference);
 
                     if (!$paymentLinkResult['success']) {
                         return response()->json([
@@ -917,7 +1025,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
                     return response()->json([
                         'success' => true,
-                        'message' => 'Demande modifiée. Utilisez le payment_url pour payer.',
+                        'message' => 'Modifications enregistrées. Elles seront appliquées après confirmation du paiement.',
                         'requires_payment' => true,
                         'free_requests' => [
                             'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
@@ -943,15 +1051,14 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
                     $naissance->save();
-
-                    // Appliquer la livraison en attente
                     $this->applyPendingDeliveryUpdate($naissance);
                 }
             } else {
+                // Pas de paiement requis : appliquer directement toutes les modifications
+                $naissance->save();
                 if ($freeCalc['free_timbres'] > 0) {
                     $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                 }
-                $naissance->save();
             }
 
             return response()->json([
@@ -1110,6 +1217,33 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             }
 
+            $ancienCNI = $naissance->CNI;
+            $ancienDocumentAutorisation = $naissance->document_autorisation;
+
+            // Valeurs originales en base (avant modification) pour restauration si paiement requis
+            $originalData = [
+                'pour' => $naissance->pour,
+                'type' => $naissance->type,
+                'name' => $naissance->name,
+                'prenom' => $naissance->prenom,
+                'nom_prenoms_pere' => $naissance->nom_prenoms_pere,
+                'nom_prenoms_mere' => $naissance->nom_prenoms_mere,
+                'number' => $naissance->number,
+                'DateR' => $naissance->DateR,
+                'commune' => $naissance->commune,
+                'commune_naissance' => $naissance->commune_naissance,
+                'relation' => $naissance->relation,
+                'qty_simple' => $naissance->qty_simple,
+                'qty_integral' => $naissance->qty_integral,
+                'quantite' => $naissance->quantite,
+                'CNI' => $ancienCNI,
+                'document_autorisation' => $ancienDocumentAutorisation,
+                'montant_timbre' => $naissance->montant_timbre,
+                'is_free_request' => $naissance->is_free_request,
+                'free_timbres_count' => $naissance->free_timbres_count,
+                'etat' => $naissance->etat,
+            ];
+
             // 7. Enregistrer les fichiers
             if ($request->hasFile('CNI')) {
                 if ($naissance->CNI && Storage::disk('public')->exists($naissance->CNI)) {
@@ -1132,6 +1266,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $path = $file->storeAs('images/naissances/autorisations', $newFileName, 'public');
                 $naissance->document_autorisation = $path;
             }
+
+            $nouveauCNI = $naissance->CNI;
+            $nouveauDocumentAutorisation = $naissance->document_autorisation;
 
             // 8. Mettre à jour uniquement les champs rejetés
             foreach ($champsAModifier as $champ) {
@@ -1168,7 +1305,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $anciensTimbresGratuits = (int) $naissance->free_timbres_count;
             if ($anciensTimbresGratuits > 0) {
                 $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
-                $user->save();
             }
 
             // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
@@ -1194,10 +1330,18 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $demandeDejaPayee = !in_array($naissance->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            // États réellement payés (paiement confirmé) : on utilise une liste blanche
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $demandeDejaPayee = in_array(strtolower($naissance->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $naissance->montant_timbre + (float) $naissance->montant_livraison) : 0;
 
-            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            // Si le montant total ne change pas et que la demande n'est pas encore payée,
+            // il n'y a pas de reste à payer (même si ancienMontantPaye = 0)
+            if (!$demandeDejaPayee && $nouveauMontantTotal === (float) ($naissance->montant_timbre + $naissance->montant_livraison)) {
+                $resteAPayer = 0;
+            } else {
+                $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            }
             $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
@@ -1264,27 +1408,77 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $naissance->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
+            $naissance->etat = $needsPayment ? $originalData['etat'] : 'en attente';
             $naissance->peut_modifier = false;
             $naissance->champs_a_modifier = null;
             $naissance->motif_de_rejet = null;
-            $naissance->save();
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $totalAmount = $resteAPayer; // C'est le reste à payer
+                $totalAmount = $resteAPayer;
 
-                $naissance->montant_timbre = $montantTimbreTotal;
-                $naissance->is_free_request = $freeCalc['free_timbres'] > 0;
-                $naissance->free_timbres_count = $freeCalc['free_timbres'];
+                // *** RESTAURER les valeurs ORIGINALES en base (pas de modification avant paiement) ***
+                $naissance->pour = $originalData['pour'];
+                $naissance->type = $originalData['type'];
+                $naissance->name = $originalData['name'];
+                $naissance->prenom = $originalData['prenom'];
+                $naissance->nom_prenoms_pere = $originalData['nom_prenoms_pere'];
+                $naissance->nom_prenoms_mere = $originalData['nom_prenoms_mere'];
+                $naissance->number = $originalData['number'];
+                $naissance->DateR = $originalData['DateR'];
+                $naissance->commune = $originalData['commune'];
+                $naissance->commune_naissance = $originalData['commune_naissance'];
+                $naissance->relation = $originalData['relation'];
+                $naissance->qty_simple = $originalData['qty_simple'];
+                $naissance->qty_integral = $originalData['qty_integral'];
+                $naissance->quantite = $originalData['quantite'];
+                // Les fichiers déjà uploadés restent sur le disque (nouveaux chemins dans le cache)
+                $naissance->CNI = $originalData['CNI'];
+                $naissance->document_autorisation = $originalData['document_autorisation'];
+                // Conserver l'ancien état, l'ancien montant timbre, et l'ancien statut free
+                $naissance->montant_timbre = $originalData['montant_timbre'];
+                $naissance->is_free_request = $originalData['is_free_request'];
+                $naissance->free_timbres_count = $originalData['free_timbres_count'];
+                $naissance->etat = $originalData['etat'];
                 $naissance->save();
 
-                // Mettre en cache les données de livraison
+                // Stocker TOUTES les nouvelles valeurs dans le cache pending_modification_update_
+                $pendingModificationData = [
+                    'attributes' => [
+                        'pour' => $request->input('pour', $originalData['pour']),
+                        'type' => in_array($request->input('type'), ['simple', 'integrale', 'groupee']) ? $request->input('type') : $originalData['type'],
+                        'name' => $request->input('name', $originalData['name']),
+                        'prenom' => $request->input('prenom', $originalData['prenom']),
+                        'nom_prenoms_pere' => $request->input('nom_prenoms_pere', $originalData['nom_prenoms_pere']),
+                        'nom_prenoms_mere' => $request->input('nom_prenoms_mere', $originalData['nom_prenoms_mere']),
+                        'number' => $request->input('number', $originalData['number']),
+                        'DateR' => $request->DateR ? Carbon::parse($request->DateR)->format('Y-m-d') : $originalData['DateR'],
+                        'commune' => $request->input('commune', $originalData['commune']),
+                        'commune_naissance' => $request->input('commune_naissance', $originalData['commune_naissance']),
+                        'relation' => $request->input('relation', $originalData['relation']),
+                        'qty_simple' => $qtySimple,
+                        'qty_integral' => $qtyIntegral,
+                        'quantite' => $qtySimple + $qtyIntegral,
+                        'CNI' => $nouveauCNI,
+                        'document_autorisation' => $nouveauDocumentAutorisation,
+                        'is_free_request' => $freeCalc['free_timbres'] > 0,
+                        'free_timbres_count' => $freeCalc['free_timbres'],
+                    ],
+                ];
+
+                \Illuminate\Support\Facades\Cache::put(
+                    'pending_modification_update_' . $naissance->reference,
+                    $pendingModificationData,
+                    now()->addDays(7)
+                );
+
+                // Mettre en cache les données de livraison/retrait
                 \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $naissance->reference, $pendingDeliveryData, now()->addDays(7));
 
                 if ($totalAmount > 0) {
                     $paymentMethod = $request->input('payment_method', 'wave');
-                    $paymentLinkResult = $this->generatePaymentLink($naissance, $totalAmount, $paymentMethod);
+                    $transactionReference = $naissance->reference . '-MOD-' . time();
+                    $paymentLinkResult = $this->generatePaymentLink($naissance, $totalAmount, $paymentMethod, $transactionReference);
 
                     if (!$paymentLinkResult['success']) {
                         return response()->json([

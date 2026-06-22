@@ -294,15 +294,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     /**
      * Génère un nouveau lien de paiement (Wave ou CinetPay) pour une demande de mariage existante.
      */
-    private function generatePaymentLink(Mariage $mariage, $totalAmount, $paymentMethod): array
+    private function generatePaymentLink(Mariage $mariage, $totalAmount, $paymentMethod, $customReference = null): array
     {
         try {
+            $transactionReference = $customReference ?: $mariage->reference;
+
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$mariage->reference}";
-            $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$mariage->reference}";
-            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($mariage->reference) . "&type=mariage";
-            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($mariage->reference) . "&type=mariage";
+            $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$transactionReference}";
+            $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$transactionReference}";
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($transactionReference) . "&type=mariage";
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($transactionReference) . "&type=mariage";
 
             // Si c'est Wave, utiliser le service Wave
             if (strtolower($paymentMethod) === 'wave') {
@@ -312,7 +314,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'XOF',
                     $fallbackReturnUrl,
                     $fallbackCancelUrl,
-                    $mariage->reference
+                    $transactionReference
                 );
 
                 if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
@@ -326,7 +328,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return [
                     'success' => true,
                     'payment_url' => $checkoutSession['wave_launch_url'],
-                    'generated_transaction_id' => $mariage->reference,
+                    'generated_transaction_id' => $transactionReference,
                     'return_url_deep_link' => $returnUrl,
                     'cancel_url_deep_link' => $cancelUrl,
                     'return_url_web_fallback' => $fallbackReturnUrl,
@@ -348,21 +350,21 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $response = $mtnService->requestToPay(
                     $totalAmount,
                     $mtnPhoneNumber,
-                    $mariage->reference,
+                    $transactionReference,
                     'Extrait Mariage',
                     'Mairie Plateau'
                 );
 
                 if ($response && $response['status'] === 'PENDING') {
                     // Stocker le ReferenceId en cache pour la vérification
-                    \Illuminate\Support\Facades\Cache::put('mtn_ref_' . $mariage->reference, $response['referenceId'], now()->addHours(1));
+                    \Illuminate\Support\Facades\Cache::put('mtn_ref_' . $transactionReference, $response['referenceId'], now()->addHours(1));
 
                     return [
                         'success' => true,
                         'payment_url' => null, // Pas de lien de redirection pour le push USSD
                         'is_ussd_push' => true,
                         'mtn_ref' => $response['referenceId'],
-                        'generated_transaction_id' => $mariage->reference,
+                        'generated_transaction_id' => $transactionReference,
                         'return_url_deep_link' => $returnUrl,
                         'cancel_url_deep_link' => $cancelUrl,
                         'return_url_web_fallback' => $fallbackReturnUrl,
@@ -389,10 +391,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
-                'transaction_id' => $mariage->reference,
+                'transaction_id' => $transactionReference,
                 'amount' => $totalAmount,
                 'currency' => 'XOF',
-                'description' => "Paiement pour " . $mariage->reference,
+                'description' => "Paiement pour " . $transactionReference,
                 'return_url' => $fallbackReturnUrl,
                 'notify_url' => $baseUrl . '/api/webhook/cinetpay',
                 'channels' => $channels,
@@ -404,7 +406,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     return [
                         'success' => true,
                         'payment_url' => $data['data']['payment_url'],
-                        'generated_transaction_id' => $mariage->reference,
+                        'generated_transaction_id' => $transactionReference,
                         'return_url_deep_link' => $returnUrl,
                         'cancel_url_deep_link' => $cancelUrl,
                         'return_url_web_fallback' => $fallbackReturnUrl,
@@ -611,7 +613,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // 3. Règles de validation pour modification complète
             $rules = [
-                'typeDemande' => 'required|string',
+                'typeDemande' => 'nullable|string|in:simple,integrale,groupee',
                 'pour' => 'nullable|string',
                 'relation' => 'nullable|string',
                 'nomEpoux' => 'nullable|string|max:255',
@@ -670,13 +672,20 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             }
 
-            // 6. Enregistrer les fichiers
+            // 6. Enregistrer les fichiers (sauvegarder les anciens chemins pour restauration si nécessaire)
+            $fileKeysMariage = ['pieceIdentite', 'extraitMariage', 'document_autorisation'];
+            $anciensFichiers = [];
+            foreach ($fileKeysMariage as $fk) {
+                $anciensFichiers[$fk] = $mariage->$fk;
+            }
+
             $filesToUpload = [
                 'pieceIdentite' => 'identite',
                 'extraitMariage' => 'extrait',
                 'document_autorisation' => 'autorisations',
             ];
 
+            $nouveauxFichiers = [];
             foreach ($filesToUpload as $fileKey => $subDir) {
                 if ($request->hasFile($fileKey)) {
                     if ($mariage->$fileKey && Storage::disk('public')->exists($mariage->$fileKey)) {
@@ -687,13 +696,44 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $newFileName = (string) Str::uuid() . '.' . $extension;
                     $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
                     $mariage->$fileKey = $path;
+                    $nouveauxFichiers[$fileKey] = $path;
                 }
             }
 
-            // 7. Mettre à jour tous les champs pour la modification complète
+            // Valeurs originales en base (avant modification) pour restauration si paiement requis
+            $originalData = [
+                'pour' => $mariage->pour,
+                'relation' => $mariage->relation,
+                'type' => $mariage->type,
+                'nomEpoux' => $mariage->nomEpoux,
+                'prenomEpoux' => $mariage->prenomEpoux,
+                'dateNaissanceEpoux' => $mariage->dateNaissanceEpoux,
+                'lieuNaissanceEpoux' => $mariage->lieuNaissanceEpoux,
+                'nomEpouse' => $mariage->nomEpouse,
+                'prenomEpouse' => $mariage->prenomEpouse,
+                'dateNaissanceEpouse' => $mariage->dateNaissanceEpouse,
+                'lieuNaissanceEpouse' => $mariage->lieuNaissanceEpouse,
+                'commune' => $mariage->commune,
+                'commune_mariage' => $mariage->commune_mariage,
+                'CMU' => $mariage->CMU,
+                'qty_simple' => $mariage->qty_simple,
+                'qty_integral' => $mariage->qty_integral,
+                'quantite' => $mariage->quantite,
+                'fichiers' => $anciensFichiers,
+                'montant_timbre' => $mariage->montant_timbre,
+                'is_free_request' => $mariage->is_free_request,
+                'free_timbres_count' => $mariage->free_timbres_count,
+                'etat' => $mariage->etat,
+            ];
+
+            // 7. Calculer les nouvelles valeurs en mémoire
             $mariage->pour = $request->input('pour', $mariage->pour);
             $mariage->relation = $request->input('relation', $mariage->relation);
-            $mariage->type = $request->input('typeDemande', $mariage->type);
+            // Ne mettre à jour le type que si une valeur valide est envoyée (simple/integrale/groupee)
+            $nouveauTypeMariage = $request->input('typeDemande');
+            if (in_array($nouveauTypeMariage, ['simple', 'integrale', 'groupee'])) {
+                $mariage->type = $nouveauTypeMariage;
+            }
             $mariage->nomEpoux = $request->input('nomEpoux', $mariage->nomEpoux);
             $mariage->prenomEpoux = $request->input('prenomEpoux', $mariage->prenomEpoux);
             $mariage->dateNaissanceEpoux = $request->dateNaissanceEpoux ? Carbon::parse($request->dateNaissanceEpoux)->format('Y-m-d') : $mariage->dateNaissanceEpoux;
@@ -706,22 +746,31 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $mariage->commune_mariage = $request->input('commune_mariage', $mariage->commune_mariage);
             $mariage->CMU = $request->input('CMU', $mariage->CMU);
 
-            // Quantités
-            $qtySimple = (int) $request->input('qty_simple', 0);
-            $qtyIntegral = (int) $request->input('qty_integral', 0);
-            if ($mariage->type === 'simple') {
-                $qtyIntegral = 0;
-                if ($qtySimple <= 0)
-                    $qtySimple = 1;
-            } elseif ($mariage->type === 'integrale') {
-                $qtySimple = 0;
-                if ($qtyIntegral <= 0)
-                    $qtyIntegral = 1;
+            // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
+            $qtySimpleInput = $request->has('qty_simple') ? (int) $request->input('qty_simple') : null;
+            $qtyIntegralInput = $request->has('qty_integral') ? (int) $request->input('qty_integral') : null;
+
+            if ($qtySimpleInput === null && $qtyIntegralInput === null) {
+                $qtySimple = (int) $mariage->qty_simple;
+                $qtyIntegral = (int) $mariage->qty_integral;
             } else {
-                if ($qtySimple <= 0)
-                    $qtySimple = 1;
-                if ($qtyIntegral <= 0)
-                    $qtyIntegral = 1;
+                $qtySimple = $qtySimpleInput ?? 0;
+                $qtyIntegral = $qtyIntegralInput ?? 0;
+
+                if ($mariage->type === 'simple') {
+                    $qtyIntegral = 0;
+                    if ($qtySimple <= 0)
+                        $qtySimple = max(1, (int) $mariage->qty_simple);
+                } elseif ($mariage->type === 'integrale') {
+                    $qtySimple = 0;
+                    if ($qtyIntegral <= 0)
+                        $qtyIntegral = max(1, (int) $mariage->qty_integral);
+                } else {
+                    if ($qtySimple <= 0 && $qtyIntegral <= 0) {
+                        $qtySimple = (int) $mariage->qty_simple ?: 1;
+                        $qtyIntegral = (int) $mariage->qty_integral ?: 0;
+                    }
+                }
             }
             $mariage->qty_simple = $qtySimple;
             $mariage->qty_integral = $qtyIntegral;
@@ -741,7 +790,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $anciensTimbresGratuits = (int) $mariage->free_timbres_count;
             if ($anciensTimbresGratuits > 0) {
                 $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
-                $user->save();
             }
 
             // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
@@ -768,10 +816,18 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $demandeDejaPayee = !in_array($mariage->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            // États réellement payés (paiement confirmé) : on utilise une liste blanche
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $demandeDejaPayee = in_array(strtolower($mariage->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $mariage->montant_timbre + (float) $mariage->montant_livraison) : 0;
 
-            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            // Si le montant total ne change pas et que la demande n'est pas encore payée,
+            // il n'y a pas de reste à payer (même si ancienMontantPaye = 0)
+            if (!$demandeDejaPayee && $nouveauMontantTotal === (float) ($mariage->montant_timbre + $mariage->montant_livraison)) {
+                $resteAPayer = 0;
+            } else {
+                $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            }
             $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
@@ -840,27 +896,79 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $mariage->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
+            $mariage->etat = $needsPayment ? $originalData['etat'] : 'en attente';
             $mariage->peut_modifier = false;
             $mariage->champs_a_modifier = null;
             $mariage->motif_de_rejet = null;
-            $mariage->save();
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $totalAmount = $resteAPayer; // C'est le reste à payer
+                $totalAmount = $resteAPayer;
 
-                $mariage->montant_timbre = $montantTimbreTotal;
-                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
-                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+                // *** RESTAURER les valeurs ORIGINALES en base (pas de modification avant paiement) ***
+                $mariage->pour = $originalData['pour'];
+                $mariage->relation = $originalData['relation'];
+                $mariage->type = $originalData['type'];
+                $mariage->nomEpoux = $originalData['nomEpoux'];
+                $mariage->prenomEpoux = $originalData['prenomEpoux'];
+                $mariage->dateNaissanceEpoux = $originalData['dateNaissanceEpoux'];
+                $mariage->lieuNaissanceEpoux = $originalData['lieuNaissanceEpoux'];
+                $mariage->nomEpouse = $originalData['nomEpouse'];
+                $mariage->prenomEpouse = $originalData['prenomEpouse'];
+                $mariage->dateNaissanceEpouse = $originalData['dateNaissanceEpouse'];
+                $mariage->lieuNaissanceEpouse = $originalData['lieuNaissanceEpouse'];
+                $mariage->commune = $originalData['commune'];
+                $mariage->commune_mariage = $originalData['commune_mariage'];
+                $mariage->CMU = $originalData['CMU'];
+                $mariage->qty_simple = $originalData['qty_simple'];
+                $mariage->qty_integral = $originalData['qty_integral'];
+                $mariage->quantite = $originalData['quantite'];
+                foreach ($originalData['fichiers'] as $fk => $oldPath) {
+                    $mariage->$fk = $oldPath;
+                }
+                // Conserver l'ancien état, l'ancien montant timbre, et l'ancien statut free
+                $mariage->montant_timbre     = $originalData['montant_timbre'];
+                $mariage->is_free_request    = $originalData['is_free_request'];
+                $mariage->free_timbres_count = $originalData['free_timbres_count'];
+                $mariage->etat               = $originalData['etat'];
                 $mariage->save();
 
-                // Mettre en cache les données de livraison
+                // Stocker TOUTES les nouvelles valeurs en cache pour application après paiement
+                $newAttributes = [
+                    'pour' => $request->input('pour', $originalData['pour']),
+                    'relation' => $request->input('relation', $originalData['relation']),
+                    'type' => in_array($request->input('typeDemande'), ['simple', 'integrale', 'groupee']) ? $request->input('typeDemande') : $originalData['type'],
+                    'nomEpoux' => $request->input('nomEpoux', $originalData['nomEpoux']),
+                    'prenomEpoux' => $request->input('prenomEpoux', $originalData['prenomEpoux']),
+                    'dateNaissanceEpoux' => $request->dateNaissanceEpoux ? Carbon::parse($request->dateNaissanceEpoux)->format('Y-m-d') : $originalData['dateNaissanceEpoux'],
+                    'lieuNaissanceEpoux' => $request->input('lieuNaissanceEpoux', $originalData['lieuNaissanceEpoux']),
+                    'nomEpouse' => $request->input('nomEpouse', $originalData['nomEpouse']),
+                    'prenomEpouse' => $request->input('prenomEpouse', $originalData['prenomEpouse']),
+                    'dateNaissanceEpouse' => $request->dateNaissanceEpouse ? Carbon::parse($request->dateNaissanceEpouse)->format('Y-m-d') : $originalData['dateNaissanceEpouse'],
+                    'lieuNaissanceEpouse' => $request->input('lieuNaissanceEpouse', $originalData['lieuNaissanceEpouse']),
+                    'commune' => $request->input('commune', $originalData['commune']),
+                    'commune_mariage' => $request->input('commune_mariage', $originalData['commune_mariage']),
+                    'CMU' => $request->input('CMU', $originalData['CMU']),
+                    'qty_simple' => $qtySimple,
+                    'qty_integral' => $qtyIntegral,
+                    'quantite' => $qtySimple + $qtyIntegral,
+                    'is_free_request' => $freeCalc['free_timbres'] > 0,
+                    'free_timbres_count' => $freeCalc['free_timbres'],
+                ];
+                foreach ($nouveauxFichiers as $fk => $newPath) {
+                    $newAttributes[$fk] = $newPath;
+                }
+                \Illuminate\Support\Facades\Cache::put(
+                    'pending_modification_update_' . $mariage->reference,
+                    ['attributes' => $newAttributes],
+                    now()->addDays(7)
+                );
                 \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $mariage->reference, $pendingDeliveryData, now()->addDays(7));
 
                 if ($totalAmount > 0) {
                     $paymentMethod = $request->input('payment_method', 'wave');
-                    $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod);
+                    $transactionReference = $mariage->reference . '-MOD-' . time();
+                    $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod, $transactionReference);
 
                     if (!$paymentLinkResult['success']) {
                         return response()->json([
@@ -872,7 +980,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
                     return response()->json([
                         'success' => true,
-                        'message' => 'Demande modifiée. Utilisez le payment_url pour payer.',
+                        'message' => 'Modifications enregistrées. Elles seront appliquées après confirmation du paiement.',
                         'requires_payment' => true,
                         'free_requests' => [
                             'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
@@ -898,8 +1006,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
                     $mariage->save();
-
-                    // Appliquer la livraison en attente
                     $this->applyPendingDeliveryUpdate($mariage);
                 }
             } else {
@@ -1081,12 +1187,49 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             }
 
+            // Sauvegarder les anciens chemins pour restauration/comparaison si besoin
+            $anciennePieceIdentite = $mariage->pieceIdentite;
+            $ancienExtraitMariage = $mariage->extraitMariage;
+            $ancienDocumentAutorisation = $mariage->document_autorisation;
+
+            // Valeurs originales en base (avant modification) pour restauration si paiement requis
+            $originalData = [
+                'pour' => $mariage->pour,
+                'relation' => $mariage->relation,
+                'type' => $mariage->type,
+                'nomEpoux' => $mariage->nomEpoux,
+                'prenomEpoux' => $mariage->prenomEpoux,
+                'dateNaissanceEpoux' => $mariage->dateNaissanceEpoux,
+                'lieuNaissanceEpoux' => $mariage->lieuNaissanceEpoux,
+                'nomEpouse' => $mariage->nomEpouse,
+                'prenomEpouse' => $mariage->prenomEpouse,
+                'dateNaissanceEpouse' => $mariage->dateNaissanceEpouse,
+                'lieuNaissanceEpouse' => $mariage->lieuNaissanceEpouse,
+                'commune' => $mariage->commune,
+                'commune_mariage' => $mariage->commune_mariage,
+                'CMU' => $mariage->CMU,
+                'qty_simple' => $mariage->qty_simple,
+                'qty_integral' => $mariage->qty_integral,
+                'quantite' => $mariage->quantite,
+                'pieceIdentite' => $anciennePieceIdentite,
+                'extraitMariage' => $ancienExtraitMariage,
+                'document_autorisation' => $ancienDocumentAutorisation,
+                'montant_timbre' => $mariage->montant_timbre,
+                'is_free_request' => $mariage->is_free_request,
+                'free_timbres_count' => $mariage->free_timbres_count,
+                'etat' => $mariage->etat,
+            ];
+
             // 7. Enregistrer les fichiers
             $filesToUpload = [
                 'pieceIdentite' => 'identite',
                 'extraitMariage' => 'extrait',
                 'document_autorisation' => 'autorisations',
             ];
+
+            $nouvellePieceIdentite = $mariage->pieceIdentite;
+            $nouvelExtraitMariage = $mariage->extraitMariage;
+            $nouveauDocumentAutorisation = $mariage->document_autorisation;
 
             foreach ($filesToUpload as $fileKey => $subDir) {
                 if ($request->hasFile($fileKey)) {
@@ -1098,6 +1241,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $newFileName = (string) Str::uuid() . '.' . $extension;
                     $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
                     $mariage->$fileKey = $path;
+
+                    if ($fileKey === 'pieceIdentite') $nouvellePieceIdentite = $path;
+                    if ($fileKey === 'extraitMariage') $nouvelExtraitMariage = $path;
+                    if ($fileKey === 'document_autorisation') $nouveauDocumentAutorisation = $path;
                 }
             }
 
@@ -1116,25 +1263,35 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             if (in_array('quantite', $champsAModifier) || in_array('typeDemande', $champsAModifier)) {
                 $mariage->quantite = (int) $request->input('quantite', $mariage->quantite);
                 if ($mariage->type === 'integrale') {
-                    $mariage->qty_integral = $mariage->quantite;
-                    $mariage->qty_simple = 0;
+                    $qtyIntegral = $mariage->quantite;
+                    $qtySimple = 0;
+                    $mariage->qty_integral = $qtyIntegral;
+                    $mariage->qty_simple = $qtySimple;
                 } else {
-                    $mariage->qty_simple = $mariage->quantite;
-                    $mariage->qty_integral = 0;
+                    $qtySimple = $mariage->quantite;
+                    $qtyIntegral = 0;
+                    $mariage->qty_simple = $qtySimple;
+                    $mariage->qty_integral = $qtyIntegral;
                 }
             }
 
             // Calcul du reste à payer comme sur le web
+            $originalChoixOption = $mariage->choix_option;
+            $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
+
+            // Normaliser le choix option
+            $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+            $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+
             $user->refresh();
             // Créditer temporairement les timbres gratuits déjà accordés à cette demande pour le calcul
             $anciensTimbresGratuits = (int) $mariage->free_timbres_count;
             if ($anciensTimbresGratuits > 0) {
                 $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
-                $user->save();
             }
 
             // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
-            if ((int) $mariage->quantite === (int) $mariage->qty_simple + $mariage->qty_integral) {
+            if ((int) $mariage->quantite === (int) $mariage->qty_simple + (int) $mariage->qty_integral) {
                 $freeCalc = [
                     'free_timbres' => (int) $mariage->free_timbres_count,
                     'paid_timbres' => (int) $mariage->quantite - (int) $mariage->free_timbres_count,
@@ -1156,10 +1313,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $demandeDejaPayee = !in_array($mariage->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $demandeDejaPayee = in_array(strtolower($mariage->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $mariage->montant_timbre + (float) $mariage->montant_livraison) : 0;
 
-            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            if (!$demandeDejaPayee && $nouveauMontantTotal === (float) ($mariage->montant_timbre + $mariage->montant_livraison)) {
+                $resteAPayer = 0;
+            } else {
+                $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            }
             $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
@@ -1181,7 +1343,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'date_livraison' => $request->input('date_livraison'),
                         'heure_livraison' => $request->input('heure_livraison'),
                     ];
-                    // Conserver l'ancienne option jusqu'au paiement
                     $mariage->choix_option = $originalChoixOption;
                 } else {
                     $pendingDeliveryData = [
@@ -1189,7 +1350,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'montant_timbre' => $montantTimbreTotal,
                         'montant_livraison' => 0,
                     ];
-                    // Conserver l'ancienne option jusqu'au paiement
                     $mariage->choix_option = $originalChoixOption;
                 }
             } else {
@@ -1228,27 +1388,83 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $mariage->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
+            $mariage->etat = $needsPayment ? $originalData['etat'] : 'en attente';
             $mariage->peut_modifier = false;
             $mariage->champs_a_modifier = null;
             $mariage->motif_de_rejet = null;
-            $mariage->save();
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $totalAmount = $resteAPayer; // C'est le reste à payer
+                $totalAmount = $resteAPayer;
 
-                $mariage->montant_timbre = $montantTimbreTotal;
-                $mariage->is_free_request = $freeCalc['free_timbres'] > 0;
-                $mariage->free_timbres_count = $freeCalc['free_timbres'];
+                // *** RESTAURER les valeurs ORIGINALES en base (pas de modification avant paiement) ***
+                $mariage->pour = $originalData['pour'];
+                $mariage->relation = $originalData['relation'];
+                $mariage->type = $originalData['type'];
+                $mariage->nomEpoux = $originalData['nomEpoux'];
+                $mariage->prenomEpoux = $originalData['prenomEpoux'];
+                $mariage->dateNaissanceEpoux = $originalData['dateNaissanceEpoux'];
+                $mariage->lieuNaissanceEpoux = $originalData['lieuNaissanceEpoux'];
+                $mariage->nomEpouse = $originalData['nomEpouse'];
+                $mariage->prenomEpouse = $originalData['prenomEpouse'];
+                $mariage->dateNaissanceEpouse = $originalData['dateNaissanceEpouse'];
+                $mariage->lieuNaissanceEpouse = $originalData['lieuNaissanceEpouse'];
+                $mariage->commune = $originalData['commune'];
+                $mariage->commune_mariage = $originalData['commune_mariage'];
+                $mariage->CMU = $originalData['CMU'];
+                $mariage->qty_simple = $originalData['qty_simple'];
+                $mariage->qty_integral = $originalData['qty_integral'];
+                $mariage->quantite = $originalData['quantite'];
+                $mariage->pieceIdentite = $originalData['pieceIdentite'];
+                $mariage->extraitMariage = $originalData['extraitMariage'];
+                $mariage->document_autorisation = $originalData['document_autorisation'];
+
+                $mariage->montant_timbre = $originalData['montant_timbre'];
+                $mariage->is_free_request = $originalData['is_free_request'];
+                $mariage->free_timbres_count = $originalData['free_timbres_count'];
+                $mariage->etat = $originalData['etat'];
                 $mariage->save();
 
-                // Mettre en cache les données de livraison
+                // Stocker TOUTES les nouvelles valeurs en cache pour application après paiement
+                $pendingModificationData = [
+                    'attributes' => [
+                        'pour' => $request->input('pour', $originalData['pour']),
+                        'relation' => $request->input('relation', $originalData['relation']),
+                        'type' => in_array($request->input('typeDemande'), ['simple', 'integrale', 'groupee']) ? $request->input('typeDemande') : $originalData['type'],
+                        'nomEpoux' => $request->input('nomEpoux', $originalData['nomEpoux']),
+                        'prenomEpoux' => $request->input('prenomEpoux', $originalData['prenomEpoux']),
+                        'dateNaissanceEpoux' => $request->dateNaissanceEpoux ? Carbon::parse($request->dateNaissanceEpoux)->format('Y-m-d') : $originalData['dateNaissanceEpoux'],
+                        'lieuNaissanceEpoux' => $request->input('lieuNaissanceEpoux', $originalData['lieuNaissanceEpoux']),
+                        'nomEpouse' => $request->input('nomEpouse', $originalData['nomEpouse']),
+                        'prenomEpouse' => $request->input('prenomEpouse', $originalData['prenomEpouse']),
+                        'dateNaissanceEpouse' => $request->dateNaissanceEpouse ? Carbon::parse($request->dateNaissanceEpouse)->format('Y-m-d') : $originalData['dateNaissanceEpouse'],
+                        'lieuNaissanceEpouse' => $request->input('lieuNaissanceEpouse', $originalData['lieuNaissanceEpouse']),
+                        'commune' => $request->input('commune', $originalData['commune']),
+                        'commune_mariage' => $request->input('commune_mariage', $originalData['commune_mariage']),
+                        'CMU' => $request->input('CMU', $originalData['CMU']),
+                        'qty_simple' => $qtySimple ?? $mariage->qty_simple,
+                        'qty_integral' => $qtyIntegral ?? $mariage->qty_integral,
+                        'quantite' => (isset($qtySimple) && isset($qtyIntegral)) ? ($qtySimple + $qtyIntegral) : $mariage->quantite,
+                        'pieceIdentite' => $nouvellePieceIdentite,
+                        'extraitMariage' => $nouvelExtraitMariage,
+                        'document_autorisation' => $nouveauDocumentAutorisation,
+                        'is_free_request' => $freeCalc['free_timbres'] > 0,
+                        'free_timbres_count' => $freeCalc['free_timbres'],
+                    ],
+                ];
+
+                \Illuminate\Support\Facades\Cache::put(
+                    'pending_modification_update_' . $mariage->reference,
+                    $pendingModificationData,
+                    now()->addDays(7)
+                );
+
                 \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $mariage->reference, $pendingDeliveryData, now()->addDays(7));
 
                 if ($totalAmount > 0) {
                     $paymentMethod = $request->input('payment_method', 'wave');
-                    $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod);
+                    $transactionReference = $mariage->reference . '-MOD-' . time();
+                    $paymentLinkResult = $this->generatePaymentLink($mariage, $totalAmount, $paymentMethod, $transactionReference);
 
                     if (!$paymentLinkResult['success']) {
                         return response()->json([

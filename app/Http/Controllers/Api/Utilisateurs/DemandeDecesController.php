@@ -324,15 +324,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     /**
      * Génère un nouveau lien de paiement (Wave ou CinetPay) pour une demande de décès existante.
      */
-    private function generatePaymentLink(Deces $deces, $totalAmount, $paymentMethod): array
+    private function generatePaymentLink(Deces $deces, $totalAmount, $paymentMethod, $customReference = null): array
     {
         try {
+            $transactionReference = $customReference ?: $deces->reference;
+
             // 1. Préparer les URLs
             $baseUrl = config('app.url');
-            $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$deces->reference}";
-            $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$deces->reference}";
-            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($deces->reference) . "&type=deces";
-            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($deces->reference) . "&type=deces";
+            $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$transactionReference}";
+            $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$transactionReference}";
+            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($transactionReference) . "&type=deces";
+            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($transactionReference) . "&type=deces";
 
             // Si c'est Wave, utiliser le service Wave
             if (strtolower($paymentMethod) === 'wave') {
@@ -342,7 +344,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'XOF',
                     $fallbackReturnUrl,
                     $fallbackCancelUrl,
-                    $deces->reference
+                    $transactionReference
                 );
 
                 if (!$checkoutSession || !isset($checkoutSession['wave_launch_url'])) {
@@ -356,7 +358,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 return [
                     'success' => true,
                     'payment_url' => $checkoutSession['wave_launch_url'],
-                    'generated_transaction_id' => $deces->reference,
+                    'generated_transaction_id' => $transactionReference,
                     'return_url_deep_link' => $returnUrl,
                     'cancel_url_deep_link' => $cancelUrl,
                     'return_url_web_fallback' => $fallbackReturnUrl,
@@ -378,21 +380,21 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $response = $mtnService->requestToPay(
                     $totalAmount,
                     $mtnPhoneNumber,
-                    $deces->reference,
+                    $transactionReference,
                     'Extrait Deces',
                     'Mairie Plateau'
                 );
 
                 if ($response && $response['status'] === 'PENDING') {
                     // Stocker le ReferenceId en cache pour la vérification
-                    \Illuminate\Support\Facades\Cache::put('mtn_ref_' . $deces->reference, $response['referenceId'], now()->addHours(1));
+                    \Illuminate\Support\Facades\Cache::put('mtn_ref_' . $transactionReference, $response['referenceId'], now()->addHours(1));
 
                     return [
                         'success' => true,
                         'payment_url' => null, // Pas de lien de redirection pour le push USSD
                         'is_ussd_push' => true,
                         'mtn_ref' => $response['referenceId'],
-                        'generated_transaction_id' => $deces->reference,
+                        'generated_transaction_id' => $transactionReference,
                         'return_url_deep_link' => $returnUrl,
                         'cancel_url_deep_link' => $cancelUrl,
                         'return_url_web_fallback' => $fallbackReturnUrl,
@@ -419,10 +421,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $response = Http::withoutVerifying()->post('https://api-checkout.cinetpay.com/v2/payment', [
                 'apikey' => $cinetpayApiKey,
                 'site_id' => $cinetpaySiteId,
-                'transaction_id' => $deces->reference,
+                'transaction_id' => $transactionReference,
                 'amount' => $totalAmount,
                 'currency' => 'XOF',
-                'description' => "Paiement pour " . $deces->reference,
+                'description' => "Paiement pour " . $transactionReference,
                 'return_url' => $fallbackReturnUrl,
                 'notify_url' => $baseUrl . '/api/webhook/cinetpay',
                 'channels' => $channels,
@@ -434,7 +436,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     return [
                         'success' => true,
                         'payment_url' => $data['data']['payment_url'],
-                        'generated_transaction_id' => $deces->reference,
+                        'generated_transaction_id' => $transactionReference,
                         'return_url_deep_link' => $returnUrl,
                         'cancel_url_deep_link' => $cancelUrl,
                         'return_url_web_fallback' => $fallbackReturnUrl,
@@ -646,7 +648,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // 3. Règles de validation pour modification complète
             $rules = [
-                'type' => 'required',
+                'type' => 'nullable|string|in:simple,integrale,groupee',
                 'pour' => 'nullable|string',
                 'relation' => 'nullable|string|in:enfant,parent,connaissance',
                 'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:25600',
@@ -713,7 +715,13 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             }
 
-            // 6. Enregistrer les fichiers
+            // 6. Enregistrer les fichiers (sauvegarder les anciens chemins pour restauration si nécessaire)
+            $fileKeys = ['pActe', 'CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice', 'document_autorisation'];
+            $anciensFichiers = [];
+            foreach ($fileKeys as $fk) {
+                $anciensFichiers[$fk] = $deces->$fk;
+            }
+
             $filesToUpload = [
                 'pActe' => '',
                 'CNIdfnt' => 'cnid',
@@ -723,6 +731,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'document_autorisation' => 'autorisations',
             ];
 
+            $nouveauxFichiers = []; // Chemins des nouveaux fichiers uploadés
             foreach ($filesToUpload as $fileKey => $subDir) {
                 if ($request->hasFile($fileKey)) {
                     if ($deces->$fileKey && Storage::disk('public')->exists($deces->$fileKey)) {
@@ -733,13 +742,40 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $newFileName = (string) Str::uuid() . '.' . $extension;
                     $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
                     $deces->$fileKey = $path;
+                    $nouveauxFichiers[$fileKey] = $path;
                 }
             }
 
-            // 7. Mettre à jour tous les champs pour la modification complète
+            // Valeurs originales en base (avant modification) pour restauration si paiement requis
+            $originalData = [
+                'pour' => $deces->pour,
+                'relation' => $deces->relation,
+                'type' => $deces->type,
+                'name' => $deces->name,
+                'nom_prenoms_pere' => $deces->nom_prenoms_pere,
+                'nom_prenoms_mere' => $deces->nom_prenoms_mere,
+                'numberR' => $deces->numberR,
+                'dateR' => $deces->dateR,
+                'commune' => $deces->commune,
+                'commune_deces' => $deces->commune_deces,
+                'qty_simple' => $deces->qty_simple,
+                'qty_integral' => $deces->qty_integral,
+                'quantite' => $deces->quantite,
+                'fichiers' => $anciensFichiers,
+                'montant_timbre' => $deces->montant_timbre,
+                'is_free_request' => $deces->is_free_request,
+                'free_timbres_count' => $deces->free_timbres_count,
+                'etat' => $deces->etat,
+            ];
+
+            // 7. Calculer les nouvelles valeurs en mémoire
             $deces->pour = $request->input('pour', $deces->pour);
             $deces->relation = $request->input('relation', $deces->relation);
-            $deces->type = $request->input('type', $deces->type);
+            // Ne mettre à jour le type que si une valeur valide est envoyée (simple/integrale/groupee)
+            $nouveauTypeDeces = $request->input('type');
+            if (in_array($nouveauTypeDeces, ['simple', 'integrale', 'groupee'])) {
+                $deces->type = $nouveauTypeDeces;
+            }
             $deces->name = $request->input('name', $deces->name);
             $deces->nom_prenoms_pere = $request->input('nom_prenoms_pere', $deces->nom_prenoms_pere);
             $deces->nom_prenoms_mere = $request->input('nom_prenoms_mere', $deces->nom_prenoms_mere);
@@ -748,22 +784,31 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $deces->commune = $request->input('commune', $deces->commune);
             $deces->commune_deces = $request->input('commune_deces', $deces->commune_deces);
 
-            // Quantités
-            $qtySimple = (int) $request->input('qty_simple', 0);
-            $qtyIntegral = (int) $request->input('qty_integral', 0);
-            if ($deces->type === 'simple') {
-                $qtyIntegral = 0;
-                if ($qtySimple <= 0)
-                    $qtySimple = 1;
-            } elseif ($deces->type === 'integrale') {
-                $qtySimple = 0;
-                if ($qtyIntegral <= 0)
-                    $qtyIntegral = 1;
+            // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
+            $qtySimpleInput = $request->has('qty_simple') ? (int) $request->input('qty_simple') : null;
+            $qtyIntegralInput = $request->has('qty_integral') ? (int) $request->input('qty_integral') : null;
+
+            if ($qtySimpleInput === null && $qtyIntegralInput === null) {
+                $qtySimple = (int) $deces->qty_simple;
+                $qtyIntegral = (int) $deces->qty_integral;
             } else {
-                if ($qtySimple <= 0)
-                    $qtySimple = 1;
-                if ($qtyIntegral <= 0)
-                    $qtyIntegral = 1;
+                $qtySimple = $qtySimpleInput ?? 0;
+                $qtyIntegral = $qtyIntegralInput ?? 0;
+
+                if ($deces->type === 'simple') {
+                    $qtyIntegral = 0;
+                    if ($qtySimple <= 0)
+                        $qtySimple = max(1, (int) $deces->qty_simple);
+                } elseif ($deces->type === 'integrale') {
+                    $qtySimple = 0;
+                    if ($qtyIntegral <= 0)
+                        $qtyIntegral = max(1, (int) $deces->qty_integral);
+                } else {
+                    if ($qtySimple <= 0 && $qtyIntegral <= 0) {
+                        $qtySimple = (int) $deces->qty_simple ?: 1;
+                        $qtyIntegral = (int) $deces->qty_integral ?: 0;
+                    }
+                }
             }
             $deces->qty_simple = $qtySimple;
             $deces->qty_integral = $qtyIntegral;
@@ -783,7 +828,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $anciensTimbresGratuits = (int) $deces->free_timbres_count;
             if ($anciensTimbresGratuits > 0) {
                 $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
-                $user->save();
             }
 
             // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
@@ -810,10 +854,18 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $demandeDejaPayee = !in_array($deces->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            // États réellement payés (paiement confirmé) : on utilise une liste blanche
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $demandeDejaPayee = in_array(strtolower($deces->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $deces->montant_timbre + (float) $deces->montant_livraison) : 0;
 
-            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            // Si le montant total ne change pas et que la demande n'est pas encore payée,
+            // il n'y a pas de reste à payer (même si ancienMontantPaye = 0)
+            if (!$demandeDejaPayee && $nouveauMontantTotal === (float) ($deces->montant_timbre + $deces->montant_livraison)) {
+                $resteAPayer = 0;
+            } else {
+                $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            }
             $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
@@ -882,27 +934,72 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $deces->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
+            $deces->etat = $needsPayment ? $originalData['etat'] : 'en attente';
             $deces->peut_modifier = false;
             $deces->champs_a_modifier = null;
             $deces->motif_de_rejet = null;
-            $deces->save();
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $totalAmount = $resteAPayer; // C'est le reste à payer
+                $totalAmount = $resteAPayer;
 
-                $deces->montant_timbre = $montantTimbreTotal;
-                $deces->is_free_request = $freeCalc['free_timbres'] > 0;
-                $deces->free_timbres_count = $freeCalc['free_timbres'];
+                // *** RESTAURER les valeurs ORIGINALES en base (pas de modification avant paiement) ***
+                $deces->pour = $originalData['pour'];
+                $deces->relation = $originalData['relation'];
+                $deces->type = $originalData['type'];
+                $deces->name = $originalData['name'];
+                $deces->nom_prenoms_pere = $originalData['nom_prenoms_pere'];
+                $deces->nom_prenoms_mere = $originalData['nom_prenoms_mere'];
+                $deces->numberR = $originalData['numberR'];
+                $deces->dateR = $originalData['dateR'];
+                $deces->commune = $originalData['commune'];
+                $deces->commune_deces = $originalData['commune_deces'];
+                $deces->qty_simple = $originalData['qty_simple'];
+                $deces->qty_integral = $originalData['qty_integral'];
+                $deces->quantite = $originalData['quantite'];
+                foreach ($originalData['fichiers'] as $fk => $oldPath) {
+                    $deces->$fk = $oldPath;
+                }
+                // Conserver l'ancien état, l'ancien montant timbre, et l'ancien statut free
+                $deces->montant_timbre     = $originalData['montant_timbre'];
+                $deces->is_free_request    = $originalData['is_free_request'];
+                $deces->free_timbres_count = $originalData['free_timbres_count'];
+                $deces->etat               = $originalData['etat'];
                 $deces->save();
 
-                // Mettre en cache les données de livraison
+                // Stocker TOUTES les nouvelles valeurs en cache pour application après paiement
+                $newAttributes = [
+                    'pour' => $request->input('pour', $originalData['pour']),
+                    'relation' => $request->input('relation', $originalData['relation']),
+                    'type' => in_array($request->input('type'), ['simple', 'integrale', 'groupee']) ? $request->input('type') : $originalData['type'],
+                    'name' => $request->input('name', $originalData['name']),
+                    'nom_prenoms_pere' => $request->input('nom_prenoms_pere', $originalData['nom_prenoms_pere']),
+                    'nom_prenoms_mere' => $request->input('nom_prenoms_mere', $originalData['nom_prenoms_mere']),
+                    'numberR' => $request->input('numberR', $originalData['numberR']),
+                    'dateR' => $request->dateR ? Carbon::parse($request->dateR)->format('Y-m-d') : $originalData['dateR'],
+                    'commune' => $request->input('commune', $originalData['commune']),
+                    'commune_deces' => $request->input('commune_deces', $originalData['commune_deces']),
+                    'qty_simple' => $qtySimple,
+                    'qty_integral' => $qtyIntegral,
+                    'quantite' => $qtySimple + $qtyIntegral,
+                    'is_free_request' => $freeCalc['free_timbres'] > 0,
+                    'free_timbres_count' => $freeCalc['free_timbres'],
+                ];
+                // Ajouter les nouveaux fichiers uploadés
+                foreach ($nouveauxFichiers as $fk => $newPath) {
+                    $newAttributes[$fk] = $newPath;
+                }
+                \Illuminate\Support\Facades\Cache::put(
+                    'pending_modification_update_' . $deces->reference,
+                    ['attributes' => $newAttributes],
+                    now()->addDays(7)
+                );
                 \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $deces->reference, $pendingDeliveryData, now()->addDays(7));
 
                 if ($totalAmount > 0) {
                     $paymentMethod = $request->input('payment_method', 'wave');
-                    $paymentLinkResult = $this->generatePaymentLink($deces, $totalAmount, $paymentMethod);
+                    $transactionReference = $deces->reference . '-MOD-' . time();
+                    $paymentLinkResult = $this->generatePaymentLink($deces, $totalAmount, $paymentMethod, $transactionReference);
 
                     if (!$paymentLinkResult['success']) {
                         return response()->json([
@@ -914,7 +1011,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
                     return response()->json([
                         'success' => true,
-                        'message' => 'Demande modifiée. Utilisez le payment_url pour payer.',
+                        'message' => 'Modifications enregistrées. Elles seront appliquées après confirmation du paiement.',
                         'requires_payment' => true,
                         'free_requests' => [
                             'timbres_gratuits_appliques' => $freeCalc['free_timbres'],
@@ -940,8 +1037,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                     }
                     $deces->save();
-
-                    // Appliquer la livraison en attente
                     $this->applyPendingDeliveryUpdate($deces);
                 }
             } else {
@@ -1120,6 +1215,39 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 }
             }
 
+            // Sauvegarder les anciens chemins pour restauration/comparaison si besoin
+            $ancienCNIdfnt = $deces->CNIdfnt;
+            $ancienCNIdcl = $deces->CNIdcl;
+            $ancienDocumentMariage = $deces->documentMariage;
+            $ancienRequisPolice = $deces->RequisPolice;
+            $ancienDocumentAutorisation = $deces->document_autorisation;
+
+            // Valeurs originales en base (avant modification) pour restauration si paiement requis
+            $originalData = [
+                'pour' => $deces->pour,
+                'relation' => $deces->relation,
+                'type' => $deces->type,
+                'name' => $deces->name,
+                'nom_prenoms_pere' => $deces->nom_prenoms_pere,
+                'nom_prenoms_mere' => $deces->nom_prenoms_mere,
+                'numberR' => $deces->numberR,
+                'dateR' => $deces->dateR,
+                'commune' => $deces->commune,
+                'commune_deces' => $deces->commune_deces,
+                'qty_simple' => $deces->qty_simple,
+                'qty_integral' => $deces->qty_integral,
+                'quantite' => $deces->quantite,
+                'CNIdfnt' => $ancienCNIdfnt,
+                'CNIdcl' => $ancienCNIdcl,
+                'documentMariage' => $ancienDocumentMariage,
+                'RequisPolice' => $ancienRequisPolice,
+                'document_autorisation' => $ancienDocumentAutorisation,
+                'montant_timbre' => $deces->montant_timbre,
+                'is_free_request' => $deces->is_free_request,
+                'free_timbres_count' => $deces->free_timbres_count,
+                'etat' => $deces->etat,
+            ];
+
             // 7. Enregistrer les fichiers
             $filesToUpload = [
                 'pActe' => '',
@@ -1129,6 +1257,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'RequisPolice' => 'police',
                 'document_autorisation' => 'autorisations',
             ];
+
+            $nouveauCNIdfnt = $deces->CNIdfnt;
+            $nouveauCNIdcl = $deces->CNIdcl;
+            $nouveauDocumentMariage = $deces->documentMariage;
+            $nouveauRequisPolice = $deces->RequisPolice;
+            $nouveauDocumentAutorisation = $deces->document_autorisation;
 
             foreach ($filesToUpload as $fileKey => $subDir) {
                 if ($request->hasFile($fileKey)) {
@@ -1140,6 +1274,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $newFileName = (string) Str::uuid() . '.' . $extension;
                     $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
                     $deces->$fileKey = $path;
+
+                    if ($fileKey === 'CNIdfnt') $nouveauCNIdfnt = $path;
+                    if ($fileKey === 'CNIdcl') $nouveauCNIdcl = $path;
+                    if ($fileKey === 'documentMariage') $nouveauDocumentMariage = $path;
+                    if ($fileKey === 'RequisPolice') $nouveauRequisPolice = $path;
+                    if ($fileKey === 'document_autorisation') $nouveauDocumentAutorisation = $path;
                 }
             }
 
@@ -1165,12 +1305,18 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Calcul du reste à payer comme sur le web
+            $originalChoixOption = $deces->choix_option;
+            $nouveauChoixOption = $request->input('choix_option', $originalChoixOption);
+
+            // Normaliser le choix option
+            $nouveauChoixOptionNormalise = strtolower($nouveauChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+            $originalChoixOptionNormalise = strtolower($originalChoixOption) === 'livraison' ? 'livraison' : 'Retrait sur place';
+
             $user->refresh();
             // Créditer temporairement les timbres gratuits déjà accordés à cette demande pour le calcul
             $anciensTimbresGratuits = (int) $deces->free_timbres_count;
             if ($anciensTimbresGratuits > 0) {
                 $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbresGratuits);
-                $user->save();
             }
 
             // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
@@ -1196,10 +1342,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $demandeDejaPayee = !in_array($deces->etat, ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $demandeDejaPayee = in_array(strtolower($deces->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $deces->montant_timbre + (float) $deces->montant_livraison) : 0;
 
-            $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            if (!$demandeDejaPayee && $nouveauMontantTotal === (float) ($deces->montant_timbre + $deces->montant_livraison)) {
+                $resteAPayer = 0;
+            } else {
+                $resteAPayer = $nouveauMontantTotal - $ancienMontantPaye;
+            }
             $needsPayment = $resteAPayer > 0;
             $pendingDeliveryData = null;
 
@@ -1221,7 +1372,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'date_livraison' => $request->input('date_livraison'),
                         'heure_livraison' => $request->input('heure_livraison'),
                     ];
-                    // Conserver l'ancienne option jusqu'au paiement
                     $deces->choix_option = $originalChoixOption;
                 } else {
                     $pendingDeliveryData = [
@@ -1229,7 +1379,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'montant_timbre' => $montantTimbreTotal,
                         'montant_livraison' => 0,
                     ];
-                    // Conserver l'ancienne option jusqu'au paiement
                     $deces->choix_option = $originalChoixOption;
                 }
             } else {
@@ -1268,27 +1417,79 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Réinitialiser l'état et désactiver la modification
-            $deces->etat = $needsPayment ? 'en attente de paiement' : 'en attente';
+            $deces->etat = $needsPayment ? $originalData['etat'] : 'en attente';
             $deces->peut_modifier = false;
             $deces->champs_a_modifier = null;
             $deces->motif_de_rejet = null;
-            $deces->save();
 
             // Gestion de l'initiation du paiement si nécessaire
             if ($needsPayment && $pendingDeliveryData) {
-                $totalAmount = $resteAPayer; // C'est le reste à payer
+                $totalAmount = $resteAPayer;
 
-                $deces->montant_timbre = $montantTimbreTotal;
-                $deces->is_free_request = $freeCalc['free_timbres'] > 0;
-                $deces->free_timbres_count = $freeCalc['free_timbres'];
+                // *** RESTAURER les valeurs ORIGINALES en base (pas de modification avant paiement) ***
+                $deces->pour = $originalData['pour'];
+                $deces->relation = $originalData['relation'];
+                $deces->type = $originalData['type'];
+                $deces->name = $originalData['name'];
+                $deces->nom_prenoms_pere = $originalData['nom_prenoms_pere'];
+                $deces->nom_prenoms_mere = $originalData['nom_prenoms_mere'];
+                $deces->numberR = $originalData['numberR'];
+                $deces->dateR = $originalData['dateR'];
+                $deces->commune = $originalData['commune'];
+                $deces->commune_deces = $originalData['commune_deces'];
+                $deces->qty_simple = $originalData['qty_simple'];
+                $deces->qty_integral = $originalData['qty_integral'];
+                $deces->quantite = $originalData['quantite'];
+                $deces->CNIdfnt = $originalData['CNIdfnt'];
+                $deces->CNIdcl = $originalData['CNIdcl'];
+                $deces->documentMariage = $originalData['documentMariage'];
+                $deces->RequisPolice = $originalData['RequisPolice'];
+                $deces->document_autorisation = $originalData['document_autorisation'];
+
+                $deces->montant_timbre = $originalData['montant_timbre'];
+                $deces->is_free_request = $originalData['is_free_request'];
+                $deces->free_timbres_count = $originalData['free_timbres_count'];
+                $deces->etat = $originalData['etat'];
                 $deces->save();
 
-                // Mettre en cache les données de livraison
+                // Stocker TOUTES les nouvelles valeurs en cache pour application après paiement
+                $pendingModificationData = [
+                    'attributes' => [
+                        'pour' => $request->input('pour', $originalData['pour']),
+                        'relation' => $request->input('relation', $originalData['relation']),
+                        'type' => in_array($request->input('type'), ['simple', 'integrale', 'groupee']) ? $request->input('type') : $originalData['type'],
+                        'name' => $request->input('name', $originalData['name']),
+                        'nom_prenoms_pere' => $request->input('nom_prenoms_pere', $originalData['nom_prenoms_pere']),
+                        'nom_prenoms_mere' => $request->input('nom_prenoms_mere', $originalData['nom_prenoms_mere']),
+                        'numberR' => $request->input('numberR', $originalData['numberR']),
+                        'dateR' => $request->dateR ? Carbon::parse($request->dateR)->format('Y-m-d') : $originalData['dateR'],
+                        'commune' => $request->input('commune', $originalData['commune']),
+                        'commune_deces' => $request->input('commune_deces', $originalData['commune_deces']),
+                        'qty_simple' => $qtySimple ?? $deces->qty_simple,
+                        'qty_integral' => $qtyIntegral ?? $deces->qty_integral,
+                        'quantite' => (isset($qtySimple) && isset($qtyIntegral)) ? ($qtySimple + $qtyIntegral) : $deces->quantite,
+                        'CNIdfnt' => $nouveauCNIdfnt,
+                        'CNIdcl' => $nouveauCNIdcl,
+                        'documentMariage' => $nouveauDocumentMariage,
+                        'RequisPolice' => $nouveauRequisPolice,
+                        'document_autorisation' => $nouveauDocumentAutorisation,
+                        'is_free_request' => $freeCalc['free_timbres'] > 0,
+                        'free_timbres_count' => $freeCalc['free_timbres'],
+                    ],
+                ];
+
+                \Illuminate\Support\Facades\Cache::put(
+                    'pending_modification_update_' . $deces->reference,
+                    $pendingModificationData,
+                    now()->addDays(7)
+                );
+
                 \Illuminate\Support\Facades\Cache::put('pending_delivery_update_' . $deces->reference, $pendingDeliveryData, now()->addDays(7));
 
                 if ($totalAmount > 0) {
                     $paymentMethod = $request->input('payment_method', 'wave');
-                    $paymentLinkResult = $this->generatePaymentLink($deces, $totalAmount, $paymentMethod);
+                    $transactionReference = $deces->reference . '-MOD-' . time();
+                    $paymentLinkResult = $this->generatePaymentLink($deces, $totalAmount, $paymentMethod, $transactionReference);
 
                     if (!$paymentLinkResult['success']) {
                         return response()->json([

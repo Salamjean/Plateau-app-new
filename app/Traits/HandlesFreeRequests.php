@@ -9,6 +9,7 @@ use App\Models\Naissance;
 
 trait HandlesFreeRequests
 {
+    protected static $appliedModifications = [];
     /**
      * Vérifie si la demande actuelle est une demande gratuite (mode test)
      * et met à jour le compteur de l'utilisateur si c'est le cas.
@@ -100,6 +101,11 @@ trait HandlesFreeRequests
      */
     protected function incrementFreeRequestsFromDemande($demande): void
     {
+        if (isset(self::$appliedModifications[$demande->reference])) {
+            \Illuminate\Support\Facades\Log::info("incrementFreeRequestsFromDemande ignoré car modification déjà appliquée [{$demande->reference}]");
+            return;
+        }
+
         if (empty($demande->is_free_request) || empty($demande->free_timbres_count)) {
             return;
         }
@@ -141,6 +147,24 @@ trait HandlesFreeRequests
         if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
             $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
             \Illuminate\Support\Facades\Log::info("Application des modifications d'informations en attente pour {$demande->reference} : ", $pendingData);
+
+            // Ajustement des demandes gratuites de l'utilisateur en base
+            $anciensTimbres = (int) $demande->free_timbres_count;
+            $nouveauxTimbres = isset($pendingData['attributes']['free_timbres_count']) ? (int) $pendingData['attributes']['free_timbres_count'] : 0;
+            
+            if ($anciensTimbres > 0 || $nouveauxTimbres > 0) {
+                $user = \App\Models\User::find($demande->user_id);
+                if ($user) {
+                    // Libérer les anciens timbres
+                    $user->free_requests_used = max(0, $user->free_requests_used - $anciensTimbres);
+                    // Consommer les nouveaux timbres
+                    $user->free_requests_used = min(2, $user->free_requests_used + $nouveauxTimbres);
+                    $user->save();
+                    \Illuminate\Support\Facades\Log::info("Ajustement free_requests_used pour modification [{$demande->reference}]: anciens={$anciensTimbres}, nouveaux={$nouveauxTimbres}, final={$user->free_requests_used}");
+                }
+            }
+
+            self::$appliedModifications[$demande->reference] = true;
 
             // 1. Suppression physique des anciens fichiers remplacés
             if (isset($pendingData['old_files_to_delete']) && is_array($pendingData['old_files_to_delete'])) {
