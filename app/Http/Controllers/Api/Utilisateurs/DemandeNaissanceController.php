@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Utilisateurs;
 
 use App\Http\Controllers\Controller;
-use App\Models\Naissance; // ✅ Modèle Naissance
+use App\Models\Naissance;
 use App\Models\Paiement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -791,9 +791,27 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $user->save();
             }
 
-            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+            // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
+            $nouvelleQuantite = $qtySimple + $qtyIntegral;
+            if ((int) $naissance->quantite === $nouvelleQuantite) {
+                $freeCalc = [
+                    'free_timbres' => (int) $naissance->free_timbres_count,
+                    'paid_timbres' => $nouvelleQuantite - (int) $naissance->free_timbres_count,
+                    'montant_timbre_total' => ($nouvelleQuantite - (int) $naissance->free_timbres_count) * 500,
+                    'montant_timbre_gratuit' => (int) $naissance->free_timbres_count * 500,
+                ];
+            } else {
+                $freeCalc = $this->calculateFreeRequestsDiscount($user, $nouvelleQuantite);
+            }
             $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-            $montantLivraisonCible = $nouveauChoixOptionNormalise === 'livraison' ? (float) $request->input('montant_livraison', 0) : 0;
+
+            // Si l'option était déjà la livraison, on conserve le montant historique de la base de données
+            $montantLivraisonCible = 0;
+            if ($nouveauChoixOptionNormalise === 'livraison') {
+                $montantLivraisonCible = ($originalChoixOptionNormalise === 'livraison')
+                    ? (float) $naissance->montant_livraison
+                    : (float) $request->input('montant_livraison', 0);
+            }
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
@@ -930,12 +948,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $this->applyPendingDeliveryUpdate($naissance);
                 }
             } else {
-                if ($nouveauChoixOptionNormalise !== 'livraison') {
-                    if ($freeCalc['free_timbres'] > 0) {
-                        $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-                    }
-                    $naissance->save();
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                 }
+                $naissance->save();
             }
 
             return response()->json([
@@ -1155,9 +1171,26 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $user->save();
             }
 
-            $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+            // Si la quantité totale ne change pas, on réutilise le nombre de timbres gratuits déjà accordés
+            if ((int) $naissance->quantite === (int) $naissance->qty_simple + $naissance->qty_integral) {
+                $freeCalc = [
+                    'free_timbres' => (int) $naissance->free_timbres_count,
+                    'paid_timbres' => (int) $naissance->quantite - (int) $naissance->free_timbres_count,
+                    'montant_timbre_total' => ((int) $naissance->quantite - (int) $naissance->free_timbres_count) * 500,
+                    'montant_timbre_gratuit' => (int) $naissance->free_timbres_count * 500,
+                ];
+            } else {
+                $freeCalc = $this->calculateFreeRequestsDiscount($user, (int) $naissance->quantite);
+            }
             $montantTimbreTotal = $freeCalc['montant_timbre_total'];
-            $montantLivraisonCible = $nouveauChoixOptionNormalise === 'livraison' ? (float) $request->input('montant_livraison', 0) : 0;
+
+            // Si l'option était déjà la livraison, on conserve le montant historique de la base de données
+            $montantLivraisonCible = 0;
+            if ($nouveauChoixOptionNormalise === 'livraison') {
+                $montantLivraisonCible = ($originalChoixOptionNormalise === 'livraison')
+                    ? (float) $naissance->montant_livraison
+                    : (float) $request->input('montant_livraison', 0);
+            }
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
@@ -1294,12 +1327,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $this->applyPendingDeliveryUpdate($naissance);
                 }
             } else {
-                if ($nouveauChoixOptionNormalise !== 'livraison') {
-                    if ($freeCalc['free_timbres'] > 0) {
-                        $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
-                    }
-                    $naissance->save();
+                if ($freeCalc['free_timbres'] > 0) {
+                    $this->incrementFreeRequestsUsed($user, $freeCalc['free_timbres']);
                 }
+                $naissance->save();
             }
 
             return response()->json([
