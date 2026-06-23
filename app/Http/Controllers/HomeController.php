@@ -11,9 +11,10 @@ class HomeController extends Controller
 {
     public function home()
     {
-        return view('home.home_parallax');
-        //return view('home.home');
+        //return view('home.home_parallax');
+        // return view('home.home');
         // return view('maintenance');
+         return view('home.HomeTrue');
     }
 
     public function recherche(Request $request)

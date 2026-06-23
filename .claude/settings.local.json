@@ -22,7 +22,18 @@
       "Bash(php -l app/Http/Controllers/EtatCivil/EtatCivilController.php)",
       "Bash(php -l app/Http/Controllers/Finance/FinanceController.php)",
       "Bash(grep -rn \"use App\\\\\\\\\\\\\\\\Services\\\\\\\\\\\\\\\\FcmService\\\\|FcmService\" \"C:/Users/THEWAYNE/Plateau-app-new/app/Services/FcmService.php\")",
-      "Bash(php -l app/Http/Controllers/Mairie/MairieRendezVousController.php)"
+      "Bash(php -l app/Http/Controllers/Mairie/MairieRendezVousController.php)",
+      "Bash(curl -sSL -o \"C:/Users/THEWAYNE/Plateau-app-new/public/assets/landing/about-background.png\" \"https://www.figma.com/api/mcp/asset/f49f61fb-e3b4-4d4c-a911-3787ff8dd44f\")",
+      "mcp__d4b1b4e3-4c05-4177-a677-42d57bbb8a03__get_design_context",
+      "Bash(curl -sSL -o services-bg.png \"https://www.figma.com/api/mcp/asset/ffbeac37-bdfb-4275-bab4-34f495574b70\")",
+      "Bash(curl -sSL -o final-bg.png \"https://www.figma.com/api/mcp/asset/113f48da-71a3-47af-88ee-e77490112615\")",
+      "Bash(curl -sSL -o iphone-rdv.png \"https://www.figma.com/api/mcp/asset/d31f15ba-e6ce-4dd1-964e-8d8eabbcbe61\")",
+      "Bash(curl -sSL -o iphone-historique.png \"https://www.figma.com/api/mcp/asset/b2196ab7-cc8c-4bb6-9bb5-c4e25427b4a4\")",
+      "Bash(curl -sSL -o iphone-rechercher.png \"https://www.figma.com/api/mcp/asset/2d2005b1-6464-4508-8ab7-645ed5ab9080\")",
+      "Bash(command -v ffmpeg)",
+      "Bash(mkdir -p \"/tmp/video-frames\")",
+      "Bash(ffmpeg -i \"C:/Users/THEWAYNE/Videos/Captures/Plateau Apps Web Site Parallax - Google Chrome 2026-06-23 11-49-54.mp4\" -vf \"fps=1\" \"/tmp/video-frames/frame-%03d.png\" -y)",
+      "Bash(ls \"/tmp/video-frames/\" 2>&1 | head -5 && echo \"---\" && ls C:/Users/THEWAYNE/AppData/Local/Temp/ 2>&1 | head -3 && echo \"---\" && cp -r /tmp/video-frames \"C:/Users/THEWAYNE/Plateau-app-new/video-frames-temp/\" 2>&1 && ls \"C:/Users/THEWAYNE/Plateau-app-new/video-frames-temp/\" | head -5)"
     ]
   }
 }
