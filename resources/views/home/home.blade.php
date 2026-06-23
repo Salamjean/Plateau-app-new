@@ -128,7 +128,7 @@
                         <p class="text-muted mb-5" style="font-size: 0.95rem; line-height: 1.6;">
                             Consultez l'état d'avancement de votre dossier en temps réel avec votre numéro de référence.
                         </p>
-                        
+
                         <form action="{{ route('recherche.demande') }}" method="POST">
                             @csrf
                             <div class="mb-4">
@@ -149,7 +149,7 @@
                 <!-- Droite: Démarches urgentes -->
                 <div class="col-lg-7" data-aos="fade-left" data-aos-delay="200">
                     <h3 class="fw-800 mb-4" style="color: #0f2c59; font-size: 1.8rem; font-family: 'Plus Jakarta Sans', sans-serif;">Démarches urgentes</h3>
-                    
+
                     <div class="d-flex flex-column gap-3">
                         <!-- Demande d'extrait de naissance -->
                         <a href="{{ route('home.birth') }}" class="urgent-demarche-card d-flex align-items-center justify-content-between p-3 rounded-4 border bg-white text-decoration-none transition">
@@ -214,7 +214,7 @@
                     Obtenez vos actes civils officiels en suivant ces 4 étapes simples sans quitter votre domicile.
                 </p>
             </div>
-            
+
             <div class="row g-4">
                 <!-- Étape 1 -->
                 <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
@@ -518,7 +518,7 @@
             flex-direction: column;
             gap: 12px;
         }
-        
+
         .card-2 .card-body-custom {
             flex-direction: row;
             position: relative;
