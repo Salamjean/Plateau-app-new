@@ -614,6 +614,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // 3. Règles de validation pour modification complète
             $rules = [
                 'typeDemande' => 'nullable|string|in:simple,integrale,groupee',
+                'type' => 'nullable|string|in:simple,integrale,groupee',
                 'pour' => 'nullable|string',
                 'relation' => 'nullable|string',
                 'nomEpoux' => 'nullable|string|max:255',
@@ -730,7 +731,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $mariage->pour = $request->input('pour', $mariage->pour);
             $mariage->relation = $request->input('relation', $mariage->relation);
             // Ne mettre à jour le type que si une valeur valide est envoyée (simple/integrale/groupee)
-            $nouveauTypeMariage = $request->input('typeDemande');
+            $nouveauTypeMariage = $request->input('typeDemande') ?: $request->input('type');
             if (in_array($nouveauTypeMariage, ['simple', 'integrale', 'groupee'])) {
                 $mariage->type = $nouveauTypeMariage;
             }
@@ -927,17 +928,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $mariage->$fk = $oldPath;
                 }
                 // Conserver l'ancien état, l'ancien montant timbre, et l'ancien statut free
-                $mariage->montant_timbre     = $originalData['montant_timbre'];
-                $mariage->is_free_request    = $originalData['is_free_request'];
+                $mariage->montant_timbre = $originalData['montant_timbre'];
+                $mariage->is_free_request = $originalData['is_free_request'];
                 $mariage->free_timbres_count = $originalData['free_timbres_count'];
-                $mariage->etat               = $originalData['etat'];
+                $mariage->etat = $originalData['etat'];
                 $mariage->save();
 
                 // Stocker TOUTES les nouvelles valeurs en cache pour application après paiement
                 $newAttributes = [
                     'pour' => $request->input('pour', $originalData['pour']),
                     'relation' => $request->input('relation', $originalData['relation']),
-                    'type' => in_array($request->input('typeDemande'), ['simple', 'integrale', 'groupee']) ? $request->input('typeDemande') : $originalData['type'],
+                    'type' => in_array($nouveauTypeMariage, ['simple', 'integrale', 'groupee']) ? $nouveauTypeMariage : $originalData['type'],
                     'nomEpoux' => $request->input('nomEpoux', $originalData['nomEpoux']),
                     'prenomEpoux' => $request->input('prenomEpoux', $originalData['prenomEpoux']),
                     'dateNaissanceEpoux' => $request->dateNaissanceEpoux ? Carbon::parse($request->dateNaissanceEpoux)->format('Y-m-d') : $originalData['dateNaissanceEpoux'],
@@ -1101,7 +1102,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             foreach ($champsAModifier as $champ) {
                 switch ($champ) {
                     case 'typeDemande':
-                        $rules['typeDemande'] = 'required|string';
+                    case 'type':
+                        $rules['typeDemande'] = 'nullable|string|in:simple,integrale,groupee';
+                        $rules['type'] = 'nullable|string|in:simple,integrale,groupee';
                         break;
                     case 'nomEpoux':
                         $rules['nomEpoux'] = 'required|string|max:255';
@@ -1242,9 +1245,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $path = $file->storeAs("images/mariages/$subDir", $newFileName, 'public');
                     $mariage->$fileKey = $path;
 
-                    if ($fileKey === 'pieceIdentite') $nouvellePieceIdentite = $path;
-                    if ($fileKey === 'extraitMariage') $nouvelExtraitMariage = $path;
-                    if ($fileKey === 'document_autorisation') $nouveauDocumentAutorisation = $path;
+                    if ($fileKey === 'pieceIdentite')
+                        $nouvellePieceIdentite = $path;
+                    if ($fileKey === 'extraitMariage')
+                        $nouvelExtraitMariage = $path;
+                    if ($fileKey === 'document_autorisation')
+                        $nouveauDocumentAutorisation = $path;
                 }
             }
 
@@ -1252,15 +1258,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             foreach ($champsAModifier as $champ) {
                 if (in_array($champ, ['dateNaissanceEpoux', 'dateNaissanceEpouse']) && isset($validated[$champ])) {
                     $mariage->$champ = Carbon::parse($validated[$champ])->format('Y-m-d');
-                } elseif ($champ === 'typeDemande') {
-                    $mariage->type = $validated['typeDemande'];
+                } elseif ($champ === 'typeDemande' || $champ === 'type') {
+                    $mariage->type = $request->input('typeDemande') ?: $request->input('type') ?: $mariage->type;
                 } elseif (!in_array($champ, ['pieceIdentite', 'extraitMariage']) && isset($validated[$champ])) {
                     $mariage->$champ = $validated[$champ];
                 }
             }
 
             // Si la quantité a été modifiée ou le type dans les champs rejetés
-            if (in_array('quantite', $champsAModifier) || in_array('typeDemande', $champsAModifier)) {
+            if (in_array('quantite', $champsAModifier) || in_array('typeDemande', $champsAModifier) || in_array('type', $champsAModifier)) {
                 $mariage->quantite = (int) $request->input('quantite', $mariage->quantite);
                 if ($mariage->type === 'integrale') {
                     $qtyIntegral = $mariage->quantite;
@@ -1430,7 +1436,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'attributes' => [
                         'pour' => $request->input('pour', $originalData['pour']),
                         'relation' => $request->input('relation', $originalData['relation']),
-                        'type' => in_array($request->input('typeDemande'), ['simple', 'integrale', 'groupee']) ? $request->input('typeDemande') : $originalData['type'],
+                        'type' => in_array($request->input('typeDemande') ?: $request->input('type'), ['simple', 'integrale', 'groupee']) ? ($request->input('typeDemande') ?: $request->input('type')) : $originalData['type'],
                         'nomEpoux' => $request->input('nomEpoux', $originalData['nomEpoux']),
                         'prenomEpoux' => $request->input('prenomEpoux', $originalData['prenomEpoux']),
                         'dateNaissanceEpoux' => $request->dateNaissanceEpoux ? Carbon::parse($request->dateNaissanceEpoux)->format('Y-m-d') : $originalData['dateNaissanceEpoux'],

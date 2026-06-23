@@ -716,14 +716,13 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 6. Enregistrer les fichiers (sauvegarder les anciens chemins pour restauration si nécessaire)
-            $fileKeys = ['pActe', 'CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice', 'document_autorisation'];
+            $fileKeys = ['CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice', 'document_autorisation'];
             $anciensFichiers = [];
             foreach ($fileKeys as $fk) {
                 $anciensFichiers[$fk] = $deces->$fk;
             }
 
             $filesToUpload = [
-                'pActe' => '',
                 'CNIdfnt' => 'cnid',
                 'CNIdcl' => 'cnid',
                 'documentMariage' => 'mariage',
@@ -961,10 +960,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $deces->$fk = $oldPath;
                 }
                 // Conserver l'ancien état, l'ancien montant timbre, et l'ancien statut free
-                $deces->montant_timbre     = $originalData['montant_timbre'];
-                $deces->is_free_request    = $originalData['is_free_request'];
+                $deces->montant_timbre = $originalData['montant_timbre'];
+                $deces->is_free_request = $originalData['is_free_request'];
                 $deces->free_timbres_count = $originalData['free_timbres_count'];
-                $deces->etat               = $originalData['etat'];
+                $deces->etat = $originalData['etat'];
                 $deces->save();
 
                 // Stocker TOUTES les nouvelles valeurs en cache pour application après paiement
@@ -1250,7 +1249,6 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // 7. Enregistrer les fichiers
             $filesToUpload = [
-                'pActe' => '',
                 'CNIdfnt' => 'cnid',
                 'CNIdcl' => 'cnid',
                 'documentMariage' => 'mariage',
@@ -1275,11 +1273,16 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     $path = $file->storeAs("images/deces/$subDir", $newFileName, 'public');
                     $deces->$fileKey = $path;
 
-                    if ($fileKey === 'CNIdfnt') $nouveauCNIdfnt = $path;
-                    if ($fileKey === 'CNIdcl') $nouveauCNIdcl = $path;
-                    if ($fileKey === 'documentMariage') $nouveauDocumentMariage = $path;
-                    if ($fileKey === 'RequisPolice') $nouveauRequisPolice = $path;
-                    if ($fileKey === 'document_autorisation') $nouveauDocumentAutorisation = $path;
+                    if ($fileKey === 'CNIdfnt')
+                        $nouveauCNIdfnt = $path;
+                    if ($fileKey === 'CNIdcl')
+                        $nouveauCNIdcl = $path;
+                    if ($fileKey === 'documentMariage')
+                        $nouveauDocumentMariage = $path;
+                    if ($fileKey === 'RequisPolice')
+                        $nouveauRequisPolice = $path;
+                    if ($fileKey === 'document_autorisation')
+                        $nouveauDocumentAutorisation = $path;
                 }
             }
 
