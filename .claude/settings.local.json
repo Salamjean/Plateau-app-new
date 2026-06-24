@@ -33,7 +33,24 @@
       "Bash(command -v ffmpeg)",
       "Bash(mkdir -p \"/tmp/video-frames\")",
       "Bash(ffmpeg -i \"C:/Users/THEWAYNE/Videos/Captures/Plateau Apps Web Site Parallax - Google Chrome 2026-06-23 11-49-54.mp4\" -vf \"fps=1\" \"/tmp/video-frames/frame-%03d.png\" -y)",
-      "Bash(ls \"/tmp/video-frames/\" 2>&1 | head -5 && echo \"---\" && ls C:/Users/THEWAYNE/AppData/Local/Temp/ 2>&1 | head -3 && echo \"---\" && cp -r /tmp/video-frames \"C:/Users/THEWAYNE/Plateau-app-new/video-frames-temp/\" 2>&1 && ls \"C:/Users/THEWAYNE/Plateau-app-new/video-frames-temp/\" | head -5)"
+      "Bash(ls \"/tmp/video-frames/\" 2>&1 | head -5 && echo \"---\" && ls C:/Users/THEWAYNE/AppData/Local/Temp/ 2>&1 | head -3 && echo \"---\" && cp -r /tmp/video-frames \"C:/Users/THEWAYNE/Plateau-app-new/video-frames-temp/\" 2>&1 && ls \"C:/Users/THEWAYNE/Plateau-app-new/video-frames-temp/\" | head -5)",
+      "mcp__d4b1b4e3-4c05-4177-a677-42d57bbb8a03__get_screenshot",
+      "Bash(mkdir -p figma-ref-temp)",
+      "Bash(curl -s -o figma-ref-temp/s1-hero.png \"https://www.figma.com/api/mcp/asset/1eddcfab-68e8-4172-afce-2a80028bf7c3\")",
+      "Bash(curl -s -o figma-ref-temp/s2-about.png \"https://www.figma.com/api/mcp/asset/443a8f20-fdfa-4fd7-9699-93a33c6c0388\")",
+      "Bash(curl -s -o figma-ref-temp/s3-services.png \"https://www.figma.com/api/mcp/asset/22c7d993-7ae4-4dae-9768-c40132be8262\")",
+      "Bash(curl -s -o figma-ref-temp/s4-how.png \"https://www.figma.com/api/mcp/asset/887761a7-76da-4d49-80f4-9f499cccfcb6\")",
+      "Bash(curl -s -o figma-ref-temp/s4-how-hd.png \"https://www.figma.com/api/mcp/asset/4a4c580c-3969-4ff1-9f41-ad008545566a\")",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "mcp__Claude_in_Chrome__javascript_tool",
+      "mcp__d4b1b4e3-4c05-4177-a677-42d57bbb8a03__download_assets",
+      "Bash(magick montage *)",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"montage-phones.png\"\\);console.log\\(\"montage\",b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"montage2.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"montage-clean.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "mcp__Claude_in_Chrome__resize_window"
     ]
   }
 }

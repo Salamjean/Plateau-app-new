@@ -74,16 +74,16 @@
             top: 200px;
         }
 
-        /* Cercle bleu profond animé (gros, à droite) */
+        /* Grand cercle bleu marine plein derrière le téléphone (cf. maquette) */
         .hero-circle-bg {
             position: absolute;
             width: 820px;
             height: 820px;
-            background: var(--primary-dark);
+            background: #0a2954;        /* = couleur de fond de la section À propos */
             opacity: 1;
-            right: -260px;
-            top: 250px;
-            border: 2px solid rgba(255, 255, 255, 0.25);
+            right: -230px;
+            top: 230px;
+            border: none;
             border-radius: 50%;
             pointer-events: none;
             z-index: 0;
@@ -94,11 +94,11 @@
         .deco-circle.c1 {
             width: 620px;
             height: 620px;
-            background: var(--circle-deep);
+            background: #0a2954;
             opacity: 0.9;
             right: -100px;
             top: 380px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            
         }
 
         .deco-circle.c2 {
@@ -673,8 +673,7 @@
             background: url('{{ asset("assets/landing/about-background.png") }}') center/cover no-repeat,
                 linear-gradient(180deg, #0a2954 0%, #061a3a 100%);
             z-index: 0;
-            opacity: 0;
-            will-change: opacity;
+            opacity: 1;
         }
 
         .about-bg::before {
@@ -1111,10 +1110,10 @@
 
         .services-phone {
             position: absolute;
-            top: -50px;
-            right: -100px;
-            width: 540px;
-            max-width: 100%;
+            top: -160px;
+            right: -60px;
+            width: 720px;
+            max-width: none;
             transform: rotate(12deg);
             filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.4));
             animation: floatPhoneServices 7s ease-in-out infinite;
@@ -1216,21 +1215,20 @@
            ════════════════════════════════════════════════════════ */
         .how-section {
             position: relative;
-            padding: 70px 64px 80px;
+            padding: 56px 64px 0;
             background: var(--bg-blue);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Dark navy zone at the bottom, behind the text */
+        /* Dark navy zone at the bottom with a gentle wave top edge (SVG) */
         .how-section::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 48%;
-            background: #122554;
-            clip-path: ellipse(120% 100% at 50% 100%);
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 1024' preserveAspectRatio='none'%3E%3Cpath d='M0,556 C320,508 560,600 880,560 C1130,528 1320,548 1440,538 L1440,1024 L0,1024 Z' fill='%23122554'/%3E%3C/svg%3E") no-repeat;
+            background-size: 100% 100%;
             z-index: 0;
         }
 
@@ -1239,7 +1237,7 @@
             font-weight: 800;
             text-align: center;
             color: #172440;
-            margin-bottom: 60px;
+            margin-bottom: 36px;
             letter-spacing: -1px;
             position: relative;
             z-index: 5;
@@ -1274,36 +1272,22 @@
             align-items: flex-end;
             justify-content: center;
             flex: 1;
-            min-height: 360px;
-            /* Fixed height so all bottom edges align */
+            height: 340px;
         }
 
+        /* All 4 mockups share the same tilt baked into the PNG → uniform height + baseline */
         .how-phone-img {
-            width: 230px;
-            height: auto;
-            filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.35));
+            width: auto;
+            height: 320px;
+            max-width: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 26px 50px rgba(0, 0, 0, 0.45));
             transition: transform 0.4s ease;
             display: block;
         }
 
-        .how-phone-item:nth-child(1) .how-phone-img {
-            transform: rotate(-10deg) translateY(20px);
-        }
-
-        .how-phone-item:nth-child(2) .how-phone-img {
-            transform: rotate(5deg) translateY(10px);
-        }
-
-        .how-phone-item:nth-child(3) .how-phone-img {
-            transform: rotate(-4deg) translateY(15px);
-        }
-
-        .how-phone-item:nth-child(4) .how-phone-img {
-            transform: rotate(12deg) translateY(5px);
-        }
-
         .how-phone-item:hover .how-phone-img {
-            transform: rotate(0deg) translateY(-10px) scale(1.04);
+            transform: translateY(-12px) scale(1.04);
         }
 
         /* Separator line — marks the boundary phones / text */
@@ -1331,7 +1315,7 @@
         .how-step-number {
             font-size: 34px;
             font-weight: 800;
-            color: #9ec8fe;
+            color: #5f8ed1;
             line-height: 1;
             flex-shrink: 0;
             padding-top: 3px;
@@ -1467,9 +1451,9 @@
         }
 
         .final-phone {
-            width: 480px;
-            max-width: 100%;
-            transform: rotate(-6deg);
+            width: 850px;
+            max-width: none;
+            transform: rotate(-6deg) translateX(50px);
             filter: drop-shadow(0 30px 60px rgba(31, 64, 131, 0.3));
             animation: floatFinalPhone 6s ease-in-out infinite;
         }
@@ -1478,11 +1462,11 @@
 
             0%,
             100% {
-                transform: rotate(-6deg) translateY(0);
+                transform: rotate(-6deg) translateX(50px) translateY(0);
             }
 
             50% {
-                transform: rotate(-6deg) translateY(-15px);
+                transform: rotate(-6deg) translateX(50px) translateY(-15px);
             }
         }
 
@@ -1706,26 +1690,15 @@
             }
         }
 
-        /* BIG white wave transition */
+        /* Smooth wave transition from the light section into the navy download zone */
         .final-wave {
             position: relative;
             z-index: 5;
             width: calc(100% + 128px);
-            margin: 60px -64px 0;
-            height: 100px;
-            background: #122554;
-            /* White wave on top of the navy block */
-        }
-
-        .final-wave::before {
-            content: '';
-            position: absolute;
-            top: -60px;
-            left: 0;
-            right: 0;
-            height: 120px;
-            background: var(--bg-blue);
-            clip-path: ellipse(60% 100% at 50% 0%);
+            margin: 40px -64px -1px;
+            height: 110px;
+            background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 110' preserveAspectRatio='none'%3E%3Cpath d='M0,52 C360,4 760,96 1060,58 C1250,34 1360,46 1440,40 L1440,110 L0,110 Z' fill='%23122554'/%3E%3C/svg%3E") no-repeat;
+            background-size: 100% 100%;
         }
 
         /* Download CTA dark zone */
@@ -1733,8 +1706,9 @@
             position: relative;
             z-index: 5;
             background: #122554;
+            border-radius: 0;
             margin: 0 -64px;
-            padding: 60px 64px 50px;
+            padding: 30px 64px 50px;
             color: white;
             text-align: center;
         }
@@ -2223,7 +2197,9 @@
             }
 
             .services-phone {
-                width: 420px;
+                width: 540px;
+                top: -100px;
+                right: -20px;
             }
 
             .how-title {
@@ -2239,7 +2215,9 @@
             }
 
             .final-phone {
-                width: 380px;
+                width: 700px;
+                max-width: none;
+                transform: rotate(-6deg) translateX(30px);
             }
         }
 
@@ -2314,7 +2292,8 @@
             }
 
             .final-phone {
-                width: 320px;
+                width: 480px;
+                max-width: none;
                 transform: rotate(0);
                 animation: none;
             }
@@ -2392,6 +2371,32 @@
                 padding-bottom: 20px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             }
+        }
+
+        /* ════════════════════════════════════════════════════════
+           TÉLÉPHONE PERSISTANT — un SEUL mockup qui voyage entre
+           les sections et se pose à l'emplacement de chacune.
+           (créé/piloté en JS via GSAP — voir le script en bas)
+           ════════════════════════════════════════════════════════ */
+        .persistent-phone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 60;                 /* au-dessus des sections (z 1-5), sous le hint/dots */
+            pointer-events: none;        /* ne bloque jamais les clics */
+            opacity: 0;
+            will-change: transform, opacity, width;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            filter: drop-shadow(0 30px 60px rgba(15, 30, 60, 0.35));
+            display: none;               /* activé seulement en mode fullpage desktop */
+        }
+        body.fullpage-mode .persistent-phone { display: block; }
+
+        /* Sur mobile / tablette : pas de téléphone persistant,
+           on garde les téléphones inline de chaque section. */
+        @media (max-width: 991px) {
+            .persistent-phone { display: none !important; }
         }
     </style>
 </head>
@@ -2724,7 +2729,7 @@
 
             <div class="how-phone-item reveal-up stagger-1">
                 <div class="how-phone-img-wrap">
-                    <img src="{{ asset('assets/landing/iphone-mockup.png') }}" alt="Acte de naissance"
+                    <img src="{{ asset('assets/landing/how-naissance.png') }}" alt="Acte de naissance"
                         class="how-phone-img">
                 </div>
                 <div class="how-step-line"></div>
@@ -2739,7 +2744,7 @@
 
             <div class="how-phone-item reveal-up stagger-2">
                 <div class="how-phone-img-wrap">
-                    <img src="{{ asset('assets/landing/iphone-historique.png') }}" alt="Historique"
+                    <img src="{{ asset('assets/landing/how-mariage.png') }}" alt="Acte de mariage"
                         class="how-phone-img">
                 </div>
                 <div class="how-step-line"></div>
@@ -2754,7 +2759,7 @@
 
             <div class="how-phone-item reveal-up stagger-3">
                 <div class="how-phone-img-wrap">
-                    <img src="{{ asset('assets/landing/iphone-rechercher.png') }}" alt="Décès" class="how-phone-img">
+                    <img src="{{ asset('assets/landing/how-deces.png') }}" alt="Acte de décès" class="how-phone-img">
                 </div>
                 <div class="how-step-line"></div>
                 <div class="how-step-info">
@@ -2768,7 +2773,7 @@
 
             <div class="how-phone-item reveal-up stagger-4">
                 <div class="how-phone-img-wrap">
-                    <img src="{{ asset('assets/landing/iphone-rdv.png') }}" alt="Rendez-vous" class="how-phone-img">
+                    <img src="{{ asset('assets/landing/how-rdv.png') }}" alt="Rendez-vous" class="how-phone-img">
                 </div>
                 <div class="how-step-line"></div>
                 <div class="how-step-info">
@@ -2836,7 +2841,7 @@
 
             <!-- COL DROITE : iPhone incliné -->
             <div class="final-phone-wrap reveal-right">
-                <img src="{{ asset('assets/landing/iphone-rdv.png') }}" alt="Plateau Apps RDV" class="final-phone"
+                <img src="{{ asset('assets/landing/how-deces.png') }}" alt="Plateau Apps RDV" class="final-phone"
                     onerror="this.style.display='none';">
             </div>
 
@@ -2926,14 +2931,8 @@
 
     </section>
 
-    <!-- Indicateur de progression latéral -->
-    <nav class="scroll-nav" aria-label="Navigation des sections">
-        <div class="scroll-nav-dot active" data-target=".hero" title="Accueil"></div>
-        <div class="scroll-nav-dot" data-target="#next-section" title="À propos"></div>
-        <div class="scroll-nav-dot" data-target="#services" title="Services"></div>
-        <div class="scroll-nav-dot" data-target="#how" title="Comment ça marche"></div>
-        <div class="scroll-nav-dot" data-target="#final" title="Téléchargement"></div>
-    </nav>
+    <!-- GSAP — utilisé uniquement pour piloter le téléphone persistant -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
     <script>
         // ════════════════════════════════════════════════════════
@@ -2954,6 +2953,197 @@
             if (fpPages[0]) fpPages[0].classList.add('fp-active');
         }
 
+        // ════════════════════════════════════════════════════════
+        // TÉLÉPHONE PERSISTANT — un SEUL mockup qui suit le scroll
+        // et vient se poser exactement à l'emplacement de chaque
+        // section. Il n'apparaît jamais ailleurs que là où on est.
+        // ════════════════════════════════════════════════════════
+        const HAS_GSAP = typeof gsap !== 'undefined';
+        const PP_ENABLED = FP_ENABLED && HAS_GSAP;
+
+        // ── Config des "emplacements" (slots) par index de section ──
+        //    sel    = sélecteur du téléphone inline original (sert d'ancre de mesure)
+        //    rotate = rotation finale à cet emplacement (°), reprise du CSS existant
+        //    Mettre null pour une section sans téléphone unique (ex: "Comment ça marche" = 4 phones).
+        //    >>> Pour ajuster : change rotate ici, ou la position via le CSS de l'ancre. <<<
+        const PP_SLOT_CONFIG = [
+            { sel: '.iphone-mockup', rotate: -3 },                       // 0 · Hero      (iphone-mockup.png)
+            { sel: '.about-phone', rotate: 8 },                          // 1 · À propos  (iphone-mockup.png)
+            { sel: '.services-phone', rotate: 12 },                      // 2 · Services  (iphone-mockup.png)
+            { sel: '.how-phone-item:nth-child(3) .how-phone-img', rotate: 0 }, // 3 · "Acte de Décès" (how-deces.png — c'est ce mockup qui part vers la section 5)
+            { sel: '.final-phone', rotate: -10 },                        // 4 · Final     (iphone-rdv.png)
+        ];
+
+        let ppEl = null;            // l'élément <img> persistant
+        let ppSlots = [];           // positions mesurées { left, top, width, rotate, img }
+        let ppVisible = false;      // est-il actuellement affiché ?
+        let ppCurrentImg = '';      // src actuellement chargée (pour détecter un changement d'écran)
+        let ppCurrentIdx = -1;      // index du slot où il se trouve
+
+        // Mesure la position/taille de chaque ancre, section neutralisée (scale 1, opacity 1)
+        // pour obtenir l'emplacement RÉEL (au repos), sans le scale/fade du swap.
+        function ppMeasureSlots() {
+            ppSlots = PP_SLOT_CONFIG.map((cfg, i) => {
+                if (!cfg) return null;
+                const sec = fpPages[i];
+                const anchor = sec && sec.querySelector(cfg.sel);
+                if (!anchor) return null;
+
+                // Sauver puis neutraliser temporairement (aucun repaint : lecture synchrone)
+                const sT = sec.style.transform, sO = sec.style.opacity, sTr = sec.style.transition;
+                const aT = anchor.style.transform, aA = anchor.style.animation, aV = anchor.style.visibility;
+                sec.style.transition = 'none'; sec.style.transform = 'none'; sec.style.opacity = '1';
+                anchor.style.animation = 'none'; anchor.style.transform = 'none'; anchor.style.visibility = 'visible';
+
+                const r = anchor.getBoundingClientRect();
+                const slot = { left: r.left, top: r.top, width: r.width, rotate: cfg.rotate, img: anchor.getAttribute('src') };
+
+                // Restaurer (l'ancre reste cachée)
+                sec.style.transform = sT; sec.style.opacity = sO; sec.style.transition = sTr;
+                anchor.style.transform = aT; anchor.style.animation = aA; anchor.style.visibility = aV;
+                return slot;
+            });
+        }
+
+        // Déplace / fait apparaître le téléphone persistant vers le slot de la section idx
+        function ppMoveTo(idx) {
+            if (!PP_ENABLED || !ppEl) return;
+            const slot = ppSlots[idx];
+
+            // Section sans slot (ex: "Comment ça marche") → on efface le persistant
+            if (!slot) {
+                gsap.killTweensOf(ppEl);
+                gsap.to(ppEl, { opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => { ppVisible = false; } });
+                ppCurrentIdx = idx;
+                return;
+            }
+
+            const imgChanged = ppCurrentImg !== slot.img;
+            gsap.killTweensOf(ppEl);
+
+            if (!ppVisible) {
+                // Apparition "fraîche" (le phone était caché) : on se place puis fondu d'entrée.
+                if (imgChanged) { ppEl.src = slot.img; ppCurrentImg = slot.img; }
+                gsap.set(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate, opacity: 0 });
+                gsap.to(ppEl, { opacity: 1, duration: 0.55, ease: 'power2.out' });
+                ppVisible = true;
+            } else if (imgChanged) {
+                // Voyage AVEC changement d'écran (ex: Services → "Acte de Naissance") :
+                // on déplace en continu ET on fond-enchaîne l'écran au milieu du trajet
+                // → le téléphone "suit" sans jamais disparaître.
+                gsap.to(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate, duration: 0.8, ease: 'power3.inOut' });
+                gsap.to(ppEl, { opacity: 0.2, duration: 0.4, ease: 'power1.inOut',
+                    onComplete: () => { ppEl.src = slot.img; ppCurrentImg = slot.img; } });
+                gsap.to(ppEl, { opacity: 1, duration: 0.4, delay: 0.4, ease: 'power1.inOut' });
+            } else {
+                // Voyage continu, même écran : position + rotation + taille
+                gsap.to(ppEl, {
+                    x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate, opacity: 1,
+                    duration: 0.8, ease: 'power3.inOut'
+                });
+            }
+            ppCurrentIdx = idx;
+        }
+
+        // Transition Hero (0) ↔ À propos (1) : la section À propos est révélée (ou
+        // masquée) par un clip-path circulaire qui grandit depuis le téléphone.
+        // Le fond marine ET les textes apparaissent ENSEMBLE au fur et à mesure que
+        // le cercle grandit (le bleu devient le fond) — plus de "tout bleu" puis texte.
+        // (clip-path animé en CSS car GSAP n'interpole pas circle())
+        function fpCircleReveal(toIdx) {
+            const hero = fpPages[0], about = fpPages[1];
+            const cx = window.innerWidth * 0.72;   // centre ≈ derrière le téléphone du Hero
+            const cy = window.innerHeight * 0.52;
+            const R = Math.ceil(Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy)) * 1.15);
+            const startR = toIdx === 1 ? 0 : R;
+            const endR = toIdx === 1 ? R : 0;
+
+            // Les deux sections visibles instantanément (pas de fondu d'opacité/scale)
+            about.classList.toggle('fp-active', toIdx === 1);
+            hero.classList.toggle('fp-active', toIdx === 0);
+            [hero, about].forEach(el => { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
+            hero.style.zIndex = '3';
+            about.style.zIndex = '6';
+            about.style.clipPath = `circle(${startR}px at ${cx}px ${cy}px)`;
+
+            void about.offsetWidth; // reflow → l'animation CSS du clip-path part bien de startR
+            about.style.transition = 'clip-path ' + (FP_DURATION / 1000) + 's cubic-bezier(0.65,0,0.35,1)';
+            about.style.clipPath = `circle(${endR}px at ${cx}px ${cy}px)`;
+
+            // Nettoyage : on rend la main aux classes (sans transition pour éviter tout flash)
+            setTimeout(() => {
+                [hero, about].forEach(el => {
+                    el.style.transition = 'none';
+                    el.style.opacity = '';
+                    el.style.transform = '';
+                    el.style.zIndex = '';
+                    el.style.clipPath = '';
+                });
+                requestAnimationFrame(() => { hero.style.transition = ''; about.style.transition = ''; });
+            }, FP_DURATION);
+        }
+
+        function ppInit() {
+            if (!PP_ENABLED) return;
+
+            // Cacher tous les téléphones inline "uniques" (ils servent juste d'ancres de mesure)
+            PP_SLOT_CONFIG.forEach((cfg, i) => {
+                if (!cfg) return;
+                const anchor = fpPages[i] && fpPages[i].querySelector(cfg.sel);
+                if (anchor) anchor.style.visibility = 'hidden';
+            });
+
+            // Créer le téléphone persistant
+            ppEl = document.createElement('img');
+            ppEl.className = 'persistent-phone';
+            ppEl.alt = 'Plateau Apps';
+            document.body.appendChild(ppEl);
+
+            // Quand une section dépasse l'écran et qu'on scrolle dedans, le téléphone
+            // (fixe) DÉFILE avec le contenu (translation) au lieu de "disparaître" :
+            // il remonte naturellement hors de l'écran comme un élément normal.
+            // Pendant une transition (fpTransitioning), on n'y touche pas → c'est
+            // ppMoveTo qui pilote le voyage (évite que le mockup disparaisse au trackpad).
+            fpPages.forEach((sec, i) => {
+                sec.addEventListener('scroll', () => {
+                    if (i !== fpIdx || !ppEl || !ppSlots[i] || fpTransitioning) return;
+                    gsap.set(ppEl, { y: ppSlots[i].top - sec.scrollTop });
+                }, { passive: true });
+            });
+
+            ppMeasureSlots();
+
+            // Placement initial sur la 1re section (Hero)
+            const first = ppSlots[0];
+            if (first) {
+                ppEl.src = first.img; ppCurrentImg = first.img;
+                gsap.set(ppEl, { x: first.left, y: first.top, width: first.width, rotation: first.rotate, opacity: 1 });
+                ppVisible = true; ppCurrentIdx = 0;
+            }
+        }
+
+        // Re-mesure + repositionnement instantané (resize fenêtre)
+        let ppResizeTimer = null;
+        window.addEventListener('resize', () => {
+            if (!PP_ENABLED || !ppEl) return;
+            clearTimeout(ppResizeTimer);
+            ppResizeTimer = setTimeout(() => {
+                ppMeasureSlots();
+                const slot = ppSlots[ppCurrentIdx];
+                if (slot) gsap.set(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate });
+            }, 150);
+        });
+
+        // Après chargement complet (images dimensionnées), re-mesurer pour être pile au bon endroit
+        window.addEventListener('load', () => {
+            if (!PP_ENABLED || !ppEl) return;
+            ppMeasureSlots();
+            const slot = ppSlots[ppCurrentIdx];
+            if (slot) gsap.set(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate });
+        });
+
+        ppInit();
+
         // Helper : déclenche les reveal animations dans une section
         function fpRevealIn(section) {
             section.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-up, .reveal-scale')
@@ -2972,21 +3162,29 @@
             if (idx < 0 || idx >= fpPages.length || idx === fpIdx) return;
 
             fpTransitioning = true;
-            const direction = idx > fpIdx ? 'up' : 'down';
             const leaving = fpPages[fpIdx];
             const entering = fpPages[idx];
+            const heroAbout = (fpIdx === 0 && idx === 1) || (fpIdx === 1 && idx === 0);
 
-            leaving.classList.remove('fp-active');
-            leaving.classList.add(direction === 'up' ? 'fp-leaving-up' : 'fp-leaving-down');
-            entering.classList.add('fp-active');
             entering.scrollTop = 0;
-
             fpRevealIn(entering);
-            fpNavDots.forEach((d, i) => d.classList.toggle('active', i === idx));
-            updateHint(idx);
+
+            if (heroAbout) {
+                // Hero ↔ À propos : révélation par cercle (clip-path) — gère les classes lui-même
+                fpCircleReveal(idx);
+            } else {
+                // Swap standard (scale + fondu)
+                const direction = idx > fpIdx ? 'up' : 'down';
+                leaving.classList.remove('fp-active');
+                leaving.classList.add(direction === 'up' ? 'fp-leaving-up' : 'fp-leaving-down');
+                entering.classList.add('fp-active');
+            }
+
+            // Le téléphone persistant voyage vers l'emplacement de la nouvelle section
+            ppMoveTo(idx);
 
             setTimeout(() => {
-                leaving.classList.remove('fp-leaving-up', 'fp-leaving-down');
+                if (!heroAbout) leaving.classList.remove('fp-leaving-up', 'fp-leaving-down');
                 fpResetReveals(leaving);
                 fpIdx = idx;
                 fpTransitioning = false;
@@ -2994,32 +3192,43 @@
         }
 
         // ── Wheel (souris / trackpad) ──
-        let wheelAccum = 0;
-        let wheelTimer = null;
-        const WHEEL_THRESHOLD = 50;
+        // Clé pour un rendu fluide au trackpad :
+        //  1) tant que la section peut défiler en interne, on laisse le SCROLL NATIF
+        //     (lisse + inertie) au lieu de bouger scrollTop à la main (saccadé) ;
+        //  2) un verrou se libère seulement quand la molette/inertie s'arrête (~90 ms
+        //     sans event) → une seule impulsion = un seul changement de section,
+        //     l'inertie du trackpad ne déclenche plus de sauts multiples.
+        let wheelLocked = false;
+        let wheelIdleTimer = null;
+        const armWheelUnlock = () => {
+            clearTimeout(wheelIdleTimer);
+            wheelIdleTimer = setTimeout(() => { wheelLocked = false; }, 90);
+        };
 
         window.addEventListener('wheel', (e) => {
             if (!FP_ENABLED) return;
-            e.preventDefault();
 
-            // Permettre scroll INTERNE si la section actuelle dépasse 100vh
             const current = fpPages[fpIdx];
-            const canScrollDown = current.scrollTop + current.clientHeight < current.scrollHeight - 2;
-            const canScrollUp = current.scrollTop > 2;
-            if (e.deltaY > 0 && canScrollDown) { current.scrollTop += e.deltaY; return; }
-            if (e.deltaY < 0 && canScrollUp)   { current.scrollTop += e.deltaY; return; }
+            const down = e.deltaY > 0;
+            const atBottom = current.scrollTop + current.clientHeight >= current.scrollHeight - 2;
+            const atTop = current.scrollTop <= 2;
 
-            if (fpTransitioning) return;
-
-            wheelAccum += e.deltaY;
-            clearTimeout(wheelTimer);
-            if (Math.abs(wheelAccum) >= WHEEL_THRESHOLD) {
-                const dir = wheelAccum > 0 ? 1 : -1;
-                wheelAccum = 0;
-                fpGoTo(fpIdx + dir);
-            } else {
-                wheelTimer = setTimeout(() => { wheelAccum = 0; }, 200);
+            // Scroll interne natif tant qu'on n'est pas au bord de la section
+            if ((down && !atBottom) || (!down && !atTop)) {
+                wheelLocked = true;     // on défile dans la section → pas de swap
+                armWheelUnlock();
+                return;                 // pas de preventDefault → scroll natif fluide
             }
+
+            // Au bord → on capture la molette pour changer de section
+            e.preventDefault();
+            armWheelUnlock();
+
+            if (wheelLocked || fpTransitioning) return;
+            if (Math.abs(e.deltaY) < 8) return;   // ignore les micro-mouvements
+
+            wheelLocked = true;
+            fpGoTo(fpIdx + (down ? 1 : -1));
         }, { passive: false });
 
         // ── Touch (mobile/tablet) ──
@@ -3046,14 +3255,29 @@
         }, { passive: true });
 
         // ── Clavier (flèches, PageUp/Down, Espace, Home/End) ──
+        // Si la section dépasse l'écran (ex: section 5 avec barre + footer), les flèches
+        // défilent D'ABORD à l'intérieur ; arrivé au bord, elles changent de section.
         window.addEventListener('keydown', (e) => {
             if (!FP_ENABLED) return;
             const tag = (e.target.tagName || '').toLowerCase();
             if (['input', 'textarea', 'select'].includes(tag)) return;
-            if (['ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); fpGoTo(fpIdx + 1); }
-            else if (['ArrowUp', 'PageUp'].includes(e.key))     { e.preventDefault(); fpGoTo(fpIdx - 1); }
-            else if (e.key === 'Home')                          { e.preventDefault(); fpGoTo(0); }
-            else if (e.key === 'End')                           { e.preventDefault(); fpGoTo(fpPages.length - 1); }
+
+            const cur = fpPages[fpIdx];
+            const atBottom = cur.scrollTop + cur.clientHeight >= cur.scrollHeight - 2;
+            const atTop = cur.scrollTop <= 2;
+            const stepDown = e.key === 'PageDown' ? cur.clientHeight * 0.85 : 160;
+            const stepUp = e.key === 'PageUp' ? cur.clientHeight * 0.85 : 160;
+
+            if (['ArrowDown', 'PageDown', ' '].includes(e.key)) {
+                e.preventDefault();
+                if (!atBottom) cur.scrollBy({ top: stepDown, behavior: 'smooth' });
+                else fpGoTo(fpIdx + 1);
+            } else if (['ArrowUp', 'PageUp'].includes(e.key)) {
+                e.preventDefault();
+                if (!atTop) cur.scrollBy({ top: -stepUp, behavior: 'smooth' });
+                else fpGoTo(fpIdx - 1);
+            } else if (e.key === 'Home') { e.preventDefault(); fpGoTo(0); }
+            else if (e.key === 'End') { e.preventDefault(); fpGoTo(fpPages.length - 1); }
         });
 
         // ── Liens internes (#anchors) ──
@@ -3074,33 +3298,9 @@
             });
         });
 
-        // ── Dots latéraux ──
-        const fpNavDots = document.querySelectorAll('.scroll-nav-dot');
-        fpNavDots.forEach((dot, i) => {
-            const targetSel = dot.dataset.target;
-            const targetEl = targetSel ? document.querySelector(targetSel) : null;
-            const targetIdx = targetEl ? fpPages.indexOf(targetEl) : i;
-            dot.addEventListener('click', () => {
-                if (targetIdx >= 0) fpGoTo(targetIdx);
-            });
-        });
-
-        // ── Hint "SCROLL" pulsant en bas ──
-        const hintEl = document.createElement('div');
-        hintEl.className = 'fp-hint';
-        hintEl.innerHTML = 'SCROLL <i class="fas fa-chevron-down"></i>';
-        document.body.appendChild(hintEl);
-
-        function updateHint(idx) {
-            // Cacher sur la dernière page
-            if (idx >= fpPages.length - 1) hintEl.classList.remove('visible');
-            else hintEl.classList.add('visible');
-        }
-
-        // ── Initialiser : reveal animations de la première page + hint ──
+        // ── Initialiser : reveal animations de la première page ──
         if (FP_ENABLED && fpPages[0]) {
             fpRevealIn(fpPages[0]);
-            setTimeout(() => updateHint(0), 500);
         } else {
             // Mode mobile : fallback IntersectionObserver classique
             const revealEls = document.querySelectorAll(
