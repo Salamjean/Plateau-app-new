@@ -145,6 +145,8 @@
             align-items: center;
             margin-bottom: 0; /* Supprimé (était à 60px) pour laisser Flexbox gérer l'espace */
             flex-shrink: 0; /* Empêche le header de s'écraser */
+        }
+        body.play-init .top-bar {
             animation: fadeInDown 0.8s ease-out;
         }
 
@@ -155,7 +157,7 @@
         }
 
         .logo-img {
-            height: 65px;
+            height: 52px;
             width: auto;
             object-fit: contain;
             border-radius: 6px;
@@ -253,6 +255,8 @@
 
         /* Côté gauche : Texte */
         .hero-left {
+        }
+        body.play-init .hero-left {
             animation: fadeInLeft 1s ease-out 0.2s both;
         }
 
@@ -444,6 +448,8 @@
             display: flex;
             justify-content: flex-end; /* Aligne le téléphone sur la droite de sa colonne */
             align-items: center;
+        }
+        body.play-init .hero-right {
             animation: fadeInRight 1.2s ease-out 0.4s both;
         }
 
@@ -1341,24 +1347,7 @@
             line-height: 1.4;
         }
 
-        /* ════════════════════════════════════════════════════════
-           SECTION 5 — "Le Plateau plus proche que jamais" + Footer
-           ════════════════════════════════════════════════════════ */
-        .final-section {
-            position: relative;
-            padding: 80px 64px 0;
-            background: url('{{ asset("assets/landing/final-bg.png") }}') center/cover no-repeat,
-                linear-gradient(180deg, #cce0ff 0%, #94c4fc 100%);
-            overflow: hidden;
-        }
-
-        .final-section::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(220, 235, 255, 0.4) 0%, rgba(180, 215, 255, 0.3) 100%);
-            z-index: 0;
-        }
+        /* Duplicate .final-section removed to prevent background conflicts */
 
         .final-container {
             position: relative;
@@ -2057,9 +2046,15 @@
         }
 
         /* Hide scrollbar on sections (scroll interne discret) */
+        body.fullpage-mode > section,
+        body.fullpage-mode > footer {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
         body.fullpage-mode > section::-webkit-scrollbar,
         body.fullpage-mode > footer::-webkit-scrollbar {
             width: 0;
+            height: 0;
             background: transparent;
         }
 
@@ -2095,28 +2090,73 @@
             50%      { transform: translateY(3px); }
         }
 
-        /* En mode mobile (<992px) ou prefers-reduced-motion :
-           on désactive le fullpage et on garde le scroll classique. */
+        /* En mode mobile (<992px) : on désactive le fullpage et on garde le scroll classique simple */
         @media (max-width: 991px) {
             html, body {
-                height: auto;
-                overflow: auto;
+                height: auto !important;
+                overflow: visible !important;
+                scroll-behavior: smooth;
             }
             body.fullpage-mode {
-                position: static;
+                position: static !important;
             }
             body.fullpage-mode > section,
-            body.fullpage-mode > footer {
+            body.fullpage-mode > footer,
+            section, footer, .hero, .about-section, .services-section, .how-section, .final-section {
                 position: relative !important;
-                width: auto !important;
+                width: 100% !important;
                 height: auto !important;
                 min-height: auto !important;
                 opacity: 1 !important;
                 transform: none !important;
                 pointer-events: auto !important;
                 transition: none !important;
+                animation: none !important;
+                will-change: auto !important;
+                z-index: auto !important;
             }
-            .fp-hint, .scroll-nav { display: none !important; }
+            .reveal, .reveal-left, .reveal-right, .reveal-up, .reveal-scale {
+                opacity: 1 !important;
+                transform: none !important;
+                transition: none !important;
+                animation: none !important;
+            }
+            .scroll-nav, .persistent-phone { display: none !important; }
+
+            /* Section 1 : Cercles décoratifs positionnés derrière le téléphone en bas */
+            .hero-circle-bg {
+                top: auto !important;
+                bottom: -80px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                width: 90vw !important;
+                height: 90vw !important;
+                max-width: 450px !important;
+                max-height: 450px !important;
+            }
+            .hero::before {
+                top: auto !important;
+                bottom: -120px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                width: 100vw !important;
+                height: 100vw !important;
+                max-width: 520px !important;
+                max-height: 520px !important;
+            }
+
+            /* Section 4 : Fond bleu marine uni pour lisibilité et masquer la vague étirée */
+            .how-section {
+                background: #122554 !important;
+            }
+            .how-section::after {
+                display: none !important;
+            }
+            .how-title {
+                color: white !important;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -2420,10 +2460,13 @@
             position: fixed;
             top: 0;
             left: 0;
+            width: 100px;
+            height: auto;
+            transform-origin: center center;
             z-index: 60;                 /* au-dessus des sections (z 1-5), sous le hint/dots */
             pointer-events: none;        /* ne bloque jamais les clics */
             opacity: 0;
-            will-change: transform, opacity, width;
+            will-change: transform, opacity;
             transform-style: preserve-3d;
             backface-visibility: hidden;
             filter: drop-shadow(0 30px 60px rgba(15, 30, 60, 0.35));
@@ -2437,12 +2480,14 @@
             .persistent-phone { display: none !important; }
         }
            
-        /* Cache immédiatement les téléphones statiques pour qu'ils ne clignotent pas au chargement */
-     body.fullpage-mode .iphone-mockup,
-        body.fullpage-mode .about-phone,
-        body.fullpage-mode .services-phone,
-        body.fullpage-mode .final-phone {
-            visibility: hidden;
+        /* Cache immédiatement les téléphones statiques pour qu'ils ne clignotent pas au chargement (uniquement sur desktop) */
+        @media (min-width: 992px) {
+            body.fullpage-mode .iphone-mockup,
+            body.fullpage-mode .about-phone,
+            body.fullpage-mode .services-phone,
+            body.fullpage-mode .final-phone {
+                visibility: hidden;
+            }
         }
         /* Aucune animation/transition au TOUT PREMIER rendu (= rafraîchissement) :
            la page apparaît instantanément, sans effet d'entrée. Réactivé par le JS
@@ -2453,15 +2498,206 @@
             transition: none !important;
             animation: none !important;
         }
+
+        /* ════════════════════════════════════════════════════════
+           CORRECTIONS RESPONSIVES MOBILE (Toutes tailles d'écrans)
+           ════════════════════════════════════════════════════════ */
+
+        @media (max-width: 991px) {
+            /* Visibilité des téléphones statiques si fullpage-mode reste sur le body */
+            body.fullpage-mode .iphone-mockup,
+            body.fullpage-mode .about-phone,
+            body.fullpage-mode .services-phone,
+            body.fullpage-mode .final-phone {
+                visibility: visible !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* Empêcher tout débordement du téléphone de la section 5 */
+            .final-phone {
+                width: 100% !important;
+                max-width: 280px !important;
+                height: auto !important;
+                transform: none !important;
+                animation: none !important;
+                margin: 0 auto 20px auto !important;
+            }
+            .final-phone-wrap {
+                padding-right: 0 !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Ajustements globaux de section */
+            .hero, .about-section, .services-section, .how-section, .final-section {
+                padding: 40px 16px !important;
+            }
+
+            /* Section 1 : Hero */
+            .hero .features, .hero .trust-section {
+                display: none !important; /* Simplification mobile : cacher les features redondantes et les avis */
+            }
+            .hero-title {
+                font-size: 36px !important;
+                letter-spacing: -1px !important;
+                line-height: 1.1 !important;
+            }
+            .hero-description {
+                font-size: 13.5px !important;
+                margin-bottom: 24px !important;
+            }
+            .nav-buttons {
+                flex-direction: column !important;
+                width: 100% !important;
+                gap: 10px !important;
+            }
+            .nav-buttons .btn-pill {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .download-buttons {
+                width: 100% !important;
+                align-items: center !important;
+            }
+            .download-buttons .btn-store {
+                width: 100% !important;
+                max-width: 260px !important;
+                justify-content: center !important;
+            }
+
+            /* Section 2 : À Propos (Simplification du texte pour mobile) */
+            .about-left .about-text,
+            .about-right .about-title,
+            .about-right .about-text,
+            .about-right .eyebrow {
+                display: none !important; /* Masque les paragraphes de texte longs et redondants */
+            }
+            .about-title {
+                font-size: 26px !important;
+            }
+            .mini-cards {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                max-width: 300px !important;
+                margin: 24px auto 0 !important;
+                gap: 12px !important;
+            }
+            .mini-card {
+                width: 100% !important;
+                padding: 12px 8px !important;
+            }
+            .security-card {
+                flex-direction: column !important;
+                text-align: center !important;
+                gap: 12px !important;
+            }
+
+            /* Section 3 : Services (Carrousel horizontal moderne) */
+            .services-title {
+                font-size: 26px !important;
+            }
+            .services-cards {
+                display: flex !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory !important;
+                gap: 16px !important;
+                padding: 10px 16px !important;
+                margin: 0 -16px !important;
+                width: calc(100% + 32px) !important;
+                scrollbar-width: none !important;
+            }
+            .services-cards::-webkit-scrollbar {
+                display: none !important;
+            }
+            .service-card {
+                flex: 0 0 220px !important;
+                scroll-snap-align: center !important;
+                background: #f4f8fc !important;
+                border: 1px solid rgba(15, 77, 142, 0.08) !important;
+                border-radius: 16px !important;
+                padding: 20px 16px !important;
+            }
+            .service-card .circle {
+                background: rgba(15, 77, 142, 0.05) !important;
+                border: 3px solid #0f4d8e !important;
+                color: #0f4d8e !important;
+                width: 80px !important;
+                height: 80px !important;
+                font-size: 32px !important;
+            }
+            .services-cards-wrap {
+                margin: 30px -16px 0 !important;
+                padding: 40px 16px 30px !important;
+                border-radius: 30px 30px 0 0 !important;
+            }
+
+            /* Section 4 : Comment ça marche (Carrousel horizontal moderne) */
+            .how-title {
+                font-size: 28px !important;
+                margin-bottom: 30px !important;
+            }
+            .how-phones-row {
+                display: flex !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory !important;
+                gap: 16px !important;
+                padding: 10px 16px !important;
+                margin: 0 -16px !important;
+                width: calc(100% + 32px) !important;
+                scrollbar-width: none !important;
+            }
+            .how-phones-row::-webkit-scrollbar {
+                display: none !important;
+            }
+            .how-phone-item {
+                flex: 0 0 240px !important;
+                scroll-snap-align: center !important;
+            }
+            .how-step-line {
+                display: none !important;
+            }
+            .how-phone-img-wrap {
+                height: 250px !important;
+            }
+            .how-phone-img {
+                height: 230px !important;
+                width: auto !important;
+            }
+
+            /* Section 5 : Final + Footer (Simplification) */
+            .final-stats {
+                display: none !important; /* Cache les statistiques redondantes */
+            }
+            .download-bar {
+                margin: 40px -16px 0 !important;
+                padding: 40px 16px 30px !important;
+                border-radius: 30px 30px 0 0 !important;
+            }
+            .footer-grid-wrapper {
+                margin: 0 -16px !important;
+                padding: 0 16px !important;
+            }
+            .footer-left {
+                flex-direction: column !important;
+                gap: 12px !important;
+                align-items: center !important;
+            }
+            .footer-left .footer-tagline {
+                border-left: none !important;
+                padding-left: 0 !important;
+                text-align: center !important;
+            }
+        }
     </style>
 </head>
 
-<body>
+<body class="play-init">
     <!-- SCRIPT ANTI-CLIGNOTEMENT (À l'intérieur du body) -->
     <script>
         // 1) Aucune animation/transition au premier rendu (refresh) — retiré après le 1er paint
         document.documentElement.classList.add('fp-preload');
-        // 2) Active le mode fullpage immédiatement (évite l'empilement des sections)
+        // 2) Active le mode fullpage immédiatement (évite l'empilement des sections sur desktop uniquement)
         if (window.innerWidth >= 992 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             document.body.classList.add('fullpage-mode');
         }
@@ -2486,7 +2722,7 @@
         <header class="top-bar">
             <div class="logo">
                 <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Plateau Smart City"
-                    style="height: 65px; width: auto; display: block;" class="logo-img">
+                    style="height: 52px; width: auto; display: block;" class="logo-img">
             </div>
 
             <nav class="nav-buttons">
@@ -3031,7 +3267,7 @@
         // section. Il n'apparaît jamais ailleurs que là où on est.
         // ════════════════════════════════════════════════════════
         const HAS_GSAP = typeof gsap !== 'undefined';
-        const PP_ENABLED = FP_ENABLED && HAS_GSAP;
+        const PP_ENABLED = FP_ENABLED && HAS_GSAP && window.innerWidth >= 992;
 
         // ── Config des "emplacements" (slots) par index de section ──
         //    sel    = sélecteur du téléphone inline original (sert d'ancre de mesure)
@@ -3047,13 +3283,11 @@
         ];
 
         let ppEl = null;            // l'élément <img> persistant
-        let ppSlots = [];           // positions mesurées { left, top, width, rotate, img }
+        let ppSlots = [];           // positions mesurées { x, y, width, rotate, img }
         let ppVisible = false;      // est-il actuellement affiché ?
         let ppCurrentImg = '';      // src actuellement chargée (pour détecter un changement d'écran)
         let ppCurrentIdx = -1;      // index du slot où il se trouve
 
-        // Mesure la position/taille de chaque ancre, section neutralisée (scale 1, opacity 1)
-        // pour obtenir l'emplacement RÉEL (au repos), sans le scale/fade du swap.
         function ppMeasureSlots() {
             ppSlots = PP_SLOT_CONFIG.map((cfg, i) => {
                 if (!cfg) return null;
@@ -3061,18 +3295,22 @@
                 const anchor = sec && sec.querySelector(cfg.sel);
                 if (!anchor) return null;
 
-                // Sauver puis neutraliser temporairement (aucun repaint : lecture synchrone)
-                const sT = sec.style.transform, sO = sec.style.opacity, sTr = sec.style.transition;
-                const aT = anchor.style.transform, aA = anchor.style.animation, aV = anchor.style.visibility;
-                sec.style.transition = 'none'; sec.style.transform = 'none'; sec.style.opacity = '1';
-                anchor.style.animation = 'none'; anchor.style.transform = 'none'; anchor.style.visibility = 'visible';
+                const sT = sec.style.transform, sTr = sec.style.transition;
+                const aT = anchor.style.transform, aA = anchor.style.animation;
+                sec.style.transition = 'none'; sec.style.transform = 'none';
+                anchor.style.animation = 'none'; anchor.style.transform = 'none';
 
                 const r = anchor.getBoundingClientRect();
-                const slot = { left: r.left, top: r.top, width: r.width, rotate: cfg.rotate, img: anchor.getAttribute('src') };
+                const slot = { 
+                    x: r.left + r.width / 2, 
+                    y: r.top + r.height / 2, 
+                    width: r.width, 
+                    rotate: cfg.rotate, 
+                    img: anchor.getAttribute('src') 
+                };
 
-                // Restaurer (l'ancre reste cachée)
-                sec.style.transform = sT; sec.style.opacity = sO; sec.style.transition = sTr;
-                anchor.style.transform = aT; anchor.style.animation = aA; anchor.style.visibility = aV;
+                sec.style.transform = sT; sec.style.transition = sTr;
+                anchor.style.transform = aT; anchor.style.animation = aA;
                 return slot;
             });
         }
@@ -3096,63 +3334,63 @@
             if (!ppVisible) {
                 // Apparition "fraîche" (le phone était caché) : on se place puis fondu d'entrée.
                 if (imgChanged) { ppEl.src = slot.img; ppCurrentImg = slot.img; }
-                gsap.set(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate, opacity: 0 });
+                gsap.set(ppEl, { x: slot.x, y: slot.y, scale: slot.width / 100, rotation: slot.rotate, opacity: 0 });
                 gsap.to(ppEl, { opacity: 1, duration: 0.55, ease: 'power2.out' });
                 ppVisible = true;
             } else if (imgChanged) {
                 // Voyage AVEC changement d'écran (ex: Services → "Acte de Naissance") :
                 // on déplace en continu ET on fond-enchaîne l'écran au milieu du trajet
                 // → le téléphone "suit" sans jamais disparaître.
-                gsap.to(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate, duration: 0.8, ease: 'power3.inOut' });
+                gsap.to(ppEl, { x: slot.x, y: slot.y, scale: slot.width / 100, rotation: slot.rotate, duration: 0.8, ease: 'power3.inOut' });
                 gsap.to(ppEl, { opacity: 0.2, duration: 0.4, ease: 'power1.inOut',
                     onComplete: () => { ppEl.src = slot.img; ppCurrentImg = slot.img; } });
                 gsap.to(ppEl, { opacity: 1, duration: 0.4, delay: 0.4, ease: 'power1.inOut' });
             } else {
                 // Voyage continu, même écran : position + rotation + taille
                 gsap.to(ppEl, {
-                    x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate, opacity: 1,
+                    x: slot.x, y: slot.y, scale: slot.width / 100, rotation: slot.rotate, opacity: 1,
                     duration: 0.8, ease: 'power3.inOut'
                 });
             }
             ppCurrentIdx = idx;
         }
 
-      function ppInit() {
+        function ppInit() {
             if (!PP_ENABLED) return;
 
-            // Le téléphone est maintenant récupéré directement depuis le HTML
             ppEl = document.getElementById('flying-phone');
 
-            // Cacher tous les téléphones inline "uniques" (ils servent juste d'ancres de mesure)
-           PP_SLOT_CONFIG.forEach((cfg, i) => {
+            PP_SLOT_CONFIG.forEach((cfg, i) => {
                 if (!cfg) return;
                 const anchor = fpPages[i] && fpPages[i].querySelector(cfg.sel);
-                // On cache tout sauf l'index 3 (Section 4) qui est géré dynamiquement
                 if (anchor && i !== 3) anchor.style.visibility = 'hidden';
             });
 
-            // Quand une section dépasse l'écran et qu'on scrolle dedans, le téléphone
-            // (fixe) DÉFILE avec le contenu (translation) au lieu de "disparaître"
             fpPages.forEach((sec, i) => {
                 sec.addEventListener('scroll', () => {
                     if (i !== fpIdx || !ppEl || !ppSlots[i] || fpTransitioning) return;
-                    gsap.set(ppEl, { y: ppSlots[i].top - sec.scrollTop });
+                    gsap.set(ppEl, { y: ppSlots[i].y - sec.scrollTop });
                 }, { passive: true });
             });
 
+            // Configurer le point de base pour le téléphone persistant
+            // On le force à une taille fixe de 100px et on centre son origine.
+            ppEl.style.width = '100px';
+            ppEl.style.height = 'auto';
+            gsap.set(ppEl, { xPercent: -50, yPercent: -50, transformOrigin: 'center center' });
+
             ppMeasureSlots();
 
-            // Placement initial sur la 1re section (Hero)
             const first = ppSlots[0];
             if (first) {
                 ppEl.src = first.img; 
                 ppCurrentImg = first.img;
-                gsap.set(ppEl, { x: first.left, y: first.top, width: first.width, rotation: first.rotate, opacity: 1 });
+                gsap.set(ppEl, { x: first.x, y: first.y, scale: first.width / 100, rotation: first.rotate, opacity: 1 });
                 ppVisible = true; 
                 ppCurrentIdx = 0;
             }
         }
-        // Re-mesure + repositionnement instantané (resize fenêtre)
+
         let ppResizeTimer = null;
         window.addEventListener('resize', () => {
             if (!PP_ENABLED || !ppEl) return;
@@ -3160,16 +3398,20 @@
             ppResizeTimer = setTimeout(() => {
                 ppMeasureSlots();
                 const slot = ppSlots[ppCurrentIdx];
-                if (slot) gsap.set(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate });
+                if (slot) gsap.set(ppEl, { x: slot.x, y: slot.y, scale: slot.width / 100, rotation: slot.rotate });
             }, 150);
         });
 
-        // Après chargement complet (images dimensionnées), re-mesurer pour être pile au bon endroit
         window.addEventListener('load', () => {
             if (!PP_ENABLED || !ppEl) return;
             ppMeasureSlots();
             const slot = ppSlots[ppCurrentIdx];
-            if (slot) gsap.set(ppEl, { x: slot.left, y: slot.top, width: slot.width, rotation: slot.rotate });
+            if (slot) gsap.set(ppEl, { x: slot.x, y: slot.y, scale: slot.width / 100, rotation: slot.rotate });
+            
+            // Retirer play-init pour éviter de re-jouer les animations CSS d'entrée
+            setTimeout(() => {
+                document.body.classList.remove('play-init');
+            }, 1500);
         });
 
         ppInit();
@@ -3186,13 +3428,94 @@
                 .forEach(el => el.classList.remove('visible'));
         }
 
-        // Swap standard piloté par GSAP (fondu croisé + léger zoom). Fiable sur tous
-        // les navigateurs — les transitions CSS ne se déclenchaient pas toujours
-        // (Firefox), d'où l'impression de "coupure" sans fondu entre les sections.
+        // Swap standard piloté par GSAP (fondu croisé + léger zoom)
+        // Avec transition spéciale fluide entre la section 1 et la section 2
         function fpAnimateSwap(leaving, entering, dir) {
+            const leavingIdx = fpPages.indexOf(leaving);
+            const enteringIdx = fpPages.indexOf(entering);
+
+            if (leavingIdx === 0) {
+                // ── Cas 1 : Hero (Section 1) -> Autre section ──
+                // Le grand cercle de la Hero s'agrandit, le contenu de la Hero disparaît VITE
+                gsap.killTweensOf([leaving, entering, '.hero-circle-bg', '.top-bar', '.hero-container', '.scroll-down', '.deco-circle']);
+                
+                entering.classList.add('fp-active');
+                leaving.style.transition = 'none';
+                entering.style.transition = 'none';
+                entering.style.zIndex = '6'; // La section entrante (Section 2) s'affiche au-dessus
+                leaving.style.zIndex = '5';  // La section sortante (Hero) reste en dessous pour voir le cercle grandir
+                
+                // Préparer la section entrante : invisible et sans échelle
+                gsap.set(entering, { opacity: 0, scale: 1 });
+                
+                // Animer le cercle qui s'agrandit (0.7s) et le contenu Hero qui disparaît VITE (0.3s)
+                gsap.to('.hero-circle-bg', { scale: 8, duration: 0.7, ease: 'power2.inOut' });
+                gsap.to(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { opacity: 0, duration: 0.3, ease: 'power2.out' });
+                
+                // Faire apparaître en fondu la section suivante par-dessus (sans pop-in brusque)
+                gsap.to(entering, { 
+                    opacity: 1, 
+                    duration: 0.55, 
+                    delay: 0.15, 
+                    ease: 'power2.out',
+                    onComplete: () => {
+                        leaving.classList.remove('fp-active');
+                        // Réinitialiser les éléments de la Hero pour la prochaine fois
+                        gsap.set('.hero-circle-bg', { clearProps: 'transform' });
+                        gsap.set(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { clearProps: 'opacity' });
+                        gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' });
+                        leaving.style.transition = '';
+                        entering.style.transition = '';
+                    }
+                });
+                return;
+            }
+
+            if (enteringIdx === 0) {
+                // ── Cas 2 : Autre section -> Hero (Section 1) ──
+                // Le cercle bleu marine démarre géant (remplissant l'écran) et rétrécit vers sa position initiale
+                gsap.killTweensOf([leaving, entering, '.hero-circle-bg', '.top-bar', '.hero-container', '.scroll-down', '.deco-circle']);
+                
+                entering.classList.add('fp-active');
+                leaving.style.transition = 'none';
+                entering.style.transition = 'none';
+                entering.style.zIndex = '6'; // Hero au-dessus pour voir le cercle rétrécir
+                leaving.style.zIndex = '5';
+                
+                // Préparer la Hero : visible, cercle géant, contenu textuel invisible
+                gsap.set(entering, { opacity: 1, scale: 1 });
+                gsap.set('.hero-circle-bg', { scale: 8 });
+                gsap.set(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { opacity: 0 });
+                
+                // Préparer la section sortante
+                gsap.set(leaving, { opacity: 1, scale: 1 });
+                
+                // Animer le cercle qui rétrécit et le contenu Hero qui réapparaît (0.75s)
+                gsap.to('.hero-circle-bg', { scale: 1, duration: 0.7, ease: 'power2.inOut' });
+                gsap.to(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { opacity: 1, duration: 0.7, delay: 0.1, ease: 'power2.out' });
+                
+                // Faire disparaître la section sortante
+                gsap.to(leaving, { 
+                    opacity: 0, 
+                    scale: 0.94,
+                    duration: 0.65, 
+                    ease: 'power2.inOut',
+                    onComplete: () => {
+                        leaving.classList.remove('fp-active');
+                        gsap.set('.hero-circle-bg', { clearProps: 'transform' });
+                        gsap.set(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { clearProps: 'opacity' });
+                        gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' });
+                        leaving.style.transition = '';
+                        entering.style.transition = '';
+                    }
+                });
+                return;
+            }
+
+            // Swap standard pour les autres sections (sans clignotement ni lag)
             gsap.killTweensOf([leaving, entering]);
-            entering.classList.add('fp-active');     // pointer-events + z-index via la classe
-            leaving.style.transition = 'none';        // on neutralise la transition CSS
+            entering.classList.add('fp-active');
+            leaving.style.transition = 'none';
             entering.style.transition = 'none';
             entering.style.zIndex = '6';
             leaving.style.zIndex = '5';
@@ -3203,7 +3526,6 @@
                 opacity: 0, scale: dir === 'up' ? 1.06 : 0.94, duration: 0.65, ease: 'power2.in',
                 onComplete: () => {
                     leaving.classList.remove('fp-active');
-                    // retour aux états gérés par les classes, sans flash (transition encore none)
                     gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' });
                     leaving.style.transition = '';
                     entering.style.transition = '';
@@ -3260,14 +3582,14 @@
                 if (fpIdx === 3 && idx === 4) {
                     // On part de 4 vers 5 : on téléporte le mockup sur le Tel 3
                     const slot3 = ppSlots[3]; 
-                    gsap.set(ppEl, { x: slot3.left, y: slot3.top, width: slot3.width, rotation: slot3.rotate });
+                    gsap.set(ppEl, { x: slot3.x, y: slot3.y, scale: slot3.width / 100, rotation: slot3.rotate });
                     ppEl.src = slot3.img; 
                     ppCurrentImg = slot3.img; // Trompe le script pour éviter le fondu d'opacité !
                 }
                 else if (fpIdx === 3 && idx === 2) {
                     // On part de 4 vers 3 : on téléporte le mockup sur le Tel 1
                     const slot1 = ppSlots[3]; 
-                    gsap.set(ppEl, { x: slot1.left, y: slot1.top, width: slot1.width, rotation: slot1.rotate });
+                    gsap.set(ppEl, { x: slot1.x, y: slot1.y, scale: slot1.width / 100, rotation: slot1.rotate });
                     ppEl.src = slot1.img;
                     ppCurrentImg = slot1.img; 
                 }
@@ -3344,10 +3666,10 @@
             fpGoTo(fpIdx + (down ? 1 : -1));
         }, { passive: false });
 
-        // ── Touch (mobile/tablet) ──
+        // ── Touch (mobile/tablet) avec support du défilement interne ──
         let touchStartY = 0;
         let touchDeltaY = 0;
-        const TOUCH_THRESHOLD = 70;
+        const TOUCH_THRESHOLD = 60;
 
         window.addEventListener('touchstart', (e) => {
             if (!FP_ENABLED) return;
@@ -3362,8 +3684,17 @@
 
         window.addEventListener('touchend', () => {
             if (!FP_ENABLED) return;
-            if (Math.abs(touchDeltaY) > TOUCH_THRESHOLD) {
-                fpGoTo(fpIdx + (touchDeltaY > 0 ? 1 : -1));
+            if (Math.abs(touchDeltaY) < TOUCH_THRESHOLD) return;
+
+            const current = fpPages[fpIdx];
+            const down = touchDeltaY > 0; // glisser vers le haut = aller vers le bas
+            const atBottom = current.scrollTop + current.clientHeight >= current.scrollHeight - 5;
+            const atTop = current.scrollTop <= 5;
+
+            if (down && atBottom) {
+                fpGoTo(fpIdx + 1);
+            } else if (!down && atTop) {
+                fpGoTo(fpIdx - 1);
             }
         }, { passive: true });
 
