@@ -50,7 +50,18 @@
       "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"montage-phones.png\"\\);console.log\\(\"montage\",b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
       "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"montage2.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
       "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"montage-clean.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
-      "mcp__Claude_in_Chrome__resize_window"
+      "mcp__Claude_in_Chrome__resize_window",
+      "Bash(mkdir -p vid-temp)",
+      "Bash(ffmpeg -nostdin -loglevel error -i \"C:/Users/THEWAYNE/Videos/Captures/Plateau Smart City — État civil simplifié — Mozilla Firefox 2026-06-24 13-47-16.mp4\" -vf \"fps=3,scale=760:-1\" \"vid-temp/v1-%03d.png\" -y)",
+      "Bash(ffmpeg -nostdin -loglevel error -i \"C:/Users/THEWAYNE/Videos/Captures/Plateau Smart City — État civil simplifié — Mozilla Firefox 2026-06-24 14-20-58.mp4\" -vf \"fps=3,scale=760:-1\" \"vid-temp/v2-%03d.png\" -y)",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"v1-montage.png\"\\);console.log\\(\"v1:\",b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"v2-montage.png\"\\);console.log\\(\"v2:\",b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"v2-trans.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "Bash(ffmpeg -nostdin -loglevel error -ss 4.0 -to 6.2 -i \"C:/Users/THEWAYNE/Videos/Captures/Plateau Smart City — État civil simplifié — Mozilla Firefox 2026-06-24 14-20-58.mp4\" -vf \"fps=12,scale=520:-1\" \"hi-%02d.png\" -y)",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"hi-montage.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "Bash(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 \"C:/Users/THEWAYNE/Videos/Captures/Plateau Smart City — État civil simplifié — Mozilla Firefox 2026-06-24 15-04-03.mp4\")",
+      "Bash(ffmpeg -nostdin -loglevel error -i \"C:/Users/THEWAYNE/Videos/Captures/Plateau Smart City — État civil simplifié — Mozilla Firefox 2026-06-24 15-04-03.mp4\" -vf \"fps=4,scale=600:-1\" \"vid-temp/f-%03d.png\" -y)",
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"all.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')"
     ]
   }
 }

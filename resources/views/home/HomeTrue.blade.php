@@ -48,10 +48,14 @@
         }
 
         /* ─────────────── HERO SECTION ─────────────── */
-        .hero {
+         .hero {
             position: relative;
-            min-height: 100vh;
-            padding: 32px 64px 80px;
+            height: 100vh; /* Force la hauteur à 100% de l'écran */
+            min-height: 700px; /* Sécurité pour les très petits écrans */
+            padding: 32px 64px; /* On retire le padding-bottom de 80px qui prenait trop de place */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Empêche les éléments décoratifs de déborder */
         }
 
         /* Cercles décoratifs en arrière-plan */
@@ -65,24 +69,25 @@
         }
 
         /* Grand cercle bleu clair (derrière le téléphone) */
-        .hero::before {
-            width: 900px;
-            height: 900px;
+         .hero::before {
+            width: 80vh;
+            height: 80vh;
             background: var(--circle-blue);
             opacity: 0.5;
-            right: -250px;
-            top: 200px;
+            right: -10vw;
+            top: 10vh;
+            left: auto; /* Sécurité pour annuler l'ancienne modification */
         }
 
-        /* Grand cercle bleu marine plein derrière le téléphone (cf. maquette) */
+        /* Grand cercle bleu marine plein derrière le téléphone */
         .hero-circle-bg {
             position: absolute;
-            width: 820px;
-            height: 820px;
-            background: #0a2954;        /* = couleur de fond de la section À propos */
+            width: 70vh;
+            height: 70vh;
+            background: #0a2954;
             opacity: 1;
-            right: -230px;
-            top: 230px;
+            right: -8vw;
+            top: 15vh;
             border: none;
             border-radius: 50%;
             pointer-events: none;
@@ -92,15 +97,13 @@
         }
 
         .deco-circle.c1 {
-            width: 620px;
-            height: 620px;
+            width: 50vh;
+            height: 50vh;
             background: #0a2954;
             opacity: 0.9;
-            right: -100px;
-            top: 380px;
-            
+            right: 0;
+            top: 30vh;
         }
-
         .deco-circle.c2 {
             width: 200px;
             height: 200px;
@@ -134,13 +137,14 @@
         }
 
         /* ─────────────── HEADER ─────────────── */
-        .top-bar {
+          .top-bar {
             position: relative;
             z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 60px;
+            margin-bottom: 0; /* Supprimé (était à 60px) pour laisser Flexbox gérer l'espace */
+            flex-shrink: 0; /* Empêche le header de s'écraser */
             animation: fadeInDown 0.8s ease-out;
         }
 
@@ -234,15 +238,17 @@
         }
 
         /* ─────────────── CONTENU HERO ─────────────── */
-        .hero-container {
+       .hero-container {
             position: relative;
             z-index: 5;
+            flex: 1; /* Prend tout l'espace restant sous le header */
             display: grid;
             grid-template-columns: 1.1fr 1fr;
-            gap: 60px;
-            align-items: center;
+            gap: 40px; /* Réduit un peu (était à 60px) */
+            align-content: center; /* Centre parfaitement le contenu verticalement */
             max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
         }
 
         /* Côté gauche : Texte */
@@ -251,10 +257,10 @@
         }
 
         .hero-title {
-            font-size: 92px;
+            font-size: 76px; /* Réduit (était 92px) */
             font-weight: 800;
-            line-height: 0.95;
-            margin-bottom: 24px;
+            line-height: 1; /* Ajusté (était 0.95) */
+            margin-bottom: 20px;
             letter-spacing: -2px;
         }
 
@@ -270,14 +276,14 @@
             letter-spacing: 4px;
         }
 
+ 
         .hero-description {
-            font-size: 16px;
-            line-height: 1.6;
+            font-size: 15px; /* Réduit légèrement */
+            line-height: 1.5;
             color: var(--text-grey);
             max-width: 480px;
-            margin-bottom: 36px;
+            margin-bottom: 28px; /* Ajusté */
         }
-
         /* Features (3 colonnes) */
         .features {
             display: grid;
@@ -433,10 +439,10 @@
         }
 
         /* Côté droit : iPhone mockup */
-        .hero-right {
+            .hero-right {
             position: relative;
             display: flex;
-            justify-content: center;
+            justify-content: flex-end; /* Aligne le téléphone sur la droite de sa colonne */
             align-items: center;
             animation: fadeInRight 1.2s ease-out 0.4s both;
         }
@@ -444,7 +450,8 @@
         .hero-phone-scroll-wrapper {
             position: relative;
             z-index: 10;
-            width: 580px;
+            width: 460px; /* Taille de la 1ère version */
+            margin-right: -40px; /* On pousse le téléphone de 40px à l'intérieur du cercle bleu */
             max-width: 100%;
             height: auto;
             display: flex;
@@ -660,11 +667,15 @@
            ════════════════════════════════════════════════════════ */
         .about-section {
             position: relative;
-            min-height: 100vh;
-            padding: 100px 64px;
+            height: 100vh; /* Force la section à 100% de l'écran */
+            min-height: 700px;
+            padding: 40px 64px; /* On réduit le padding haut/bas */
             color: white;
             overflow: hidden;
             background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centre verticalement tout le contenu */
         }
 
         .about-bg {
@@ -689,10 +700,11 @@
             z-index: 5;
             display: grid;
             grid-template-columns: 1fr 1.2fr 1fr;
-            gap: 60px;
+            gap: 40px; /* Réduit (était 60px) pour éviter le débordement */
             align-items: center;
             max-width: 1500px;
             margin: 0 auto;
+            width: 100%;
         }
 
         /* Eyebrow (label NOTRE VISION / A PROPOS) */
@@ -700,7 +712,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 20px; /* Réduit */
         }
 
         .eyebrow .line {
@@ -727,11 +739,11 @@
 
         /* Titres des 2 colonnes about */
         .about-title {
-            font-size: 40px;
+            font-size: 34px; /* Réduit (était 40px) pour tenir dans l'écran */
             font-weight: 800;
             line-height: 1.1;
             letter-spacing: -1px;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             color: white;
         }
 
@@ -740,14 +752,14 @@
         }
 
         .about-title.right {
-            font-size: 33px;
+            font-size: 30px; /* Réduit */
         }
 
         .about-text {
-            font-size: 14px;
-            line-height: 1.7;
+            font-size: 13.5px; /* Légèrement réduit */
+            line-height: 1.6;
             color: rgba(255, 255, 255, 0.85);
-            margin-bottom: 16px;
+            margin-bottom: 12px; /* Réduit */
         }
 
         .about-text .accent {
@@ -756,19 +768,19 @@
         }
 
         /* COLONNE GAUCHE : 4 mini-cards (Proche / Transparente / Rapide / À l'écoute) */
-        .mini-cards {
+         .mini-cards {
             display: flex;
-            gap: 12px;
-            margin-top: 36px;
+            gap: 10px; /* Réduit */
+            margin-top: 24px;
             flex-wrap: wrap;
         }
 
         .mini-card {
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 19px;
-            padding: 12px 8px;
-            width: 82px;
+            border-radius: 16px;
+            padding: 10px 6px;
+            width: 78px;
             text-align: center;
             transition: all 0.3s ease;
             cursor: default;
@@ -781,28 +793,28 @@
         }
 
         .mini-card .icon-wrapper {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.5);
-            margin: 0 auto 10px;
+            margin: 0 auto 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .mini-card .label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.85);
             line-height: 1.3;
         }
 
         /* COLONNE CENTRE : iPhone tourné */
-        .about-phone-wrap {
+           .about-phone-wrap {
             position: relative;
             display: flex;
             justify-content: center;
@@ -810,7 +822,7 @@
         }
 
         .about-phone {
-            width: 480px;
+            width: 320px; /* Réduit (était 400px) pour un ajustement parfait à l'écran */
             max-width: 100%;
             transform: rotate(8deg);
             filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.4));
@@ -818,23 +830,16 @@
         }
 
         @keyframes floatPhoneAbout {
-
-            0%,
-            100% {
-                transform: rotate(8deg) translateY(0);
-            }
-
-            50% {
-                transform: rotate(8deg) translateY(-20px);
-            }
+            0%, 100% { transform: rotate(8deg) translateY(0); }
+            50% { transform: rotate(8deg) translateY(-15px); }
         }
 
-        /* Halo lumineux derrière iPhone */
+        /* Halo lumineux réduit pour coller à la nouvelle taille */
         .about-phone-wrap::before {
             content: '';
             position: absolute;
-            width: 620px;
-            height: 620px;
+            width: 500px; /* Réduit */
+            height: 500px; /* Réduit */
             border-radius: 50%;
             background: radial-gradient(circle, rgba(79, 172, 254, 0.35) 0%, rgba(79, 172, 254, 0) 65%);
             top: 50%;
@@ -843,27 +848,24 @@
             z-index: -1;
         }
 
-        /* Cercles concentriques sous le phone */
+        /* Cercles concentriques réduits */
         .about-phone-wrap::after {
             content: '';
             position: absolute;
-            width: 700px;
-            height: 700px;
+            width: 560px; /* Réduit */
+            height: 560px; /* Réduit */
             border-radius: 50%;
             border: 2px solid rgba(79, 172, 254, 0.5);
             top: 75%;
             left: 50%;
             transform: translate(-50%, -50%) rotateX(75deg);
-            box-shadow:
-                0 0 40px rgba(79, 172, 254, 0.6),
-                inset 0 0 40px rgba(79, 172, 254, 0.4);
+            box-shadow: 0 0 40px rgba(79, 172, 254, 0.6), inset 0 0 40px rgba(79, 172, 254, 0.4);
             z-index: -1;
         }
-
         /* COLONNE DROITE : Carte de sécurité + bouton */
         .security-card {
-            margin-top: 28px;
-            padding: 24px;
+            margin-top: 20px; /* Réduit */
+            padding: 16px 20px;
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px;
@@ -879,21 +881,21 @@
         }
 
         .security-card .shield-icon {
-            width: 64px;
-            height: 64px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             color: var(--primary-dark);
             flex-shrink: 0;
         }
 
         .security-card .security-text {
-            font-size: 13px;
-            line-height: 1.5;
+            font-size: 12.5px;
+            line-height: 1.4;
             color: rgba(255, 255, 255, 0.85);
         }
 
@@ -906,13 +908,13 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            margin-top: 24px;
-            padding: 18px 32px;
+            margin-top: 20px;
+            padding: 14px 28px; /* Réduit un peu */
             background: white;
             color: var(--primary-dark);
             border-radius: 999px;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
             text-decoration: none;
             transition: all 0.3s ease;
             border: none;
@@ -937,7 +939,6 @@
         .btn-discover:hover .arrow-icon {
             transform: rotate(0deg);
         }
-
         /* Reveal animations on scroll */
         .reveal {
             opacity: 0;
@@ -1064,12 +1065,16 @@
            ════════════════════════════════════════════════════════ */
         .services-section {
             position: relative;
-            min-height: 100vh;
-            padding: 80px 64px 80px;
+            height: 100vh; /* Delimitation à l'écran */
+            min-height: 700px;
+            padding: 50px 64px 0; /* Plus de padding en bas, on gère avec flex */
             background: url('{{ asset("assets/landing/services-bg.png") }}') top center/cover no-repeat,
                 linear-gradient(180deg, #0f2d5e 0%, #0a2150 100%);
             color: white;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Espace le contenu (texte en haut, cartes en bas) */
         }
 
         .services-top {
@@ -1077,18 +1082,21 @@
             z-index: 5;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: start;
+            gap: 40px;
+            align-content: center;
+            align-items: center;
             max-width: 1400px;
-            margin: 0 auto 60px;
+            margin: auto auto 30px auto; /* Centre verticalement la zone du haut */
+            width: 100%;
+            flex: 1; /* Prend l'espace disponible en haut */
         }
 
         .services-title {
-            font-size: 38px;
+            font-size: 34px; /* Réduit */
             font-weight: 800;
             line-height: 1.1;
             letter-spacing: -1px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             color: white;
         }
 
@@ -1098,21 +1106,21 @@
 
         .services-text {
             font-size: 14px;
-            line-height: 1.7;
+            line-height: 1.6;
             color: rgba(255, 255, 255, 0.85);
             max-width: 440px;
         }
 
         .services-phone-side {
             position: relative;
-            min-height: 400px;
+            min-height: 350px; /* Réduit */
         }
 
         .services-phone {
             position: absolute;
-            top: -160px;
-            right: -60px;
-            width: 720px;
+            top: -120px; /* Ajusté */
+            right: -20px;
+            width: 580px; /* Réduit pour ne pas déborder */
             max-width: none;
             transform: rotate(12deg);
             filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.4));
@@ -1120,15 +1128,8 @@
         }
 
         @keyframes floatPhoneServices {
-
-            0%,
-            100% {
-                transform: rotate(12deg) translateY(0);
-            }
-
-            50% {
-                transform: rotate(12deg) translateY(-18px);
-            }
+            0%, 100% { transform: rotate(12deg) translateY(0); }
+            50% { transform: rotate(12deg) translateY(-15px); }
         }
 
         /* 5 service cards alignées en bas avec wave effect */
@@ -1137,14 +1138,15 @@
             z-index: 5;
             background: white;
             border-radius: 70% 70% 0 0 / 90px 90px 0 0;
-            padding: 90px 40px 60px;
-            margin: 0 -64px -80px;
+            padding: 60px 40px 40px; /* Padding réduit pour prendre moins de hauteur */
+            margin: 0 -64px 0; /* On retire le margin-bottom négatif, le bloc est collé au bas via flex */
+            flex-shrink: 0;
         }
 
         .services-cards {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 30px;
+            gap: 20px; /* Réduit */
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -1158,12 +1160,12 @@
         }
 
         .service-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-6px);
         }
 
         .service-card .circle {
-            width: 130px;
-            height: 130px;
+            width: 100px; /* Cercle réduit pour gagner de la place */
+            height: 100px;
             border-radius: 50%;
             background: rgba(15, 77, 142, 0.05);
             border: 3px solid #0f4d8e;
@@ -1171,9 +1173,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 50px;
+            font-size: 40px; /* Icône réduite */
             color: #0f4d8e;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             transition: all 0.3s ease;
         }
 
@@ -1184,7 +1186,7 @@
         }
 
         .service-card .name {
-            font-size: 18px;
+            font-size: 16px; /* Réduit */
             font-weight: 700;
             color: var(--text-navy);
             margin-bottom: 4px;
@@ -1196,20 +1198,19 @@
         }
 
         .service-card .underline {
-            width: 33px;
+            width: 30px;
             height: 3px;
             background: var(--success);
             border-radius: 2px;
-            margin: 12px 0 14px;
+            margin: 8px 0 10px;
         }
 
         .service-card .desc {
-            font-size: 13px;
+            font-size: 12px;
             color: #1c1826;
-            line-height: 1.4;
+            line-height: 1.3;
             max-width: 180px;
         }
-
         /* ════════════════════════════════════════════════════════
            SECTION 4 — "Comment ça marche ?" — 4 iPhones tilted
            ════════════════════════════════════════════════════════ */
@@ -1665,31 +1666,57 @@
         .final-phone-wrap {
             position: relative;
             display: flex;
-            justify-content: flex-end;
+            justify-content: center; /* Centre le téléphone au lieu de le coller à droite */
             align-items: flex-end;
             padding-bottom: 0;
+            padding-right: 40px; /* L'éloigne un peu plus du bord droit */
         }
 
-        .final-phone {
+         .final-phone {
             width: 460px;
             max-width: 100%;
             transform: rotate(-10deg) translateY(20px);
             filter: drop-shadow(0 30px 70px rgba(12, 40, 100, 0.35));
             animation: floatFinalPhone 6s ease-in-out infinite;
         }
-
-        @keyframes floatFinalPhone {
-
-            0%,
-            100% {
-                transform: rotate(-10deg) translateY(20px);
-            }
-
-            50% {
-                transform: rotate(-10deg) translateY(5px);
-            }
+       @keyframes floatFinalPhone {
+            0%, 100% { transform: rotate(-10deg) translateY(20px); }
+            50% { transform: rotate(-10deg) translateY(5px); }
+        }
+  /* ─────────────── BOUTON RETOUR EN HAUT ─────────────── */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(25, 119, 204, 0.3);
+            text-decoration: none;
         }
 
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            background: var(--primary-dark);
+            transform: translateY(-5px);
+            color: white;
+        }
         /* Smooth wave transition from the light section into the navy download zone */
         .final-wave {
             position: relative;
@@ -1963,6 +1990,17 @@
         body.fullpage-mode {
             position: fixed;
             inset: 0;
+        }
+
+        /* Filet anti-empilement au rafraîchissement : sur desktop (= conditions du
+           mode fullpage), tant que le JS n'a pas activé `.fullpage-mode`, on masque
+           déjà toutes les sections sauf le Hero → plus d'effet "sections superposées". */
+        @media (min-width: 992px) and (prefers-reduced-motion: no-preference) {
+            body:not(.fullpage-mode) > section:not(.hero),
+            body:not(.fullpage-mode) > footer {
+                opacity: 0;
+                pointer-events: none;
+            }
         }
 
         /* Toutes les pages = fixed plein écran avec transition scale + opacity */
@@ -2398,12 +2436,63 @@
         @media (max-width: 991px) {
             .persistent-phone { display: none !important; }
         }
+           
+        /* Cache immédiatement les téléphones statiques pour qu'ils ne clignotent pas au chargement */
+     body.fullpage-mode .iphone-mockup,
+        body.fullpage-mode .about-phone,
+        body.fullpage-mode .services-phone,
+        body.fullpage-mode .final-phone {
+            visibility: hidden;
+        }
+        /* Calque marine circulaire (transition Hero ↔ À propos) — piloté par GSAP via
+           scale (pas de clip-path → fiable sous Firefox). Au-dessus des sections,
+           sous le téléphone volant. */
+        .fp-reveal-circle {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: #0a2954;       /* = fond de la section À propos */
+            pointer-events: none;
+            z-index: 56;               /* au-dessus des sections (≤5), sous le téléphone (60) */
+            display: none;
+            will-change: transform, opacity;
+        }
+
+        /* Aucune animation/transition au TOUT PREMIER rendu (= rafraîchissement) :
+           la page apparaît instantanément, sans effet d'entrée. Réactivé par le JS
+           juste après le premier paint (classe retirée). */
+        html.fp-preload *,
+        html.fp-preload *::before,
+        html.fp-preload *::after {
+            transition: none !important;
+            animation: none !important;
+        }
     </style>
 </head>
 
 <body>
+    <!-- SCRIPT ANTI-CLIGNOTEMENT (À l'intérieur du body) -->
+    <script>
+        // 1) Aucune animation/transition au premier rendu (refresh) — retiré après le 1er paint
+        document.documentElement.classList.add('fp-preload');
+        // 2) Active le mode fullpage immédiatement (évite l'empilement des sections)
+        if (window.innerWidth >= 992 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.body.classList.add('fullpage-mode');
+        }
+    </script>
 
-    <section class="hero">
+    <!-- TÉLÉPHONE VOLANT PRÉCHARGÉ -->
+    <img src="{{ asset('assets/landing/iphone-mockup.png') }}" id="flying-phone" class="persistent-phone" alt="">
+
+    <!-- BOUTON RETOUR EN HAUT (Caché par défaut) -->
+    <a href="#" class="back-to-top" id="backToTop" aria-label="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <section class="hero fp-active">
         <!-- Cercles décoratifs -->
         <div class="hero-circle-bg"></div>
         <div class="deco-circle c1"></div>
@@ -2587,7 +2676,7 @@
 
             <!-- COLONNE CENTRE : iPhone mockup tourné -->
             <div class="about-phone-wrap reveal">
-                <img src="{{ asset('assets/landing/iphone-mockup.png') }}" alt="Plateau Apps mobile" class="about-phone"
+                <img src="{{ asset('assets/assets/img/telephone2HD.png') }}" alt="Plateau Apps mobile" class="about-phone"
                     onerror="this.style.display='none';">
             </div>
 
@@ -2970,7 +3059,7 @@
             { sel: '.iphone-mockup', rotate: -3 },                       // 0 · Hero      (iphone-mockup.png)
             { sel: '.about-phone', rotate: 8 },                          // 1 · À propos  (iphone-mockup.png)
             { sel: '.services-phone', rotate: 12 },                      // 2 · Services  (iphone-mockup.png)
-            { sel: '.how-phone-item:nth-child(3) .how-phone-img', rotate: 0 }, // 3 · "Acte de Décès" (how-deces.png — c'est ce mockup qui part vers la section 5)
+            { sel: '.how-phone-item:nth-child(1) .how-phone-img', rotate: 0 }, // 3 · Section 4 (DYNAMIQUE)
             { sel: '.final-phone', rotate: -10 },                        // 4 · Final     (iphone-rdv.png)
         ];
 
@@ -2979,6 +3068,7 @@
         let ppVisible = false;      // est-il actuellement affiché ?
         let ppCurrentImg = '';      // src actuellement chargée (pour détecter un changement d'écran)
         let ppCurrentIdx = -1;      // index du slot où il se trouve
+        let fpRevealCircleEl = null; // calque marine (cercle) pour la transition Hero ↔ À propos
 
         // Mesure la position/taille de chaque ancre, section neutralisée (scale 1, opacity 1)
         // pour obtenir l'emplacement RÉEL (au repos), sans le scale/fade du swap.
@@ -3045,65 +3135,75 @@
             ppCurrentIdx = idx;
         }
 
-        // Transition Hero (0) ↔ À propos (1) : la section À propos est révélée (ou
-        // masquée) par un clip-path circulaire qui grandit depuis le téléphone.
-        // Le fond marine ET les textes apparaissent ENSEMBLE au fur et à mesure que
-        // le cercle grandit (le bleu devient le fond) — plus de "tout bleu" puis texte.
-        // (clip-path animé en CSS car GSAP n'interpole pas circle())
+        // Transition Hero (0) ↔ À propos (1) : un CALQUE marine circulaire grandit
+        // (0→1) ou rétrécit (1→0) via "scale" (PAS de clip-path → fiable Firefox).
+        // L'échange des deux sections (opacité) se fait DERRIÈRE le cercle PLEIN,
+        // donc invisible → plus aucun chevauchement des contenus.
         function fpCircleReveal(toIdx) {
             const hero = fpPages[0], about = fpPages[1];
-            const cx = window.innerWidth * 0.72;   // centre ≈ derrière le téléphone du Hero
+            const c = fpRevealCircleEl;
+
+            // Filet : si le cercle n'existe pas → simple fondu croisé
+            if (!c || !HAS_GSAP) {
+                fpAnimateSwap(toIdx === 1 ? hero : about, toIdx === 1 ? about : hero, toIdx === 1 ? 'up' : 'down');
+                return;
+            }
+
+            const cx = window.innerWidth * 0.72;   // centre ≈ derrière le téléphone
             const cy = window.innerHeight * 0.52;
-            const R = Math.ceil(Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy)) * 1.15);
-            const startR = toIdx === 1 ? 0 : R;
-            const endR = toIdx === 1 ? R : 0;
+            const coverR = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy)) * 1.18;
+            const coverScale = (coverR * 2) / 140;  // base = 140px de diamètre
 
-            // Les deux sections visibles instantanément (pas de fondu d'opacité/scale)
-            about.classList.toggle('fp-active', toIdx === 1);
             hero.classList.toggle('fp-active', toIdx === 0);
-            [hero, about].forEach(el => { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'none'; });
-            hero.style.zIndex = '3';
-            about.style.zIndex = '6';
-            about.style.clipPath = `circle(${startR}px at ${cx}px ${cy}px)`;
+            about.classList.toggle('fp-active', toIdx === 1);
+            [hero, about].forEach(el => { el.style.transition = 'none'; el.style.transform = 'none'; });
+            gsap.killTweensOf([c, hero, about]);
+            gsap.set(c, { left: cx, top: cy, xPercent: -50, yPercent: -50, transformOrigin: '50% 50%' });
 
-            void about.offsetWidth; // reflow → l'animation CSS du clip-path part bien de startR
-            about.style.transition = 'clip-path ' + (FP_DURATION / 1000) + 's cubic-bezier(0.65,0,0.35,1)';
-            about.style.clipPath = `circle(${endR}px at ${cx}px ${cy}px)`;
-
-            // Nettoyage : on rend la main aux classes (sans transition pour éviter tout flash)
-            setTimeout(() => {
-                [hero, about].forEach(el => {
-                    el.style.transition = 'none';
-                    el.style.opacity = '';
-                    el.style.transform = '';
-                    el.style.zIndex = '';
-                    el.style.clipPath = '';
-                });
-                requestAnimationFrame(() => { hero.style.transition = ''; about.style.transition = ''; });
-            }, FP_DURATION);
+            const tl = gsap.timeline();
+            if (toIdx === 1) {
+                // 0 → 1 : le marine GRANDIT et devient le fond de "À propos"
+                gsap.set(hero, { opacity: 1, zIndex: 3 });
+                gsap.set(about, { opacity: 0, zIndex: 4 });          // about prêt mais caché
+                gsap.set(c, { display: 'block', scale: 0, opacity: 1 });
+                tl.to(c, { scale: coverScale, duration: 0.5, ease: 'power2.inOut' });
+                tl.set(about, { opacity: 1 });                        // bascule cachée derrière le cercle plein
+                tl.set(hero, { opacity: 0 });
+                tl.to(c, { opacity: 0, duration: 0.28, ease: 'power1.out' }); // s'efface → about (textes apparaissent)
+                tl.set(c, { display: 'none', scale: 0, opacity: 1 });
+            } else {
+                // 1 → 0 : le marine RÉTRÉCIT et révèle le Hero (clair)
+                gsap.set(about, { opacity: 1, zIndex: 3 });
+                gsap.set(hero, { opacity: 0, zIndex: 4 });
+                gsap.set(c, { display: 'block', scale: coverScale, opacity: 1 }); // marine plein (= fond about)
+                tl.set(hero, { opacity: 1 });                          // bascule cachée derrière le cercle plein
+                tl.set(about, { opacity: 0 });
+                tl.to(c, { scale: 0, duration: 0.62, ease: 'power2.inOut' });     // rétrécit → Hero révélé
+                tl.set(c, { display: 'none', scale: 0 });
+            }
         }
 
-        function ppInit() {
+      function ppInit() {
             if (!PP_ENABLED) return;
 
+            // Le téléphone est maintenant récupéré directement depuis le HTML
+            ppEl = document.getElementById('flying-phone');
+
+            // Calque marine (cercle) pour la transition Hero ↔ À propos (créé une fois)
+            fpRevealCircleEl = document.createElement('div');
+            fpRevealCircleEl.className = 'fp-reveal-circle';
+            document.body.appendChild(fpRevealCircleEl);
+
             // Cacher tous les téléphones inline "uniques" (ils servent juste d'ancres de mesure)
-            PP_SLOT_CONFIG.forEach((cfg, i) => {
+           PP_SLOT_CONFIG.forEach((cfg, i) => {
                 if (!cfg) return;
                 const anchor = fpPages[i] && fpPages[i].querySelector(cfg.sel);
-                if (anchor) anchor.style.visibility = 'hidden';
+                // On cache tout sauf l'index 3 (Section 4) qui est géré dynamiquement
+                if (anchor && i !== 3) anchor.style.visibility = 'hidden';
             });
 
-            // Créer le téléphone persistant
-            ppEl = document.createElement('img');
-            ppEl.className = 'persistent-phone';
-            ppEl.alt = 'Plateau Apps';
-            document.body.appendChild(ppEl);
-
             // Quand une section dépasse l'écran et qu'on scrolle dedans, le téléphone
-            // (fixe) DÉFILE avec le contenu (translation) au lieu de "disparaître" :
-            // il remonte naturellement hors de l'écran comme un élément normal.
-            // Pendant une transition (fpTransitioning), on n'y touche pas → c'est
-            // ppMoveTo qui pilote le voyage (évite que le mockup disparaisse au trackpad).
+            // (fixe) DÉFILE avec le contenu (translation) au lieu de "disparaître"
             fpPages.forEach((sec, i) => {
                 sec.addEventListener('scroll', () => {
                     if (i !== fpIdx || !ppEl || !ppSlots[i] || fpTransitioning) return;
@@ -3116,12 +3216,13 @@
             // Placement initial sur la 1re section (Hero)
             const first = ppSlots[0];
             if (first) {
-                ppEl.src = first.img; ppCurrentImg = first.img;
+                ppEl.src = first.img; 
+                ppCurrentImg = first.img;
                 gsap.set(ppEl, { x: first.left, y: first.top, width: first.width, rotation: first.rotate, opacity: 1 });
-                ppVisible = true; ppCurrentIdx = 0;
+                ppVisible = true; 
+                ppCurrentIdx = 0;
             }
         }
-
         // Re-mesure + repositionnement instantané (resize fenêtre)
         let ppResizeTimer = null;
         window.addEventListener('resize', () => {
@@ -3156,7 +3257,32 @@
                 .forEach(el => el.classList.remove('visible'));
         }
 
-        function fpGoTo(idx) {
+        // Swap standard piloté par GSAP (fondu croisé + léger zoom). Fiable sur tous
+        // les navigateurs — les transitions CSS ne se déclenchaient pas toujours
+        // (Firefox), d'où l'impression de "coupure" sans fondu entre les sections.
+        function fpAnimateSwap(leaving, entering, dir) {
+            gsap.killTweensOf([leaving, entering]);
+            entering.classList.add('fp-active');     // pointer-events + z-index via la classe
+            leaving.style.transition = 'none';        // on neutralise la transition CSS
+            entering.style.transition = 'none';
+            entering.style.zIndex = '6';
+            leaving.style.zIndex = '5';
+            gsap.set(entering, { opacity: 0, scale: dir === 'up' ? 0.94 : 1.06 });
+            gsap.set(leaving, { opacity: 1, scale: 1 });
+            gsap.to(entering, { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out' });
+            gsap.to(leaving, {
+                opacity: 0, scale: dir === 'up' ? 1.06 : 0.94, duration: 0.65, ease: 'power2.in',
+                onComplete: () => {
+                    leaving.classList.remove('fp-active');
+                    // retour aux états gérés par les classes, sans flash (transition encore none)
+                    gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' });
+                    leaving.style.transition = '';
+                    entering.style.transition = '';
+                }
+            });
+        }
+
+   function fpGoTo(idx) {
             if (!FP_ENABLED) return;
             if (fpTransitioning) return;
             if (idx < 0 || idx >= fpPages.length || idx === fpIdx) return;
@@ -3170,27 +3296,91 @@
             fpRevealIn(entering);
 
             if (heroAbout) {
-                // Hero ↔ À propos : révélation par cercle (clip-path) — gère les classes lui-même
                 fpCircleReveal(idx);
+            } else if (HAS_GSAP) {
+                fpAnimateSwap(leaving, entering, idx > fpIdx ? 'up' : 'down');
             } else {
-                // Swap standard (scale + fondu)
                 const direction = idx > fpIdx ? 'up' : 'down';
                 leaving.classList.remove('fp-active');
                 leaving.classList.add(direction === 'up' ? 'fp-leaving-up' : 'fp-leaving-down');
                 entering.classList.add('fp-active');
             }
 
-            // Le téléphone persistant voyage vers l'emplacement de la nouvelle section
+            // Gestion de l'affichage du bouton retour en haut
+            const backToTopBtn = document.getElementById('backToTop');
+            if (backToTopBtn) {
+                if (idx === 4) { // Si on est sur la 5ème section
+                    backToTopBtn.classList.add('show');
+                } else {
+                    backToTopBtn.classList.remove('show');
+                }
+            }
+
+            // ── GESTION DYNAMIQUE DU TÉLÉPHONE POUR LA SECTION 4 ──
+            const phone1Sel = '.how-phone-item:nth-child(1) .how-phone-img';
+            const phone3Sel = '.how-phone-item:nth-child(3) .how-phone-img';
+            
+            // 1. Déterminer la cible (Tel 1 ou Tel 3) selon le sens de défilement
+            if (idx === 3 && fpIdx === 2) PP_SLOT_CONFIG[3].sel = phone1Sel;
+            else if (idx === 4 && fpIdx === 3) PP_SLOT_CONFIG[3].sel = phone3Sel;
+            else if (idx === 3 && fpIdx === 4) PP_SLOT_CONFIG[3].sel = phone3Sel;
+            else if (idx === 2 && fpIdx === 3) PP_SLOT_CONFIG[3].sel = phone1Sel;
+
+            ppMeasureSlots(); // Recalcule les positions exactes
+
+            // 2. Téléportation invisible AVANT le mouvement
+            if (PP_ENABLED && ppEl) {
+                if (fpIdx === 3 && idx === 4) {
+                    // On part de 4 vers 5 : on téléporte le mockup sur le Tel 3
+                    const slot3 = ppSlots[3]; 
+                    gsap.set(ppEl, { x: slot3.left, y: slot3.top, width: slot3.width, rotation: slot3.rotate });
+                    ppEl.src = slot3.img; 
+                    ppCurrentImg = slot3.img; // Trompe le script pour éviter le fondu d'opacité !
+                }
+                else if (fpIdx === 3 && idx === 2) {
+                    // On part de 4 vers 3 : on téléporte le mockup sur le Tel 1
+                    const slot1 = ppSlots[3]; 
+                    gsap.set(ppEl, { x: slot1.left, y: slot1.top, width: slot1.width, rotation: slot1.rotate });
+                    ppEl.src = slot1.img;
+                    ppCurrentImg = slot1.img; 
+                }
+            }
+
+            // 3. Rallumer les téléphones statiques pour éviter les "trous" visuels
+            const p1 = document.querySelector(phone1Sel);
+            const p3 = document.querySelector(phone3Sel);
+            if (p1) p1.style.visibility = 'visible';
+            if (p3) p3.style.visibility = 'visible';
+
+            // 4. Éteindre uniquement le téléphone statique sur lequel on va atterrir
+            if (idx === 3 || fpIdx === 3) {
+                const activeP = document.querySelector(PP_SLOT_CONFIG[3].sel);
+                if (activeP) activeP.style.visibility = 'hidden';
+            }
+            // ────────────────────────────────────────────────────────
+
+            // Le téléphone persistant voyage de manière totalement fluide !
             ppMoveTo(idx);
 
             setTimeout(() => {
-                if (!heroAbout) leaving.classList.remove('fp-leaving-up', 'fp-leaving-down');
+                // Finalisation FIABLE de l'état (au cas où un onComplete GSAP serait
+                // retardé — ex. onglet en arrière-plan) : une seule section active, propre.
+                if (HAS_GSAP) gsap.killTweensOf(fpPages);
+                if (HAS_GSAP && fpRevealCircleEl) {
+                    gsap.killTweensOf(fpRevealCircleEl);
+                    gsap.set(fpRevealCircleEl, { display: 'none', scale: 0, opacity: 1 });
+                }
+                fpPages.forEach((p, i) => {
+                    p.classList.remove('fp-leaving-up', 'fp-leaving-down');
+                    p.classList.toggle('fp-active', i === idx);
+                    p.style.transition = ''; p.style.opacity = ''; p.style.transform = '';
+                    p.style.zIndex = ''; p.style.clipPath = '';
+                });
                 fpResetReveals(leaving);
                 fpIdx = idx;
                 fpTransitioning = false;
             }, FP_DURATION);
         }
-
         // ── Wheel (souris / trackpad) ──
         // Clé pour un rendu fluide au trackpad :
         //  1) tant que la section peut défiler en interne, on laisse le SCROLL NATIF
@@ -3317,6 +3507,12 @@
             revealEls.forEach(el => revealObserver.observe(el));
         }
 
+        // Retirer "fp-preload" APRÈS le premier paint → réactive les transitions/animations
+        // pour la NAVIGATION, alors qu'aucune ne joue au simple rafraîchissement.
+        const fpRemovePreload = () => document.documentElement.classList.remove('fp-preload');
+        requestAnimationFrame(() => requestAnimationFrame(fpRemovePreload));
+        window.addEventListener('load', () => setTimeout(fpRemovePreload, 60));
+
         // ── Parallax léger sur les cercles décoratifs (souris) ──
         document.addEventListener('mousemove', (e) => {
             const x = (e.clientX / window.innerWidth - 0.5) * 20;
@@ -3326,6 +3522,17 @@
             if (c2) c2.style.transform = `translate(${x}px, ${y}px)`;
             if (c3) c3.style.transform = `translate(${-x}px, ${-y}px)`;
         });
+const backBtn = document.getElementById('backToTop');
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (FP_ENABLED) {
+                    fpGoTo(0); // Remonte tout en haut (index 0) avec une belle transition
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        }
 
     </script>
 
