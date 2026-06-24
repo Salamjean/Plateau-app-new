@@ -477,6 +477,39 @@
                 gap: 40px !important;
             }
             .hero-title { font-size: 42px !important; margin-bottom: 15px; letter-spacing: -1px; }
+
+            /* -- CORRECTION DU CONTRASTE SUR MOBILE (Basé sur votre capture d'écran) -- */
+            
+            /* 1. On agrandit et replace le cercle pour qu'il englobe tout le texte proprement */
+            .hero-circle-bg {
+                top: 70px !important; /* Démarre juste sous le logo */
+                bottom: auto !important; 
+                left: 50% !important;
+                transform: translateX(-50%) !important; 
+                width: 150vw !important; 
+                height: 160vw !important; /* Assure que ça descend assez bas pour couvrir les textes */
+                max-width: none !important;
+                max-height: none !important;
+            }
+
+            /* 2. On passe les textes en BLANC pour qu'ils soient lisibles sur le cercle sombre */
+            .hero-title .word-1 { color: #ffffff !important; }
+            .hero-description { color: rgba(255, 255, 255, 0.85) !important; }
+            
+            .feature-text { color: rgba(255, 255, 255, 0.75) !important; }
+            .feature-text strong { color: #ffffff !important; }
+            
+            .trust-text .count { color: #ffffff !important; }
+            .trust-text .subtitle { color: rgba(255, 255, 255, 0.7) !important; }
+            
+            /* 3. Ajustement des icônes rondes pour qu'elles aient de l'allure sur fond sombre */
+            .feature-icon {
+                background: rgba(255, 255, 255, 0.1) !important;
+                color: #01b574 !important;
+                box-shadow: none !important;
+            }
+            /* ------------------------------------------------------------------------ */
+
             .hero-description { font-size: 14px; margin: 0 auto 25px auto; }
             .features { grid-template-columns: 1fr; gap: 15px; justify-content: center; }
             .feature-item { justify-content: center; }
@@ -487,10 +520,6 @@
             .hero-right { justify-content: center; }
             .hero-phone-scroll-wrapper { width: 260px !important; margin: 0 auto; transform: none !important; }
             
-            .hero-circle-bg {
-                top: auto !important; bottom: 0 !important; left: 50% !important;
-                transform: translateX(-50%) !important; width: 100vw !important; height: 100vw !important;
-            }
 
             /* 4. SECTION A PROPOS */
             .about-container { grid-template-columns: 1fr !important; gap: 40px !important; text-align: center; }
