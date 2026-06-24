@@ -61,7 +61,8 @@
       "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"hi-montage.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
       "Bash(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 \"C:/Users/THEWAYNE/Videos/Captures/Plateau Smart City — État civil simplifié — Mozilla Firefox 2026-06-24 15-04-03.mp4\")",
       "Bash(ffmpeg -nostdin -loglevel error -i \"C:/Users/THEWAYNE/Videos/Captures/Plateau Smart City — État civil simplifié — Mozilla Firefox 2026-06-24 15-04-03.mp4\" -vf \"fps=4,scale=600:-1\" \"vid-temp/f-%03d.png\" -y)",
-      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"all.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')"
+      "Bash(node -e 'const b=require\\(\"fs\"\\).readFileSync\\(\"all.png\"\\);console.log\\(b.readUInt32BE\\(16\\)+\"x\"+b.readUInt32BE\\(20\\)\\)')",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

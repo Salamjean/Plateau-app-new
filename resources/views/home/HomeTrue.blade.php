@@ -2444,23 +2444,6 @@
         body.fullpage-mode .final-phone {
             visibility: hidden;
         }
-        /* Calque marine circulaire (transition Hero ↔ À propos) — piloté par GSAP via
-           scale (pas de clip-path → fiable sous Firefox). Au-dessus des sections,
-           sous le téléphone volant. */
-        .fp-reveal-circle {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: #0a2954;       /* = fond de la section À propos */
-            pointer-events: none;
-            z-index: 56;               /* au-dessus des sections (≤5), sous le téléphone (60) */
-            display: none;
-            will-change: transform, opacity;
-        }
-
         /* Aucune animation/transition au TOUT PREMIER rendu (= rafraîchissement) :
            la page apparaît instantanément, sans effet d'entrée. Réactivé par le JS
            juste après le premier paint (classe retirée). */
@@ -3068,7 +3051,6 @@
         let ppVisible = false;      // est-il actuellement affiché ?
         let ppCurrentImg = '';      // src actuellement chargée (pour détecter un changement d'écran)
         let ppCurrentIdx = -1;      // index du slot où il se trouve
-        let fpRevealCircleEl = null; // calque marine (cercle) pour la transition Hero ↔ À propos
 
         // Mesure la position/taille de chaque ancre, section neutralisée (scale 1, opacity 1)
         // pour obtenir l'emplacement RÉEL (au repos), sans le scale/fade du swap.
@@ -3135,64 +3117,11 @@
             ppCurrentIdx = idx;
         }
 
-        // Transition Hero (0) ↔ À propos (1) : un CALQUE marine circulaire grandit
-        // (0→1) ou rétrécit (1→0) via "scale" (PAS de clip-path → fiable Firefox).
-        // L'échange des deux sections (opacité) se fait DERRIÈRE le cercle PLEIN,
-        // donc invisible → plus aucun chevauchement des contenus.
-        function fpCircleReveal(toIdx) {
-            const hero = fpPages[0], about = fpPages[1];
-            const c = fpRevealCircleEl;
-
-            // Filet : si le cercle n'existe pas → simple fondu croisé
-            if (!c || !HAS_GSAP) {
-                fpAnimateSwap(toIdx === 1 ? hero : about, toIdx === 1 ? about : hero, toIdx === 1 ? 'up' : 'down');
-                return;
-            }
-
-            const cx = window.innerWidth * 0.72;   // centre ≈ derrière le téléphone
-            const cy = window.innerHeight * 0.52;
-            const coverR = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy)) * 1.18;
-            const coverScale = (coverR * 2) / 140;  // base = 140px de diamètre
-
-            hero.classList.toggle('fp-active', toIdx === 0);
-            about.classList.toggle('fp-active', toIdx === 1);
-            [hero, about].forEach(el => { el.style.transition = 'none'; el.style.transform = 'none'; });
-            gsap.killTweensOf([c, hero, about]);
-            gsap.set(c, { left: cx, top: cy, xPercent: -50, yPercent: -50, transformOrigin: '50% 50%' });
-
-            const tl = gsap.timeline();
-            if (toIdx === 1) {
-                // 0 → 1 : le marine GRANDIT et devient le fond de "À propos"
-                gsap.set(hero, { opacity: 1, zIndex: 3 });
-                gsap.set(about, { opacity: 0, zIndex: 4 });          // about prêt mais caché
-                gsap.set(c, { display: 'block', scale: 0, opacity: 1 });
-                tl.to(c, { scale: coverScale, duration: 0.5, ease: 'power2.inOut' });
-                tl.set(about, { opacity: 1 });                        // bascule cachée derrière le cercle plein
-                tl.set(hero, { opacity: 0 });
-                tl.to(c, { opacity: 0, duration: 0.28, ease: 'power1.out' }); // s'efface → about (textes apparaissent)
-                tl.set(c, { display: 'none', scale: 0, opacity: 1 });
-            } else {
-                // 1 → 0 : le marine RÉTRÉCIT et révèle le Hero (clair)
-                gsap.set(about, { opacity: 1, zIndex: 3 });
-                gsap.set(hero, { opacity: 0, zIndex: 4 });
-                gsap.set(c, { display: 'block', scale: coverScale, opacity: 1 }); // marine plein (= fond about)
-                tl.set(hero, { opacity: 1 });                          // bascule cachée derrière le cercle plein
-                tl.set(about, { opacity: 0 });
-                tl.to(c, { scale: 0, duration: 0.62, ease: 'power2.inOut' });     // rétrécit → Hero révélé
-                tl.set(c, { display: 'none', scale: 0 });
-            }
-        }
-
       function ppInit() {
             if (!PP_ENABLED) return;
 
             // Le téléphone est maintenant récupéré directement depuis le HTML
             ppEl = document.getElementById('flying-phone');
-
-            // Calque marine (cercle) pour la transition Hero ↔ À propos (créé une fois)
-            fpRevealCircleEl = document.createElement('div');
-            fpRevealCircleEl.className = 'fp-reveal-circle';
-            document.body.appendChild(fpRevealCircleEl);
 
             // Cacher tous les téléphones inline "uniques" (ils servent juste d'ancres de mesure)
            PP_SLOT_CONFIG.forEach((cfg, i) => {
@@ -3290,14 +3219,12 @@
             fpTransitioning = true;
             const leaving = fpPages[fpIdx];
             const entering = fpPages[idx];
-            const heroAbout = (fpIdx === 0 && idx === 1) || (fpIdx === 1 && idx === 0);
 
             entering.scrollTop = 0;
             fpRevealIn(entering);
 
-            if (heroAbout) {
-                fpCircleReveal(idx);
-            } else if (HAS_GSAP) {
+            // Toutes les transitions utilisent le MÊME fondu croisé + léger zoom
+            if (HAS_GSAP) {
                 fpAnimateSwap(leaving, entering, idx > fpIdx ? 'up' : 'down');
             } else {
                 const direction = idx > fpIdx ? 'up' : 'down';
@@ -3366,10 +3293,6 @@
                 // Finalisation FIABLE de l'état (au cas où un onComplete GSAP serait
                 // retardé — ex. onglet en arrière-plan) : une seule section active, propre.
                 if (HAS_GSAP) gsap.killTweensOf(fpPages);
-                if (HAS_GSAP && fpRevealCircleEl) {
-                    gsap.killTweensOf(fpRevealCircleEl);
-                    gsap.set(fpRevealCircleEl, { display: 'none', scale: 0, opacity: 1 });
-                }
                 fpPages.forEach((p, i) => {
                     p.classList.remove('fp-leaving-up', 'fp-leaving-down');
                     p.classList.toggle('fp-active', i === idx);
