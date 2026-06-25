@@ -439,6 +439,9 @@
                 display: flex !important;
                 flex-direction: column !important;
             }
+            .hero {
+                padding-top: 15px !important;
+            }
 
             /* Désactivation brutale de toutes les animations (reveal, téléphones flottants) */
             .reveal, .reveal-left, .reveal-right, .reveal-up, .reveal-scale,
@@ -1087,9 +1090,7 @@
                     </div>
 
                     <div class="footer-social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                       
                     </div>
 
                     <div class="footer-right">
