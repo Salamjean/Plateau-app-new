@@ -1575,7 +1575,7 @@
             /* Mobile Header */
             .mob-header {
                 background: linear-gradient(135deg, #103370 0%, #0d2859 100%);
-                padding: 40px 24px 36px;
+                padding: 48px 24px 36px 76px; /* Increased left padding from 24px to 76px to safely clear the back button */
                 border-radius: 0 0 32px 32px;
                 display: flex;
                 align-items: center;
@@ -1612,10 +1612,11 @@
 
             .mob-back-btn {
                 position: absolute;
-                top: 16px;
-                left: 16px;
-                width: 32px;
-                height: 32px;
+                top: 50%;
+                left: 20px;
+                transform: translateY(-50%);
+                width: 36px;
+                height: 36px;
                 border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1);
                 display: flex;
@@ -2090,7 +2091,7 @@
                 align-items: flex-start;
                 width: 100%;
                 min-height: 100vh;
-                padding: 36px 16px 40px;
+                padding: 80px 16px 40px; /* Increased top padding from 36px to 80px to safely clear the fixed back button */
                 background: #e8edf4;
             }
 
