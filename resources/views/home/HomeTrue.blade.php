@@ -413,6 +413,52 @@
 
         html.fp-preload *, html.fp-preload *::before, html.fp-preload *::after { transition: none !important; animation: none !important; }
 
+        /* ─────────────── SLIDER DOTS & SWIPE HINT (COMMON) ─────────────── */
+        .slider-dots {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 25px;
+            width: 100%;
+        }
+        .slider-dots .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(15, 77, 142, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .slider-dots .dot.active {
+            background: var(--primary);
+            width: 24px;
+            border-radius: 4px;
+        }
+        .how-section .slider-dots .dot {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .how-section .slider-dots .dot.active {
+            background: var(--success);
+        }
+        .swipe-hint {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 15px;
+            opacity: 0.8;
+        }
+        .swipe-hint i {
+            animation: swipeArrow 1.5s infinite;
+        }
+        @keyframes swipeArrow {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+        }
+
         /* ════════════════════════════════════════════════════════
            RESPONSIVE RE-ÉCRIT (MOBILES ET TABLETTES < 992px)
            Mode "flux naturel", blocs empilés, aucune animation
@@ -443,14 +489,17 @@
                 padding-top: 15px !important;
             }
 
-            /* Désactivation brutale de toutes les animations (reveal, téléphones flottants) */
-            .reveal, .reveal-left, .reveal-right, .reveal-up, .reveal-scale,
-            [class*="stagger-"], .iphone-mockup, .about-phone, .services-phone, .final-phone {
-                opacity: 1 !important;
-                transform: none !important;
-                transition: none !important;
+            /* Animations fluides pour les téléphones sur mobile */
+            .iphone-mockup, .about-phone, .services-phone, .final-phone {
+                opacity: 0;
+                transform: translateY(30px) scale(0.96);
+                transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
                 animation: none !important;
                 visibility: visible !important;
+            }
+            .iphone-mockup.visible-phone, .about-phone.visible-phone, .services-phone.visible-phone, .final-phone.visible-phone {
+                opacity: 1 !important;
+                transform: none !important;
             }
 
             /* Cacher les éléments exclusifs au Desktop */
@@ -459,6 +508,8 @@
             .final-wave, .download-separator {
                 display: none !important;
             }
+            /* Cacher le bouton mobile sur desktop */
+            .mobile-back-to-top { display: none !important; }
 
             /* 2. HEADER */
             .top-bar {
@@ -485,12 +536,12 @@
             
             /* 1. On agrandit et replace le cercle pour qu'il englobe tout le texte proprement */
             .hero-circle-bg {
-                top: 70px !important; /* Démarre juste sous le logo */
+                top: 130px !important; /* Démarre sous les boutons */
                 bottom: auto !important; 
                 left: 50% !important;
                 transform: translateX(-50%) !important; 
-                width: 150vw !important; 
-                height: 160vw !important; /* Assure que ça descend assez bas pour couvrir les textes */
+                width: 220vw !important; 
+                height: 220vw !important; /* Cercle parfait pour éviter toute déformation */
                 max-width: none !important;
                 max-height: none !important;
             }
@@ -504,6 +555,9 @@
             
             .trust-text .count { color: #ffffff !important; }
             .trust-text .subtitle { color: rgba(255, 255, 255, 0.7) !important; }
+            .rating { color: #ffffff !important; }
+            .trust-text .stars .rating { color: #ffffff !important; }
+            .stars-icons { color: #fbbf24 !important; }
             
             /* 3. Ajustement des icônes rondes pour qu'elles aient de l'allure sur fond sombre */
             .feature-icon {
@@ -547,21 +601,71 @@
                 padding: 40px 20px 30px !important;
                 border-radius: 40px 40px 0 0 !important;
             }
-            .services-cards { grid-template-columns: 1fr !important; gap: 15px !important; }
-            .service-card { padding: 20px; background: #f8fafc; border-radius: 15px; border: 1px solid rgba(15, 77, 142, 0.1); }
+            .services-cards {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory !important;
+                scroll-behavior: smooth !important;
+                gap: 20px !important;
+                padding: 10px 0 20px 0 !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+            }
+            .services-cards::-webkit-scrollbar {
+                display: none !important;
+            }
+            .services-cards .service-card {
+                flex: 0 0 85% !important;
+                scroll-snap-align: center !important;
+                height: auto !important;
+                padding: 20px;
+                background: #f8fafc;
+                border-radius: 15px;
+                border: 1px solid rgba(15, 77, 142, 0.1);
+            }
             
             /* 6. SECTION COMMENT CA MARCHE */
             .how-section { background: #122554 !important; padding-bottom: 50px !important; }
             .how-section::after { display: none !important; }
-            .how-title { font-size: 32px !important; color: white !important; margin-bottom: 40px; }
+            .how-title { font-size: 32px !important; color: white !important; margin-bottom: 20px; }
             
-            .how-phones-row { display: flex !important; flex-direction: column !important; gap: 30px; }
-            .how-phone-item { background: rgba(255,255,255,0.05); padding: 25px 20px; border-radius: 20px; width: 100%; }
+            .how-phones-row {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory !important;
+                scroll-behavior: smooth !important;
+                gap: 20px !important;
+                padding: 10px 0 20px 0 !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+            }
+            .how-phones-row::-webkit-scrollbar {
+                display: none !important;
+            }
+            .how-phones-row .how-phone-item {
+                flex: 0 0 85% !important;
+                scroll-snap-align: center !important;
+                height: auto !important;
+                background: rgba(255,255,255,0.05);
+                padding: 25px 20px;
+                border-radius: 20px;
+            }
             .how-phone-img-wrap { height: auto !important; margin-bottom: 20px; }
             .how-phone-img { width: 160px !important; height: auto !important; margin: 0 auto; }
             .how-step-line { display: none !important; }
             .how-step-info { padding: 0 !important; flex-direction: column; align-items: center; text-align: center; }
             .how-step-name { font-size: 22px; }
+
+            .slider-dots {
+                display: flex !important;
+            }
+            .swipe-hint {
+                display: flex !important;
+            }
 
             /* 7. SECTION FINAL & FOOTER */
             .final-section { padding-bottom: 0 !important; }
@@ -583,6 +687,44 @@
             .download-row { flex-direction: column !important; gap: 20px; }
             .download-trust { border-right: none !important; padding-right: 0 !important; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 20px; justify-content: center; }
             .btn-store-dark { width: 100%; justify-content: center; max-width: 280px; }
+
+            /* Bouton retour en haut — visible uniquement sur mobile dans la section 5 */
+            .mobile-back-to-top {
+                display: flex !important;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin: 30px auto 0;
+                cursor: pointer;
+                text-decoration: none;
+                color: var(--primary);
+                font-size: 13px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                animation: mobileBackPulse 2s ease-in-out infinite;
+            }
+            .mobile-back-to-top .arrow-circle {
+                width: 52px;
+                height: 52px;
+                background: var(--primary);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 20px;
+                box-shadow: 0 6px 20px rgba(25, 119, 204, 0.4);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .mobile-back-to-top:active .arrow-circle {
+                transform: scale(0.93);
+                box-shadow: 0 3px 10px rgba(25, 119, 204, 0.3);
+            }
+            @keyframes mobileBackPulse {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+            }
 
             .footer-grid-wrapper { margin: 0 -20px !important; padding: 0 20px !important; }
             .footer-container { grid-template-columns: 1fr !important; text-align: center; gap: 25px !important; }
@@ -612,7 +754,7 @@
         <i class="fas fa-arrow-up"></i>
     </a>
 
-    <section class="hero fp-active">
+    <section id="hero" class="hero fp-active">
         <!-- Cercles décoratifs -->
         <div class="hero-circle-bg"></div>
         <div class="deco-circle c1"></div>
@@ -871,6 +1013,10 @@
                     essentiels pour vous offrir une expérience
                     rapide, sécurisée et accessible à tous.
                 </p>
+                <div class="swipe-hint">
+                    <span>Glisser pour voir nos services</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
             </div>
 
             <div class="services-phone-side reveal-right">
@@ -916,6 +1062,14 @@
                     <div class="desc">Agissons ensemble pour une ville plus durable.</div>
                 </div>
             </div>
+            <!-- Indicators / dots for mobile slider -->
+            <div class="slider-dots services-dots-container" id="services-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
         </div>
     </section>
 
@@ -926,6 +1080,10 @@
         <h2 class="how-title reveal-up">
             Comment ça <span class="accent">marche ?</span>
         </h2>
+        <div class="swipe-hint">
+            <span  style="color: white;">Glisser pour suivre les étapes</span>
+            <i class="fas fa-arrow-right"></i>
+        </div>
 
         <div class="how-phones-row">
             <div class="how-phone-item reveal-up stagger-1">
@@ -984,6 +1142,13 @@
                 </div>
             </div>
         </div>
+        <!-- Indicators / dots for mobile slider -->
+        <div class="slider-dots how-dots-container" id="how-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
     </section>
 
     <!-- ════════════════════════════════════════════════════════
@@ -1037,7 +1202,8 @@
             </div>
         </div>
 
-        <div class="final-wave"></div>
+        
+        
 
         <div class="download-bar">
             <h3>Téléchargez Plateau Apps</h3>
@@ -1053,7 +1219,7 @@
                     <div class="info">
                         <strong>+12000 habitants</strong>
                         utilisent déjà plateau Apps
-                        <div><span class="rating">★★★★★ 4.8/5</span></div>
+                        <div><span class="stars-icons">★★★★★</span> <span class="rating">4.8/5</span></div>
                     </div>
                 </div>
 
@@ -1085,12 +1251,14 @@
             <footer class="footer">
                 <div class="footer-container">
                     <div class="footer-left">
-                        <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Plateau Smart City" class="logo-img">
+                        <img src="{{ asset('assets/assets/img/plateau-mart1.png') }}" alt="Plateau Smart City" class="logo-img">
                         <div class="footer-tagline">Une administration moderne,<br>proche de vous, pour vous.</div>
                     </div>
 
                     <div class="footer-social">
-                       
+                        <a href="#hero" aria-label="Retour en haut">
+                            <i class="fas fa-chevron-up"></i>
+                        </a>
                     </div>
 
                     <div class="footer-right">
@@ -1423,6 +1591,88 @@
                 e.preventDefault();
                 if (FP_ENABLED) { fpGoTo(0); } else { window.scrollTo({ top: 0, behavior: 'smooth' }); }
             });
+        }
+
+        // Mobile back-to-top button (section 5)
+        const mobileBackBtn = document.getElementById('mobileBackToTop');
+        if (mobileBackBtn) {
+            mobileBackBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // Responsive scroll animations (Intersection Observer)
+        if (!FP_ENABLED) {
+            // Instantly reveal hero elements on mobile so there's no delay
+            if (fpPages[0]) {
+                fpPages[0].querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-up, .reveal-scale').forEach(el => {
+                    el.classList.add('visible');
+                });
+                const firstPhone = fpPages[0].querySelector('.iphone-mockup');
+                if (firstPhone) firstPhone.classList.add('visible-phone');
+            }
+
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Reveal child elements with animate/reveal classes
+                        entry.target.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-up, .reveal-scale').forEach(el => {
+                            el.classList.add('visible');
+                        });
+                        // Reveal phone mockup specifically
+                        const phone = entry.target.querySelector('.iphone-mockup, .about-phone, .services-phone, .final-phone');
+                        if (phone) {
+                            phone.classList.add('visible-phone');
+                        }
+                        // Unobserve once revealed to keep performance high
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                root: null,
+                threshold: 0.1, // Trigger when 10% of the section is visible
+                rootMargin: '0px 0px -50px 0px' // Trigger slightly before it fully enters viewport
+            });
+
+            // Observe all main sections (excluding the first one since it's already manually revealed)
+            fpPages.slice(1).forEach(section => {
+                revealObserver.observe(section);
+            });
+
+            // Setup slider navigation
+            function setupSlider(containerSelector, dotsSelector, itemSelector) {
+                const container = document.querySelector(containerSelector);
+                const dots = document.querySelectorAll(dotsSelector);
+                if (!container || !dots.length) return;
+
+                // Update active dot on scroll
+                container.addEventListener('scroll', () => {
+                    const firstItem = container.querySelector(itemSelector);
+                    if (!firstItem) return;
+                    const cardWidth = firstItem.clientWidth + 20; // card width + gap
+                    const index = Math.round(container.scrollLeft / cardWidth);
+                    dots.forEach((dot, i) => {
+                        dot.classList.toggle('active', i === index);
+                    });
+                });
+
+                // Click to scroll to dot's item
+                dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        const firstItem = container.querySelector(itemSelector);
+                        if (!firstItem) return;
+                        const cardWidth = firstItem.clientWidth + 20;
+                        container.scrollTo({
+                            left: index * cardWidth,
+                            behavior: 'smooth'
+                        });
+                    });
+                });
+            }
+
+            setupSlider('.services-cards', '#services-dots .dot', '.service-card');
+            setupSlider('.how-phones-row', '#how-dots .dot', '.how-phone-item');
         }
     </script>
 </body>

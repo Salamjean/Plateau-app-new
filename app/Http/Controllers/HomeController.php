@@ -34,7 +34,7 @@ class HomeController extends Controller
                     $demande = $naissance;
                     $etatDemande = $naissance->etat;
                     $statutDemande = $naissance->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande')); // Passer $demande, $etatDemande et $reference à la vue
+                    return view('home.recherche_new', compact('demande', 'etatDemande', 'reference', 'statutDemande')); // Passer $demande, $etatDemande et $reference à la vue
                 }
                 // Rechercher dans la table 'deces'
                 $deces = Deces::where('reference', $reference)->first();
@@ -42,7 +42,7 @@ class HomeController extends Controller
                     $demande = $deces;
                     $etatDemande = $deces->etat;
                     $statutDemande = $deces->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande'));
+                    return view('home.recherche_new', compact('demande', 'etatDemande', 'reference', 'statutDemande'));
                 }
 
                 // Rechercher dans la table 'mariages'
@@ -51,14 +51,14 @@ class HomeController extends Controller
                     $demande = $mariage;
                     $etatDemande = $mariage->etat;
                     $statutDemande = $mariage->statut_livraison ?? 'Retrait à la mairie';
-                    return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande'));
+                    return view('home.recherche_new', compact('demande', 'etatDemande', 'reference', 'statutDemande'));
                 }
 
                 $etatDemande = false; // Aucune demande trouvée pour cette référence dans aucune table
             }
         }
 
-        return view('home.recherche', compact('demande', 'etatDemande', 'reference', 'statutDemande')); // Passer $demande, $etatDemande et $reference à la vue
+        return view('home.recherche_new', compact('demande', 'etatDemande', 'reference', 'statutDemande')); // Passer $demande, $etatDemande et $reference à la vue
     }
 
     public function about()
