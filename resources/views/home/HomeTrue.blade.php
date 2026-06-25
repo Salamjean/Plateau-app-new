@@ -828,13 +828,13 @@
                             <span>l'App Store</span>
                         </div>
                     </a>
-                    <a href="#" class="btn-store">
-                        <i class="fab fa-google-play"></i>
-                        <div class="store-text">
-                            <small>Disponible sur</small>
-                            <span>Google Play</span>
-                        </div>
-                    </a>
+                  <a href="#" class="btn-store">
+    <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play" style="width: 32px; height: 32px; object-fit: contain;">
+    <div class="store-text">
+        <small>Disponible sur</small>
+        <span>Google Play</span>
+    </div>
+</a>
                 </div>
 
                 <!-- Trust / Témoignage -->
@@ -1231,13 +1231,13 @@
                     </div>
                 </a>
 
-                <a href="#" class="btn-store-dark">
-                    <i class="fab fa-google-play"></i>
-                    <div class="store-text">
-                        <small>Disponible sur</small>
-                        <span>Google Play</span>
-                    </div>
-                </a>
+               <a href="#" class="btn-store-dark">
+    <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play" style="width: 26px; height: 26px; object-fit: contain;">
+    <div class="store-text">
+        <small>Disponible sur</small>
+        <span>Google Play</span>
+    </div>
+</a>
             </div>
         </div>
 
