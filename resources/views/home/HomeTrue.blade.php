@@ -111,6 +111,9 @@
             align-items: center;
             margin-bottom: 0;
             flex-shrink: 0;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
         }
         body.play-init .top-bar { animation: fadeInDown 0.8s ease-out; }
 
@@ -1156,7 +1159,7 @@
      ════════════════════════════════════════════════════════ -->
     <section id="final" class="final-section">
         <div class="final-logo">
-            <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Plateau Smart City">
+            
         </div>
 
         <div class="final-container">

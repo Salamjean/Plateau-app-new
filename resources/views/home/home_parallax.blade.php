@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +9,21 @@
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="shortcut icon" href="{{ asset('assets/assets/img/logo plateau.png') }}" type="image/x-icon">
 
     <!-- CSS Vendors -->
     <link href="{{ asset('assets/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
         /* DESIGN STRICTEMENT IDENTIQUE AU MODÈLE FIGMA */
-        html, body {
+        html,
+        body {
             height: 100% !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
@@ -50,7 +55,7 @@
             width: 100%;
             z-index: 1000;
             background-color: transparent;
-            padding: 0px 64px;
+            padding: 0px 80px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -277,9 +282,10 @@
         /* CONTENEUR UNIQUE D'ALIGNEMENT POUR LE DISQUE ET LE TÉLÉPHONE (AJUSTEMENTS FINAUX) */
         .hero-right-container {
             position: absolute;
-            right: -200px; 
+            right: -200px;
             top: 50%;
-            margin-top: -220px; /* Aligné dynamiquement sur la même ligne que le contenu textuel de gauche */
+            margin-top: -220px;
+            /* Aligné dynamiquement sur la même ligne que le contenu textuel de gauche */
             width: 1000px;
             height: 1000px;
             pointer-events: none;
@@ -355,8 +361,11 @@
 
         /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 991px) {
-            html, body {
-                overflow-y: auto !important; /* Autorise le scroll uniquement sur mobile */
+
+            html,
+            body {
+                overflow-y: auto !important;
+                /* Autorise le scroll uniquement sur mobile */
             }
 
             .page-container {
@@ -424,8 +433,8 @@
         /* --- NEW VISION & ABOUT SECTION --- */
         .vision-about-section {
             background: radial-gradient(circle at bottom center, rgba(34, 197, 94, 0.22) 0%, rgba(16, 58, 131, 0) 55%),
-                        linear-gradient(180deg, #092552 0%, #103a83 50%, #092552 100%),
-                        url('{{ asset("assets/assets/img/footerback.png") }}') no-repeat bottom center !important;
+                linear-gradient(180deg, #092552 0%, #103a83 50%, #092552 100%),
+                url('{{ asset("assets/assets/img/footerback.png") }}') no-repeat bottom center !important;
             background-size: 100% 100%, 100% 100%, cover !important;
             color: #ffffff;
             position: relative;
@@ -527,7 +536,8 @@
             position: relative;
             margin-left: -120px;
             margin-right: -120px;
-            margin-bottom: -100px; /* Fait descendre le téléphone pour qu'il rentre en bas */
+            margin-bottom: -100px;
+            /* Fait descendre le téléphone pour qu'il rentre en bas */
             z-index: 5;
         }
 
@@ -540,8 +550,15 @@
         }
 
         @keyframes phone-float-vision {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(0.3deg); }
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-12px) rotate(0.3deg);
+            }
         }
 
         /* Security Card */
@@ -642,6 +659,7 @@
             padding-left: 80px !important;
             padding-right: 80px !important;
         }
+
         @media (max-width: 991px) {
             .px-custom-align {
                 padding-left: 24px !important;
@@ -655,14 +673,17 @@
                 padding: 60px 0;
                 background-size: auto 100%, auto 100%, cover !important;
             }
+
             .vision-about-section .phone-mockup-container {
                 margin: 30px 0;
                 margin-left: 0;
                 margin-right: 0;
             }
+
             .vision-about-section .phone-mockup-img {
                 max-height: 480px;
             }
+
             .vision-about-section .section-title {
                 font-size: 1.85rem;
             }
@@ -714,7 +735,8 @@
             position: absolute;
             right: 0px;
             top: 20px;
-            bottom: -150px; /* Bleed down into the wave and white section */
+            bottom: -150px;
+            /* Bleed down into the wave and white section */
             width: 45%;
             z-index: 10;
             pointer-events: none;
@@ -734,8 +756,10 @@
         .services-wave-divider {
             width: 100%;
             height: 120px;
-            background-color: #103a83; /* Matches the bottom of blue gradient */
-            margin-bottom: -2px; /* Prevent gaps */
+            background-color: #103a83;
+            /* Matches the bottom of blue gradient */
+            margin-bottom: -2px;
+            /* Prevent gaps */
             position: relative;
             z-index: 2;
         }
@@ -767,7 +791,8 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            border: 2px solid #1f4083; /* Fine blue border */
+            border: 2px solid #1f4083;
+            /* Fine blue border */
             background-color: #ffffff;
             display: flex;
             align-items: center;
@@ -781,9 +806,11 @@
         .essential-service-item:hover .essential-icon-circle {
             transform: translateY(-8px);
             box-shadow: 0 20px 40px rgba(31, 64, 131, 0.18);
-            border-color: #22c55e; /* Green border on hover */
+            border-color: #22c55e;
+            /* Green border on hover */
             color: #22c55e;
-            background-color: #e6fdf5; /* Subtle green highlight background */
+            background-color: #e6fdf5;
+            /* Subtle green highlight background */
         }
 
         .essential-icon-circle svg {
@@ -848,23 +875,28 @@
             .services-essentiels-section {
                 min-height: auto;
             }
+
             .services-blue-part {
                 padding-top: 60px !important;
                 padding-bottom: 60px !important;
                 text-align: center;
             }
+
             .services-blue-part .section-label-wrapper {
                 justify-content: center;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
             }
+
             .services-blue-part h2 {
                 font-size: 2.2rem;
             }
+
             .services-blue-part p {
                 margin: 0 auto !important;
             }
+
             .services-phone-container {
                 position: relative;
                 width: 100%;
@@ -875,34 +907,41 @@
                 right: auto;
                 bottom: auto;
             }
+
             .services-wave-divider {
                 height: 60px;
             }
+
             .services-white-part {
                 padding-top: 30px !important;
                 padding-bottom: 50px !important;
             }
+
             .essential-icon-circle {
                 width: 95px;
                 height: 95px;
             }
+
             .essential-icon-circle svg {
                 width: 32px;
                 height: 32px;
             }
+
             .essential-title {
                 font-size: 0.88rem;
             }
+
             .essential-desc {
                 font-size: 0.76rem;
             }
         }
     </style>
 </head>
+
 <body>
 
     <div class="page-container">
-        
+
         <!-- HEADER FIGMA -->
         <header class="figma-header d-flex justify-content-between align-items-center">
             <div class="header-logo d-flex align-items-center gap-2">
@@ -928,7 +967,9 @@
                 <div class="hero-circle-bg"></div>
 
                 <div class="phone-mockup-wrapper">
-                    <img src="{{ asset('assets/assets/img/telephone.png') }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1601784551146-12c4eaf7bfe5?q=80&w=800&auto=format&fit=crop';" alt="Plateau App UI" class="hero-phone-img">
+                    <img src="{{ asset('assets/assets/img/telephone.png') }}"
+                        onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1601784551146-12c4eaf7bfe5?q=80&w=800&auto=format&fit=crop';"
+                        alt="Plateau App UI" class="hero-phone-img">
                 </div>
             </div>
 
@@ -939,11 +980,12 @@
                         <div class="content-wrapper">
                             <h1 class="hero-title-main">Etat civil</h1>
                             <h1 class="hero-title-sub">SIMPLIFIE</h1>
-                            
+
                             <p class="lead text-muted mb-4 hero-desc">
-                                Ne perdez plus des heures en déplacementss inutiles. Obtenez vos actes d'état civil, prenez rendez-vous et suivez vos demandes en quelques clics.
+                                Ne perdez plus des heures en déplacementss inutiles. Obtenez vos actes d'état civil,
+                                prenez rendez-vous et suivez vos demandes en quelques clics.
                             </p>
-                            
+
                             <!-- Puces avantages alignées horizontalement -->
                             <div class="d-flex flex-row flex-wrap gap-4 mb-5 advantages-row">
                                 <div class="d-flex align-items-center gap-3 advantage-item">
@@ -987,13 +1029,18 @@
                             <!-- Éléments de preuve sociale -->
                             <div class="d-flex align-items-center gap-4 user-proof mt-2">
                                 <div class="avatar-group d-flex">
-                                    <img src="https://i.pravatar.cc/100?img=12" alt="User" class="avatar-img border border-white">
-                                    <img src="https://i.pravatar.cc/100?img=22" alt="User" class="avatar-img border border-white">
-                                    <img src="https://i.pravatar.cc/100?img=32" alt="User" class="avatar-img border border-white">
-                                    <img src="https://i.pravatar.cc/100?img=42" alt="User" class="avatar-img border border-white">
+                                    <img src="https://i.pravatar.cc/100?img=12" alt="User"
+                                        class="avatar-img border border-white">
+                                    <img src="https://i.pravatar.cc/100?img=22" alt="User"
+                                        class="avatar-img border border-white">
+                                    <img src="https://i.pravatar.cc/100?img=32" alt="User"
+                                        class="avatar-img border border-white">
+                                    <img src="https://i.pravatar.cc/100?img=42" alt="User"
+                                        class="avatar-img border border-white">
                                 </div>
                                 <div class="proof-text d-flex flex-column">
-                                    <span class="proof-title fw-700">+12 000 habitants<br>utilisent déjà Plateau Apps</span>
+                                    <span class="proof-title fw-700">+12 000 habitants<br>utilisent déjà Plateau
+                                        Apps</span>
                                     <div class="rating-stars text-xs d-flex align-items-center gap-1 mt-1">
                                         <i class="bi bi-star-fill text-green"></i>
                                         <i class="bi bi-star-fill text-green"></i>
@@ -1033,15 +1080,17 @@
                         Une administration <span class="text-green-highlight">humaine,</span> moderne et transparente.
                     </h2>
                     <p class="section-desc mb-3">
-                        Au cœur du centre des affaires d'Abidjan, nous croyons que la technologie doit simplifier la vie, pas la complexifier.
+                        Au cœur du centre des affaires d'Abidjan, nous croyons que la technologie doit simplifier la
+                        vie, pas la complexifier.
                     </p>
                     <p class="section-desc mb-3">
                         Notre vision est de redéfinir la relation entre la Mairie du Plateau et ses citoyens.
                     </p>
                     <p class="section-desc mb-4">
-                        Finies les tracasseries administratives : nous bâtissons une administration transparente, rapide et <span class="text-green-highlight">accessible à tous,</span> à chaque instant de votre vie.
+                        Finies les tracasseries administratives : nous bâtissons une administration transparente, rapide
+                        et <span class="text-green-highlight">accessible à tous,</span> à chaque instant de votre vie.
                     </p>
-                    
+
                     <!-- Grille des piliers en ligne -->
                     <div class="row g-2 g-xl-3 mt-4">
                         <div class="col-lg-3 col-6">
@@ -1080,9 +1129,11 @@
                 </div>
 
                 <!-- Colonne Centrale: Téléphone Mockup -->
-                <div class="col-lg-3 text-center d-flex justify-content-center align-items-center" data-aos="fade-up" data-aos-delay="200">
+                <div class="col-lg-3 text-center d-flex justify-content-center align-items-center" data-aos="fade-up"
+                    data-aos-delay="200">
                     <div class="phone-mockup-container">
-                        <img src="{{ asset('assets/assets/img/telephone2.png') }}" class="img-fluid phone-mockup-img" alt="Plateau Apps Mobile Dashboard">
+                        <img src="{{ asset('assets/assets/img/telephone2.png') }}" class="img-fluid phone-mockup-img"
+                            alt="Plateau Apps Mobile Dashboard">
                     </div>
                 </div>
 
@@ -1096,19 +1147,23 @@
                         Plateau Apps Votre mairie <span class="text-green-highlight">dans la poche.</span>
                     </h2>
                     <p class="section-desc mb-3">
-                        Plateau Apps est le portail officiel conçu pour dématérialiser vos démarches citoyennes les plus essentielles.
+                        Plateau Apps est le portail officiel conçu pour dématérialiser vos démarches citoyennes les plus
+                        essentielles.
                     </p>
                     <p class="section-desc mb-4">
-                        Qu'il s'agisse de célébrer une nouvelle vie (actes de naissance), de sceller une union (actes de mariage) ou de planifier un rendez-vous crucial en mairie, notre plateforme sécurise et accélère vos demandes pour vous faire gagner un temps précieux.
+                        Qu'il s'agisse de célébrer une nouvelle vie (actes de naissance), de sceller une union (actes de
+                        mariage) ou de planifier un rendez-vous crucial en mairie, notre plateforme sécurise et accélère
+                        vos demandes pour vous faire gagner un temps précieux.
                     </p>
-                    
+
                     <!-- Carte Sécurité -->
                     <div class="security-card">
                         <div class="security-icon-circle">
                             <i class="bi bi-shield-check"></i>
                         </div>
                         <p class="security-text">
-                            Vos données sont protégées à <span class="text-green-highlight fw-700">100%</span> et traitées avec le plus haut niveau de sécurité.
+                            Vos données sont protégées à <span class="text-green-highlight fw-700">100%</span> et
+                            traitées avec le plus haut niveau de sécurité.
                         </p>
                     </div>
 
@@ -1127,7 +1182,9 @@
     </section>
 
     <!-- SERVICES ESSENTIELS SECTION -->
-    <section class="services-essentiels-section d-flex flex-column justify-content-between position-relative overflow-hidden" id="services-essentiels">
+    <section
+        class="services-essentiels-section d-flex flex-column justify-content-between position-relative overflow-hidden"
+        id="services-essentiels">
         <!-- Partie supérieure bleue -->
         <div class="services-blue-part container-fluid px-custom-align pt-5 pb-5">
             <div class="row align-items-center g-5">
@@ -1142,13 +1199,15 @@
                         Pour vous <span class="text-cyan-highlight">simplifier la vie.</span>
                     </h2>
                     <p class="section-desc mb-0" style="max-width: 550px;">
-                        Plateau Apps centralise tous vos services essentiels pour vous offrir une expérience rapide, sécurisée et accessible à tous.
+                        Plateau Apps centralise tous vos services essentiels pour vous offrir une expérience rapide,
+                        sécurisée et accessible à tous.
                     </p>
                 </div>
                 <!-- Droite: Phone mockup -->
                 <div class="col-lg-6 text-end" data-aos="fade-left" data-aos-delay="200">
                     <div class="services-phone-container">
-                        <img src="{{ asset('assets/assets/img/telephone2.png') }}" class="img-fluid services-phone-img" alt="Plateau Apps Mobile UI">
+                        <img src="{{ asset('assets/assets/img/telephone2.png') }}" class="img-fluid services-phone-img"
+                            alt="Plateau Apps Mobile UI">
                     </div>
                 </div>
             </div>
@@ -1157,7 +1216,7 @@
         <!-- Wave divider SVG -->
         <div class="services-wave-divider">
             <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                <path d="M0 0C240 80 480 120 720 120C960 120 1200 80 1440 0V120H0V0Z" fill="#ffffff"/>
+                <path d="M0 0C240 80 480 120 720 120C960 120 1200 80 1440 0V120H0V0Z" fill="#ffffff" />
             </svg>
         </div>
 
@@ -1168,11 +1227,13 @@
                 <div class="col-lg-2-4 col-md-4 col-6" data-aos="fade-up" data-aos-delay="100">
                     <div class="essential-service-item">
                         <div class="essential-icon-circle">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
                         </div>
-                        <h5 class="essential-title mt-3">Traitement<br><span class="text-secondary-highlight">Express</span></h5>
+                        <h5 class="essential-title mt-3">Traitement<br><span
+                                class="text-secondary-highlight">Express</span></h5>
                         <div class="essential-line"></div>
                         <p class="essential-desc">Vos demandes traitées en un temps record.</p>
                     </div>
@@ -1181,12 +1242,14 @@
                 <div class="col-lg-2-4 col-md-4 col-6" data-aos="fade-up" data-aos-delay="200">
                     <div class="essential-service-item">
                         <div class="essential-icon-circle">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"></path>
                                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
                             </svg>
                         </div>
-                        <h5 class="essential-title mt-3">Zéro<br><span class="text-secondary-highlight">Déplacement</span></h5>
+                        <h5 class="essential-title mt-3">Zéro<br><span
+                                class="text-secondary-highlight">Déplacement</span></h5>
                         <div class="essential-line"></div>
                         <p class="essential-desc">Faites vos démarches en ligne sans bouger de chez vous.</p>
                     </div>
@@ -1195,14 +1258,16 @@
                 <div class="col-lg-2-4 col-md-4 col-6" data-aos="fade-up" data-aos-delay="300">
                     <div class="essential-service-item">
                         <div class="essential-icon-circle">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                                 <circle cx="12" cy="14" r="3"></circle>
                                 <path d="M12 17v4l2-1 2 1v-4"></path>
                             </svg>
                         </div>
-                        <h5 class="essential-title mt-3">Actes<br><span class="text-secondary-highlight">Certifiés</span></h5>
+                        <h5 class="essential-title mt-3">Actes<br><span
+                                class="text-secondary-highlight">Certifiés</span></h5>
                         <div class="essential-line"></div>
                         <p class="essential-desc">Des documents officiels signés et certifiés conformes.</p>
                     </div>
@@ -1211,13 +1276,15 @@
                 <div class="col-lg-2-4 col-md-4 col-6" data-aos="fade-up" data-aos-delay="400">
                     <div class="essential-service-item">
                         <div class="essential-icon-circle">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                                 <line x1="12" y1="18" x2="12.01" y2="18"></line>
                                 <path d="M10 11l2 2 4-4"></path>
                             </svg>
                         </div>
-                        <h5 class="essential-title mt-3">Paiement<br><span class="text-secondary-highlight">Mobile</span></h5>
+                        <h5 class="essential-title mt-3">Paiement<br><span
+                                class="text-secondary-highlight">Mobile</span></h5>
                         <div class="essential-line"></div>
                         <p class="essential-desc">Payez facilement et en toute sécurité via Mobile Money.</p>
                     </div>
@@ -1226,17 +1293,22 @@
                 <div class="col-lg-2-4 col-md-4 col-6" data-aos="fade-up" data-aos-delay="500">
                     <div class="essential-service-item">
                         <div class="essential-icon-circle">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="10" r="8"></circle>
                                 <path d="M12 2v2"></path>
                                 <path d="M12 18v2"></path>
-                                <path d="M12 10a15.3 15.3 0 0 1 2 4 15.3 15.3 0 0 1-2 4 15.3 15.3 0 0 1-2-4 15.3 15.3 0 0 1 2-4z"></path>
+                                <path
+                                    d="M12 10a15.3 15.3 0 0 1 2 4 15.3 15.3 0 0 1-2 4 15.3 15.3 0 0 1-2-4 15.3 15.3 0 0 1 2-4z">
+                                </path>
                                 <path d="M8 20h8"></path>
                             </svg>
                         </div>
-                        <h5 class="essential-title mt-3">Éco-<br><span class="text-secondary-highlight">Citoyen</span></h5>
+                        <h5 class="essential-title mt-3">Éco-<br><span class="text-secondary-highlight">Citoyen</span>
+                        </h5>
                         <div class="essential-line"></div>
-                        <p class="essential-desc">Agissons ensemble pour préserver l'environnement en évitant le papier.</p>
+                        <p class="essential-desc">Agissons ensemble pour préserver l'environnement en évitant le papier.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -1246,7 +1318,7 @@
     <!-- Bootstrap Bundle JS -->
     <script src="{{ asset('assets/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
-        document.querySelector('.scroll-down-arrow-btn').addEventListener('click', function(e) {
+        document.querySelector('.scroll-down-arrow-btn').addEventListener('click', function (e) {
             e.preventDefault();
             document.querySelector('#vision-about').scrollIntoView({
                 behavior: 'smooth'
@@ -1254,4 +1326,5 @@
         });
     </script>
 </body>
+
 </html>
