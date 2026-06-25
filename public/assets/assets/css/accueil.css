@@ -1833,12 +1833,28 @@ html.fp-preload *::after {
         margin: 0 auto 25px auto;
     }
     .features {
-        grid-template-columns: 1fr;
-        gap: 15px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
         justify-content: center;
+        margin-bottom: 25px;
     }
     .feature-item {
-        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+        gap: 6px;
+        justify-content: flex-start;
+    }
+    .feature-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        margin: 0 auto;
+    }
+    .feature-text {
+        font-size: 10px;
+        line-height: 1.2;
     }
     .download-buttons {
         flex-direction: column;
