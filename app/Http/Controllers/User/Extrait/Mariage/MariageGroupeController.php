@@ -90,11 +90,8 @@ class MariageGroupeController extends Controller
             'date_livraison'                 => 'nullable|date|after_or_equal:today',
             'heure_livraison'                => 'nullable',
             // Paiement (requis si paiement requis)
-            'payment_method'                 => $paymentRequired ? 'required|in:wave,mtn,orange,moov' : 'nullable|in:wave,mtn,orange,moov',
-            'mtn_number'                     => ($paymentRequired && $request->input('payment_method') === 'mtn') ? 'required|regex:/^05[0-9]{8}$/' : 'nullable|regex:/^05[0-9]{8}$/',
-        ], [
-            'mtn_number.required' => 'Le numéro MTN Money est obligatoire.',
-            'mtn_number.regex' => 'Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.',
+            'payment_method'                 => $paymentRequired ? 'required|in:wave' : 'nullable|in:wave',
+            'mtn_number'                     => 'nullable',
         ]);
 
         $geminiService = app(\App\Services\GeminiValidationService::class);
@@ -285,30 +282,7 @@ class MariageGroupeController extends Controller
         }
 
         if ($method === 'mtn') {
-            $mtnPhone = preg_replace('/[^0-9]/', '', (string) $request->input('mtn_number'));
-            if (!$mtnPhone) return null;
-            if (!str_starts_with($mtnPhone, '225') && strlen($mtnPhone) === 10) {
-                $mtnPhone = '225' . $mtnPhone;
-            }
-            try {
-                $mtnService = new \App\Services\MtnService();
-                $response = $mtnService->requestToPay(
-                    $groupe->montant_total,
-                    $mtnPhone,
-                    $groupe->reference,
-                    'Extrait Mariage Groupé',
-                    'Mairie Plateau'
-                );
-                if ($response && $response['status'] === 'PENDING') {
-                    session(['mtn_ref_' . $groupe->reference => $response['referenceId']]);
-                    return route('user.payment.mtn.waiting', [
-                        'reference' => $groupe->reference,
-                        'type' => 'mariage_groupe',
-                    ]);
-                }
-            } catch (\Throwable $e) {
-                Log::error("MTN groupe mariage : " . $e->getMessage());
-            }
+            Log::error("Tentative de paiement MTN bloquée pour le groupe {$groupe->reference}");
             return null;
         }
 

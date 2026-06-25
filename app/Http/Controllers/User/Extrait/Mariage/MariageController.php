@@ -218,6 +218,12 @@ class MariageController extends Controller
         if ($totalAmount > 0) {
             // Paiement requis → le compteur sera incrémenté APRÈS confirmation du paiement
             $paymentMethod = $request->input('payment_method', 'wave');
+            if (strtolower($paymentMethod) === 'mtn') {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Le paiement par MTN est actuellement indisponible. Veuillez utiliser un autre moyen de paiement.']);
+                }
+                return redirect()->back()->with('error', 'Le paiement par MTN est actuellement indisponible. Veuillez utiliser un autre moyen de paiement.')->withInput();
+            }
 
             $baseUrl = config('app.url');
             $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($mariage->reference) . "&type=mariage";
@@ -602,6 +608,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             if ($totalAmount > 0) {
                 $transactionReference = $demande->reference . '-MOD-' . time();
                 $paymentMethod = $request->input('payment_method', 'wave');
+                if (strtolower($paymentMethod) === 'mtn') {
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Le paiement par MTN est actuellement indisponible. Veuillez utiliser un autre moyen de paiement.']);
+                    }
+                    return redirect()->back()->with('error', 'Le paiement par MTN est actuellement indisponible. Veuillez utiliser un autre moyen de paiement.')->withInput();
+                }
                 $baseUrl = config('app.url');
                 $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($transactionReference) . "&type=mariage";
                 $errorUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($transactionReference) . "&type=mariage";

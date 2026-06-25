@@ -692,7 +692,7 @@
                     <button type="button" id="btn-mod-pay-wave" class="payment-mod-method-btn" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
                         <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 25px; object-fit: contain;">
                     </button>
-                    <button type="button" id="btn-mod-pay-mtn" class="payment-mod-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <button type="button" id="btn-mod-pay-mtn" class="payment-mod-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
                         <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 25px; object-fit: contain;">
                     </button>
                 </div>

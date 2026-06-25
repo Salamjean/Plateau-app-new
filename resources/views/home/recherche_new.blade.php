@@ -2214,7 +2214,7 @@
                         <div class="search-input-wrapper">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" name="reference_naissance" id="reference_naissance"
-                                placeholder="Ex : PLA-2026-123456" value="{{ $reference ?? '' }}" required>
+                                placeholder="Ex : AN123456PXXXX" value="{{ $reference ?? '' }}" required>
                         </div>
                         <a class="help-link" id="helpLink">
                             <i class="far fa-question-circle"></i> Où trouver mon numéro de référence ?
@@ -2880,7 +2880,7 @@
             </div>
             <div class="modal-body">
                 <p>Votre numéro de référence figure en haut à droite de votre reçu de paiement imprimé ou dans l'e-mail de confirmation qui vous a été envoyé après la soumission de votre demande en ligne.</p>
-                <p>Il est composé de lettres et de chiffres, par exemple : <strong>PLA-2026-123456</strong>.</p>
+                <p>Il est composé de lettres et de chiffres, par exemple : <strong>AN123456PXXXX</strong>.</p>
                 <div style="text-align: center; margin-top: 20px;">
                     <i class="fas fa-file-invoice" style="font-size: 48px; color: var(--success); opacity: 0.8;"></i>
                 </div>

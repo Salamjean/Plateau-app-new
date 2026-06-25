@@ -1098,14 +1098,14 @@
                                     <small>Paiement instantané</small>
                                 </div>
                             </label>
-                            <label class="payment-option">
-                                <input type="radio" name="payment_method" value="mtn"
+                            <label class="payment-option" style="opacity: 0.5; cursor: not-allowed;" title="Indisponible">
+                                <input type="radio" name="payment_method" value="mtn" disabled
                                     onchange="onPaymentMethodChange()">
                                 <div class="payment-option-content">
                                     <img src="{{ asset('assets/assets/img/mtn.png') }}" alt="MTN"
                                         onerror="this.style.display='none'">
                                     <h6>MTN Money</h6>
-                                    <small>Mobile Money</small>
+                                    <small>Indisponible</small>
                                 </div>
                             </label>
                             <label class="payment-option">
