@@ -66,16 +66,16 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/')->group(function () {
     Route::get('/', [HomeController::class, 'home'])->name('home');
     Route::match(['get', 'post'], 'home/search', [HomeController::class, 'recherche'])->name('recherche.demande');
-    Route::get('home/about', [HomeController::class, 'about'])->name('about.demande');
-    Route::get('home/service', [HomeController::class, 'service'])->name('service.demande');
-    Route::get('home/department', [HomeController::class, 'department'])->name('department.demande');
+    // Route::get('home/about', [HomeController::class, 'about'])->name('about.demande');
+    // Route::get('home/service', [HomeController::class, 'service'])->name('service.demande');
+    // Route::get('home/department', [HomeController::class, 'department'])->name('department.demande');
 
-    //Les routes des actes civils 
-    Route::get('home/birth', [HomeController::class, 'birth'])->name('home.birth');
-    Route::get('home/death', [HomeController::class, 'death'])->name('home.death');
-    Route::get('home/wedding', [HomeController::class, 'wedding'])->name('home.wedding');
-    Route::get('home/rendezvous', [HomeController::class, 'rendezvous'])->name('home.rendezvous');
-    Route::get('home/contact', [HomeController::class, 'contact'])->name('home.contact');
+    // //Les routes des actes civils 
+    // Route::get('home/birth', [HomeController::class, 'birth'])->name('home.birth');
+    // Route::get('home/death', [HomeController::class, 'death'])->name('home.death');
+    // Route::get('home/wedding', [HomeController::class, 'wedding'])->name('home.wedding');
+    // Route::get('home/rendezvous', [HomeController::class, 'rendezvous'])->name('home.rendezvous');
+    // Route::get('home/contact', [HomeController::class, 'contact'])->name('home.contact');
 });
 
 //Les routes de gestion du @super @admin
