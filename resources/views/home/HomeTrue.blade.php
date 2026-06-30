@@ -440,9 +440,22 @@
      SECTION 5 — "Le Plateau plus proche que jamais" + Footer
      ════════════════════════════════════════════════════════ -->
     <section id="final" class="final-section">
-        <div class="final-logo">
-            
-        </div>
+        <!-- HEADER : Logo + Boutons (Clone de la section 1) -->
+        <header class="top-bar" style="margin-bottom: 30px;">
+            <div class="logo">
+                <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" alt="Plateau Smart City"
+                    style="height: 52px; width: auto; display: block;" class="logo-img">
+            </div>
+
+            <nav class="nav-buttons">
+                <a href="{{ route('recherche.demande') }}" class="btn-pill outline">
+                    <i class="fas fa-search"></i> Suivre ma demande
+                </a>
+                <a href="{{ route('login') }}" class="btn-pill solid">
+                    <i class="fas fa-user"></i> Mon espace
+                </a>
+            </nav>
+        </header>
 
         <div class="final-container">
             <div class="reveal-left">
