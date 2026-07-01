@@ -414,6 +414,35 @@
                 return;
             }
 
+            // Vérification de l'âge légal pour le mariage (18 ans)
+            if (currentStep === 0 || currentStep === 1) {
+                const dateInputName = currentStep === 0 ? 'date_naissance_epoux' : 'date_naissance_epouse';
+                const dateInput = document.querySelector(`input[name="${dateInputName}"]`);
+                    
+                if (dateInput && dateInput.value) {
+                    const birthDate = new Date(dateInput.value);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    
+                    if (age < 18) {
+                        Swal.fire({
+                            title: 'Âge non requis',
+                            text: "L'âge légal pour le mariage en Côte d'Ivoire est de 18 ans au minimum.",
+                            icon: 'error',
+                            confirmButtonColor: '#1f4083'
+                        });
+                        dateInput.classList.add('is-invalid');
+                        return; // Bloque le passage à l'étape suivante
+                    } else {
+                        dateInput.classList.remove('is-invalid');
+                    }
+                }
+            }
+
             if (currentStep < steps.length - 1) {
                 currentStep++;
                 updateProgress();

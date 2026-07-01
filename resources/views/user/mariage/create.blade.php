@@ -1366,6 +1366,8 @@
                 if (typeVal === 'integrale' || typeVal === 'groupee') {
                     const nom = document.getElementById('nomEpoux');
                     const prenom = document.getElementById('prenomEpoux');
+                    const dateNaissance = document.getElementById('dateNaissanceEpoux');
+                    
                     if (!nom.value.trim()) {
                         isValid = false;
                         displayError(nom, "Le nom du conjoint est obligatoire.");
@@ -1373,6 +1375,30 @@
                     if (!prenom.value.trim()) {
                         isValid = false;
                         displayError(prenom, "Le prénom du conjoint est obligatoire.");
+                    }
+                    
+                    if (dateNaissance && dateNaissance.value) {
+                        const birthDate = new Date(dateNaissance.value);
+                        const today = new Date();
+                        let age = today.getFullYear() - birthDate.getFullYear();
+                        const m = today.getMonth() - birthDate.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
+                        }
+                        
+                        if (age < 18) {
+                            isValid = false;
+                            displayError(dateNaissance, "Le conjoint doit avoir au moins 18 ans.");
+                            Swal.fire({
+                                title: 'Âge non requis',
+                                text: "L'âge légal pour le mariage en Côte d'Ivoire est de 18 ans au minimum.",
+                                icon: 'error',
+                                confirmButtonColor: '#1f4083'
+                            });
+                        }
+                    } else if (!dateNaissance.value) {
+                        isValid = false;
+                        displayError(dateNaissance, "La date de naissance est obligatoire.");
                     }
                 }
             } else if (step === 3) {

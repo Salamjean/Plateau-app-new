@@ -28,6 +28,8 @@ class saveMariageRequest extends FormRequest
             'pour' => 'nullable|string',
             'relation' => 'nullable|string',
             'document_autorisation' => 'required_if:relation,connaissance|nullable|mimes:png,jpg,jpeg,pdf|max:25600',
+            'dateNaissanceEpoux' => 'nullable|date|before:-18 years',
+            'dateNaissanceEpouse' => 'nullable|date|before:-18 years',
         ];
     }
 
@@ -41,6 +43,8 @@ class saveMariageRequest extends FormRequest
             'document_autorisation.required_if' => 'Le document d\'autorisation est obligatoire pour une connaissance.',
             'extraitMariage.mimes' => 'Le format de l\'ancien acte doit être PNG, JPG, JPEG ou PDF.',
             'extraitMariage.max' => 'La taille de l\'ancien acte ne doit pas dépasser 25Mo.',
+            'dateNaissanceEpoux.before' => 'Le conjoint doit avoir au moins 18 ans.',
+            'dateNaissanceEpouse.before' => 'Le conjoint doit avoir au moins 18 ans.',
         ];
     }
 }
