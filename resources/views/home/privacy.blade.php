@@ -85,7 +85,7 @@
 
                                 <div class="text-center">
                                     <p class="small text-muted mb-4">Pour toute question concernant vos données :</p>
-                                    <a href="{{ route('home.contact') }}"
+                                    <a href="#"
                                         class="btn btn-outline-primary rounded-pill px-5 fw-800">NOUS CONTACTER</a>
                                 </div>
                             </div>

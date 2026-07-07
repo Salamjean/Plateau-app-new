@@ -21,7 +21,7 @@
 </head>
 
 <body class="play-init">
-    <!-- SCRIPT ANTI-CLIGNOTEMENT (À l'intérieur du body) -->
+    <!-- SCRIPT ANTI-CLIGNOTEMENT -->
     <script>
         // 1) Aucune animation/transition au premier rendu (refresh) — retiré après le 1er paint
         document.documentElement.classList.add('fp-preload');
@@ -92,7 +92,7 @@
                         <div class="feature-icon"><i class="far fa-clock"></i></div>
                         <div class="feature-text">
                             <strong>Disponible</strong>
-                            24/24
+                            24h/24 
                         </div>
                     </div>
                     <div class="feature-item">
@@ -113,13 +113,14 @@
                             <span>l'App Store</span>
                         </div>
                     </a>
-                  <a href="#" class="btn-store">
-    <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play" style="width: 32px; height: 32px; object-fit: contain;">
-    <div class="store-text">
-        <small>Disponible sur</small>
-        <span>Google Play</span>
-    </div>
-</a>
+                    <a href="#" class="btn-store">
+                        <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play"
+                            style="width: 32px; height: 32px; object-fit: contain;">
+                        <div class="store-text">
+                            <small>Disponible sur</small>
+                            <span>Google Play</span>
+                        </div>
+                    </a>
                 </div>
 
                 <!-- Trust / Témoignage -->
@@ -149,8 +150,7 @@
             <div class="hero-right">
                 <div class="hero-phone-scroll-wrapper">
                     <img src="{{ asset('assets/landing/iphone-mockup.png') }}" alt="Aperçu de l'application Plateau"
-                        class="iphone-mockup"
-                        onerror="this.style.display='none';">
+                        class="iphone-mockup" onerror="this.style.display='none';">
                 </div>
             </div>
 
@@ -223,8 +223,8 @@
 
             <!-- COLONNE CENTRE : iPhone mockup tourné -->
             <div class="about-phone-wrap reveal">
-                <img src="{{ asset('assets/assets/img/telephone2HD.png') }}" alt="Plateau Apps mobile" class="about-phone"
-                    onerror="this.style.display='none';">
+                <img src="{{ asset('assets/assets/img/telephone2HD.png') }}" alt="Plateau Apps mobile"
+                    class="about-phone" onerror="this.style.display='none';">
             </div>
 
             <!-- COLONNE DROITE : À Propos -->
@@ -366,14 +366,15 @@
             Comment ça <span class="accent">marche ?</span>
         </h2>
         <div class="swipe-hint">
-            <span  style="color: white;">Glisser pour suivre les étapes</span>
+            <span style="color: white;">Glisser pour suivre les étapes</span>
             <i class="fas fa-arrow-right"></i>
         </div>
 
         <div class="how-phones-row">
             <div class="how-phone-item reveal-up stagger-1">
                 <div class="how-phone-img-wrap">
-                    <img src="{{ asset('assets/landing/how-naissance.png') }}" alt="Acte de naissance" class="how-phone-img">
+                    <img src="{{ asset('assets/landing/how-naissance.png') }}" alt="Acte de naissance"
+                        class="how-phone-img">
                 </div>
                 <div class="how-step-line"></div>
                 <div class="how-step-info">
@@ -387,7 +388,8 @@
 
             <div class="how-phone-item reveal-up stagger-2">
                 <div class="how-phone-img-wrap">
-                    <img src="{{ asset('assets/landing/how-mariage.png') }}" alt="Acte de mariage" class="how-phone-img">
+                    <img src="{{ asset('assets/landing/how-mariage.png') }}" alt="Acte de mariage"
+                        class="how-phone-img">
                 </div>
                 <div class="how-step-line"></div>
                 <div class="how-step-info">
@@ -500,8 +502,8 @@
             </div>
         </div>
 
-        
-        
+
+
 
         <div class="download-bar">
             <h3>Téléchargez Plateau Apps</h3>
@@ -510,9 +512,12 @@
             <div class="download-row">
                 <div class="download-trust">
                     <div class="avatars">
-                        <img class="avatar" src="{{ asset('assets/assets/img/f25c4eb80c53c7b4676b4cd35692b492096ca587.png') }}" alt="A">
-                        <img class="avatar" src="{{ asset('assets/assets/img/6e217eb5ce3a756b4a782e9e0063eae0ae5feff0.jpg') }}" alt="B">
-                        <img class="avatar" src="{{ asset('assets/assets/img/15e0fef8b16d59d0883862bed53bfe190399f9c4.png') }}" alt="C">
+                        <img class="avatar"
+                            src="{{ asset('assets/assets/img/f25c4eb80c53c7b4676b4cd35692b492096ca587.png') }}" alt="A">
+                        <img class="avatar"
+                            src="{{ asset('assets/assets/img/6e217eb5ce3a756b4a782e9e0063eae0ae5feff0.jpg') }}" alt="B">
+                        <img class="avatar"
+                            src="{{ asset('assets/assets/img/15e0fef8b16d59d0883862bed53bfe190399f9c4.png') }}" alt="C">
                     </div>
                     <div class="info">
                         <strong>+12000 habitants</strong>
@@ -529,19 +534,20 @@
                     </div>
                 </a>
 
-               <a href="#" class="btn-store-dark">
-    <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play" style="width: 26px; height: 26px; object-fit: contain;">
-    <div class="store-text">
-        <small>Disponible sur</small>
-        <span>Google Play</span>
-    </div>
-</a>
+                <a href="#" class="btn-store-dark">
+                    <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play"
+                        style="width: 26px; height: 26px; object-fit: contain;">
+                    <div class="store-text">
+                        <small>Disponible sur</small>
+                        <span>Google Play</span>
+                    </div>
+                </a>
             </div>
         </div>
 
         <div class="footer-grid-wrapper">
             <div class="footer-grid-bg"></div>
-            
+
             <div class="download-separator">
                 <a href="#" class="scroll-down-final"><i class="fas fa-chevron-down"></i></a>
             </div>
@@ -549,7 +555,8 @@
             <footer class="footer">
                 <div class="footer-container">
                     <div class="footer-left">
-                        <img src="{{ asset('assets/assets/img/plateau-mart1.png') }}" alt="Plateau Smart City" class="logo-img">
+                        <img src="{{ asset('assets/assets/img/plateau-mart1.png') }}" alt="Plateau Smart City"
+                            class="logo-img">
                         <div class="footer-tagline">Une administration moderne,<br>proche de vous, pour vous.</div>
                     </div>
 
@@ -709,11 +716,13 @@
                 gsap.set(entering, { opacity: 0, scale: 1 });
                 gsap.to('.hero-circle-bg', { scale: 8, duration: 0.7, ease: 'power2.inOut' });
                 gsap.to(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { opacity: 0, duration: 0.3, ease: 'power2.out' });
-                gsap.to(entering, { opacity: 1, duration: 0.55, delay: 0.15, ease: 'power2.out', onComplete: () => {
-                    leaving.classList.remove('fp-active'); gsap.set('.hero-circle-bg', { clearProps: 'transform' });
-                    gsap.set(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { clearProps: 'opacity' });
-                    gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' }); leaving.style.transition = ''; entering.style.transition = '';
-                }});
+                gsap.to(entering, {
+                    opacity: 1, duration: 0.55, delay: 0.15, ease: 'power2.out', onComplete: () => {
+                        leaving.classList.remove('fp-active'); gsap.set('.hero-circle-bg', { clearProps: 'transform' });
+                        gsap.set(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { clearProps: 'opacity' });
+                        gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' }); leaving.style.transition = ''; entering.style.transition = '';
+                    }
+                });
                 return;
             }
             if (enteringIdx === 0) {
@@ -724,11 +733,13 @@
                 gsap.set(leaving, { opacity: 1, scale: 1 });
                 gsap.to('.hero-circle-bg', { scale: 1, duration: 0.7, ease: 'power2.inOut' });
                 gsap.to(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { opacity: 1, duration: 0.7, delay: 0.1, ease: 'power2.out' });
-                gsap.to(leaving, { opacity: 0, scale: 0.94, duration: 0.65, ease: 'power2.inOut', onComplete: () => {
-                    leaving.classList.remove('fp-active'); gsap.set('.hero-circle-bg', { clearProps: 'transform' });
-                    gsap.set(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { clearProps: 'opacity' });
-                    gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' }); leaving.style.transition = ''; entering.style.transition = '';
-                }});
+                gsap.to(leaving, {
+                    opacity: 0, scale: 0.94, duration: 0.65, ease: 'power2.inOut', onComplete: () => {
+                        leaving.classList.remove('fp-active'); gsap.set('.hero-circle-bg', { clearProps: 'transform' });
+                        gsap.set(['.top-bar', '.hero-container', '.scroll-down', '.deco-circle'], { clearProps: 'opacity' });
+                        gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' }); leaving.style.transition = ''; entering.style.transition = '';
+                    }
+                });
                 return;
             }
             gsap.killTweensOf([leaving, entering]);
@@ -736,10 +747,12 @@
             entering.style.zIndex = '6'; leaving.style.zIndex = '5';
             gsap.set(entering, { opacity: 0, scale: dir === 'up' ? 0.94 : 1.06 }); gsap.set(leaving, { opacity: 1, scale: 1 });
             gsap.to(entering, { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out' });
-            gsap.to(leaving, { opacity: 0, scale: dir === 'up' ? 1.06 : 0.94, duration: 0.65, ease: 'power2.in', onComplete: () => {
-                leaving.classList.remove('fp-active'); gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' });
-                leaving.style.transition = ''; entering.style.transition = '';
-            }});
+            gsap.to(leaving, {
+                opacity: 0, scale: dir === 'up' ? 1.06 : 0.94, duration: 0.65, ease: 'power2.in', onComplete: () => {
+                    leaving.classList.remove('fp-active'); gsap.set([leaving, entering], { clearProps: 'opacity,transform,zIndex' });
+                    leaving.style.transition = ''; entering.style.transition = '';
+                }
+            });
         }
 
         function fpGoTo(idx) {
@@ -750,7 +763,7 @@
             const leaving = fpPages[fpIdx]; const entering = fpPages[idx];
             entering.scrollTop = 0; fpRevealIn(entering);
 
-            if (HAS_GSAP) { fpAnimateSwap(leaving, entering, idx > fpIdx ? 'up' : 'down'); } 
+            if (HAS_GSAP) { fpAnimateSwap(leaving, entering, idx > fpIdx ? 'up' : 'down'); }
             else {
                 const direction = idx > fpIdx ? 'up' : 'down';
                 leaving.classList.remove('fp-active'); leaving.classList.add(direction === 'up' ? 'fp-leaving-up' : 'fp-leaving-down');
@@ -759,13 +772,13 @@
 
             const backToTopBtn = document.getElementById('backToTop');
             if (backToTopBtn) {
-                if (idx === 4) { backToTopBtn.classList.add('show'); } 
+                if (idx === 4) { backToTopBtn.classList.add('show'); }
                 else { backToTopBtn.classList.remove('show'); }
             }
 
             const phone1Sel = '.how-phone-item:nth-child(1) .how-phone-img';
             const phone3Sel = '.how-phone-item:nth-child(3) .how-phone-img';
-            
+
             if (idx === 3 && fpIdx === 2) PP_SLOT_CONFIG[3].sel = phone1Sel;
             else if (idx === 4 && fpIdx === 3) PP_SLOT_CONFIG[3].sel = phone3Sel;
             else if (idx === 3 && fpIdx === 4) PP_SLOT_CONFIG[3].sel = phone3Sel;
@@ -775,13 +788,13 @@
 
             if (PP_ENABLED && ppEl) {
                 if (fpIdx === 3 && idx === 4) {
-                    const slot3 = ppSlots[3]; 
+                    const slot3 = ppSlots[3];
                     gsap.set(ppEl, { x: slot3.x, y: slot3.y, scale: slot3.width / 100, rotation: slot3.rotate });
                     ppEl.src = slot3.img; ppCurrentImg = slot3.img;
                 } else if (fpIdx === 3 && idx === 2) {
-                    const slot1 = ppSlots[3]; 
+                    const slot1 = ppSlots[3];
                     gsap.set(ppEl, { x: slot1.x, y: slot1.y, scale: slot1.width / 100, rotation: slot1.rotate });
-                    ppEl.src = slot1.img; ppCurrentImg = slot1.img; 
+                    ppEl.src = slot1.img; ppCurrentImg = slot1.img;
                 }
             }
 
@@ -844,8 +857,8 @@
             const atTop = cur.scrollTop <= 2;
             const stepDown = e.key === 'PageDown' ? cur.clientHeight * 0.85 : 160;
             const stepUp = e.key === 'PageUp' ? cur.clientHeight * 0.85 : 160;
-            if (['ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); if (!atBottom) cur.scrollBy({ top: stepDown, behavior: 'smooth' }); else fpGoTo(fpIdx + 1); } 
-            else if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); if (!atTop) cur.scrollBy({ top: -stepUp, behavior: 'smooth' }); else fpGoTo(fpIdx - 1); } 
+            if (['ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); if (!atBottom) cur.scrollBy({ top: stepDown, behavior: 'smooth' }); else fpGoTo(fpIdx + 1); }
+            else if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); if (!atTop) cur.scrollBy({ top: -stepUp, behavior: 'smooth' }); else fpGoTo(fpIdx - 1); }
             else if (e.key === 'Home') { e.preventDefault(); fpGoTo(0); }
             else if (e.key === 'End') { e.preventDefault(); fpGoTo(fpPages.length - 1); }
         });
@@ -874,7 +887,7 @@
         window.addEventListener('load', () => setTimeout(fpRemovePreload, 60));
 
         document.addEventListener('mousemove', (e) => {
-            if(!FP_ENABLED) return;
+            if (!FP_ENABLED) return;
             const x = (e.clientX / window.innerWidth - 0.5) * 20;
             const y = (e.clientY / window.innerHeight - 0.5) * 20;
             const c2 = document.querySelector('.deco-circle.c2');
@@ -974,4 +987,5 @@
         }
     </script>
 </body>
+
 </html>

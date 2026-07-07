@@ -51,35 +51,35 @@ class TresorPayService
             ];
         }
 
-        // Nettoyage et formatage du numéro de téléphone
-        $telephone = preg_replace('/[^0-9]/', '', $telephone);
-        if (strlen($telephone) == 8) {
-            $telephone = '07' . $telephone; // Formatage rapide si besoin
-        }
+        // Normalisation des champs sensibles validés côté TrésorPay
+        $telephoneNormalise = $this->normalizeTelephone($telephone);
+        $telephoneTresor = '0767664010';
+        $montantNormalise = max(1, (int) round((float) $montant));
+        $codePaiementNormalise = $this->normalizeCodePaiement($codePaiement);
+        $callbackBaseUrl = rtrim((string) env('TRESORPAY_CALLBACK_URL', 'https://carol-peritectic-bentley.ngrok-free.dev/'), '/');
 
         $payload = [
             'Token' => $token,
             'Nom_usager' => substr($nom, 0, 30),
             'Prenom_usager' => substr($prenom, 0, 30),
             'Email' => 'contact@plateau.ci',
-            'Telephone' => '0767664010',
+            'Telephone' => $telephoneTresor,
             'Additif' => 'Transfert auto timbre',
-            'code_paiement' => $codePaiement,
-            'Url_Retour' => 'https://localhost',
-            'Url_Callback' => 'https://localhost',
+            'code_paiement' => $codePaiementNormalise,
+            'Url_Retour' => $callbackBaseUrl,
+            'Url_Callback' => $callbackBaseUrl,
             'TypeOperation' => '1', // 1 = Paiement Direct (débit)
             'TCredentiel' => [
                 [
                     'Credentiel' => $this->credentialId,
                     'Produits' => [
                         [
-                            'LibelleProduit' => 'TIMBRE ETAT CIVIL',
-                            'Montant' => (string) $montant,
+                            'LibelleProduit' => 'RECETTE NON LISTEE',
+                            'Montant' => (string) $montantNormalise,
                             'IdProduit' => '0',
                             'nEstUnServicePrive' => '0',
-                            'TypeProduit' => '0',
+                            'TypeProduit' => '1',
                             'Reference_code_Produit' => '',
-                            'Reference_Code_Produit' => '',
                             'Quantite' => '1'
                         ]
                     ]
@@ -88,12 +88,20 @@ class TresorPayService
         ];
 
         try {
+            Log::info('TrésorPay - Init payload (sanitized)', [
+                'code_paiement' => $codePaiementNormalise,
+                'telephone' => $telephoneTresor,
+                'telephone_user_input' => $telephoneNormalise,
+                'montant' => $montantNormalise,
+                'url_retour' => $callbackBaseUrl,
+            ]);
+
             $response = Http::withoutVerifying()->asJson()->post("{$this->baseUrl}/InitierPaiement_V1", $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
                 if (isset($data['code']) && $data['code'] == 200) {
-                    Log::info("TrésorPay - Paiement Direct initié avec succès pour {$codePaiement}. Message: " . ($data['cleretour'] ?? ''));
+                    Log::info("TrésorPay - Paiement Direct initié avec succès pour {$codePaiementNormalise}. Message: " . ($data['cleretour'] ?? ''));
                     return [
                         'success' => true,
                         'message' => $data['cleretour'] ?? 'Paiement initié.'
@@ -101,17 +109,50 @@ class TresorPayService
                 }
             }
 
-            Log::error("TrésorPay - Échec initialisation paiement pour {$codePaiement}: Status " . $response->status() . ' - Body: ' . $response->body());
+            Log::error("TrésorPay - Échec initialisation paiement pour {$codePaiementNormalise}: Status " . $response->status() . ' - Body: ' . $response->body());
             return [
                 'success' => false,
                 'message' => 'L\'initialisation TrésorPay a retourné une erreur.'
             ];
         } catch (\Exception $e) {
-            Log::error("TrésorPay Exception Paiement Direct pour {$codePaiement}: " . $e->getMessage());
+            Log::error("TrésorPay Exception Paiement Direct pour {$codePaiementNormalise}: " . $e->getMessage());
             return [
                 'success' => false,
                 'message' => $e->getMessage()
             ];
         }
+    }
+
+    private function normalizeTelephone($telephone): string
+    {
+        $telephone = preg_replace('/[^0-9]/', '', (string) $telephone);
+
+        // Convertit 225XXXXXXXXXX vers 0XXXXXXXXX
+        if (str_starts_with($telephone, '225') && strlen($telephone) === 13) {
+            $telephone = substr($telephone, 3);
+        }
+
+        // Certains numéros sont saisis au format 8 chiffres
+        if (strlen($telephone) === 8) {
+            $telephone = '07' . $telephone;
+        }
+
+        if (strlen($telephone) !== 10) {
+            return '0767664010';
+        }
+
+        return $telephone;
+    }
+
+    private function normalizeCodePaiement($codePaiement): string
+    {
+        // TrésorPay accepte un identifiant partenaire en chaîne, mais le format numérique est le plus robuste en pratique.
+        $digitsOnly = preg_replace('/\D/', '', (string) $codePaiement);
+
+        if ($digitsOnly === '') {
+            $digitsOnly = (string) now()->format('ymdHis');
+        }
+
+        return substr($digitsOnly, 0, 20);
     }
 }
