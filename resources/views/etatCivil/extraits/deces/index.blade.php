@@ -389,10 +389,8 @@
                 </table>
             </div>
 
-            @if ($deces->count() > 0)
-                <div class="p-4 border-top">
-                    {{ $deces->links() }}
-                </div>
+             @if ($deces->hasPages())
+                {{ $deces->links('components.custom-pagination') }}
             @endif
         </div>
     </div>
