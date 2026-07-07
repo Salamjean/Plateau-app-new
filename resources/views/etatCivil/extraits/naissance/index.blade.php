@@ -196,8 +196,19 @@
         }
 
         .pagination {
+            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
             gap: 5px;
+            padding-left: 0;
+            list-style: none;
+            margin: 0;
+        }
+
+        .pagination .page-item {
+            display: inline-block;
+            margin: 0;
         }
 
         .pagination .page-link {
