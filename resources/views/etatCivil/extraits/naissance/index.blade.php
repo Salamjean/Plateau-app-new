@@ -1,4 +1,4 @@
-﻿@extends('etatCivil.layouts.template')
+@extends('etatCivil.layouts.template')
 @section('content')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -197,17 +197,47 @@
 
         .pagination {
             justify-content: center;
+            gap: 5px;
         }
 
         .pagination .page-link {
-            color: #1f4083;
-            border-radius: 5px;
-            margin: 0 3px;
+            color: #475569;
+            border-radius: 8px;
+            margin: 0;
+            border: 1px solid #e2e8f0;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            background-color: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .pagination .page-link:hover {
+            background-color: #f8fafc;
+            color: var(--primary-color);
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .pagination .page-item.active .page-link {
-            background-color: #1f4083;
-            border-color: #1f4083;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(31, 64, 131, 0.3);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #94a3b8;
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Badges pour Action */
@@ -415,6 +445,7 @@
             </div>
 
             @if ($naissances->hasPages())
+                @php $naissances->appends(request()->query()); @endphp
                 <div class="d-flex justify-content-between align-items-center mt-4">
                     <div class="text-muted">
                         Affichage de <strong>{{ $naissances->firstItem() }}</strong> à
@@ -459,17 +490,8 @@
                                 $current = $naissances->currentPage();
                                 $last = $naissances->lastPage();
                                 $start = max($current - 2, 1);
-                                $end = min($current + 2, $last);
-
-                                if ($start > 1) {
-                                    $start = max($current - 1, 1);
-                                    $end = min($current + 1, $last);
-                                }
-
-                                if ($end - $start < 2) {
-                                    $start = max($current - 2, 1);
-                                    $end = min($current + 2, $last);
-                                }
+                                $end = min($start + 4, $last);
+                                $start = max($end - 4, 1);
                             @endphp
 
                             @if ($start > 1)
