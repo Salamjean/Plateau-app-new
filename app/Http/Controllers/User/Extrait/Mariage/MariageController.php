@@ -285,6 +285,33 @@ class MariageController extends Controller
 
                 Log::error('Échec de la création de la session MTN pour ' . $mariage->reference);
                 return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                $tresorPhone = $request->input('mtn_number') ?: $mariage->contact_destinataire;
+                $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                $tresorService = app(\App\Services\TresorPayService::class);
+                $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $mariage->reference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                if ($response && ($response['success'] ?? false)) {
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                'reference' => $mariage->reference,
+                                'type' => 'mariage'
+                            ]),
+                            'reference' => $mariage->reference,
+                        ]);
+                    }
+
+                    return redirect()->route('user.payment.tresorpay.waiting', [
+                        'reference' => $mariage->reference,
+                        'type' => 'mariage'
+                    ]);
+                }
+
+                Log::error('Échec de la création de la session TrésorPay pour ' . $mariage->reference);
+                return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
             } else {
                 // Générer la session CinetPay
                 $channels = 'ALL';
@@ -673,6 +700,30 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         ]);
                     }
                     return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                    $tresorPhone = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                    $tresorService = app(\App\Services\TresorPayService::class);
+                    $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                    if ($response && ($response['success'] ?? false)) {
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                    'reference' => $transactionReference,
+                                    'type' => 'mariage'
+                                ]),
+                                'reference' => $transactionReference,
+                            ]);
+                        }
+                        return redirect()->route('user.payment.tresorpay.waiting', [
+                            'reference' => $transactionReference,
+                            'type' => 'mariage'
+                        ]);
+                    }
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
                 } else {
                     $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
                     $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');

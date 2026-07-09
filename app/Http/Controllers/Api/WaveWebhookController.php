@@ -144,6 +144,27 @@ class WaveWebhookController extends Controller
             $amount = isset($checkoutData['amount']) ? (float) $checkoutData['amount'] : 0;
             $isGroupe = in_array($type, ['naissance_groupe', 'mariage_groupe', 'deces_groupe'], true);
 
+            if ($amount <= 0) {
+                if ($isModification) {
+                    $cacheKey = 'pending_delivery_update_' . $demande->reference;
+                    if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                        $pendingData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+                        $nouveauTotal = (float) ($pendingData['montant_timbre'] ?? 0) + (float) ($pendingData['montant_livraison'] ?? 0);
+                    } else {
+                        $nouveauTotal = (float) ($demande->montant_timbre ?? 0) + (float) ($demande->montant_livraison ?? 0);
+                    }
+
+                    $dejaPaye = Paiement::where("{$type}_id", $demande->id)
+                        ->where('status', 'ACCEPTED')
+                        ->where('transaction_id', '!=', $clientReference)
+                        ->sum('montant');
+                        
+                    $amount = max(0.0, $nouveauTotal - $dejaPaye);
+                } else {
+                    $amount = $isGroupe ? (float) $demande->montant_total : (float) ($demande->montant_timbre ?? 0) + (float) ($demande->montant_livraison ?? 0);
+                }
+            }
+
             $partTimbre = 0;
             $partLivraison = 0;
 

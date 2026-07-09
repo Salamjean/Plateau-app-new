@@ -59,6 +59,8 @@ Route::prefix('webhooks')->group(function () {
         ->name('api.wave.notify');
     Route::match(['get', 'post', 'put'], '/mtn/notify', [\App\Http\Controllers\Api\Webhook\MtnWebhookController::class, 'handle'])
         ->name('api.mtn.notify');
+    Route::post('/tresorpay/notify', [\App\Http\Controllers\Api\TresorPayWebhookController::class, 'handle'])
+        ->name('api.tresorpay.notify');
 });
 
 // Routes de polling de statut (publiques)
@@ -139,6 +141,7 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::get('/paiements', [StatistiqueController::class, 'historiquePaiements']);
             Route::get('/paiements/detail/{transactionId}', [StatistiqueController::class, 'getPaiementByTransaction']);
             Route::post('/suivi-reference', [StatistiqueController::class, 'suiviDemandeParReference']);
+            Route::post('/suivi-tresorpay', [StatistiqueController::class, 'suiviDemandeTresorPay']);
             Route::get('/{type}/{id}', [StatistiqueController::class, 'getDemandeSpecifique']);
             Route::get('/{type}/{id}/suivi', [StatistiqueController::class, 'suiviDemande']);
         });

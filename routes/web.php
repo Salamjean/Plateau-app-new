@@ -599,6 +599,8 @@ Route::get('/user/payment/success', [\App\Http\Controllers\User\PaymentControlle
 Route::get('/user/payment/cancel', [\App\Http\Controllers\User\PaymentController::class, 'cancel'])->name('payment.cancel');
 Route::get('/user/payment/mtn-waiting', [\App\Http\Controllers\User\PaymentController::class, 'mtnWaiting'])->name('user.payment.mtn.waiting');
 Route::post('/user/payment/mtn-check', [\App\Http\Controllers\User\PaymentController::class, 'mtnCheck'])->name('user.payment.mtn.check');
+Route::get('/user/payment/tresorpay-waiting', [\App\Http\Controllers\User\PaymentController::class, 'tresorpayWaiting'])->name('user.payment.tresorpay.waiting');
+Route::post('/user/payment/tresorpay-check', [\App\Http\Controllers\User\PaymentController::class, 'tresorpayCheck'])->name('user.payment.tresorpay.check');
 
 //Les routes definition du accès 
 Route::get('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'defineAccess']);
@@ -630,13 +632,13 @@ Route::post('/validate-dhl-account/{email}', [AuthenticateDhl::class, 'submitDef
 // Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app',[DemandeNaissanceController::class, 'showRedirectPage']);
 
 
-Route::match(['GET', 'POST'], '/deces/paiement/redirect-to-app', [DemandeDecesController::class, 'showRedirectPage'])
+Route::match(['GET', 'POST'], '/deces/paiement/{transaction_id?}', [DemandeDecesController::class, 'showRedirectPage'])
     ->name('deces.redirect_to_app');
 
-Route::match(['GET', 'POST'], '/mariage/paiement/redirect-to-app', [DemandeMariageController::class, 'showRedirectPage'])
+Route::match(['GET', 'POST'], '/mariage/paiement/{transaction_id?}', [DemandeMariageController::class, 'showRedirectPage'])
     ->name('mariage.redirect_to_app');
 
-Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app', [DemandeNaissanceController::class, 'showRedirectPage'])
+Route::match(['GET', 'POST'], '/naissance/paiement/{transaction_id?}', [DemandeNaissanceController::class, 'showRedirectPage'])
     ->name('naissance.redirect_to_app');
 
 // Routes de demande de suppression de compte (Publiques)

@@ -631,6 +631,182 @@ class StatistiqueController extends Controller
             return response()->json(['error' => 'Erreur serveur'], 500);
         }
     }
+
+    public function suiviDemandeTresorPay(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
+
+            $reference = $request->input('transaction_id') ?? $request->input('reference');
+
+            if (empty($reference)) {
+                return response()->json(['error' => 'La référence de transaction TrésorPay est requise'], 400);
+            }
+
+            // Recherche par transaction_id dans la table paiements
+            // Utilisation d'un LIKE et orderBy('desc') pour trouver la modification la plus récente 
+            // si le mobile n'a envoyé que la référence de base
+            $paiementTresor = Paiement::where('transaction_id', 'LIKE', $reference . '%')
+                ->whereIn('operator_id', ['MTN', 'TRESORPAY', 'TRESORMONEY'])
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $demande = null;
+            $type = null;
+
+            if ($paiementTresor) {
+                if ($paiementTresor->naissance_id) {
+                    $demande = Naissance::find($paiementTresor->naissance_id);
+                    $type = 'naissance';
+                } elseif ($paiementTresor->mariage_id) {
+                    $demande = Mariage::find($paiementTresor->mariage_id);
+                    $type = 'mariage';
+                } elseif ($paiementTresor->deces_id) {
+                    $demande = Deces::find($paiementTresor->deces_id);
+                    $type = 'deces';
+                }
+            }
+
+            // Si aucune demande trouvée avec cette référence de transaction
+            if (!$demande) {
+                return response()->json(['error' => 'Aucune demande trouvée avec cette transaction TrésorPay'], 404);
+            }
+
+            // Calculer le statut personnalisé
+            $statutCalcule = $this->calculerStatut($demande);
+
+            // Convertir le modèle en tableau
+            $demandeData = $demande->toArray();
+            $demandeData['type_demande'] = $type;
+            $demandeData['statut'] = $statutCalcule;
+
+            // Ajouter une information sur la propriété de la demande
+            $demandeData['appartient_a_utilisateur'] = $demande->user_id === $user->id;
+
+            // RÉCUPÉRATION DU PAIEMENT (On l'a déjà)
+            $paiementInfo = $paiementTresor;
+
+            // RÉCUPÉRATION DES INFORMATIONS DU LIVREUR
+            $livreurInfo = null;
+            if ($demande->livreur_id) {
+                $livreur = \App\Models\Livreur::select('name', 'prenom', 'contact', 'profile_picture')
+                    ->where('id', $demande->livreur_id)
+                    ->first();
+
+                if ($livreur) {
+                    $livreurInfo = [
+                        'nom' => $livreur->name,
+                        'prenom' => $livreur->prenom,
+                        'contact' => $livreur->contact,
+                        'profile_picture' => $livreur->profile_picture
+                            ? "/storage/" . $livreur->profile_picture
+                            : null
+                    ];
+                }
+            }
+
+            // Construction de l'historique
+            $historique = [
+                [
+                    'statut' => $demande->etat,
+                    'date' => $demande->updated_at ? $demande->updated_at->format('d/m/Y H:i') : 'N/A',
+                    'description' => $this->getDescriptionStatut($demande->etat)
+                ]
+            ];
+
+            if ($demande->etat === 'traité' && $demande->updated_at) {
+                $historique[] = [
+                    'statut' => 'traitement',
+                    'date' => $demande->updated_at->format('d/m/Y H:i'),
+                    'description' => 'Demande traitée avec succès'
+                ];
+            }
+
+            $historique[] = [
+                'statut' => 'création',
+                'date' => $demande->created_at ? $demande->created_at->format('d/m/Y H:i') : 'N/A',
+                'description' => 'Demande créée'
+            ];
+
+            $historique = array_reverse($historique);
+
+            // DOCUMENTS
+            $documents = [];
+
+            if ($type === 'naissance') {
+                if ($demande->CNI) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->CNI,
+                        'type' => 'image',
+                        'nom' => "Carte d'identité"
+                    ];
+                }
+            } elseif ($type === 'mariage') {
+                if ($demande->pieceIdentite) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->pieceIdentite,
+                        'type' => 'image',
+                        'nom' => "Pièce d'identité"
+                    ];
+                }
+                if ($demande->extraitMariage) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->extraitMariage,
+                        'type' => 'image',
+                        'nom' => "Extrait de mariage"
+                    ];
+                }
+            } elseif ($type === 'deces') {
+                if ($demande->CNIdfnt) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->CNIdfnt,
+                        'type' => 'image',
+                        'nom' => "CNI du défunt"
+                    ];
+                }
+                if ($demande->CNIdcl) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->CNIdcl,
+                        'type' => 'image',
+                        'nom' => "CNI du déclarant"
+                    ];
+                }
+                if ($demande->documentMariage) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->documentMariage,
+                        'type' => 'image',
+                        'nom' => "Document de mariage"
+                    ];
+                }
+                if ($demande->RequisPolice) {
+                    $documents[] = [
+                        'uri' => "/storage/" . $demande->RequisPolice,
+                        'type' => 'image',
+                        'nom' => "Réquisition de police"
+                    ];
+                }
+            }
+
+            // RÉPONSE JSON
+            return response()->json([
+                'demande' => $demandeData,
+                'paiement' => $paiementInfo,
+                'livreur' => $livreurInfo,
+                'document' => $documents,
+                'historique' => $historique,
+                'prochaines_etapes' => $this->getProchainesEtapes($demande->etat),
+                'statut' => $statutCalcule
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur suiviDemandeTresorPay: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
+    }
+
     /**
      * Helper pour obtenir la description du statut
      */

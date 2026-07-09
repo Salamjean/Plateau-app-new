@@ -354,6 +354,30 @@ class NaissanceController extends Controller
                         ]);
                     }
                     return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                    $tresorPhone = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                    $tresorService = app(\App\Services\TresorPayService::class);
+                    $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                    if ($response && ($response['success'] ?? false)) {
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                    'reference' => $transactionReference,
+                                    'type' => 'naissance'
+                                ]),
+                                'reference' => $transactionReference,
+                            ]);
+                        }
+                        return redirect()->route('user.payment.tresorpay.waiting', [
+                            'reference' => $transactionReference,
+                            'type' => 'naissance'
+                        ]);
+                    }
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
                 } else {
                     $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
                     $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
@@ -724,6 +748,33 @@ class NaissanceController extends Controller
 
                 Log::error('Échec de la création de la session MTN pour ' . $naissance->reference);
                 return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                $tresorPhone = $request->input('mtn_number') ?: $naissance->contact_destinataire;
+                $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                $tresorService = app(\App\Services\TresorPayService::class);
+                $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $naissance->reference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                if ($response && ($response['success'] ?? false)) {
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                'reference' => $naissance->reference,
+                                'type' => 'naissance'
+                            ]),
+                            'reference' => $naissance->reference,
+                        ]);
+                    }
+
+                    return redirect()->route('user.payment.tresorpay.waiting', [
+                        'reference' => $naissance->reference,
+                        'type' => 'naissance'
+                    ]);
+                }
+
+                Log::error('Échec de la création de la session TrésorPay pour ' . $naissance->reference);
+                return redirect()->route('user.extrait.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
             } else {
                 // Générer la session CinetPay
                 $channels = 'ALL';

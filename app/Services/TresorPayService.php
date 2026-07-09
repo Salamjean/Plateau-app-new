@@ -7,10 +7,18 @@ use Illuminate\Support\Facades\Log;
 
 class TresorPayService
 {
-    protected $key = 'VAU34I';
-    protected $secret = '8A03R3';
-    protected $credentialId = 'gtvB04rzE_wkvb4S2';
-    protected $baseUrl = 'https://test.tresormoney.ci'; // Version sandbox/test
+    protected $key;
+    protected $secret;
+    protected $credentialId;
+    protected $baseUrl;
+
+    public function __construct()
+    {
+        $this->key = env('TRESORPAY_KEY');
+        $this->secret = env('TRESORPAY_SECRET');
+        $this->credentialId = env('TRESORPAY_CREDENTIAL_ID');
+        $this->baseUrl = env('TRESORPAY_BASE_URL');
+    }
 
     /**
      * Récupère le Token d'accès (30 minutes de validité)
@@ -29,12 +37,20 @@ class TresorPayService
                     return $data['Token'];
                 }
             }
-            Log::error('TrésorPay - Échec de récupération du Token: Status ' . $response->status() . ' - Body: ' . $response->body());
+            //Log::error('TrésorPay - Échec de récupération du Token: Status ' . $response->status());
             return null;
         } catch (\Exception $e) {
             Log::error('TrésorPay Exception Token: ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Alias pour initierPaiementDirect (utilisé par les contrôleurs)
+     */
+    public function initierPaiementDirect($telephone, $montant, $codePaiement, $nom = 'Client', $prenom = 'Plateau')
+    {
+        return $this->initierReversementDirect($telephone, $montant, $codePaiement, $nom, $prenom);
     }
 
     /**
@@ -109,7 +125,7 @@ class TresorPayService
                 }
             }
 
-            Log::error("TrésorPay - Échec initialisation paiement pour {$codePaiementNormalise}: Status " . $response->status() . ' - Body: ' . $response->body());
+            Log::error("TrésorPay - Échec initialisation paiement pour {$codePaiementNormalise}: Status " . $response->status());
             return [
                 'success' => false,
                 'message' => 'L\'initialisation TrésorPay a retourné une erreur.'
@@ -146,13 +162,13 @@ class TresorPayService
 
     private function normalizeCodePaiement($codePaiement): string
     {
-        // TrésorPay accepte un identifiant partenaire en chaîne, mais le format numérique est le plus robuste en pratique.
-        $digitsOnly = preg_replace('/\D/', '', (string) $codePaiement);
+        // On conserve les lettres et les chiffres (alphanumérique) pour que le Webhook puisse identifier la demande (ex: AN5058...)
+        $code = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $codePaiement);
 
-        if ($digitsOnly === '') {
-            $digitsOnly = (string) now()->format('ymdHis');
+        if ($code === '') {
+            $code = (string) now()->format('YmdHis');
         }
 
-        return substr($digitsOnly, 0, 20);
+        return substr($code, 0, 50);
     }
 }

@@ -1765,18 +1765,18 @@
                                                 <input type="hidden" id="swal-mtn_number" value="">
                                             ` : `
                                                 <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Moyen de paiement</h4>
-                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
                                                     <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                                                    </button>
-                                                    <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                                                    </button>
+                                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                            </button>
+                                            <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
+                                                <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
+                                            </button>
                                                     <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
                                                         <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
                                                     </button>
-                                                    <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                        <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
+                                                    <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                                                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
                                                     </button>
                                                 </div>
                                                 <input type="hidden" id="swal-payment_method" value="wave">
@@ -1831,7 +1831,7 @@
                         montant_timbre: needsPayment ? window.retraitData.montantTimbreTotal : 0,
                         montant_livraison: 0,
                         payment_method: payment_method,
-                        mtn_number: payment_method === 'mtn' ? payment_number : '',
+                        mtn_number: (payment_method === 'mtn' || payment_method === 'tresorpay') ? payment_number : '',
                         wave_number: ''
                     };
                 }
@@ -2180,18 +2180,18 @@
                                                             <input type="hidden" id="swal-mtn_number" value="">
                                                         ` : `
                                                             <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
-                                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
                                                                 <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                                                                </button>
+                                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                            </button>
+                                            <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
+                                                <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
+                                            </button>
                                                                 <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
                                                                     <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
                                                                 </button>
                                                                 <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
                                                                     <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                                                                </button>
-                                                                <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                                    <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
                                                                 </button>
                                                             </div>
                                                             <input type="hidden" id="swal-payment_method" value="wave">
@@ -2415,6 +2415,11 @@
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';
                 document.getElementById('payment-phone-container').style.display = 'none';
+            } else if (method === 'tresorpay') {
+                activeBtn.style.border = '2px solid #e35205';
+                activeBtn.style.backgroundColor = '#fff5f0';
+                document.getElementById('payment-phone-container').style.display = 'block';
+                document.getElementById('payment-phone-label').innerText = 'Numéro TrésorMoney (ex: 0767664010)';
             } else if (method === 'mtn') {
                 activeBtn.style.border = '2px solid #fcb711';
                 activeBtn.style.backgroundColor = '#fffbed';

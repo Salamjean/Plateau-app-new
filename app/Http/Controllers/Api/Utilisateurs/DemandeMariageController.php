@@ -63,7 +63,7 @@ class DemandeMariageController extends Controller
         $validator = Validator::make($request->all(), [
             'qty_simple' => 'nullable|integer|min:0|max:10',
             'qty_integral' => 'nullable|integer|min:0|max:10',
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
             'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
             'pieceIdentite' => 'required',
             'extraitMariage' => 'nullable',
@@ -250,8 +250,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 8. Succès ! Construire la réponse
-            $msg = strtolower($paymentMethod) === 'mtn'
-                ? 'Demande créée. Un message de validation de paiement (Push USSD) a été envoyé sur votre numéro MTN pour finaliser le paiement.'
+            $msg = in_array(strtolower($paymentMethod), ['mtn', 'tresorpay'])
+                ? 'Demande créée. Un message de validation de paiement (Push USSD) a été envoyé sur votre numéro pour finaliser le paiement.'
                 : 'Demande créée. Utilisez le payment_url pour payer.';
 
             return response()->json([
@@ -266,13 +266,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
                 ],
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['payment_url'],
-                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                    'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                    'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                    'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                     'mode' => 'PRODUCTION',
-                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                 ],
 
                 'data' => [
@@ -303,8 +305,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $baseUrl = config('app.url');
             $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$transactionReference}";
             $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$transactionReference}";
-            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($transactionReference) . "&type=mariage";
-            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($transactionReference) . "&type=mariage";
+            $fallbackReturnUrl = $baseUrl . "/mariage/paiement/" . urlencode($transactionReference);
+            $fallbackCancelUrl = $baseUrl . "/mariage/paiement/" . urlencode($transactionReference);
 
             // Si c'est Wave, utiliser le service Wave
             if (strtolower($paymentMethod) === 'wave') {
@@ -372,12 +374,44 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     ];
                 }
 
+            // Si c'est TrésorPay, utiliser TresorPayService
+            }
+            
+            if (strtolower($paymentMethod) === 'tresorpay') {
+                $tresorPhone = request()->input('mtn_number') ?: $mariage->contact_destinataire ?: (auth()->check() ? auth()->user()->contact : '');
+                $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                $tresorService = app(\App\Services\TresorPayService::class);
+                $nom = auth()->check() ? auth()->user()->name : 'Client';
+                $prenoms = auth()->check() ? auth()->user()->prenoms : 'Plateau';
+                
+                $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $nom, $prenoms);
+
+                if ($response && ($response['success'] ?? false)) {
+                    return [
+                        'success' => true,
+                        'payment_url' => null, // Pas de lien pour le push USSD
+                        'is_ussd_push' => true,
+                        'generated_transaction_id' => $transactionReference,
+                        'return_url_deep_link' => $returnUrl,
+                        'cancel_url_deep_link' => $cancelUrl,
+                        'return_url_web_fallback' => $fallbackReturnUrl,
+                        'cancel_url_web_fallback' => $fallbackCancelUrl,
+                    ];
+                }
+
+                return [
+                    'success' => false,
+                    'message' => 'Échec de l\'initiation du paiement TrésorPay (Push USSD). ' . ($response['message'] ?? ''),
+                    'error_details' => $response
+                ];
+            }
+
                 return [
                     'success' => false,
                     'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
                     'error_details' => $response
                 ];
-            }
 
             // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, Moov)
             $channels = 'ALL';
@@ -442,7 +476,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     {
         // 0. Validation de la méthode et du numéro MTN
         $validator = Validator::make($request->all(), [
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
             'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
         ], [
             'mtn_number.required_if' => 'Le numéro MTN est obligatoire lorsque le moyen de paiement choisi est MTN.',
@@ -509,13 +543,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['payment_url'],
-                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                    'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                    'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                    'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                     'mode' => 'PRODUCTION',
-                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                 ],
 
                 'data' => [
@@ -989,13 +1025,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                             'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
                         ],
                         'payment_details' => [
-                            'payment_url' => $paymentLinkResult['payment_url'],
-                            'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                            'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                            'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                            'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                            'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                             'mode' => 'PRODUCTION',
-                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                         ],
                         'data' => [
                             'demande' => $this->formatDemandeResponse($mariage, true)
@@ -1152,7 +1190,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Règles de livraison si choix_option est livraison
             if ($request->input('choix_option') === 'livraison') {
-                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay';
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay';
                 $rules['montant_timbre'] = 'required|numeric';
                 $rules['montant_livraison'] = 'required|numeric';
                 $rules['nom_destinataire'] = 'required|string|max:255';
@@ -1490,13 +1528,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                             'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
                         ],
                         'payment_details' => [
-                            'payment_url' => $paymentLinkResult['payment_url'],
-                            'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                            'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                            'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                            'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                            'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                             'mode' => 'PRODUCTION',
-                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                         ],
                         'data' => [
                             'demande' => $this->formatDemandeResponse($mariage, true)
@@ -1816,8 +1856,14 @@ Votre demande est maintenant en attente de traitement.";
     public function getPaymentStatus(Request $request, $reference): JsonResponse
     {
         try {
+            // Extraire la vraie référence s'il s'agit d'une modification
+            $baseReference = $reference;
+            if (str_contains($reference, '-MOD-')) {
+                $baseReference = explode('-MOD-', $reference)[0];
+            }
+
             // 1. Trouver la demande de mariage
-            $mariage = Mariage::where('reference', $reference)->first();
+            $mariage = Mariage::where('reference', $baseReference)->first();
 
             if (!$mariage) {
                 return response()->json(['status' => 'not_found', 'message' => 'Demande non trouvée'], 404);
@@ -2000,9 +2046,9 @@ Votre demande est maintenant en attente de traitement.";
      * NOUVEAU (Générique)
      * Affiche la page de redirection/statut après le paiement.
      */
-    public function showRedirectPage(Request $request)
+    public function showRedirectPage(Request $request, $transactionId = null)
     {
-        $transactionId = $request->input('transactionId') ?? $request->input('transaction_id');
+        $transactionId = $transactionId ?? $request->input('transactionId') ?? $request->input('transaction_id');
 
         if (!$transactionId) {
             return view('payments.redirect_to_app', ['transactionId' => null]);

@@ -688,12 +688,18 @@
                 </div>
                 
                 <h5 style="font-size: 0.85rem; font-weight: bold; color: #1f4083; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">💳 Moyen de paiement</h5>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
                     <button type="button" id="btn-mod-pay-wave" class="payment-mod-method-btn" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
                         <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 25px; object-fit: contain;">
                     </button>
+                    <button type="button" id="btn-mod-pay-tresorpay" class="payment-mod-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 25px; object-fit: contain;">
+                    </button>
                     <button type="button" id="btn-mod-pay-mtn" class="payment-mod-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
                         <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 25px; object-fit: contain;">
+                    </button>
+                    <button type="button" id="btn-mod-pay-orange" class="payment-mod-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 25px; object-fit: contain;">
                     </button>
                 </div>
                 <input type="hidden" name="payment_method" id="mod-payment_method" value="wave">
@@ -720,6 +726,7 @@
                     const paymentSection = dom.querySelector('#payment-section-modification');
                     const restePayerText = dom.querySelector('#modification-reste-payer-text');
                     const btnWave = dom.querySelector('#btn-mod-pay-wave');
+                    const btnTresorpay = dom.querySelector('#btn-mod-pay-tresorpay');
                     const btnMtn = dom.querySelector('#btn-mod-pay-mtn');
                     const inputPaymentMethod = dom.querySelector('#mod-payment_method');
                     const phoneContainer = dom.querySelector('#mod-payment-phone-container');
@@ -728,6 +735,10 @@
                         btnWave.addEventListener('click', () => {
                             btnWave.style.background = '#eff6ff';
                             btnWave.style.border = '2px solid #1e3a8a';
+                            if (btnTresorpay) {
+                                btnTresorpay.style.background = 'white';
+                                btnTresorpay.style.border = '1px solid #edf2f7';
+                            }
                             btnMtn.style.background = 'white';
                             btnMtn.style.border = '1px solid #edf2f7';
                             inputPaymentMethod.value = 'wave';
@@ -735,9 +746,27 @@
                             phoneContainer.querySelector('label').innerText = 'Numéro Wave';
                         });
 
+                        if (btnTresorpay) {
+                            btnTresorpay.addEventListener('click', () => {
+                                btnTresorpay.style.background = '#eff6ff';
+                                btnTresorpay.style.border = '2px solid #1e3a8a';
+                                btnWave.style.background = 'white';
+                                btnWave.style.border = '1px solid #edf2f7';
+                                btnMtn.style.background = 'white';
+                                btnMtn.style.border = '1px solid #edf2f7';
+                                inputPaymentMethod.value = 'tresorpay';
+                                phoneContainer.style.display = 'block';
+                                phoneContainer.querySelector('label').innerText = 'Numéro TrésorMoney (ex: 0767664010)';
+                            });
+                        }
+
                         btnMtn.addEventListener('click', () => {
                             btnMtn.style.background = '#eff6ff';
                             btnMtn.style.border = '2px solid #1e3a8a';
+                            if (btnTresorpay) {
+                                btnTresorpay.style.background = 'white';
+                                btnTresorpay.style.border = '1px solid #edf2f7';
+                            }
                             btnWave.style.background = 'white';
                             btnWave.style.border = '1px solid #edf2f7';
                             inputPaymentMethod.value = 'mtn';
@@ -834,6 +863,14 @@
                             }
                             formData.set('wave_number', phoneVal);
                             formData.delete('mtn_number');
+                        } else if (method === 'tresorpay') {
+                            if (!/^0[157]\d{8}$/.test(phoneVal)) {
+                                Swal.showValidationMessage(
+                                    'Le numéro TrésorMoney doit comporter 10 chiffres et commencer par 01, 05 ou 07.');
+                                return false;
+                            }
+                            formData.set('mtn_number', phoneVal);
+                            formData.delete('wave_number');
                         }
                     }
 
@@ -904,7 +941,7 @@
         }
 
         function startMtnPaymentPolling(reference, mtnRef, type) {
-            const csrfToken = '{{ csrf_token() }}';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             const checkStatus = () => {
                 fetch('{{ route("user.payment.mtn.check") }}', {
                     method: 'POST',
