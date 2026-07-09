@@ -488,6 +488,13 @@
                         return;
                     }
                 }
+                if (method === 'tresorpay') {
+                    const mtnNumber = document.querySelector('input[name="mtn_number"]').value.trim();
+                    if (!mtnNumber || mtnNumber.length !== 10) {
+                        alert('Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.');
+                        return;
+                    }
+                }
             }
 
             const submitBtn = form.querySelector('button[type="submit"]');

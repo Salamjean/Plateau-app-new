@@ -789,7 +789,7 @@
 
                         const nouveauMontantTimbres = Math.max(0, nouvelleQuantite - freeCountInitial) * 500;
                         const nouveauMontantLivraison = (nouvelleOption === 'livraison') ? (parseFloat(demande
-                            .montant_livraison) || 1000) : 0;
+                            .montant_livraison) || 1500) : 0;
 
                         const nouveauMontantTotal = nouveauMontantTimbres + nouveauMontantLivraison;
                         const resteAPayer = Math.max(0, nouveauMontantTotal - ancienMontantPaye);

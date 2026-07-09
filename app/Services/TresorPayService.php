@@ -69,7 +69,14 @@ class TresorPayService
 
         // Normalisation des champs sensibles validés côté TrésorPay
         $telephoneNormalise = $this->normalizeTelephone($telephone);
-        $telephoneTresor = '0767664010';
+        
+        if (empty($telephoneNormalise) || strlen($telephoneNormalise) !== 10) {
+            return [
+                'success' => false,
+                'message' => 'Le numéro de téléphone est obligatoire et doit être valide (10 chiffres) pour TrésorPay.'
+            ];
+        }
+
         $montantNormalise = max(1, (int) round((float) $montant));
         $codePaiementNormalise = $this->normalizeCodePaiement($codePaiement);
         $callbackBaseUrl = rtrim((string) env('TRESORPAY_CALLBACK_URL', 'https://carol-peritectic-bentley.ngrok-free.dev/'), '/');
@@ -79,7 +86,7 @@ class TresorPayService
             'Nom_usager' => substr($nom, 0, 30),
             'Prenom_usager' => substr($prenom, 0, 30),
             'Email' => 'contact@plateau.ci',
-            'Telephone' => $telephoneTresor,
+            'Telephone' => $telephoneNormalise,
             'Additif' => 'Transfert auto timbre',
             'code_paiement' => $codePaiementNormalise,
             'Url_Retour' => $callbackBaseUrl,
@@ -106,7 +113,7 @@ class TresorPayService
         try {
             Log::info('TrésorPay - Init payload (sanitized)', [
                 'code_paiement' => $codePaiementNormalise,
-                'telephone' => $telephoneTresor,
+                'telephone' => $telephoneNormalise,
                 'telephone_user_input' => $telephoneNormalise,
                 'montant' => $montantNormalise,
                 'url_retour' => $callbackBaseUrl,
@@ -117,10 +124,20 @@ class TresorPayService
             if ($response->successful()) {
                 $data = $response->json();
                 if (isset($data['code']) && $data['code'] == 200) {
-                    Log::info("TrésorPay - Paiement Direct initié avec succès pour {$codePaiementNormalise}. Message: " . ($data['cleretour'] ?? ''));
+                    $messageRetour = $data['cleretour'] ?? 'Paiement initié.';
+                    
+                    // TrésorPay renvoie parfois "sur le numéro  en composant" (avec un espace vide).
+                    // On injecte le numéro pour que l'utilisateur sache sur quel numéro valider.
+                    if (strpos($messageRetour, 'le numéro  en composant') !== false) {
+                        $messageRetour = str_replace('le numéro  en composant', "le numéro {$telephoneNormalise} en composant", $messageRetour);
+                    } elseif (strpos($messageRetour, 'sur le numéro en composant') !== false) {
+                        $messageRetour = str_replace('sur le numéro en composant', "sur le numéro {$telephoneNormalise} en composant", $messageRetour);
+                    }
+
+                    Log::info("TrésorPay - Paiement Direct initié avec succès pour {$codePaiementNormalise}. Message: " . $messageRetour);
                     return [
                         'success' => true,
-                        'message' => $data['cleretour'] ?? 'Paiement initié.'
+                        'message' => $messageRetour
                     ];
                 }
             }
@@ -154,7 +171,7 @@ class TresorPayService
         }
 
         if (strlen($telephone) !== 10) {
-            return '0767664010';
+            throw new \Exception("Le numéro TrésorPay est invalide ou absent.");
         }
 
         return $telephone;

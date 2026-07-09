@@ -320,7 +320,7 @@ class NaissanceController extends Controller
                     }
                     return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
                 } elseif (strtolower($paymentMethod) === 'mtn') {
-                    $mtnPhoneNumber = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $mtnPhoneNumber = $request->input('mtn_number');
                     $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
                     if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
                         $mtnPhoneNumber = '225' . $mtnPhoneNumber;
@@ -355,7 +355,7 @@ class NaissanceController extends Controller
                     }
                     return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
                 } elseif (strtolower($paymentMethod) === 'tresorpay') {
-                    $tresorPhone = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $tresorPhone = $request->input('mtn_number');
                     $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
 
                     $tresorService = app(\App\Services\TresorPayService::class);
@@ -749,7 +749,7 @@ class NaissanceController extends Controller
                 Log::error('Échec de la création de la session MTN pour ' . $naissance->reference);
                 return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
             } elseif (strtolower($paymentMethod) === 'tresorpay') {
-                $tresorPhone = $request->input('mtn_number') ?: $naissance->contact_destinataire;
+                $tresorPhone = $request->input('mtn_number');
                 $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
 
                 $tresorService = app(\App\Services\TresorPayService::class);

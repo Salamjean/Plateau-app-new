@@ -1662,6 +1662,14 @@
                         }
                     }
 
+                    if (payment_method === 'tresorpay') {
+                        if (!payment_number || payment_number.length !== 10) {
+                            Swal.showValidationMessage(
+                                'Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.');
+                            return false;
+                        }
+                    }
+
                     if (needsPayment) {
                         if (payment_method === 'wave') {
                             window.PaymentPopup = window.open('', 'PaymentPopup');
@@ -2120,6 +2128,12 @@
                     if (d.method === 'mtn') {
                         if (!/^05\d{8}$/.test(d.number.replace(/\s+/g, ''))) {
                             Swal.showValidationMessage('Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
+                            return false;
+                        }
+                    }
+                    if (d.method === 'tresorpay') {
+                        if (!d.number || d.number.replace(/\s+/g, '').length !== 10) {
+                            Swal.showValidationMessage('Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.');
                             return false;
                         }
                     }

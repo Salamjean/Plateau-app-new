@@ -63,6 +63,10 @@ Route::prefix('webhooks')->group(function () {
         ->name('api.tresorpay.notify');
 });
 
+// Alias pour les webhooks Wave selon la configuration de l'utilisateur sur le dashboard Wave
+Route::post('/payments/wave/webhook', [WaveWebhookController::class, 'handleWebhook']);
+Route::post('/wave/webhook', [WaveWebhookController::class, 'handleWebhook']);
+
 // Routes de polling de statut (publiques)
 Route::get('/deces/payment-status/{reference}', [DemandeDecesController::class, 'getPaymentStatus']);
 Route::get('/mariage/payment-status/{reference}', [DemandeMariageController::class, 'getPaymentStatus']);

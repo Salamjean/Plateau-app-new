@@ -82,7 +82,7 @@ class DemandeDecesController extends Controller
             'communeD' => 'nullable|string|max:255',
             'commune_deces' => 'required|string|max:255',
             'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
-            'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
+            'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
             'pour' => 'nullable|string|max:255',
             'relation' => 'nullable|string|in:enfant,parent,connaissance',
             'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
@@ -103,8 +103,8 @@ class DemandeDecesController extends Controller
             'nom_prenoms_pere' => 'nullable|string|max:255',
             'nom_prenoms_mere' => 'nullable|string|max:255',
         ], [
-            'mtn_number.required_if' => 'Le numéro MTN est obligatoire lorsque le moyen de paiement choisi est MTN.',
-            'mtn_number.regex' => 'Le numéro MTN doit comporter exactement 10 chiffres et commencer par 05.',
+            'mtn_number.required_if' => 'Le numéro de paiement est obligatoire lorsque le moyen de paiement choisi est MTN ou TrésorPay.',
+            'mtn_number.regex' => 'Le numéro de paiement doit comporter exactement 10 chiffres et commencer par 01, 05 ou 07.',
         ]);
 
         if ($validator->fails()) {
@@ -370,7 +370,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Si c'est MTN, utiliser MTN MoMo API en direct (MtnService)
             if (strtolower($paymentMethod) === 'mtn') {
-                $mtnPhoneNumber = request()->input('mtn_number') ?: $deces->contact_destinataire ?: (auth()->check() ? auth()->user()->contact : '');
+                $mtnPhoneNumber = request()->input('mtn_number');
 
                 // Formater le numéro
                 $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
@@ -407,7 +407,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Si c'est TrésorPay, utiliser TresorPayService
             }
             if (strtolower($paymentMethod) === 'tresorpay') {
-                $tresorPhone = request()->input('mtn_number') ?: $deces->contact_destinataire ?: (auth()->check() ? auth()->user()->contact : '');
+                $tresorPhone = request()->input('mtn_number');
                 $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
 
                 $tresorService = app(\App\Services\TresorPayService::class);
@@ -506,10 +506,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         // 0. Validation de la méthode et du numéro MTN
         $validator = Validator::make($request->all(), [
             'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
-            'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
+            'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
         ], [
-            'mtn_number.required_if' => 'Le numéro MTN est obligatoire lorsque le moyen de paiement choisi est MTN.',
-            'mtn_number.regex' => 'Le numéro MTN doit comporter exactement 10 chiffres et commencer par 05.',
+            'mtn_number.required_if' => 'Le numéro de paiement est obligatoire lorsque le moyen de paiement choisi est MTN ou TrésorPay.',
+            'mtn_number.regex' => 'Le numéro de paiement doit comporter exactement 10 chiffres et commencer par 01, 05 ou 07.',
         ]);
 
         if ($validator->fails()) {
