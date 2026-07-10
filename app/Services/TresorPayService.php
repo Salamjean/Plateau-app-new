@@ -97,7 +97,7 @@ class TresorPayService
                     'Credentiel' => $this->credentialId,
                     'Produits' => [
                         [
-                            'LibelleProduit' => 'RECETTE NON LISTEE',
+                            'LibelleProduit' => 'PAIEMENT TIMBRE PLATEAU-APPS',
                             'Montant' => (string) $montantNormalise,
                             'IdProduit' => '0',
                             'nEstUnServicePrive' => '0',
