@@ -207,6 +207,104 @@
         .modal.show .modal-dialog {
             transform: scale(1);
         }
+
+        /* Wave Card Premium Design */
+        .wave-card {
+            background: linear-gradient(135deg, #00c3ff 0%, #0062ff 100%);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 195, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .wave-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 195, 255, 0.4);
+        }
+        .wave-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+        .wave-card::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+        .wave-card-header {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* TresorPay Card Premium Design */
+        .tresor-card {
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .tresor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.4);
+        }
+        .tresor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+        .tresor-card::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+        .tresor-card-header {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
     </style>
     <div class="portefeuille-page">
         <canvas id="confetti-canvas"></canvas>
@@ -219,77 +317,93 @@
                     </h2>
                     <p class="text-muted mb-0">Gestion et reversement sécurisé des timbres perçus électroniquement.</p>
                 </div>
-                <div class="gold-badge">
-                    <i class="fas fa-shield-halved me-1"></i> TrésorPay E-Wallet
-                </div>
             </div>
 
             <div class="row g-4 mb-4">
-                <!-- La carte Bancaire Virtuelle Premium -->
-                <div class="col-lg-5 animate-up" style="animation-delay: 0.2s;">
-                    <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div class="card-chip"></div>
-                                <span class="fw-bold text-uppercase tracking-wider small">E-TIMBRE COLLECTE</span>
-                            </div>
-                            <h6 class="text-white-50 text-uppercase small mb-1">CUMUL DU MOIS EN COURS</h6>
-                            <h1 class="display-5 fw-bold mb-3" style="font-feature-settings: 'tnum';">
-                                <span id="wallet-balance" data-target="{{ $soldePortefeuille }}">0</span> <span
-                                    class="fs-4">FCFA</span>
-                            </h1>
-                        </div>
-                        <div>
-                            <div class="mb-4">
-                                <p class="card-number mb-0">TP-PLATEAU-2026-8492</p>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-end">
-                                <div>
-                                    <small class="text-white-50 d-block small">MAIRIE DU</small>
-                                    <span class="fw-bold text-uppercase">{{ $mairie->name }}</span>
+                <!-- Carte PAIEMENTS WAVE -->
+                <div class="col-lg-6 animate-up" style="animation-delay: 0.2s;">
+                    <div class="wave-card p-4 h-100 d-flex flex-column justify-content-between">
+                        <div style="position: relative; z-index: 2;">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="wave-card-header">
+                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave Logo" style="height: 24px; border-radius: 4px;">
+                                    <span class="fw-bold tracking-wider small mb-0">PAIEMENTS WAVE</span>
                                 </div>
-                                <img src="{{ asset('assets/assets/img/logo plateau.png') }}" alt="Logo Plateau"
-                                    style="height: 38px; filter: brightness(0) invert(1);">
+                                <form method="GET" action="" class="m-0">
+                                    <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">
+                                        <i class="fas fa-calendar-alt me-2" style="color: #00c3ff;"></i>
+                                        <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-primary fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="mt-4 pt-2 text-center">
+                                <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider">Cumul Timbres Vendus</h6>
+                                <h1 class="display-4 fw-bold mb-0" style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                    <span>{{ number_format($statsWave['timbre'], 0, ',', ' ') }}</span> <span class="fs-4 opacity-75">FCFA</span>
+                                </h1>
+                            </div>
+                        </div>
+                        <div style="position: relative; z-index: 2; margin-top: 30px;">
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4" style="background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-baseline">
+                                    <span class="text-white-50 text-uppercase fw-bold me-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Mairie du</span>
+                                    <span class="fw-bold fs-4 tracking-wider text-uppercase">{{ $mairie->name }}</span>
+                                </div>
+                                <div class="bg-white rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
+                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave Logo" style="max-width: 32px; max-height: 32px; border-radius: 4px;">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Boutons d'Action & Synthèse des données -->
-                <div class="col-lg-7 animate-up" style="animation-delay: 0.3s;">
-                    <div class="card stat-card p-4 h-100 d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-vault me-2 text-primary"></i>Synthèse du
-                                Portefeuille</h5>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="p-3 border rounded-3 bg-light">
-                                        <small class="text-muted d-block text-uppercase small">Total timbres perçus</small>
-                                        <h4 class="fw-bold text-dark mb-0">
-                                            {{ number_format($totalPerçuEnLigne, 0, ',', ' ') }} FCFA</h4>
-                                    </div>
+                <!-- Carte PAIEMENTS TRÉSORPAY -->
+                <div class="col-lg-6 animate-up" style="animation-delay: 0.3s;">
+                    <div class="tresor-card p-4 h-100 d-flex flex-column justify-content-between">
+                        <div style="position: relative; z-index: 2;">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="tresor-card-header">
+                                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay Logo" style="height: 24px; border-radius: 4px;">
+                                    <span class="fw-bold tracking-wider small mb-0">PAIEMENTS TRÉSORPAY</span>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="p-3 border rounded-3 bg-light">
-                                        <small class="text-muted d-block text-uppercase small">Total timbres transférés
-                                            TrésorPay</small>
-                                        <h4 class="fw-bold text-success mb-0">
-                                            {{ number_format($totalReversements, 0, ',', ' ') }} FCFA</h4>
+                                <form method="GET" action="" class="m-0">
+                                    <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">
+                                        <i class="fas fa-calendar-alt me-2" style="color: #b8860b;"></i>
+                                        <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
                                     </div>
+                                </form>
+                            </div>
+                            <div class="mt-4 pt-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-white-50 text-uppercase d-block fw-bold tracking-wider mb-1" style="font-size: 0.7rem;">Timbre</small>
+                                    <span class="fw-bold fs-5">{{ number_format($statsTresorpay['timbre'], 0, ',', ' ') }}</span>
+                                </div>
+                                <div class="text-center mx-2">
+                                    <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider" style="font-size: 0.7rem;">CUMUL DU MOIS EN COURS</h6>
+                                    <h1 class="display-6 fw-bold mb-0" style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                        <span>{{ number_format($statsTresorpay['total'], 0, ',', ' ') }}</span> <span class="fs-6 opacity-75">FCFA</span>
+                                    </h1>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-white-50 text-uppercase d-block fw-bold tracking-wider mb-1" style="font-size: 0.7rem;">Livraison</small>
+                                    <span class="fw-bold fs-5">{{ number_format($statsTresorpay['livraison'], 0, ',', ' ') }}</span>
                                 </div>
                             </div>
-                            <div class="mt-4 alert alert-info border-0 rounded-3 d-flex align-items-center">
-                                <i class="fas fa-circle-info fa-2x me-3 text-info"></i>
-                                <span class="small">
-                                    Ce tableau de bord comptabilise en temps réel les montants des timbres collectés en
-                                    ligne. Avec le système de paiement direct, chaque fois qu'un citoyen effectue un
-                                    paiement de timbre par Wave, la somme est immédiatement et automatiquement créditée sur
-                                    le compte de TrésorPay.
-                                </span>
+                        </div>
+                        <div style="position: relative; z-index: 2; margin-top: 30px;">
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4" style="background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-baseline">
+                                    <span class="text-white-50 text-uppercase fw-bold me-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Mairie du</span>
+                                    <span class="fw-bold fs-4 tracking-wider text-uppercase">{{ $mairie->name }}</span>
+                                </div>
+                                <div class="bg-white rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
+                                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay Logo" style="max-width: 32px; max-height: 32px; border-radius: 4px;">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
                 <!-- Les statistiques détaillées par type d'acte -->
                 <div class="row g-4 mb-4 animate-up" style="animation-delay: 0.4s;">
@@ -297,13 +411,19 @@
                         <div class="card stat-card p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Naissance</small>
+                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Naissance (Ce mois)</small>
                                     <h3 class="fw-bold text-dark mt-1 mb-0">
-                                        {{ number_format($totalNaissance, 0, ',', ' ') }} XOF</h3>
+                                        {{ number_format($totalNaissanceMonth, 0, ',', ' ') }} XOF</h3>
                                 </div>
                                 <div class="p-3 rounded-circle"
                                     style="background-color: rgba(31, 64, 131, 0.1); color: var(--primary);">
                                     <i class="fas fa-baby fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-3 border-top">
+                                <div class="d-flex justify-content-between text-muted small">
+                                    <span>Wave: <strong class="text-dark">{{ number_format($naissanceWaveMonth, 0, ',', ' ') }}</strong></span>
+                                    <span>TrésorPay: <strong class="text-dark">{{ number_format($naissanceTresorpayMonth, 0, ',', ' ') }}</strong></span>
                                 </div>
                             </div>
                         </div>
@@ -312,8 +432,8 @@
                         <div class="card stat-card p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Mariage</small>
-                                    <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalMariage, 0, ',', ' ') }}
+                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Mariage (Ce mois)</small>
+                                    <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalMariageMonth, 0, ',', ' ') }}
                                         XOF</h3>
                                 </div>
                                 <div class="p-3 rounded-circle"
@@ -321,14 +441,20 @@
                                     <i class="fas fa-ring fa-2x"></i>
                                 </div>
                             </div>
+                            <div class="mt-3 pt-3 border-top">
+                                <div class="d-flex justify-content-between text-muted small">
+                                    <span>Wave: <strong class="text-dark">{{ number_format($mariageWaveMonth, 0, ',', ' ') }}</strong></span>
+                                    <span>TrésorPay: <strong class="text-dark">{{ number_format($mariageTresorpayMonth, 0, ',', ' ') }}</strong></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card stat-card p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Décès</small>
-                                    <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalDeces, 0, ',', ' ') }}
+                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Décès (Ce mois)</small>
+                                    <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalDecesMonth, 0, ',', ' ') }}
                                         XOF</h3>
                                 </div>
                                 <div class="p-3 rounded-circle"
@@ -336,9 +462,17 @@
                                     <i class="fas fa-spa fa-2x"></i>
                                 </div>
                             </div>
+                            <div class="mt-3 pt-3 border-top">
+                                <div class="d-flex justify-content-between text-muted small">
+                                    <span>Wave: <strong class="text-dark">{{ number_format($decesWaveMonth, 0, ',', ' ') }}</strong></span>
+                                    <span>TrésorPay: <strong class="text-dark">{{ number_format($decesTresorpayMonth, 0, ',', ' ') }}</strong></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+
 
                 <!-- Historique à gauche & Comptabilisation Mensuelle à droite -->
                 <div class="row g-4 animate-up" style="animation-delay: 0.5s;">
@@ -347,7 +481,7 @@
                         <div class="table-container h-100">
                             <div class="table-header p-4 d-flex justify-content-between align-items-center"
                                 style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
-                                <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des Transferts</h5>
+                                <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des paiements</h5>
                                 <div class="d-flex align-items-center gap-2">
                                     <a href="{{ route('mairie.portefeuille.historique') }}"
                                         class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 me-2">
@@ -361,7 +495,7 @@
                                         <tr>
                                             <th class="py-3 text-secondary text-center">DATE & HEURE</th>
                                             <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
-                                            <th class="py-3 text-secondary text-center">DESTINATAIRE (TRÉSORPAY)</th>
+                                            <th class="py-3 text-secondary text-center">MÉTHODE</th>
                                             <th class="py-3 text-secondary text-center">MONTANT</th>
                                             <th class="py-3 text-secondary text-center">STATUT</th>
                                         </tr>
@@ -386,12 +520,17 @@
                                                     <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span class="small fw-bold">{{ $t->destinataire }}</span>
+                                                    <span class="small fw-bold text-uppercase badge bg-secondary">{{ $t->payment_method ?? 'N/A' }}</span>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span class="fw-bold text-success">
-                                                        {{ number_format($t->montant, 0, ',', ' ') }} FCFA
-                                                    </span>
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <span class="fw-bold text-success mb-1">
+                                                            {{ number_format($t->part_timbre, 0, ',', ' ') }} FCFA
+                                                        </span>
+                                                        <small class="text-muted" style="font-size: 0.7rem;">
+                                                            Timbre: {{ number_format($t->part_timbre, 0, ',', ' ') }} | Liv: {{ number_format($t->part_livraison, 0, ',', ' ') }}
+                                                        </small>
+                                                    </div>
                                                 </td>
                                                 <td class="text-center">
                                                     <span class="badge rounded-pill px-3 py-2 badge-credit">

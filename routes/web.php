@@ -75,7 +75,7 @@ Route::prefix('/')->group(function () {
     // Route::get('home/death', [HomeController::class, 'death'])->name('home.death');
     // Route::get('home/wedding', [HomeController::class, 'wedding'])->name('home.wedding');
     // Route::get('home/rendezvous', [HomeController::class, 'rendezvous'])->name('home.rendezvous');
-    // Route::get('home/contact', [HomeController::class, 'contact'])->name('home.contact');
+    Route::get('home/contact', [HomeController::class, 'contact'])->name('home.contact');
 });
 
 //Les routes de gestion du @super @admin

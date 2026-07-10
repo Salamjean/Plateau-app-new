@@ -261,17 +261,17 @@ class MairieDashboard extends Controller
 
             $isModification = str_contains($p->transaction_id, '-MOD-');
             $partTimbre = $this->getPaymentPartTimbre($p);
-
-            if ($partTimbre <= 0) {
-                continue;
-            }
+            $totalPayment = (float)$p->montant;
 
             $feed->push((object)[
                 'date' => Carbon::parse($p->paid_at ?? $p->created_at),
-                'reference' => 'TP-' . $typeLabel . '-' . str_pad($p->id, 5, '0', STR_PAD_LEFT) . ($isModification ? '-M' : ''),
+                'reference' => $p->transaction_id,
                 'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $partTimbre,
-                'status' => 'Transféré'
+                'montant' => $totalPayment,
+                'part_timbre' => $partTimbre,
+                'part_livraison' => max(0, $totalPayment - $partTimbre),
+                'status' => 'Transféré',
+                'payment_method' => $p->operator_id
             ]);
         }
 
@@ -321,28 +321,92 @@ class MairieDashboard extends Controller
         // Solution 1 : Tout est automatiquement et instantanément reversé à TrésorPay.
         $totalReversements = $totalPerçuEnLigne;
 
-        // Calcul dynamique du cumul du mois en cours
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
+        // Calcul dynamique du cumul du mois sélectionné
+        $selectedMonth = $request->input('month');
+        if ($selectedMonth) {
+            try {
+                $date = Carbon::parse($selectedMonth . '-01');
+                $startOfMonth = $date->copy()->startOfMonth();
+                $endOfMonth = $date->copy()->endOfMonth();
+            } catch (\Exception $e) {
+                $startOfMonth = Carbon::now()->startOfMonth();
+                $endOfMonth = Carbon::now()->endOfMonth();
+                $selectedMonth = Carbon::now()->format('Y-m');
+            }
+        } else {
+            $startOfMonth = Carbon::now()->startOfMonth();
+            $endOfMonth = Carbon::now()->endOfMonth();
+            $selectedMonth = Carbon::now()->format('Y-m');
+        }
 
-        $totalNaissanceMonth = $naissancesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum(function ($p) {
-            return $this->getPaymentPartTimbre($p);
-        });
+        $naissanceMonthPaiements = $naissancesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
+        $totalNaissanceMonth = $naissanceMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $naissanceWaveMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $naissanceTresorpayMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
 
-        $totalMariageMonth = $mariagesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum(function ($p) {
-            return $this->getPaymentPartTimbre($p);
-        });
+        $mariageMonthPaiements = $mariagesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
+        $totalMariageMonth = $mariageMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $mariageWaveMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $mariageTresorpayMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
 
-        $totalDecesMonth = $decesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum(function ($p) {
-            return $this->getPaymentPartTimbre($p);
-        });
+        $decesMonthPaiements = $decesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
+        $totalDecesMonth = $decesMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $decesWaveMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $decesTresorpayMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
 
         $soldePortefeuille = $totalNaissanceMonth + $totalMariageMonth + $totalDecesMonth;
+
+        // Calcul des paiements Wave et TresorPay
+        $allCommunePaiementsMonth = Paiement::where(function ($query) {
+            $query->whereNotNull('naissance_id')
+                  ->orWhereNotNull('mariage_id')
+                  ->orWhereNotNull('deces_id');
+        })
+        ->where('status', 'ACCEPTED')
+        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+        ->where(function ($query) use ($mairie) {
+            $query->whereHas('naissance', function ($q) use ($mairie) {
+                $q->where('commune', $mairie->name);
+            })
+            ->orWhereHas('mariage', function ($q) use ($mairie) {
+                $q->where('commune', $mairie->name);
+            })
+            ->orWhereHas('deces', function ($q) use ($mairie) {
+                $q->where('commune', $mairie->name);
+            });
+        })
+        ->get();
+
+        $statsWave = ['total' => 0, 'timbre' => 0, 'livraison' => 0];
+        $statsTresorpay = ['total' => 0, 'timbre' => 0, 'livraison' => 0];
+
+        foreach ($allCommunePaiementsMonth as $p) {
+            $operator = strtolower($p->operator_id);
+            if ($operator === 'wave' || $operator === 'tresorpay') {
+                $t = $this->getPaymentPartTimbre($p);
+                $total = (float)$p->montant;
+                $l = max(0, $total - $t);
+                
+                if ($operator === 'wave') {
+                    $statsWave['total'] += $total;
+                    $statsWave['timbre'] += $t;
+                    $statsWave['livraison'] += $l;
+                } else {
+                    $statsTresorpay['total'] += $total;
+                    $statsTresorpay['timbre'] += $t;
+                    $statsTresorpay['livraison'] += $l;
+                }
+            }
+        }
 
         // Récupérer les derniers paiements réels de timbres pour alimenter l'historique des reversements instantanés
         $derniersPaiements = $this->getCommunePaymentsFeed($mairie->name);
 
-        $sortedFeed = $derniersPaiements->sortByDesc('date');
+        $historiqueFiltre = $derniersPaiements->filter(function($item) use ($startOfMonth, $endOfMonth) {
+            return Carbon::parse($item->date)->between($startOfMonth, $endOfMonth);
+        });
+
+        $sortedFeed = $historiqueFiltre->sortByDesc('date');
         $totalTransactionsCount = $sortedFeed->count();
         $transactions = $sortedFeed->take(5);
 
@@ -359,8 +423,8 @@ class MairieDashboard extends Controller
 
         foreach ($derniersPaiements as $item) {
             $date = Carbon::parse($item->date);
-            if ($date->year == $currentYear) {
-                $comptabiliteMensuelle[$date->month]['montant'] += (float) $item->montant;
+            if ($date->year == $currentYear && strtolower($item->payment_method) === 'tresorpay') {
+                $comptabiliteMensuelle[$date->month]['montant'] += (float) $item->part_timbre;
             }
         }
 
@@ -375,7 +439,19 @@ class MairieDashboard extends Controller
             'transactions',
             'totalTransactionsCount',
             'comptabiliteMensuelle',
-            'currentYear'
+            'currentYear',
+            'statsWave',
+            'statsTresorpay',
+            'totalNaissanceMonth',
+            'totalMariageMonth',
+            'totalDecesMonth',
+            'naissanceWaveMonth',
+            'selectedMonth',
+            'naissanceTresorpayMonth',
+            'mariageWaveMonth',
+            'mariageTresorpayMonth',
+            'decesWaveMonth',
+            'decesTresorpayMonth'
         ));
     }
 
@@ -469,7 +545,7 @@ class MairieDashboard extends Controller
             $monthlyReport[] = [
                 'label' => $monthLabel,
                 'count' => $monthTransactions->count(),
-                'total_montant' => $monthTransactions->sum('montant')
+                'total_montant' => $monthTransactions->sum('part_timbre')
             ];
         }
 
