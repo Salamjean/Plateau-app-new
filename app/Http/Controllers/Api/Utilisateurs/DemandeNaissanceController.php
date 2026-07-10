@@ -440,7 +440,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Si c'est TrésorPay, utiliser TresorPayService
             if (strtolower($paymentMethod) === 'tresorpay') {
                 $tresorPhone = request()->input('mtn_number');
-                $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+                $tresorPhone = preg_replace('/[^0-9]/', '', (string)$tresorPhone);
 
                 $tresorService = app(\App\Services\TresorPayService::class);
                 $nom = auth()->check() ? auth()->user()->name : 'Client';
@@ -1251,6 +1251,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $rules['ville'] = 'nullable|string|max:255';
                 $rules['commune_livraison'] = 'nullable|string|max:255';
                 $rules['quartier'] = 'nullable|string|max:255';
+            }
+
+            if ($request->has('payment_method') || $request->input('choix_option') === 'livraison') {
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay';
+                $rules['mtn_number'] = 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/';
             }
 
             // 5. Valider les données
