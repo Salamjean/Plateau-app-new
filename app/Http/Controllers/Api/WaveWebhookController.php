@@ -49,7 +49,7 @@ class WaveWebhookController extends Controller
 
         $eventType = $validated['type'] ?? null;
 
-        if ($eventType !== 'checkout.session.completed') {
+        if (!in_array($eventType, ['checkout.session.completed', 'checkout.session.payment_failed'])) {
             $eventTypeLog = $eventType ?? 'null';
             Log::info("Webhook Wave: Événement ignoré ({$eventTypeLog})");
             return response()->json(['success' => true, 'message' => 'Événement ignoré'], 200);
@@ -102,7 +102,11 @@ class WaveWebhookController extends Controller
             return response()->json(['success' => true, 'message' => 'Demande non trouvée'], 200);
         }
 
-        return $this->processPaymentSuccess($demande, $type, $checkoutData, $request->all());
+        if ($eventType === 'checkout.session.completed') {
+            return $this->processPaymentSuccess($demande, $type, $checkoutData, $request->all());
+        }
+
+        return $this->processPaymentFailure($demande, $type, $checkoutData, $request->all());
     }
 
     /**
@@ -334,6 +338,71 @@ class WaveWebhookController extends Controller
             }
         } catch (\Exception $e) {
             Log::error("Erreur notifications Webhook Wave: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Traite le paiement échoué et met à jour la demande/paiement.
+     */
+    private function processPaymentFailure($demande, $type, $checkoutData, $rawBody): JsonResponse
+    {
+        try {
+            $clientReference = $checkoutData['client_reference'] ?? null;
+            $amount = isset($checkoutData['amount']) ? (float) $checkoutData['amount'] : 0;
+            $isGroupe = in_array($type, ['naissance_groupe', 'mariage_groupe', 'deces_groupe'], true);
+
+            if ($amount <= 0) {
+                $amount = $isGroupe ? (float) $demande->montant_total : (float) ($demande->montant_timbre ?? 0) + (float) ($demande->montant_livraison ?? 0);
+            }
+
+            // 1. Enregistrer le paiement comme échoué
+            $paiementData = [
+                'user_id' => $demande->user_id,
+                'transaction_id' => $clientReference,
+                'operator_id' => 'WAVE',
+                'montant' => $amount,
+                'currency' => $checkoutData['currency'] ?? 'XOF',
+                'status' => 'FAILED', // Ou 'REFUSED'
+                'paid_at' => now(),
+                'raw_response' => is_array($rawBody) ? $rawBody : [],
+            ];
+
+            if ($type === 'naissance_groupe') {
+                $paiementData['naissance_groupe_id'] = $demande->id;
+            } elseif ($type === 'mariage_groupe') {
+                $paiementData['mariage_groupe_id'] = $demande->id;
+            } elseif ($type === 'deces_groupe') {
+                $paiementData['deces_groupe_id'] = $demande->id;
+            } else {
+                $paiementData["{$type}_id"] = $demande->id;
+            }
+
+            try {
+                Paiement::updateOrCreate(
+                    ['transaction_id' => $clientReference],
+                    $paiementData
+                );
+            } catch (\Exception $e) {
+                // Ignore silent errors for unknown columns
+                Log::warning("WaveWebhookController (Failure): " . $e->getMessage());
+            }
+
+            // 2. Mettre à jour la demande si elle est en attente
+            // La demande peut rester "en_attente" pour permettre à l'utilisateur de réessayer.
+            // On peut aussi la marquer "echoue", mais souvent le paiement "FAILED" suffit à l'app mobile pour comprendre.
+            // Pour assurer que le mobile voit l'échec, nous laissons la demande inchangée, 
+            // mais l'enregistrement du paiement FAILED permettra à l'API de paiement de renvoyer le bon statut.
+
+            Log::info("Webhook Wave: Échec de paiement traité pour {$type} ID {$demande->id}, Réf: {$clientReference}");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Échec de paiement enregistré avec succès'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error("Webhook Wave Erreur Traitement Échec: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Erreur serveur'], 500);
         }
     }
 }
