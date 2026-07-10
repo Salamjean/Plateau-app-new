@@ -450,7 +450,11 @@
                     background: 'var(--light-color)',
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = '{{ route('register') }}';
+                        const targetUrl = '{{ route('register', [], false) }}';
+                        // Validation : s'assurer que c'est un chemin relatif interne
+                        if (targetUrl.startsWith('/') && !targetUrl.startsWith('//')) {
+                            window.location.assign(targetUrl);
+                        }
                     }
                 });
             @endif

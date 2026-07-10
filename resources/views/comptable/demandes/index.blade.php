@@ -893,8 +893,16 @@
 
                 // Compteur
                 const label = currentTab === 'pending' ? 'à valider' : 'traitée(s)';
-                document.getElementById('resultCount').innerHTML =
-                    `<span>${visible}</span> demande${visible > 1 ? 's' : ''} ${label}`;
+                const resultCountEl = document.getElementById('resultCount');
+                resultCountEl.textContent = '';
+                
+                const spanEl = document.createElement('span');
+                spanEl.textContent = visible;
+                resultCountEl.appendChild(spanEl);
+                
+                resultCountEl.appendChild(
+                    document.createTextNode(` demande${visible > 1 ? 's' : ''} ${label}`)
+                );
 
                 // Empty rows
                 document.querySelectorAll('.empty-pending-row').forEach(r => {

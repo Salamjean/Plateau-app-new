@@ -18,6 +18,7 @@
                 <div class="card-body px-4 px-md-5 py-4">
                     <form method="POST" action="{{route('post.store')}}" enctype="multipart/form-data" id="registrationForm">
                         @csrf
+                        <input type="hidden" name="MAX_FILE_SIZE" value="10485760" />
                         
                         <!-- Progress bar -->
                         <div class="mb-5">
@@ -549,6 +550,14 @@
         function handleDrop(e) {
             const dt = e.dataTransfer;
             const files = dt.files;
+            
+            if (files && files[0]) {
+                if (files[0].size > 10 * 1024 * 1024) {
+                    alert('La taille du fichier dépasse la limite autorisée de 10MB.');
+                    return;
+                }
+            }
+            
             fileInput.files = files;
             
             // Trigger change event manually
@@ -576,13 +585,19 @@
                     img.width = 100;
                     img.height = 100;
                     
-                    document.getElementById('summary-photo').innerHTML = '';
-                    document.getElementById('summary-photo').appendChild(img);
+                    const summaryPhoto = document.getElementById('summary-photo');
+                    summaryPhoto.textContent = '';
+                    summaryPhoto.appendChild(img);
                 }
                 
                 reader.readAsDataURL(file);
             } else {
-                document.getElementById('summary-photo').innerHTML = '<span class="text-muted">Aucune photo sélectionnée</span>';
+                const summaryPhoto = document.getElementById('summary-photo');
+                summaryPhoto.textContent = '';
+                const span = document.createElement('span');
+                span.className = 'text-muted';
+                span.textContent = 'Aucune photo sélectionnée';
+                summaryPhoto.appendChild(span);
             }
         }
         
@@ -591,6 +606,17 @@
             if (!document.getElementById('confirmationCheck').checked) {
                 e.preventDefault();
                 alert('Veuillez confirmer que les informations sont correctes avant de soumettre le formulaire.');
+                return;
+            }
+            
+            // Validation de la taille du fichier avant soumission (max 10MB)
+            if (fileInput.files && fileInput.files[0]) {
+                const maxFileSize = 10 * 1024 * 1024; // 10MB
+                if (fileInput.files[0].size > maxFileSize) {
+                    e.preventDefault();
+                    alert('La taille du fichier dépasse la limite autorisée de 10MB. Veuillez choisir un fichier plus petit.');
+                    return;
+                }
             }
         });
     });

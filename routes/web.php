@@ -441,7 +441,11 @@ Route::prefix('user')->group(function () {
 // Accès : https://plateau-apps.com/user/diag-google-auth?key=plateau2024diag
 // ============================================================
 Route::get('/user/diag-google-auth', function (\Illuminate\Http\Request $request) {
-    if ($request->get('key') !== 'plateau2024diag') {
+    $validated = $request->validate([
+        'key' => ['required', 'string'],
+    ]);
+
+    if ($validated['key'] !== 'plateau2024diag') {
         abort(403);
     }
 

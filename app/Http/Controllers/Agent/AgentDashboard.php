@@ -16,6 +16,15 @@ class AgentDashboard extends Controller
         // Récupérer l'admin connecté
         $admin = Auth::guard('agent')->user();
 
+        $request->validate([
+            'month' => 'nullable|string|max:2',
+            'year' => 'nullable|digits:4',
+            'type' => 'nullable|string|in:naissance,deces,mariage',
+            'month_hops' => 'nullable|string|max:2',
+            'year_hops' => 'nullable|digits:4',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
         // Récupérer les filtres
         $selectedMonth = $request->input('month');
         $selectedYear = $request->input('year');
@@ -96,6 +105,13 @@ class AgentDashboard extends Controller
 
     public function refreshTable(Request $request)
     {
+        $request->validate([
+            'month' => 'nullable|string|max:2',
+            'year' => 'nullable|digits:4',
+            'type' => 'nullable|string|in:naissance,deces,mariage',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
         $admin = Auth::guard('agent')->user();
         $selectedMonth = $request->input('month');
         $selectedYear = $request->input('year');

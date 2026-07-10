@@ -70,10 +70,10 @@
                     default => url('/user/dashboard')
                 };
             @endphp
-            <a href="{{ $listUrl }}" onclick="if(isMobile) { window.location.href=deepLink; return false; }" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-200">
+            <a href="{{ $listUrl }}" onclick="if(isMobile && typeof deepLink !== 'undefined') { safeRedirect(deepLink); return false; }" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-blue-200">
                 <i class="fas fa-list mr-2"></i> Consulter mes demandes
             </a>
-            <a href="{{ url('/user/dashboard') }}" onclick="if(isMobile) { window.location.href=deepLink; return false; }" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition duration-200">
+            <a href="{{ url('/user/dashboard') }}" onclick="if(isMobile && typeof deepLink !== 'undefined') { safeRedirect(deepLink); return false; }" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition duration-200">
                 <i class="fas fa-home mr-2"></i> Retour au tableau de bord
             </a>
         </div>
@@ -86,6 +86,15 @@
     <script>
         var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         var deepLink = "plateauapps://app/payment-result?status=success&transactionId={{ $reference }}";
+
+        function safeRedirect(url) {
+            if (url.startsWith('plateauapps://') || url.startsWith('/') || url.startsWith(window.location.origin)) {
+                window.location.href = url;
+            } else {
+                console.error('URL de redirection non sécurisée:', url);
+                window.location.href = '/user/dashboard';
+            }
+        }
 
         // Stocker le résultat dans localStorage (résiste aux ruptures COOP de Wave)
         try {
@@ -117,12 +126,16 @@
         } else {
             if (isMobile) {
                 setTimeout(function() {
-                    window.location.href = deepLink;
+                    if (typeof deepLink !== 'undefined') {
+                        safeRedirect(deepLink);
+                    }
                 }, 1000);
             }
             // Rediriger vers la liste après 5 secondes (cas fenêtre principale)
             setTimeout(function() {
-                if (!isMobile) { window.location.href = '{{ $listUrl }}'; }
+                if (!isMobile) {
+                    safeRedirect('{{ $listUrl }}');
+                }
             }, 5000);
         }
     </script>

@@ -89,7 +89,21 @@
             .then(data => {
                 if (data.status === 'SUCCESSFUL' || data.status === 'FAILED') {
                     if (data.redirect) {
-                        window.location.href = data.redirect;
+                        const path = data.redirect;
+                        if (path.startsWith('/') && !path.startsWith('//')) {
+                            window.location.href = path;
+                        } else {
+                            try {
+                                const url = new URL(path, window.location.origin);
+                                if (url.origin === window.location.origin) {
+                                    window.location.href = url.pathname + url.search + url.hash;
+                                } else {
+                                    console.error('Redirection non autorisée');
+                                }
+                            } catch (e) {
+                                console.error('URL invalide:', e);
+                            }
+                        }
                     }
                 } else {
                     setTimeout(checkStatus, 5000);

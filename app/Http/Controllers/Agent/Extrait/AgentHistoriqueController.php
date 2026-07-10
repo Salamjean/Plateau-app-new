@@ -13,6 +13,10 @@ class AgentHistoriqueController extends Controller
 {
     public function history(Request $request)
     {
+        $request->validate([
+            'type' => 'nullable|string|in:naissance,deces,mariage',
+        ]);
+
         // Récupérer l'agent connecté
         $admin = Auth::guard('agent')->user();
         
@@ -56,6 +60,10 @@ class AgentHistoriqueController extends Controller
 
     public function livree(Request $request)
     {
+        $request->validate([
+            'type' => 'nullable|string|in:naissance,deces,mariage',
+        ]);
+
         // Récupérer l'agent connecté
         $admin = Auth::guard('agent')->user();
         

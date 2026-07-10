@@ -26,7 +26,10 @@ class PaymentController extends Controller
     use HandlesFreeRequests;
     public function success(Request $request)
     {
-        $reference = $request->query('reference');
+        $validated = $request->validate([
+            'reference' => 'nullable|string|max:255',
+        ]);
+        $reference = $validated['reference'] ?? null;
 
         Log::info("Page de succès paiement atteinte. Référence: {$reference}");
 
@@ -251,7 +254,11 @@ class PaymentController extends Controller
 
     public function cancel(Request $request)
     {
-        $reference = $request->query('reference');
+        $validated = $request->validate([
+            'reference' => 'required|string|max:255',
+        ]);
+
+        $reference = $validated['reference'];
 
         Log::info("Page d'annulation paiement atteinte. Référence: {$reference}");
 
@@ -262,8 +269,12 @@ class PaymentController extends Controller
 
     public function mtnWaiting(Request $request)
     {
-        $reference = $request->query('reference');
-        $type = $request->query('type');
+        $validated = $request->validate([
+            'reference' => 'nullable|string|max:255',
+            'type'      => 'nullable|string|max:50',
+        ]);
+        $reference = $validated['reference'] ?? null;
+        $type = $validated['type'] ?? null;
 
         $mtnRef = session('mtn_ref_' . $reference);
 
@@ -280,9 +291,14 @@ class PaymentController extends Controller
 
     public function mtnCheck(Request $request)
     {
-        $reference = $request->input('reference');
-        $type = $request->input('type');
-        $mtnRef = $request->input('mtn_ref');
+        $validated = $request->validate([
+            'reference' => 'nullable|string|max:255',
+            'type'      => 'nullable|string|max:50',
+            'mtn_ref'   => 'nullable|string|max:255',
+        ]);
+        $reference = $validated['reference'] ?? null;
+        $type = $validated['type'] ?? null;
+        $mtnRef = $validated['mtn_ref'] ?? null;
 
         if (!$mtnRef) {
             return response()->json(['status' => 'ERROR', 'message' => 'No MTN ID provided']);

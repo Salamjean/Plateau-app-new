@@ -13,10 +13,16 @@ class MairieDecesController extends Controller
     {
         $mairie = Auth::guard('mairie')->user();
 
-        // Récupérer les paramètres de filtrage
-        $etat = $request->input('etat');
-        $type = $request->input('type');
-        $livraison = $request->input('livraison');
+        // Valider les paramètres de filtrage
+        $validated = $request->validate([
+            'etat' => 'nullable|string|max:255',
+            'type' => 'nullable|string|max:255',
+            'livraison' => 'nullable|string|max:255',
+        ]);
+
+        $etat = $validated['etat'] ?? null;
+        $type = $validated['type'] ?? null;
+        $livraison = $validated['livraison'] ?? null;
 
         // Construire la requête avec les filtres
         $query = Deces::where('commune', $mairie->name);

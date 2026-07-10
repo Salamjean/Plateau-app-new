@@ -148,8 +148,18 @@ class DemandeDecesController extends Controller
             $deces->dateR = $request->dateR ? Carbon::parse($request->dateR)->format('Y-m-d') : null;
 
             // --- AJOUT ---
-            $qtySimple = (int) $request->input('qty_simple', 0);
-            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            $qtySimple = 0;
+            $qtyIntegral = 0;
+
+            $rawQtySimple = (string) $request->input('qty_simple', '0');
+            if (preg_match('/^\d+$/', $rawQtySimple)) {
+                $qtySimple = max(0, min(100, (int) $rawQtySimple));
+            }
+
+            $rawQtyIntegral = (string) $request->input('qty_integral', '0');
+            if (preg_match('/^\d+$/', $rawQtyIntegral)) {
+                $qtyIntegral = max(0, min(100, (int) $rawQtyIntegral));
+            }
             if ($qtySimple === 0 && $qtyIntegral === 0) {
                 $type = $request->input('typeDemande');
                 if ($type === 'integrale') {
@@ -819,8 +829,23 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $deces->commune_deces = $request->input('commune_deces', $deces->commune_deces);
 
             // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
-            $qtySimpleInput = $request->has('qty_simple') ? (int) $request->input('qty_simple') : null;
-            $qtyIntegralInput = $request->has('qty_integral') ? (int) $request->input('qty_integral') : null;
+            $qtySimpleInputRaw = $request->input('qty_simple');
+            $qtySimpleInput = null;
+            if ($qtySimpleInputRaw !== null) {
+                if (!preg_match('/^\d+$/', (string)$qtySimpleInputRaw) || (int)$qtySimpleInputRaw < 0 || (int)$qtySimpleInputRaw > 1000) {
+                    return response()->json(['success' => false, 'message' => 'Format de quantité simple invalide.'], 400);
+                }
+                $qtySimpleInput = (int)$qtySimpleInputRaw;
+            }
+
+            $qtyIntegralInputRaw = $request->input('qty_integral');
+            $qtyIntegralInput = null;
+            if ($qtyIntegralInputRaw !== null) {
+                if (!preg_match('/^\d+$/', (string)$qtyIntegralInputRaw) || (int)$qtyIntegralInputRaw < 0 || (int)$qtyIntegralInputRaw > 1000) {
+                    return response()->json(['success' => false, 'message' => 'Format de quantité intégrale invalide.'], 400);
+                }
+                $qtyIntegralInput = (int)$qtyIntegralInputRaw;
+            }
 
             if ($qtySimpleInput === null && $qtyIntegralInput === null) {
                 $qtySimple = (int) $deces->qty_simple;
@@ -1334,7 +1359,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Si la quantité a été modifiée ou le type dans les champs rejetés
             if (in_array('quantite', $champsAModifier) || in_array('type', $champsAModifier)) {
-                $deces->quantite = (int) $request->input('quantite', $deces->quantite);
+                $rawQuantite = $request->input('quantite', $deces->quantite);
+                $validatedQuantite = filter_var($rawQuantite, FILTER_VALIDATE_INT, [
+                    'options' => ['min_range' => 1, 'max_range' => 100]
+                ]);
+                $deces->quantite = $validatedQuantite !== false ? $validatedQuantite : max(1, (int)$deces->quantite);
+                
                 if ($deces->type === 'integrale') {
                     $deces->qty_integral = $deces->quantite;
                     $deces->qty_simple = 0;
@@ -1674,8 +1704,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     /**
      * Helper pour formater la réponse de la demande
      */
-    private function formatDemandeResponse(Deces $deces, bool $includeFiles = false)
+    private function formatDemandeResponse($deces, bool $includeFiles = false)
     {
+        // Convert stdClass to Deces model defensively if needed
+        if (is_object($deces) && !$deces instanceof Deces) {
+            $model = new Deces();
+            $model->forceFill((array) $deces);
+            $deces = $model;
+        }
+
         // montant_total = timbres + livraison (les timbres sont dus pour retrait ET livraison)
         $montant_total = (float) ($deces->montant_timbre ?? 0) + (float) ($deces->montant_livraison ?? 0);
 

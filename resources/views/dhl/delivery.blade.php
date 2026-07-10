@@ -414,7 +414,11 @@
             if (isScannerActive) {
                 // Activer le scanner
                 attributionCard.classList.add('scanner-active');
-                toggleScannerBtn.innerHTML = '<i class="fas fa-keyboard mr-2"></i> Saisie manuelle';
+                toggleScannerBtn.textContent = '';
+                let activeIcon = document.createElement('i');
+                activeIcon.className = 'fas fa-keyboard mr-2';
+                toggleScannerBtn.appendChild(activeIcon);
+                toggleScannerBtn.appendChild(document.createTextNode(' Saisie manuelle'));
                 toggleScannerBtn.style.backgroundColor = '#d40511';
                 toggleScannerBtn.style.color = 'white';
                 
@@ -424,7 +428,11 @@
                 // Désactiver le scanner
                 stopCamera();
                 attributionCard.classList.remove('scanner-active');
-                toggleScannerBtn.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Scanner le QR Code';
+                toggleScannerBtn.textContent = '';
+                let inactiveIcon = document.createElement('i');
+                inactiveIcon.className = 'fas fa-qrcode mr-2';
+                toggleScannerBtn.appendChild(inactiveIcon);
+                toggleScannerBtn.appendChild(document.createTextNode(' Scanner le QR Code'));
                 toggleScannerBtn.style.backgroundColor = '#f9cf03';
                 toggleScannerBtn.style.color = '#343a40';
             }
@@ -469,7 +477,11 @@
                 // Revenir en mode manuel en cas d'erreur
                 isScannerActive = false;
                 attributionCard.classList.remove('scanner-active');
-                toggleScannerBtn.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Scanner le QR Code';
+                toggleScannerBtn.textContent = '';
+                let errIcon = document.createElement('i');
+                errIcon.className = 'fas fa-qrcode mr-2';
+                toggleScannerBtn.appendChild(errIcon);
+                toggleScannerBtn.appendChild(document.createTextNode(' Scanner le QR Code'));
                 toggleScannerBtn.style.backgroundColor = '#f9cf03';
                 toggleScannerBtn.style.color = '#343a40';
             });

@@ -30,9 +30,15 @@ class WaveWebhookController extends Controller
      */
     public function handleWebhook(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'type' => 'nullable|string',
+            'data' => 'nullable|array',
+            'data.client_reference' => 'nullable|string',
+        ]);
+
         Log::info('Webhook Wave Reçu', [
             'headers' => $request->headers->all(),
-            'body' => $request->all()
+            'body' => $validated
         ]);
 
         // Validation de la signature Wave (fortement recommandé)
@@ -41,14 +47,15 @@ class WaveWebhookController extends Controller
             return response()->json(['success' => false, 'message' => 'Signature invalide'], 401);
         }
 
-        $eventType = $request->input('type');
+        $eventType = $validated['type'] ?? null;
 
         if ($eventType !== 'checkout.session.completed') {
-            Log::info("Webhook Wave: Événement ignoré ({$eventType})");
+            $eventTypeLog = $eventType ?? 'null';
+            Log::info("Webhook Wave: Événement ignoré ({$eventTypeLog})");
             return response()->json(['success' => true, 'message' => 'Événement ignoré'], 200);
         }
 
-        $checkoutData = $request->input('data');
+        $checkoutData = $validated['data'] ?? null;
         if (!$checkoutData) {
             return response()->json(['success' => false, 'message' => 'Données de session manquantes'], 400);
         }

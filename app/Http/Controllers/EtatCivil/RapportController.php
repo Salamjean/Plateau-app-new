@@ -135,8 +135,12 @@ private function calculerTauxSatisfaction($agent)
  */
 public function exportPdf(Request $request)
 {
-    $periode = $request->get('periode', '12mois');
+    $validated = $request->validate([
+        'periode' => 'nullable|string|in:3mois,6mois,12mois',
+    ]);
     
+    $periode = $validated['periode'] ?? '12mois';
+
     switch ($periode) {
         case '3mois':
             $months = 3;

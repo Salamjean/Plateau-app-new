@@ -53,7 +53,7 @@
         @endif
 
         <div class="space-y-3">
-            <a href="{{ route('user.dashboard') }}" onclick="if(isMobile) { window.location.href=deepLink; return false; }" class="block w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-4 rounded-xl transition duration-200">
+            <a href="{{ route('user.dashboard') }}" onclick="if(isMobile) { safeRedirect(deepLink); return false; }" class="block w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-4 rounded-xl transition duration-200">
                 Retour au tableau de bord
             </a>
             <p class="text-slate-500 text-sm pt-4">
@@ -65,6 +65,15 @@
     <script>
         var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         var deepLink = "plateauapps://app/payment-result?status=cancel&transactionId={{ $reference ?? '' }}";
+
+        function safeRedirect(url) {
+            if (url.startsWith('/') || url.startsWith('plateauapps://') || url.startsWith(window.location.origin)) {
+                window.location.href = url;
+            } else {
+                console.warn('Blocked untrusted redirect:', url);
+                window.location.href = "{{ route('user.dashboard') }}";
+            }
+        }
 
         // Stocker le résultat annulation dans localStorage
         try {
@@ -86,7 +95,7 @@
         } else {
             if (isMobile) {
                 setTimeout(function() {
-                    window.location.href = deepLink;
+                    safeRedirect(deepLink);
                 }, 1000);
             }
         }

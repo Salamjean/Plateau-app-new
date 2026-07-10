@@ -125,9 +125,26 @@ class DemandeMariageController extends Controller
             $mariage->lieuNaissanceEpouse = $request->lieuNaissanceEpouse;
             $mariage->commune_mariage = $request->commune_mariage;
 
-            // Calcul des quantités
-            $qtySimple = (int) $request->input('qty_simple', 0);
-            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            // Calcul des quantités avec validation stricte
+            $rawQtySimple = $request->input('qty_simple', 0);
+            $rawQtyIntegral = $request->input('qty_integral', 0);
+
+            if (!is_numeric($rawQtySimple) || $rawQtySimple < 0 || $rawQtySimple > 100) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Quantité simple invalide (doit être entre 0 et 100).'
+                ], 422);
+            }
+
+            if (!is_numeric($rawQtyIntegral) || $rawQtyIntegral < 0 || $rawQtyIntegral > 100) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Quantité intégrale invalide (doit être entre 0 et 100).'
+                ], 422);
+            }
+
+            $qtySimple = (int) $rawQtySimple;
+            $qtyIntegral = (int) $rawQtyIntegral;
 
             $totalQuantity = $qtySimple + $qtyIntegral;
 
@@ -784,8 +801,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $mariage->CMU = $request->input('CMU', $mariage->CMU);
 
             // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
-            $qtySimpleInput = $request->has('qty_simple') ? (int) $request->input('qty_simple') : null;
-            $qtyIntegralInput = $request->has('qty_integral') ? (int) $request->input('qty_integral') : null;
+            $qtySimpleInput = null;
+            if ($request->has('qty_simple')) {
+                $val = filter_var($request->input('qty_simple'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 100]]);
+                $qtySimpleInput = $val !== false ? (int) $val : 0;
+            }
+
+            $qtyIntegralInput = null;
+            if ($request->has('qty_integral')) {
+                $val = filter_var($request->input('qty_integral'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 100]]);
+                $qtyIntegralInput = $val !== false ? (int) $val : 0;
+            }
 
             if ($qtySimpleInput === null && $qtyIntegralInput === null) {
                 $qtySimple = (int) $mariage->qty_simple;
@@ -1305,7 +1331,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Si la quantité a été modifiée ou le type dans les champs rejetés
             if (in_array('quantite', $champsAModifier) || in_array('typeDemande', $champsAModifier) || in_array('type', $champsAModifier)) {
-                $mariage->quantite = (int) $request->input('quantite', $mariage->quantite);
+                $rawQuantite = $request->input('quantite', $mariage->quantite);
+                $valQuantite = filter_var($rawQuantite, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 100]]);
+                $mariage->quantite = $valQuantite !== false ? (int) $valQuantite : max(1, (int) $mariage->quantite);
+                
                 if ($mariage->type === 'integrale') {
                     $qtyIntegral = $mariage->quantite;
                     $qtySimple = 0;
@@ -1651,8 +1680,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     /**
      * Helper pour formater la réponse de la demande (Spécifique au Mariage)
      */
-    private function formatDemandeResponse(Mariage $mariage, bool $includeFiles = false)
+    private function formatDemandeResponse($mariage, bool $includeFiles = false)
     {
+        // Convert stdClass to Mariage model defensively if needed
+        if (is_object($mariage) && !$mariage instanceof Mariage) {
+            $model = new Mariage();
+            $model->forceFill((array) $mariage);
+            $mariage = $model;
+        }
+
         // montant_total = timbres + livraison (les timbres sont dus pour retrait ET livraison)
         $montant_total = (float) ($mariage->montant_timbre ?? 0) + (float) ($mariage->montant_livraison ?? 0);
 

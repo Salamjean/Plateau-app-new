@@ -151,8 +151,11 @@ class DecesController extends Controller
         $reference = 'AD' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AD pour Acte de Decès
 
         // Récupérer les quantités selon le type de demande
-        $qtySimple = (int) $request->input('qty_simple', 0);
-        $qtyIntegral = (int) $request->input('qty_integral', 0);
+        $rawQtySimple = (string) $request->input('qty_simple', '0');
+        $qtySimple = preg_match('/^\d+$/', $rawQtySimple) && (int)$rawQtySimple >= 0 && (int)$rawQtySimple <= 10 ? (int)$rawQtySimple : 0;
+
+        $rawQtyIntegral = (string) $request->input('qty_integral', '0');
+        $qtyIntegral = preg_match('/^\d+$/', $rawQtyIntegral) && (int)$rawQtyIntegral >= 0 && (int)$rawQtyIntegral <= 10 ? (int)$rawQtyIntegral : 0;
 
         if ($request->type === 'simple') {
             $qtyIntegral = 0;
@@ -457,8 +460,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         }
 
         // Quantities
-        $qty_simple = (int)$request->input('qty_simple', 0);
-        $qty_integral = (int)$request->input('qty_integral', 0);
+        $rawQtySimple = (string) $request->input('qty_simple', '0');
+        $qty_simple = preg_match('/^\d+$/', $rawQtySimple) && (int)$rawQtySimple >= 0 && (int)$rawQtySimple <= 10 ? (int)$rawQtySimple : 0;
+
+        $rawQtyIntegral = (string) $request->input('qty_integral', '0');
+        $qty_integral = preg_match('/^\d+$/', $rawQtyIntegral) && (int)$rawQtyIntegral >= 0 && (int)$rawQtyIntegral <= 10 ? (int)$rawQtyIntegral : 0;
         if ($request->type === 'simple') {
             $qty_integral = 0;
             if ($qty_simple <= 0) $qty_simple = 1;

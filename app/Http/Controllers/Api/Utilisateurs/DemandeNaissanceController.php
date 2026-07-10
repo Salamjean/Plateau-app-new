@@ -174,8 +174,12 @@ class DemandeNaissanceController extends Controller
             $naissance->document_autorisation = $uploadedPaths['document_autorisation'] ?? null;
 
             // Calcul des quantités comme dans NaissanceController web
-            $qtySimple = (int) $request->input('qty_simple', 0);
-            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            $qtySimpleRaw = $request->input('qty_simple', 0);
+            $qtyIntegralRaw = $request->input('qty_integral', 0);
+            
+            // Validation de la plage des quantités
+            $qtySimple = max(0, min(100, (int) $qtySimpleRaw));
+            $qtyIntegral = max(0, min(100, (int) $qtyIntegralRaw));
             if ($qtySimple === 0 && $qtyIntegral === 0) {
                 $type = $request->input('typeDemande');
                 if ($type === 'integrale') {
@@ -827,8 +831,27 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $naissance->relation = $request->input('relation', $naissance->relation);
 
             // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
-            $qtySimpleInput = $request->has('qty_simple') ? (int) $request->input('qty_simple') : null;
-            $qtyIntegralInput = $request->has('qty_integral') ? (int) $request->input('qty_integral') : null;
+            $qtySimpleInput = null;
+            if ($request->has('qty_simple')) {
+                $val = $request->input('qty_simple');
+                if (is_numeric($val)) {
+                    $valInt = (int)$val;
+                    if ($valInt >= 0 && $valInt <= 100) {
+                        $qtySimpleInput = $valInt;
+                    }
+                }
+            }
+
+            $qtyIntegralInput = null;
+            if ($request->has('qty_integral')) {
+                $val = $request->input('qty_integral');
+                if (is_numeric($val)) {
+                    $valInt = (int)$val;
+                    if ($valInt >= 0 && $valInt <= 100) {
+                        $qtyIntegralInput = $valInt;
+                    }
+                }
+            }
 
             // Si aucune quantité n'est fournie ou si tout est à 0, utiliser les valeurs actuelles
             if ($qtySimpleInput === null && $qtyIntegralInput === null) {
@@ -1318,7 +1341,17 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Si la quantité a été modifiée ou que le type de document a changé dans les champs rejetés
             if (in_array('quantite', $champsAModifier) || in_array('type', $champsAModifier)) {
-                $naissance->quantite = (int) $request->input('quantite', $naissance->quantite);
+                $rawQuantite = $request->input('quantite', $naissance->quantite);
+                
+                // Validation stricte de la quantité
+                if (!is_numeric($rawQuantite) || $rawQuantite < 0 || $rawQuantite > 100) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'La quantité doit être un nombre entier positif raisonnable.'
+                    ], 422);
+                }
+                
+                $naissance->quantite = (int) $rawQuantite;
                 if ($naissance->type === 'integrale') {
                     $naissance->qty_integral = $naissance->quantite;
                     $naissance->qty_simple = 0;
@@ -1660,8 +1693,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     /**
      * Helper pour formater la réponse de la demande (Spécifique à Naissance)
      */
-    private function formatDemandeResponse(Naissance $naissance, bool $includeFiles = false)
+    private function formatDemandeResponse($naissance, bool $includeFiles = false)
     {
+        // Convert stdClass to Naissance model defensively if needed
+        if (is_object($naissance) && !$naissance instanceof Naissance) {
+            $model = new Naissance();
+            $model->forceFill((array) $naissance);
+            $naissance = $model;
+        }
+
         // montant_timbre est le TOTAL des timbres payants (après déduction des timbres gratuits)
         $montant_total = $naissance->choix_option === 'livraison'
             ? (float) ($naissance->montant_timbre ?? 0) + (float) ($naissance->montant_livraison ?? 0)

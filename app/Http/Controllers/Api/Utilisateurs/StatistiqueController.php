@@ -641,7 +641,17 @@ class StatistiqueController extends Controller
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
 
-            $reference = $request->input('transaction_id') ?? $request->input('reference');
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'transaction_id' => 'nullable|string|max:255',
+                'reference'      => 'nullable|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()->first()], 422);
+            }
+
+            $validated = $validator->validated();
+            $reference = $validated['transaction_id'] ?? $validated['reference'] ?? null;
 
             if (empty($reference)) {
                 return response()->json(['error' => 'La référence de transaction TrésorPay est requise'], 400);
