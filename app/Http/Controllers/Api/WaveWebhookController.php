@@ -387,11 +387,11 @@ class WaveWebhookController extends Controller
                 Log::warning("WaveWebhookController (Failure): " . $e->getMessage());
             }
 
-            // 2. Mettre à jour la demande si elle est en attente
-            // La demande peut rester "en_attente" pour permettre à l'utilisateur de réessayer.
-            // On peut aussi la marquer "echoue", mais souvent le paiement "FAILED" suffit à l'app mobile pour comprendre.
-            // Pour assurer que le mobile voit l'échec, nous laissons la demande inchangée, 
-            // mais l'enregistrement du paiement FAILED permettra à l'API de paiement de renvoyer le bon statut.
+            // 2. Mettre à jour la demande pour arrêter le polling du mobile
+            if (in_array($demande->etat, ['en attente de paiement', 'non_paye', 'paiement_en_attente', 'en attente'])) {
+                $demande->etat = 'paiement_echoue';
+                $demande->save();
+            }
 
             Log::info("Webhook Wave: Échec de paiement traité pour {$type} ID {$demande->id}, Réf: {$clientReference}");
 
