@@ -102,9 +102,27 @@
     <div class="col-md-6">
         <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
             <div class="card-body text-center">
-                <h5 class="card-title">Livraisons - Ce Mois</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Porte-feuille Livraisons</h5>
+                    <form action="" method="GET" class="form-inline">
+                        <select name="month" class="form-control form-control-sm mr-1">
+                            @php
+                                $moisList = ['01'=>'Janvier','02'=>'Février','03'=>'Mars','04'=>'Avril','05'=>'Mai','06'=>'Juin','07'=>'Juillet','08'=>'Août','09'=>'Septembre','10'=>'Octobre','11'=>'Novembre','12'=>'Décembre'];
+                            @endphp
+                            @foreach($moisList as $k => $v)
+                                <option value="{{ $k }}" {{ str_pad($month, 2, '0', STR_PAD_LEFT) == $k ? 'selected' : '' }}>{{ $v }}</option>
+                            @endforeach
+                        </select>
+                        <select name="year" class="form-control form-control-sm mr-1">
+                            @for($y=date('Y'); $y>=2020; $y--)
+                                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary" style="background-color: #6777ef;">Filtrer</button>
+                    </form>
+                </div>
                 <h3 class="text-info">{{ number_format($soldeMoisEnCours, 0, ',', ' ') }} FCFA</h3>
-                <p class="text-muted">Solde du mois en cours</p>
+                <p class="text-muted">Solde du mois sélectionné</p>
                 <!-- Bouton pour télécharger les rapports -->
                 <button type="button" class="btn btn-primary mt-2" style="background-color: #6777ef; border-color: #6777ef;" data-toggle="modal" data-target="#rapportModal">
                     <i class="fas fa-download mr-2"></i>Télécharger Rapport

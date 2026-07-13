@@ -16,6 +16,9 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
@@ -2174,7 +2177,7 @@
             <a href="{{ route('recherche.demande') }}" class="btn-pill outline">
                 <i class="fas fa-search"></i> Suivre ma demande
             </a>
-            <a href="{{ route('login') }}" class="btn-pill solid">
+            <a href="#" onclick="alertSiteInDev(event)" class="btn-pill solid">
                 <i class="fas fa-user"></i> Mon espace
             </a>
         </nav>
@@ -2990,6 +2993,22 @@
                     resultModal.classList.remove('open');
                 }
             });
+        }
+
+        function alertSiteInDev(e) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'En développement',
+                    text: "Le site est en développement et en phase de test, d'où aucune demande n'est disponible pour le moment.",
+                    confirmButtonColor: '#6777ef',
+                    confirmButtonText: 'Compris',
+                    backdrop: `rgba(0,0,123,0.4)`
+                });
+            } else {
+                alert("Site en développement\n\nLe site est en développement et en phase de test, d'où aucune demande n'est disponible pour le moment.");
+            }
         }
     </script>
 </body>

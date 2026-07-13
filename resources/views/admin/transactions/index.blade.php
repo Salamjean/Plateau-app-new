@@ -1,268 +1,434 @@
 @extends('admin.layouts.template')
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header de la page -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --admin-primary: #6777ef;
+        --admin-accent: #6777ef;
+        --admin-success: #47c363;
+        --admin-warning: #ffa426;
+        --admin-danger: #fc544b;
+        --admin-bg: #f4f6f9;
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        --wave-color: #00c3ff;
+        --tresor-color: #d4af37;
+    }
+
+    .admin-wallet {
+        background-color: var(--admin-bg);
+        font-family: 'Nunito', sans-serif;
+    }
+
+    /* En-tête de la page */
+    .page-header {
+        background: var(--admin-primary);
+        border-radius: 12px;
+        color: white;
+        padding: 25px 30px;
+        box-shadow: 0 10px 20px rgba(43, 52, 82, 0.15);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+
+    /* Cartes de Statistiques Principales */
+    .stat-box {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(0,0,0,0.02);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    }
+
+    .stat-box.wave-box {
+        border-bottom: 4px solid var(--wave-color);
+    }
+
+    .stat-box.tresor-box {
+        border-bottom: 4px solid var(--tresor-color);
+    }
+
+    .stat-box.total-box {
+        border-bottom: 4px solid var(--admin-accent);
+        background: linear-gradient(to bottom right, #ffffff, #f8f9fe);
+    }
+
+    .stat-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+
+    .stat-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--admin-primary);
+        line-height: 1.2;
+    }
+
+    .stat-currency {
+        font-size: 1rem;
+        color: #888;
+        font-weight: 600;
+    }
+
+    .sub-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px dashed #eee;
+    }
+
+    .sub-stat-item {
+        text-align: center;
+    }
+
+    .sub-stat-label {
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .sub-stat-val {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    /* Cartes Actes */
+    .acte-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f0f0f0;
+    }
+
+    .acte-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 15px;
+    }
+
+    .icon-naissance { background: rgba(103, 119, 239, 0.1); color: var(--admin-accent); }
+    .icon-mariage { background: rgba(255, 164, 38, 0.1); color: var(--admin-warning); }
+    .icon-deces { background: rgba(252, 84, 75, 0.1); color: var(--admin-danger); }
+
+    /* Tableau */
+    .modern-table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .modern-table-header {
+        background: #fff;
+        padding: 20px 25px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modern-table th {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #888;
+        padding: 15px 20px;
+        border-bottom: 2px solid #f4f6f9;
+    }
+
+    .modern-table td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        font-weight: 600;
+        color: #444;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .badge-soft-success { background-color: rgba(71, 195, 99, 0.15); color: var(--admin-success); }
+    .badge-soft-primary { background-color: rgba(103, 119, 239, 0.15); color: var(--admin-accent); }
+    .badge-soft-warning { background-color: rgba(255, 164, 38, 0.15); color: #d68100; }
+
+    /* Liste Comptabilité */
+    .compta-list {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .compta-header {
+        background: var(--admin-primary);
+        color: white;
+        padding: 20px;
+        font-weight: 700;
+    }
+
+    .compta-item {
+        padding: 15px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+    }
+
+    .compta-item:hover {
+        background: #fcfcfc;
+    }
+
+    .compta-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<div class="container-fluid py-4 admin-wallet">
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="font-weight-bold text-dark mb-1">
-                <i class="fas fa-history text-primary mr-2"></i>Historique des Transactions
-            </h2>
-            <p class="text-muted mb-0">Visualisez toutes les demandes payées et transférées automatiquement vers TrésorPay pour l'ensemble des communes.</p>
+            <h2 class="fw-bold mb-1"><i class="fas fa-wallet me-2 text-white-50"></i> Portefeuille Global (Transactions)</h2>
+            <p class="mb-0 text-white-50">Vue d'ensemble des revenus générés sur toute la plateforme (Timbres & Livraisons).</p>
         </div>
-    </div>
-
-    <!-- Filtres -->
-    <div class="card mb-4" style="border-top: 3px solid #6777ef; border-radius: 8px;">
-        <div class="card-body">
-            <form method="GET" action="{{ route('admin.transactions') }}" class="row align-items-end">
-                <!-- Recherche par Demandeur -->
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <label for="demandeur" class="font-weight-bold text-secondary small">NOM DU DEMANDEUR</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-user text-muted"></i></span>
-                        </div>
-                        <input type="text" name="demandeur" id="demandeur" class="form-control border-left-0 border-right-0" placeholder="Rechercher un demandeur..." value="{{ $searchDemandeur }}" onchange="this.form.submit()">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-primary" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filtre par Mois -->
-                <div class="col-md-3 mb-3 mb-md-0">
-                    <label for="month" class="font-weight-bold text-secondary small">MOIS DE TRANSACTION</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-calendar-alt text-muted"></i></span>
-                        </div>
-                        <select name="month" id="month" class="form-control border-left-0" onchange="this.form.submit()">
-                            <option value="">Tous les mois</option>
-                            @foreach($availableMonths as $month)
-                                @php
-                                    $carbonDate = \Carbon\Carbon::createFromFormat('Y-m', $month);
-                                    $monthLabel = ucwords($carbonDate->translatedFormat('F Y'));
-                                @endphp
-                                <option value="{{ $month }}" {{ $selectedMonth == $month ? 'selected' : '' }}>
-                                    {{ $monthLabel }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Filtre par Type -->
-                <div class="col-md-3 mb-3 mb-md-0">
-                    <label for="type" class="font-weight-bold text-secondary small">TYPE D'ACTE</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-file-invoice text-muted"></i></span>
-                        </div>
-                        <select name="type" id="type" class="form-control border-left-0" onchange="this.form.submit()">
-                            <option value="">Tous les types</option>
-                            <option value="Naissance" {{ $selectedType == 'Naissance' ? 'selected' : '' }}>Naissance</option>
-                            <option value="Mariage" {{ $selectedType == 'Mariage' ? 'selected' : '' }}>Mariage</option>
-                            <option value="Décès" {{ $selectedType == 'Décès' ? 'selected' : '' }}>Décès</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Bouton réinitialiser -->
-                <div class="col-md-2 text-md-right">
-                    <a href="{{ route('admin.transactions') }}" class="btn btn-secondary btn-block">
-                        <i class="fas fa-undo mr-1"></i>Reset
-                    </a>
-                </div>
+        <div>
+            <form method="GET" action="" class="d-flex align-items-center bg-white rounded p-1 shadow-sm">
+                <i class="fas fa-calendar-alt text-muted ms-2 me-2"></i>
+                <input type="month" name="month" value="{{ $selectedMonth }}" class="form-control border-0 bg-transparent text-dark fw-bold" style="box-shadow: none; width: 140px;" onchange="this.form.submit()">
             </form>
         </div>
     </div>
 
-    <!-- Tableau des Transactions -->
-    <div class="card" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center" style="border-radius: 8px 8px 0 0;">
-            <h5 class="mb-0 font-weight-bold"><i class="fas fa-receipt mr-2"></i>Flux de Transactions</h5>
-            <span class="badge badge-light px-3 py-2 text-primary font-weight-bold">
-                {{ $transactions->total() }} au total
-            </span>
+    <!-- Main Stats Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Platform -->
+        <div class="col-lg-4">
+            <div class="stat-box total-box">
+                <div class="stat-title"><i class="fas fa-chart-pie me-2 text-primary"></i>Total Global (Ce Mois)</div>
+                <div class="stat-value">{{ number_format($stats['total'], 0, ',', ' ') }} <span class="stat-currency">FCFA</span></div>
+                <div class="sub-stats">
+                    <div class="sub-stat-item">
+                        <span class="sub-stat-label">Part Timbres (Mairies)</span>
+                        <span class="sub-stat-val text-primary">{{ number_format($stats['timbre'], 0, ',', ' ') }}</span>
+                    </div>
+                    <div class="sub-stat-item">
+                        <span class="sub-stat-label">Part Livraisons (Admin)</span>
+                        <span class="sub-stat-val text-success">{{ number_format($stats['livraison'], 0, ',', ' ') }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 text-center">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="py-3 text-secondary text-center">DATE & HEURE</th>
-                        <th class="py-3 text-secondary text-center">COMMUNE / MAIRIE</th>
-                        <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
-                        <th class="py-3 text-secondary text-center">DEMANDEUR</th>
-                        <th class="py-3 text-secondary text-center">TYPE D'ACTE</th>
-                        <th class="py-3 text-secondary text-center">DESTINATAIRE</th>
-                        <th class="py-3 text-secondary text-center">MONTANT</th>
-                        <th class="py-3 text-secondary text-center">STATUT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($transactions as $t)
-                        <tr>
-                            <td class="text-center">
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <div class="p-2 bg-light rounded mr-2">
-                                        <i class="far fa-calendar-alt text-muted"></i>
-                                    </div>
-                                    <div class="text-center">
-                                        <span class="font-weight-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
-                                        <small class="text-muted">{{ $t->date->format('H:i') }}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-center font-weight-bold text-dark">
-                                {{ $t->commune }}
-                            </td>
-                            <td class="text-center">
-                                <code class="text-secondary font-weight-bold">{{ $t->reference }}</code>
-                            </td>
-                            <td class="text-center">
-                                <span class="text-muted small font-weight-bold">{{ $t->demandeur }}</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge 
-                                    @if($t->type == 'Naissance') badge-info
-                                    @elseif($t->type == 'Mariage') badge-danger
-                                    @else badge-secondary @endif px-3 py-2 font-weight-bold">
-                                    {{ $t->type }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="small font-weight-bold text-dark">{{ $t->destinataire }}</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="font-weight-bold text-success">
-                                    {{ number_format($t->montant, 0, ',', ' ') }} FCFA
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-success rounded-pill px-3 py-2 font-weight-bold">
-                                    <i class="fas fa-check-circle mr-1"></i> {{ $t->status }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="py-5 text-center">
-                                <div class="py-4 text-center">
-                                    <i class="fas fa-receipt fa-3x text-light mb-3"></i>
-                                    <h5 class="text-muted">Aucune transaction trouvée</h5>
-                                    <p class="text-muted small mb-0">Les transactions payées via TrésorPay s'afficheront ici en temps réel.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+
+        <!-- Wave Stats -->
+        <div class="col-lg-4">
+            <div class="stat-box wave-box">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="stat-title"><i class="fas fa-water me-2" style="color: var(--wave-color);"></i>Via Wave</div>
+                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 20px; border-radius: 4px;">
+                </div>
+                <div class="stat-value">{{ number_format($stats['wave_total'], 0, ',', ' ') }} <span class="stat-currency">FCFA</span></div>
+                <div class="sub-stats">
+                    <div class="sub-stat-item">
+                        <span class="sub-stat-label">Timbres</span>
+                        <span class="sub-stat-val">{{ number_format($stats['wave_timbre'], 0, ',', ' ') }}</span>
+                    </div>
+                    <div class="sub-stat-item">
+                        <span class="sub-stat-label">Livraisons</span>
+                        <span class="sub-stat-val">{{ number_format($stats['wave_livraison'], 0, ',', ' ') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TresorPay Stats -->
+        <div class="col-lg-4">
+            <div class="stat-box tresor-box">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="stat-title"><i class="fas fa-gem me-2" style="color: var(--tresor-color);"></i>Via TrésorPay</div>
+                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay" style="height: 20px; border-radius: 4px;">
+                </div>
+                <div class="stat-value">{{ number_format($stats['tresor_total'], 0, ',', ' ') }} <span class="stat-currency">FCFA</span></div>
+                <div class="sub-stats">
+                    <div class="sub-stat-item">
+                        <span class="sub-stat-label">Timbres</span>
+                        <span class="sub-stat-val">{{ number_format($stats['tresor_timbre'], 0, ',', ' ') }}</span>
+                    </div>
+                    <div class="sub-stat-item">
+                        <span class="sub-stat-label">Livraisons</span>
+                        <span class="sub-stat-val">{{ number_format($stats['tresor_livraison'], 0, ',', ' ') }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Pagination Premium -->
-    <div class="mt-4 d-flex justify-content-center">
-        @if ($transactions->hasPages())
-            <nav class="d-flex justify-content-center align-items-center">
-                <ul class="pagination pagination-premium">
-                    {{-- Bouton Page Précédente --}}
-                    @if ($transactions->onFirstPage())
-                        <li class="page-item disabled" aria-disabled="true">
-                            <span class="page-link"><i class="fas fa-chevron-left"></i></span>
-                        </li>
-                    @else
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $transactions->appends(request()->query())->previousPageUrl() }}" rel="prev"><i class="fas fa-chevron-left"></i></a>
-                        </li>
-                    @endif
+    <!-- Actes Breakdown Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="acte-card">
+                <div class="acte-icon icon-naissance"><i class="fas fa-baby"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Revenus Naissances</div>
+                    <h4 class="mb-0 fw-bold">{{ number_format($stats['naissance_total'], 0, ',', ' ') }} <small class="text-muted" style="font-size:0.8rem;">FCFA</small></h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="acte-card">
+                <div class="acte-icon icon-mariage"><i class="fas fa-ring"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Revenus Mariages</div>
+                    <h4 class="mb-0 fw-bold">{{ number_format($stats['mariage_total'], 0, ',', ' ') }} <small class="text-muted" style="font-size:0.8rem;">FCFA</small></h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="acte-card">
+                <div class="acte-icon icon-deces"><i class="fas fa-ribbon"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Revenus Décès</div>
+                    <h4 class="mb-0 fw-bold">{{ number_format($stats['deces_total'], 0, ',', ' ') }} <small class="text-muted" style="font-size:0.8rem;">FCFA</small></h4>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    {{-- Éléments de pages --}}
-                    @foreach ($transactions->appends(request()->query())->getUrlRange(max(1, $transactions->currentPage() - 2), min($transactions->lastPage(), $transactions->currentPage() + 2)) as $page => $url)
-                        @if ($page == $transactions->currentPage())
-                            <li class="page-item active" aria-current="page">
-                                <span class="page-link">{{ $page }}</span>
-                            </li>
-                        @else
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                            </li>
-                        @endif
+    <div class="row g-4">
+        <!-- Historique des Transactions -->
+        <div class="col-lg-8">
+            <div class="modern-table-container h-100">
+                <div class="modern-table-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-list-ul me-2 text-primary"></i>Dernières Transactions</h5>
+                        <span class="badge bg-light text-dark border px-3 py-2 ms-3">{{ $totalTransactionsCount }} au total ce mois</span>
+                    </div>
+                    <a href="{{ route('admin.transactions.all') }}" class="btn btn-sm btn-primary px-3 rounded-pill fw-bold shadow-sm">
+                        Voir tout <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table modern-table mb-0 text-center">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Source / Type</th>
+                                <th>Méthode</th>
+                                <th>Détails Revenus</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($transactions as $t)
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ $t->date->format('d M Y') }}</div>
+                                        <div class="text-muted small">{{ $t->date->format('H:i') }}</div>
+                                    </td>
+                                    <td class="text-start">
+                                        <div class="fw-bold text-dark">{{ $t->commune }}</div>
+                                        <div class="badge badge-soft-primary small mt-1">{{ $t->type }}</div>
+                                    </td>
+                                    <td>
+                                        @if(strtolower($t->payment_method) == 'wave')
+                                            <span class="badge bg-info text-white"><i class="fas fa-water me-1"></i>Wave</span>
+                                        @elseif(strtolower($t->payment_method) == 'tresorpay')
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-gem me-1"></i>TrésorPay</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ $t->payment_method }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="fw-bold text-dark">{{ number_format($t->montant_total, 0, ',', ' ') }} F</div>
+                                        <div class="small text-muted" style="font-size:0.7rem;">
+                                            T: {{ number_format($t->part_timbre, 0, ',', ' ') }} | L: {{ number_format($t->part_livraison, 0, ',', ' ') }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-soft-success px-2 py-1"><i class="fas fa-check-circle me-1"></i>{{ $t->status }}</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-5">
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                                            <p>Aucune transaction pour la période sélectionnée.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comptabilité Mensuelle Annuelle -->
+        <div class="col-lg-4">
+            <div class="compta-list h-100">
+                <div class="compta-header">
+                    <i class="fas fa-calendar-check me-2"></i> Comptabilité {{ $currentYear }}
+                </div>
+                <div style="max-height: 600px; overflow-y: auto;">
+                    @foreach ($comptabiliteMensuelle as $num => $m)
+                        <div class="compta-item">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light text-muted fw-bold rounded d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px; font-size: 0.85rem;">
+                                    {{ str_pad($num, 2, '0', STR_PAD_LEFT) }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">{{ $m['nom'] }}</div>
+                                    <div class="small text-muted" style="font-size: 0.7rem;">
+                                        T: {{ number_format($m['timbre'], 0, ',', ' ') }} | L: {{ number_format($m['livraison'], 0, ',', ' ') }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="fw-bold text-success">
+                                {{ number_format($m['total'], 0, ',', ' ') }} <small class="text-muted">F</small>
+                            </div>
+                        </div>
                     @endforeach
-
-                    {{-- Bouton Page Suivante --}}
-                    @if ($transactions->hasMorePages())
-                        <li class="page-item">
-                            <a class="page-link" href="{{ $transactions->appends(request()->query())->nextPageUrl() }}" rel="next"><i class="fas fa-chevron-right"></i></a>
-                        </li>
-                    @else
-                        <li class="page-item disabled" aria-disabled="true">
-                            <span class="page-link"><i class="fas fa-chevron-right"></i></span>
-                        </li>
-                    @endif
-                </ul>
-            </nav>
-        @endif
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-<style>
-    /* Styles Premium pour la Pagination */
-    .pagination-premium {
-        display: flex;
-        gap: 8px;
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 50px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-        margin: 0;
-    }
-
-    .pagination-premium .page-item {
-        display: inline-block;
-    }
-
-    .pagination-premium .page-item .page-link {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 42px;
-        height: 42px;
-        border-radius: 50% !important;
-        border: 1px solid #e3e6f0;
-        background: white;
-        color: #6777ef;
-        font-weight: 700;
-        font-size: 0.95rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-    }
-
-    .pagination-premium .page-item .page-link:hover {
-        background: #6777ef;
-        color: white !important;
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 8px 15px rgba(103, 119, 239, 0.25);
-        border-color: #6777ef;
-    }
-
-    .pagination-premium .page-item.active .page-link {
-        background: #6777ef;
-        color: white !important;
-        border-color: #6777ef;
-        box-shadow: 0 8px 20px rgba(103, 119, 239, 0.35);
-        transform: scale(1.05);
-    }
-
-    .pagination-premium .page-item.disabled .page-link {
-        background: rgba(241, 245, 249, 0.5);
-        color: #94a3b8 !important;
-        border-color: #e2e8f0;
-        cursor: not-allowed;
-        box-shadow: none;
-    }
-</style>
 @endsection

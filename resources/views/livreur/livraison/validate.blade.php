@@ -347,7 +347,7 @@
                     
                     <div class="info-grid">
                         <div class="code-colis-wrapper">
-                            <div class="info-label" style="color: rgba(255,255,255,0.8)">Code de Livraison (OTP)</div>
+                            <div class="info-label" style="color: rgba(255,255,255,0.8)">Code de Livraison </div>
                             <div class="code-colis-value" id="codeColis"></div>
                             <div style="font-size: 0.75rem; margin-top: 5px; opacity: 0.9;">Demandez ce code au client pour valider</div>
                         </div>
@@ -370,11 +370,6 @@
                         <div class="info-card">
                             <div class="info-label">Email</div>
                             <div class="info-value" id="typeDemande"></div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-label">Quartier / Commune</div>
-                            <div class="info-value" id="villeCommune"></div>
                         </div>
 
                         <div class="info-card" style="grid-column: span 2">

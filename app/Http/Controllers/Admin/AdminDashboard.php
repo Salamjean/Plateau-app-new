@@ -16,11 +16,14 @@ use PDF;
 
 class AdminDashboard extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $deces = Deces::count();
-        $mariage = Mariage::count();
-        $naissance = Naissance::count();
+        $month = $request->input('month', Carbon::now()->month);
+        $year = $request->input('year', Carbon::now()->year);
+
+        $deces = Deces::paye()->count();
+        $mariage = Mariage::paye()->count();
+        $naissance = Naissance::paye()->count();
 
         $mairie = Mairie::whereNull('archived_at')->count();
         $total = $deces + $mariage + $naissance;
@@ -30,32 +33,15 @@ class AdminDashboard extends Controller
         // Solde initial
         $soldeActuel = $soldeTotalMairies;
 
-        // Déduction pour chaque nouvelle demande (Uniquement si timbre récupéré pour les livraisons)
+        // Déduction uniquement pour les demandes gratuites (qui sont valides)
         $debit = 500;
 
-        $naissDebit = Naissance::where(function ($q) {
-            $q->where('choix_option', '!=', 'Livraison')
-                ->orWhere('timbre_recupere', 1);
-        })->count();
-
-        $decesDebit = Deces::where(function ($q) {
-            $q->where('choix_option', '!=', 'Livraison')
-                ->orWhere('timbre_recupere', 1);
-        })->count();
-
-        $mariageDebit = Mariage::where(function ($q) {
-            $q->where('choix_option', '!=', 'Livraison')
-                ->orWhere('timbre_recupere', 1);
-        })->count();
-
-        $soldeDebite = ($naissDebit + $decesDebit + $mariageDebit) * $debit;
-
-        // Calcul du montant des timbres gratuits (mode test)
         $freeTimbresMontant = 0;
-        $freeTimbresMontant += Naissance::where('is_free_request', true)->sum('free_timbres_count') * $debit;
-        $freeTimbresMontant += Deces::where('is_free_request', true)->sum('free_timbres_count') * $debit;
-        $freeTimbresMontant += Mariage::where('is_free_request', true)->sum('free_timbres_count') * $debit;
-        $soldeDebite += $freeTimbresMontant;
+        $freeTimbresMontant += Naissance::where('is_free_request', true)->paye()->sum('free_timbres_count') * $debit;
+        $freeTimbresMontant += Deces::where('is_free_request', true)->paye()->sum('free_timbres_count') * $debit;
+        $freeTimbresMontant += Mariage::where('is_free_request', true)->paye()->sum('free_timbres_count') * $debit;
+        
+        $soldeDebite = $freeTimbresMontant;
 
         $soldeRestant = $soldeActuel - $soldeDebite; // Calcul du solde restant
 
@@ -92,34 +78,50 @@ class AdminDashboard extends Controller
         foreach ($modelMap as $model => $key) {
             $class = "App\\Models\\$model";
 
-            // Comptage sur les 7 derniers jours
-            $counts[$key] = $class::count();
+            // Comptage (uniquement les demandes payées)
+            $counts[$key] = $class::paye()->count();
 
             // Mise à jour des stats globales
             $stats['total'] += $counts[$key];
-            $stats['en_attente'] += $class::where('statut_livraison', 'en attente')
+            $stats['en_attente'] += $class::paye()->where('statut_livraison', 'en attente')
                 ->count();
-            $stats['en_cours'] += $class::where('statut_livraison', 'en cours')
+            $stats['en_cours'] += $class::paye()->where('statut_livraison', 'en cours')
                 ->count();
-            $stats['livre'] += $class::where('statut_livraison', 'livré')
+            $stats['livre'] += $class::paye()->where('statut_livraison', 'livré')
                 ->count();
 
             // COMPTAGE DES DEMANDES NON ATTRIBUÉES (ni à une poste ni à une DHL)
-            $stats['non_attribue'] += $class::whereNull('livraison_id')
+            $stats['non_attribue'] += $class::paye()->whereNull('livraison_id')
                 ->whereNull('dhl_id')
                 ->where('etat', 'terminé')
                 ->where('choix_option', 'livraison')
                 ->count();
 
-            // Calcul du solde disponible TOTAL (toutes les livraisons)
-            $soldeDisponible += $class::where('statut_livraison', 'livré')
+            // Remplissage des données du graphique pour les 7 derniers jours
+            for ($i = 6; $i >= 0; $i--) {
+                $dateObj = Carbon::now()->subDays($i);
+                $dateStart = $dateObj->copy()->startOfDay();
+                $dateEnd = $dateObj->copy()->endOfDay();
+                
+                $chartData['livre'][6-$i] += $class::paye()
+                    ->where('statut_livraison', 'livré')
+                    ->whereBetween('updated_at', [$dateStart, $dateEnd])->count();
+                    
+                $chartData['en_cours'][6-$i] += $class::paye()
+                    ->where('statut_livraison', 'en cours')
+                    ->whereBetween('updated_at', [$dateStart, $dateEnd])->count();
+            }
+
+            // Calcul du solde disponible TOTAL (toutes les livraisons payées)
+            $soldeDisponible += $class::paye()
                 ->where('choix_option', 'livraison')
                 ->sum('montant_livraison');
 
-            // NOUVEAU: Calcul du solde du MOIS EN COURS uniquement
-            $soldeMoisEnCours += $class::where('statut_livraison', 'livré')
-                ->whereYear('updated_at', Carbon::now()->year)
-                ->whereMonth('updated_at', Carbon::now()->month)
+            // Calcul du solde du MOIS SÉLECTIONNÉ uniquement (Porte-feuille)
+            $soldeMoisEnCours += $class::paye()
+                ->where('choix_option', 'livraison')
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
                 ->sum('montant_livraison');
 
             // Activités récentes (uniquement les demandes payées)
@@ -150,8 +152,9 @@ class AdminDashboard extends Controller
             'soldeTotalMairies',
             'activites',
             'soldeDisponible',
-            'stats',
-            'soldeMoisEnCours' // Ajout de la nouvelle variable
+            'soldeMoisEnCours', // Ajout de la nouvelle variable
+            'month',
+            'year'
         ));
     }
 
@@ -234,108 +237,222 @@ class AdminDashboard extends Controller
         return $months[$monthNumber] ?? 'Mois inconnu';
     }
 
+    private function getPaymentParts($p)
+    {
+        $montant = (float) $p->montant;
+        $partTimbre = $montant;
+        $partLivraison = 0.0;
+
+        $isModification = str_contains((string) $p->transaction_id, '-MOD-');
+
+        if (isset($p->raw_response['part_timbre'])) {
+            $partTimbre = (float) $p->raw_response['part_timbre'];
+            $partLivraison = max(0, $montant - $partTimbre);
+            return ['timbre' => $partTimbre, 'livraison' => $partLivraison];
+        }
+
+        $relation = null;
+        if ($p->naissance_id) $relation = 'naissance';
+        elseif ($p->mariage_id) $relation = 'mariage';
+        elseif ($p->deces_id) $relation = 'deces';
+        
+        if (!$relation || $p->naissance_groupe_id || $p->mariage_groupe_id || $p->deces_groupe_id) {
+            return ['timbre' => $partTimbre, 'livraison' => 0.0];
+        }
+
+        $demande = $p->$relation;
+        if (!$demande || $demande->choix_option !== 'livraison') {
+            return ['timbre' => $partTimbre, 'livraison' => 0.0];
+        }
+
+        $allPayments = \App\Models\Paiement::where("{$relation}_id", $demande->id)
+            ->where('status', 'ACCEPTED')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        if ($allPayments->isEmpty()) {
+            $partTimbre = $isModification ? $montant : max(0.0, $montant - 1500.0);
+            return ['timbre' => $partTimbre, 'livraison' => max(0.0, $montant - $partTimbre)];
+        }
+
+        $firstPayment = $allPayments->first();
+        if ($p->id === $firstPayment->id && !$isModification) {
+            $partTimbre = max(0.0, $montant - 1500.0);
+            return ['timbre' => $partTimbre, 'livraison' => 1500.0];
+        }
+
+        return ['timbre' => $montant, 'livraison' => 0.0];
+    }
+
     public function transactions(Request $request)
     {
-        // 1. Récupérer toutes les demandes payées
-        $naissancesQuery = Naissance::paye()->with('user');
-        $mariagesQuery = Mariage::paye()->with('user');
-        $decesQuery = Deces::paye()->with('user');
-
-        // Appliquer le filtre par nom du demandeur si spécifié
-        $searchDemandeur = $request->input('demandeur');
-        if (!empty($searchDemandeur)) {
-            $naissancesQuery->whereHas('user', function ($q) use ($searchDemandeur) {
-                $q->where(function ($sub) use ($searchDemandeur) {
-                    $sub->where('name', 'like', "%{$searchDemandeur}%")
-                        ->orWhere('prenom', 'like', "%{$searchDemandeur}%");
-                });
-            });
-            $mariagesQuery->whereHas('user', function ($q) use ($searchDemandeur) {
-                $q->where(function ($sub) use ($searchDemandeur) {
-                    $sub->where('name', 'like', "%{$searchDemandeur}%")
-                        ->orWhere('prenom', 'like', "%{$searchDemandeur}%");
-                });
-            });
-            $decesQuery->whereHas('user', function ($q) use ($searchDemandeur) {
-                $q->where(function ($sub) use ($searchDemandeur) {
-                    $sub->where('name', 'like', "%{$searchDemandeur}%")
-                        ->orWhere('prenom', 'like', "%{$searchDemandeur}%");
-                });
-            });
+        \Carbon\Carbon::setLocale('fr');
+        
+        $selectedMonth = $request->input('month');
+        if ($selectedMonth) {
+            try {
+                $date = \Carbon\Carbon::parse($selectedMonth . '-01');
+                $startOfMonth = $date->copy()->startOfMonth();
+                $endOfMonth = $date->copy()->endOfMonth();
+            } catch (\Exception $e) {
+                $startOfMonth = \Carbon\Carbon::now()->startOfMonth();
+                $endOfMonth = \Carbon\Carbon::now()->endOfMonth();
+                $selectedMonth = \Carbon\Carbon::now()->format('Y-m');
+            }
+        } else {
+            $startOfMonth = \Carbon\Carbon::now()->startOfMonth();
+            $endOfMonth = \Carbon\Carbon::now()->endOfMonth();
+            $selectedMonth = \Carbon\Carbon::now()->format('Y-m');
         }
 
-        $naissances = $naissancesQuery->get();
-        $mariages = $mariagesQuery->get();
-        $deces = $decesQuery->get();
+        // Historique de tous les paiements
+        $allPayments = \App\Models\Paiement::where('status', 'ACCEPTED')
+            ->with(['naissance', 'mariage', 'deces'])
+            ->get();
+            
+        $stats = [
+            'total' => 0, 'timbre' => 0, 'livraison' => 0,
+            'wave_total' => 0, 'wave_timbre' => 0, 'wave_livraison' => 0,
+            'tresor_total' => 0, 'tresor_timbre' => 0, 'tresor_livraison' => 0,
+            'naissance_total' => 0, 'mariage_total' => 0, 'deces_total' => 0
+        ];
 
         $feed = collect();
+        $comptabiliteMensuelle = [];
+        $currentYear = \Carbon\Carbon::now()->year;
 
-        foreach ($naissances as $n) {
-            $feed->push((object)[
-                'date' => Carbon::parse($n->created_at),
-                'reference' => 'TP-NAIS-' . str_pad($n->id, 5, '0', STR_PAD_LEFT),
-                'commune' => $n->commune,
-                'type' => 'Naissance',
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $n->montant_timbre ?? 500,
-                'status' => 'Transféré',
-                'demandeur' => $n->user ? ($n->user->name . ' ' . $n->user->prenom) : 'N/A'
-            ]);
+        for ($m = 1; $m <= 12; $m++) {
+            $comptabiliteMensuelle[$m] = [
+                'nom' => ucfirst(\Carbon\Carbon::create(null, $m, 1)->locale('fr')->translatedFormat('F')),
+                'timbre' => 0,
+                'livraison' => 0,
+                'total' => 0
+            ];
         }
 
-        foreach ($mariages as $m) {
-            $feed->push((object)[
-                'date' => Carbon::parse($m->created_at),
-                'reference' => 'TP-MAR-' . str_pad($m->id, 5, '0', STR_PAD_LEFT),
-                'commune' => $m->commune,
-                'type' => 'Mariage',
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $m->montant_timbre ?? 500,
-                'status' => 'Transféré',
-                'demandeur' => $m->user ? ($m->user->name . ' ' . $m->user->prenom) : 'N/A'
-            ]);
+        foreach ($allPayments as $p) {
+            $parts = $this->getPaymentParts($p);
+            $date = \Carbon\Carbon::parse($p->paid_at ?? $p->created_at);
+            
+            // Si le paiement est dans le mois sélectionné, on met à jour les stats
+            if ($date->between($startOfMonth, $endOfMonth)) {
+                $total = (float) $p->montant;
+                $t = $parts['timbre'];
+                $l = $parts['livraison'];
+
+                $stats['total'] += $total;
+                $stats['timbre'] += $t;
+                $stats['livraison'] += $l;
+
+                $operator = strtolower($p->operator_id);
+                if ($operator === 'wave') {
+                    $stats['wave_total'] += $total;
+                    $stats['wave_timbre'] += $t;
+                    $stats['wave_livraison'] += $l;
+                } else if ($operator === 'tresorpay') {
+                    $stats['tresor_total'] += $total;
+                    $stats['tresor_timbre'] += $t;
+                    $stats['tresor_livraison'] += $l;
+                }
+
+                if ($p->naissance_id || $p->naissance_groupe_id) $stats['naissance_total'] += $total;
+                elseif ($p->mariage_id || $p->mariage_groupe_id) $stats['mariage_total'] += $total;
+                elseif ($p->deces_id || $p->deces_groupe_id) $stats['deces_total'] += $total;
+
+                $feed->push((object)[
+                    'date' => $date,
+                    'reference' => $p->transaction_id ?? ('TXN-' . str_pad($p->id, 5, '0', STR_PAD_LEFT)),
+                    'commune' => $p->naissance->commune ?? $p->mariage->commune ?? $p->deces->commune ?? 'Multiples',
+                    'type' => $p->naissance_id ? 'Naissance' : ($p->mariage_id ? 'Mariage' : ($p->deces_id ? 'Décès' : 'Groupe')),
+                    'montant_total' => $total,
+                    'part_timbre' => $t,
+                    'part_livraison' => $l,
+                    'payment_method' => $p->operator_id ?? 'Inconnu',
+                    'status' => 'Succès'
+                ]);
+            }
+
+            // Comptabilité mensuelle de l'année en cours
+            if ($date->year == $currentYear) {
+                $comptabiliteMensuelle[$date->month]['timbre'] += $parts['timbre'];
+                $comptabiliteMensuelle[$date->month]['livraison'] += $parts['livraison'];
+                $comptabiliteMensuelle[$date->month]['total'] += (float)$p->montant;
+            }
         }
 
-        foreach ($deces as $d) {
-            $feed->push((object)[
-                'date' => Carbon::parse($d->created_at),
-                'reference' => 'TP-DEC-' . str_pad($d->id, 5, '0', STR_PAD_LEFT),
-                'commune' => $d->commune,
-                'type' => 'Décès',
-                'destinataire' => 'tresorPAY gtvB04rzE_wkvb4S2',
-                'montant' => $d->montant_timbre ?? 500,
-                'status' => 'Transféré',
-                'demandeur' => $d->user ? ($d->user->name . ' ' . $d->user->prenom) : 'N/A'
-            ]);
-        }
-
-        // Extraire la liste de tous les mois uniques de transactions (format 'Y-m') pour alimenter le filtre
-        $availableMonths = $feed->map(function ($item) {
-            return $item->date->format('Y-m');
-        })->unique()->sortDesc()->values();
-
-        // Appliquer le filtre par mois si spécifié
-        $selectedMonth = $request->input('month');
-        if (!empty($selectedMonth)) {
-            $feed = $feed->filter(function ($item) use ($selectedMonth) {
-                return $item->date->format('Y-m') === $selectedMonth;
-            });
-        }
-
-        // Appliquer le filtre par type si spécifié
-        $selectedType = $request->input('type');
-        if (!empty($selectedType)) {
-            $feed = $feed->filter(function ($item) use ($selectedType) {
-                return $item->type === $selectedType;
-            });
-        }
-
-        // Trier les transferts par date décroissante
         $sortedFeed = $feed->sortByDesc('date');
+        
+        $sortedFeed = $feed->sortByDesc('date');
+        $transactions = $sortedFeed->take(6);
+        $totalTransactionsCount = $sortedFeed->count();
 
-        // Paginer les transactions
+        return view('admin.transactions.index', compact(
+            'stats',
+            'transactions',
+            'totalTransactionsCount',
+            'comptabiliteMensuelle',
+            'selectedMonth',
+            'currentYear'
+        ));
+    }
+
+    public function allTransactions(Request $request)
+    {
+        \Carbon\Carbon::setLocale('fr');
+        
+        $selectedMonth = $request->input('month');
+        if ($selectedMonth) {
+            try {
+                $date = \Carbon\Carbon::parse($selectedMonth . '-01');
+                $startOfMonth = $date->copy()->startOfMonth();
+                $endOfMonth = $date->copy()->endOfMonth();
+            } catch (\Exception $e) {
+                $startOfMonth = null;
+                $endOfMonth = null;
+                $selectedMonth = null;
+            }
+        } else {
+            $startOfMonth = null;
+            $endOfMonth = null;
+            $selectedMonth = null;
+        }
+
+        $query = \App\Models\Paiement::where('status', 'ACCEPTED')->with(['naissance', 'mariage', 'deces']);
+        
+        if ($startOfMonth && $endOfMonth) {
+            $query->where(function($q) use ($startOfMonth, $endOfMonth) {
+                $q->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+                  ->orWhere(function($subQ) use ($startOfMonth, $endOfMonth) {
+                      $subQ->whereNull('paid_at')
+                           ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                  });
+            });
+        }
+        
+        $allPayments = $query->latest('paid_at')->get();
+        $feed = collect();
+
+        foreach ($allPayments as $p) {
+            $parts = $this->getPaymentParts($p);
+            $date = \Carbon\Carbon::parse($p->paid_at ?? $p->created_at);
+            
+            $feed->push((object)[
+                'date' => $date,
+                'reference' => $p->transaction_id ?? ('TXN-' . str_pad($p->id, 5, '0', STR_PAD_LEFT)),
+                'commune' => $p->naissance->commune ?? $p->mariage->commune ?? $p->deces->commune ?? 'Multiples',
+                'type' => $p->naissance_id ? 'Naissance' : ($p->mariage_id ? 'Mariage' : ($p->deces_id ? 'Décès' : 'Groupe')),
+                'montant_total' => (float)$p->montant,
+                'part_timbre' => $parts['timbre'],
+                'part_livraison' => $parts['livraison'],
+                'payment_method' => $p->operator_id ?? 'Inconnu',
+                'status' => 'Succès'
+            ]);
+        }
+
+        $sortedFeed = $feed->sortByDesc('date');
+        
         $page = $request->input('page', 1);
-        $perPage = 10;
+        $perPage = 20;
         $transactions = new \Illuminate\Pagination\LengthAwarePaginator(
             $sortedFeed->forPage($page, $perPage),
             $sortedFeed->count(),
@@ -344,12 +461,6 @@ class AdminDashboard extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('admin.transactions.index', compact(
-            'transactions',
-            'availableMonths',
-            'searchDemandeur',
-            'selectedMonth',
-            'selectedType'
-        ));
+        return view('admin.transactions.all', compact('transactions', 'selectedMonth'));
     }
 }

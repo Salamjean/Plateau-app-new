@@ -232,7 +232,7 @@
                     <i class="material-icons">location_on</i>
                     <div class="info-content">
                         <span class="info-label">Adresse de livraison</span>
-                        <span class="info-value">{{ $demande->commune_livraison }}, {{ $demande->quartier }}</span>
+                        <span class="info-value">{{ $demande->quartier }}</span>
                         <small class="text-muted" style="font-size: 0.8rem;">{{ $demande->adresse_livraison }}</small>
                     </div>
                 </div>
