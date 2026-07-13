@@ -114,7 +114,7 @@
     <div class="error-container">
         <div class="logo">
             <a href="{{ url('/') }}">
-                <img src="{{ asset('assets/assets/img/plateau-mart1.png') }}" alt="Plateau Smart City" style="background-color:#1977CC">
+                <img src="{{ asset('assets/assets/img/plateau-mart1.png') }}" alt="Plateau Smart City" style="background-color:#091E3C; border-radius: 10px;">
             </a>
         </div>
         <div class="error-illustration">
