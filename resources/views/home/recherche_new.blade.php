@@ -2177,7 +2177,7 @@
             <a href="{{ route('recherche.demande') }}" class="btn-pill outline">
                 <i class="fas fa-search"></i> Suivre ma demande
             </a>
-            <a href="#" onclick="alertSiteInDev(event)" class="btn-pill solid">
+            <a href="#" onclick="checkOpening(event)" class="btn-pill solid">
                 <i class="fas fa-user"></i> Mon espace
             </a>
         </nav>
@@ -3009,6 +3009,17 @@
             } else {
                 alert("Site en développement\n\nLe site est en développement et en phase de test, d'où aucune demande n'est disponible pour le moment.");
             }
+        }
+
+        function checkOpening(event) {
+            event.preventDefault();
+            Swal.fire({
+                icon: 'info',
+                title: 'Information',
+                text: 'L\'ouverture de l\'espace citoyen est prévue pour ce lundi.',
+                confirmButtonColor: '#1f4083',
+                confirmButtonText: 'Compris'
+            });
         }
     </script>
 </body>

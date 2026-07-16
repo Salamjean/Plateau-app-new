@@ -21,6 +21,8 @@ class Mariage extends Model
         'lieuNaissanceEpouse',
         'pieceIdentite',
         'extraitMariage',
+        'numero_registre',
+        'date_registre',
         'reference',
         'commune',
         'etat',

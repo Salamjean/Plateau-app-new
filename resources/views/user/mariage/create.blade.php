@@ -1063,7 +1063,8 @@
                         <div class="form-section-title">
                             <i class="fas fa-book"></i> Détails du mariage
                         </div>
-                        <div class="row">
+                        <div class="form-section-content">
+                           <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="input-group-custom">
                                     <label>Commune de mariage :</label>
@@ -1087,6 +1088,29 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Numéro de registre : <span class="text-danger">*</span></label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="numero_registre" name="numero_registre"
+                                            class="form-control-custom" placeholder="Numéro de registre"
+                                            value="{{ old('numero_registre', isset($mariage) ? $mariage->numero_registre : '') }}" required>
+                                        <i class="fas fa-hashtag"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Date de registre : <span class="text-danger">*</span></label>
+                                    <div class="input-wrapper">
+                                        <input type="date" id="date_registre" name="date_registre"
+                                            class="form-control-custom"
+                                            value="{{ old('date_registre', isset($mariage) ? $mariage->date_registre : '') }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                </div>
 
                         <!-- Bloc Conjoint (Si Copie Intégrale) -->
                         <div id="infoEpoux"

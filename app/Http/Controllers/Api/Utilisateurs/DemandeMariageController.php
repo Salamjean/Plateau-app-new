@@ -68,6 +68,8 @@ class DemandeMariageController extends Controller
             'pieceIdentite' => 'required',
             'extraitMariage' => 'nullable',
             'commune_mariage' => 'required|string',
+            'numero_registre' => 'required|string',
+            'date_registre' => 'required|date',
             'pour' => 'nullable|string|max:255',
             'relation' => 'nullable|string|in:enfant,parent,connaissance',
             'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
@@ -124,6 +126,8 @@ class DemandeMariageController extends Controller
             $mariage->dateNaissanceEpouse = $request->dateNaissanceEpouse;
             $mariage->lieuNaissanceEpouse = $request->lieuNaissanceEpouse;
             $mariage->commune_mariage = $request->commune_mariage;
+            $mariage->numero_registre = $request->numero_registre;
+            $mariage->date_registre = $request->date_registre;
 
             // Calcul des quantités avec validation stricte
             $rawQtySimple = $request->input('qty_simple', 0);
@@ -680,6 +684,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'lieuNaissanceEpouse' => 'nullable|string|max:255',
                 'commune' => 'required|string',
                 'commune_mariage' => 'required|string|max:255',
+                'numero_registre' => 'required|string',
+                'date_registre' => 'required|date',
                 'qty_simple' => 'nullable|integer|min:0|max:10',
                 'qty_integral' => 'nullable|integer|min:0|max:10',
                 'pieceIdentite' => $mariage->pieceIdentite ? 'nullable' : 'required',
@@ -798,6 +804,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $mariage->lieuNaissanceEpouse = $request->input('lieuNaissanceEpouse', $mariage->lieuNaissanceEpouse);
             $mariage->commune = $request->input('commune', $mariage->commune);
             $mariage->commune_mariage = $request->input('commune_mariage', $mariage->commune_mariage);
+            $mariage->numero_registre = $request->input('numero_registre', $mariage->numero_registre);
+            $mariage->date_registre = $request->input('date_registre', $mariage->date_registre);
             $mariage->CMU = $request->input('CMU', $mariage->CMU);
 
             // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
@@ -1011,6 +1019,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'lieuNaissanceEpouse' => $request->input('lieuNaissanceEpouse', $originalData['lieuNaissanceEpouse']),
                     'commune' => $request->input('commune', $originalData['commune']),
                     'commune_mariage' => $request->input('commune_mariage', $originalData['commune_mariage']),
+                    'numero_registre' => $request->input('numero_registre', $originalData['numero_registre'] ?? $mariage->numero_registre),
+                    'date_registre' => $request->input('date_registre', $originalData['date_registre'] ?? $mariage->date_registre),
                     'CMU' => $request->input('CMU', $originalData['CMU']),
                     'qty_simple' => $qtySimple,
                     'qty_integral' => $qtyIntegral,
@@ -1129,7 +1139,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Vérification restrictive : rejeter la modification de champs non spécifiés par la mairie
-            $champsDemande = ['type', 'typeDemande', 'pour', 'relation', 'nomEpoux', 'prenomEpoux', 'dateNaissanceEpoux', 'lieuNaissanceEpoux', 'nomEpouse', 'prenomEpouse', 'dateNaissanceEpouse', 'lieuNaissanceEpouse', 'commune', 'commune_mariage', 'qty_simple', 'qty_integral', 'quantite', 'pieceIdentite', 'extraitMariage', 'document_autorisation', 'CMU'];
+            $champsDemande = ['type', 'typeDemande', 'pour', 'relation', 'nomEpoux', 'prenomEpoux', 'dateNaissanceEpoux', 'lieuNaissanceEpoux', 'nomEpouse', 'prenomEpouse', 'dateNaissanceEpouse', 'lieuNaissanceEpouse', 'commune', 'commune_mariage', 'numero_registre', 'date_registre', 'qty_simple', 'qty_integral', 'quantite', 'pieceIdentite', 'extraitMariage', 'document_autorisation', 'CMU'];
             $champsEnvoyes = array_keys($request->all());
             $champsNonAutorises = [];
 
@@ -1519,6 +1529,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'lieuNaissanceEpouse' => $request->input('lieuNaissanceEpouse', $originalData['lieuNaissanceEpouse']),
                         'commune' => $request->input('commune', $originalData['commune']),
                         'commune_mariage' => $request->input('commune_mariage', $originalData['commune_mariage']),
+                        'numero_registre' => $request->input('numero_registre', $originalData['numero_registre'] ?? $mariage->numero_registre),
+                        'date_registre' => $request->input('date_registre', $originalData['date_registre'] ?? $mariage->date_registre),
                         'CMU' => $request->input('CMU', $originalData['CMU']),
                         'qty_simple' => $qtySimple ?? $mariage->qty_simple,
                         'qty_integral' => $qtyIntegral ?? $mariage->qty_integral,

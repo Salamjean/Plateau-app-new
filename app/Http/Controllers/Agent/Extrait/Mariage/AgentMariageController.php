@@ -180,23 +180,23 @@ class AgentMariageController extends Controller
         // Notification push + DB
         $user = $mariage->user;
         $pushTitle = '';
-        $pushBody  = '';
+        $pushBody = '';
 
         switch ($mariage->etat) {
             case 'réçu':
                 $pushTitle = 'Demande reçue';
-                $pushBody  = "Votre demande d’extrait de mariage a été reçue et sera traitée dans les plus brefs délais.";
+                $pushBody = "Votre demande d’extrait de mariage a été reçue et sera traitée dans les plus brefs délais.";
                 break;
             case 'terminé':
                 $pushTitle = 'Demande traitée ✔';
-                $pushBody  = "Votre demande d’extrait de mariage a été traitée.";
+                $pushBody = "Votre demande d’extrait de mariage a été traitée.";
                 if ($mariage->livraison_code) {
                     $pushBody .= ' Code de livraison : ' . $mariage->livraison_code;
                 }
                 break;
             case 'rejetée':
                 $pushTitle = 'Demande rejetée — Modification requise';
-                $pushBody  = "Votre demande d’extrait de mariage n’a pas pu être traitée. Veuillez corriger les informations.";
+                $pushBody = "Votre demande d’extrait de mariage n’a pas pu être traitée. Veuillez corriger les informations.";
                 break;
         }
 

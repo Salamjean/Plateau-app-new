@@ -1003,7 +1003,7 @@
 
                         <!-- Ligne 1: Identité et Lieu -->
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="input-group-custom">
                                     <label>Nom :</label>
                                     <div class="input-wrapper">
@@ -1014,7 +1014,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="input-group-custom">
                                     <label>Prénoms :</label>
                                     <div class="input-wrapper">
@@ -1025,7 +1025,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Date de naissance :</label>
+                                    <div class="input-wrapper">
+                                        <input type="date" id="date_naissance" name="date_naissance" class="form-control-custom"
+                                            value="{{ old('date_naissance', isset($naissance) && $naissance->date_naissance ? \Carbon\Carbon::parse($naissance->date_naissance)->format('Y-m-d') : '') }}"
+                                            onclick="this.showPicker()">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
                                 <div class="input-group-custom">
                                     <label>Lieu de naissance :</label>
                                     <div class="input-wrapper">

@@ -11,6 +11,7 @@ class Naissance extends Model
         'pour',
         'name',
         'prenom',
+        'date_naissance',
         'nom_prenoms_pere',
         'nom_prenoms_mere',
         'number',

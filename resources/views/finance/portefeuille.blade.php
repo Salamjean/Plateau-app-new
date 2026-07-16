@@ -329,10 +329,18 @@
                                     <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave Logo" style="height: 24px; border-radius: 4px;">
                                     <span class="fw-bold tracking-wider small mb-0">PAIEMENTS WAVE</span>
                                 </div>
-                                <form method="GET" action="" class="m-0">
+                                <form method="GET" action="" class="m-0 d-flex gap-2">
+                                    <select name="filter_type" class="border-0 text-dark fw-bold bg-white rounded-pill px-3 py-1 shadow-sm" style="outline: none; font-size: 0.85rem;" onchange="this.form.submit()">
+                                        <option value="month" {{ $filterType === 'month' ? 'selected' : '' }}>Mois</option>
+                                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Semaine</option>
+                                    </select>
                                     <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">
-                                        <i class="fas fa-calendar-alt me-2" style="color: #00c3ff;"></i>
-                                        <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-primary fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
+                                        <i class="fas fa-calendar-alt me-2" style="color: #0062ff;"></i>
+                                        @if($filterType === 'week')
+                                            <input type="week" name="week" value="{{ $selectedWeek }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 140px;" onchange="this.form.submit()">
+                                        @else
+                                            <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
+                                        @endif
                                     </div>
                                 </form>
                             </div>
@@ -366,10 +374,18 @@
                                     <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay Logo" style="height: 24px; border-radius: 4px;">
                                     <span class="fw-bold tracking-wider small mb-0">PAIEMENTS TRÉSORPAY</span>
                                 </div>
-                                <form method="GET" action="" class="m-0">
+                                <form method="GET" action="" class="m-0 d-flex gap-2">
+                                    <select name="filter_type" class="border-0 text-dark fw-bold bg-white rounded-pill px-3 py-1 shadow-sm" style="outline: none; font-size: 0.85rem;" onchange="this.form.submit()">
+                                        <option value="month" {{ $filterType === 'month' ? 'selected' : '' }}>Mois</option>
+                                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Semaine</option>
+                                    </select>
                                     <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">
                                         <i class="fas fa-calendar-alt me-2" style="color: #b8860b;"></i>
-                                        <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
+                                        @if($filterType === 'week')
+                                            <input type="week" name="week" value="{{ $selectedWeek }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 140px;" onchange="this.form.submit()">
+                                        @else
+                                            <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
+                                        @endif
                                     </div>
                                 </form>
                             </div>
@@ -379,7 +395,7 @@
                                     <span class="fw-bold fs-5">{{ number_format($statsTresorpay['timbre'], 0, ',', ' ') }}</span>
                                 </div>
                                 <div class="text-center mx-2">
-                                    <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider" style="font-size: 0.7rem;">CUMUL DU MOIS EN COURS</h6>
+                                    <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider" style="font-size: 0.7rem;">CUMUL DE LA PÉRIODE</h6>
                                     <h1 class="display-6 fw-bold mb-0" style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                                         <span>{{ number_format($statsTresorpay['total'], 0, ',', ' ') }}</span> <span class="fs-6 opacity-75">FCFA</span>
                                     </h1>
@@ -411,7 +427,7 @@
                         <div class="card stat-card p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Naissance (Ce mois)</small>
+                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Naissance</small>
                                     <h3 class="fw-bold text-dark mt-1 mb-0">
                                         {{ number_format($totalNaissanceMonth, 0, ',', ' ') }} XOF</h3>
                                 </div>
@@ -432,7 +448,7 @@
                         <div class="card stat-card p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Mariage (Ce mois)</small>
+                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Mariage</small>
                                     <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalMariageMonth, 0, ',', ' ') }}
                                         XOF</h3>
                                 </div>
@@ -453,7 +469,7 @@
                         <div class="card stat-card p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Décès (Ce mois)</small>
+                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Décès</small>
                                     <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalDecesMonth, 0, ',', ' ') }}
                                         XOF</h3>
                                 </div>

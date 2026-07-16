@@ -30,6 +30,8 @@ class saveMariageRequest extends FormRequest
             'document_autorisation' => 'required_if:relation,connaissance|nullable|mimes:png,jpg,jpeg,pdf|max:25600',
             'dateNaissanceEpoux' => 'nullable|date|before:-18 years',
             'dateNaissanceEpouse' => 'nullable|date|before:-18 years',
+            'numero_registre' => 'required|string|max:255',
+            'date_registre' => 'required|date',
         ];
     }
 
@@ -38,6 +40,9 @@ class saveMariageRequest extends FormRequest
         return [
             'pieceIdentite.required' => 'La pièce d\'identité est obligatoire.',
             'commune_mariage.required' => 'La commune de mariage est obligatoire.',
+            'numero_registre.required' => 'Le numéro de registre est obligatoire.',
+            'date_registre.required' => 'La date de registre est obligatoire.',
+            'date_registre.date' => 'La date de registre n\'est pas valide.',
             'pieceIdentite.mimes' => 'Le format de la pièce d\'identité doit être PNG, JPG, JPEG ou PDF.',
             'pieceIdentite.max' => 'La taille de la pièce d\'identité ne doit pas dépasser 25Mo.',
             'document_autorisation.required_if' => 'Le document d\'autorisation est obligatoire pour une connaissance.',

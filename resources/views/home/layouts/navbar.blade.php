@@ -47,8 +47,27 @@
                         href="#">Contact</a></li>
             </ul>
             <div class="d-flex align-items-center justify-content-center gap-4 mt-3 mt-lg-0">
-                <a href="#" class="btn-portal w-100 w-lg-auto text-center">Mon espace citoyen</a>
+                <a href="#" onclick="checkOpening(event)" class="btn-portal w-100 w-lg-auto text-center">Mon espace citoyen</a>
             </div>
         </div>
     </div>
 </nav>
+
+<script>
+    if (typeof window.checkOpening === 'undefined') {
+        window.checkOpening = function(event) {
+            event.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Information',
+                    text: 'L\'ouverture de l\'espace citoyen est prévue pour ce lundi.',
+                    confirmButtonColor: '#1f4083',
+                    confirmButtonText: 'Compris'
+                });
+            } else {
+                alert('L\'ouverture de l\'espace citoyen est prévue pour ce lundi.');
+            }
+        };
+    }
+</script>

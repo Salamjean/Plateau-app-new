@@ -62,6 +62,7 @@ class DemandeNaissanceController extends Controller
             'pour' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
+            'date_naissance' => 'required|date',
             'number' => 'nullable|string|max:255',
             'DateR' => 'nullable|date',
             'commune' => 'required|string|max:255',
@@ -92,6 +93,7 @@ class DemandeNaissanceController extends Controller
             'pour' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
+            'date_naissance' => 'required|date',
             'number' => 'nullable|string|max:255',
             'DateR' => 'nullable|date',
             'commune' => 'required|string|max:255',
@@ -164,6 +166,7 @@ class DemandeNaissanceController extends Controller
             $naissance->type = $request->input('typeDemande'); // Harmonisation (simple, integrale, groupee)
             $naissance->name = $request->name;
             $naissance->prenom = $request->prenom;
+            $naissance->date_naissance = $request->date_naissance;
             $naissance->nom_prenoms_pere = $request->nom_prenoms_pere;
             $naissance->nom_prenoms_mere = $request->nom_prenoms_mere;
             $naissance->number = $request->number;
@@ -707,6 +710,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'type' => 'nullable|string|in:simple,integrale,groupee',
                 'name' => 'required|string|max:255',
                 'prenom' => 'required|string|max:255',
+                'date_naissance' => 'required|date',
                 'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere|nullable|string|max:255',
                 'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere|nullable|date',
                 'nom_prenoms_pere' => 'nullable|string|max:255',
@@ -794,6 +798,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'type' => $naissance->type,
                 'name' => $naissance->name,
                 'prenom' => $naissance->prenom,
+                'date_naissance' => $naissance->date_naissance,
                 'nom_prenoms_pere' => $naissance->nom_prenoms_pere,
                 'nom_prenoms_mere' => $naissance->nom_prenoms_mere,
                 'number' => $naissance->number,
@@ -822,6 +827,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Sinon : on garde le type existant en base (ex: si le mobile envoie 'naissance' par erreur)
             $naissance->name = $request->input('name', $naissance->name);
             $naissance->prenom = $request->input('prenom', $naissance->prenom);
+            $naissance->date_naissance = $request->input('date_naissance', $naissance->date_naissance);
             $naissance->nom_prenoms_pere = $request->input('nom_prenoms_pere', $naissance->nom_prenoms_pere);
             $naissance->nom_prenoms_mere = $request->input('nom_prenoms_mere', $naissance->nom_prenoms_mere);
             $naissance->number = $request->input('number', $naissance->number);
@@ -1015,6 +1021,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $naissance->type = $originalData['type'];
                 $naissance->name = $originalData['name'];
                 $naissance->prenom = $originalData['prenom'];
+                $naissance->date_naissance = $originalData['date_naissance'];
                 $naissance->nom_prenoms_pere = $originalData['nom_prenoms_pere'];
                 $naissance->nom_prenoms_mere = $originalData['nom_prenoms_mere'];
                 $naissance->number = $originalData['number'];
@@ -1042,6 +1049,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'type' => in_array($request->input('type'), ['simple', 'integrale', 'groupee']) ? $request->input('type') : $originalData['type'],
                         'name' => $request->input('name', $originalData['name']),
                         'prenom' => $request->input('prenom', $originalData['prenom']),
+                        'date_naissance' => $request->input('date_naissance', $originalData['date_naissance']),
                         'nom_prenoms_pere' => $request->input('nom_prenoms_pere', $originalData['nom_prenoms_pere']),
                         'nom_prenoms_mere' => $request->input('nom_prenoms_mere', $originalData['nom_prenoms_mere']),
                         'number' => $request->input('number', $originalData['number']),
@@ -1170,7 +1178,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Vérification restrictive : rejeter la modification de champs non spécifiés par la mairie
-            $champsDemande = ['type', 'pour', 'name', 'prenom', 'number', 'DateR', 'commune', 'commune_naissance', 'quantite', 'qty_simple', 'qty_integral', 'CNI', 'relation', 'document_autorisation', 'nom_prenoms_pere', 'nom_prenoms_mere'];
+            $champsDemande = ['type', 'pour', 'name', 'prenom', 'date_naissance', 'number', 'DateR', 'commune', 'commune_naissance', 'quantite', 'qty_simple', 'qty_integral', 'CNI', 'relation', 'document_autorisation', 'nom_prenoms_pere', 'nom_prenoms_mere'];
             $champsEnvoyes = array_keys($request->all());
             $champsNonAutorises = [];
 
@@ -1213,6 +1221,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         break;
                     case 'prenom':
                         $rules['prenom'] = 'required|string|max:255';
+                        break;
+                    case 'date_naissance':
+                        $rules['date_naissance'] = 'required|date';
                         break;
                     case 'number':
                         $rules['number'] = 'required|string|max:50';
@@ -1291,6 +1302,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'type' => $naissance->type,
                 'name' => $naissance->name,
                 'prenom' => $naissance->prenom,
+                'date_naissance' => $naissance->date_naissance,
                 'nom_prenoms_pere' => $naissance->nom_prenoms_pere,
                 'nom_prenoms_mere' => $naissance->nom_prenoms_mere,
                 'number' => $naissance->number,
@@ -1339,6 +1351,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             foreach ($champsAModifier as $champ) {
                 if ($champ === 'DateR' && isset($validated['DateR'])) {
                     $naissance->DateR = Carbon::parse($validated['DateR'])->format('Y-m-d');
+                } elseif ($champ === 'date_naissance' && isset($validated['date_naissance'])) {
+                    $naissance->date_naissance = $validated['date_naissance'];
                 } elseif ($champ !== 'CNI' && isset($validated[$champ])) {
                     $naissance->$champ = $validated[$champ];
                 }
@@ -1659,6 +1673,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'pour' => ['label' => 'Bénéficiaire', 'type' => 'text'],
                 'name' => ['label' => 'Nom', 'type' => 'text'],
                 'prenom' => ['label' => 'Prénoms', 'type' => 'text'],
+                'date_naissance' => ['label' => 'Date de naissance', 'type' => 'date'],
                 'number' => ['label' => 'Numéro de registre', 'type' => 'text'],
                 'DateR' => ['label' => 'Date de registre', 'type' => 'date'],
                 'CNI' => ['label' => 'Pièce d\'identité', 'type' => 'file'],
@@ -1719,6 +1734,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             'pour' => $naissance->pour,
             'name' => $naissance->name,
             'prenom' => $naissance->prenom,
+            'date_naissance' => $naissance->date_naissance,
             'number' => $naissance->number,
             'DateR' => $naissance->DateR,
             'commune' => $naissance->commune,

@@ -716,8 +716,7 @@
                                         @endif
                                     </td>
                                     <td style="text-align: center" data-label="Demandeur">
-                                        <div class="user-info"
-                                            style="text-align: center; display:flex; justify-content:center">
+                                        <div class="user-info" style="text-align: center; display:flex; justify-content:center">
                                             <div class="user-avatar" style="text-align: center">
                                                 {{ substr($naissance->user->name, 0, 1) . '' . substr($naissance->user->prenom, 0, 1) }}
                                             </div>
@@ -731,8 +730,7 @@
                                         </div>
                                     </td>
                                     <td style="text-align: center" data-label="Demandeur">
-                                        <div class="user-info"
-                                            style="text-align: center; display:flex; justify-content:center">
+                                        <div class="user-info" style="text-align: center; display:flex; justify-content:center">
                                             <div class="user-avatar1" style="text-align: center">
                                                 {{ substr($naissance->name, 0, 1) . '' . substr($naissance->prenom, 0, 1) }}
                                             </div>
@@ -761,8 +759,7 @@
                                         @elseif($naissance->type == 'integrale')
                                             <span class="badge bg-primary text-white">Copie Intégrale</span>
                                         @else
-                                            <span
-                                                class="badge bg-secondary text-white">{{ ucfirst($naissance->type) }}</span>
+                                            <span class="badge bg-secondary text-white">{{ ucfirst($naissance->type) }}</span>
                                         @endif
                                     </td>
                                     <td style="text-align: center">
@@ -774,8 +771,8 @@
                                             @endphp
                                             @if ($isCNIPdf)
                                                 <a href="{{ $CNIPath }}" target="_blank" class="document-preview">
-                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" style="width: 40px"
-                                                        alt="PDF" class="document-preview">
+                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" style="width: 40px" alt="PDF"
+                                                        class="document-preview">
                                                 </a>
                                             @else
                                                 <img src="{{ $CNIPath }}" alt="CNI" class="document-preview"
@@ -798,23 +795,20 @@
                                     </td>
                                     <td style="text-align: center" data-label="Actions">
                                         <!-- Bouton pour voir les détails -->
-                                        <button class="btn-action btn-icon"
-                                            style="background-color: #17a2b8; cursor: pointer;"
+                                        <button class="btn-action btn-icon" style="background-color: #17a2b8; cursor: pointer;"
                                             data-task="{{ json_encode($naissance) }}" onclick="showRequestDetails(this)"
                                             title="Voir les détails de la demande">
                                             <i class="fas fa-eye"></i>
                                         </button>
 
                                         @if ($naissance->etat === 'terminé')
-                                            <a href="#" class="btn-action btn-secondary btn-icon disabled"
-                                                title="Demande terminée"
+                                            <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée"
                                                 style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @else
                                             <a href="{{ route('agent.demandes.naissance.edit', $naissance->id) }}"
-                                                class="btn-action btn-secondary btn-icon"
-                                                title="Modifier l'état de la demande">
+                                                class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @endif
@@ -843,8 +837,7 @@
                                                         place</span>
                                                 @endif
                                                 @if ($naissance->etat == 'terminé')
-                                                    <button class="btn-action"
-                                                        onclick="markAsDelivered({{ $naissance->id }})"
+                                                    <button class="btn-action" onclick="markAsDelivered({{ $naissance->id }})"
                                                         title="Livré l'extrait">
                                                         <i class="fas fa-file"></i>Retrait
                                                     </button>
@@ -887,8 +880,7 @@
                                     </li>
                                 @else
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->url(1) }}"
-                                            aria-label="Première page">
+                                        <a class="page-link" href="{{ $naissances->url(1) }}" aria-label="Première page">
                                             <i class="fas fa-angle-double-left"></i>
                                         </a>
                                     </li>
@@ -903,8 +895,7 @@
                                     </li>
                                 @else
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->previousPageUrl() }}"
-                                            aria-label="Précédent">
+                                        <a class="page-link" href="{{ $naissances->previousPageUrl() }}" aria-label="Précédent">
                                             <i class="fas fa-chevron-left"></i>
                                         </a>
                                     </li>
@@ -944,8 +935,7 @@
                                         @if ($i == $current)
                                             <span class="page-link">{{ $i }}</span>
                                         @else
-                                            <a class="page-link"
-                                                href="{{ $naissances->url($i) }}">{{ $i }}</a>
+                                            <a class="page-link" href="{{ $naissances->url($i) }}">{{ $i }}</a>
                                         @endif
                                     </li>
                                 @endfor
@@ -957,16 +947,14 @@
                                         </li>
                                     @endif
                                     <li class="page-item">
-                                        <a class="page-link"
-                                            href="{{ $naissances->url($last) }}">{{ $last }}</a>
+                                        <a class="page-link" href="{{ $naissances->url($last) }}">{{ $last }}</a>
                                     </li>
                                 @endif
 
                                 <!-- Page suivante -->
                                 @if ($naissances->hasMorePages())
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->nextPageUrl() }}"
-                                            aria-label="Suivant">
+                                        <a class="page-link" href="{{ $naissances->nextPageUrl() }}" aria-label="Suivant">
                                             <i class="fas fa-chevron-right"></i>
                                         </a>
                                     </li>
@@ -981,8 +969,7 @@
                                 <!-- Dernière page -->
                                 @if ($naissances->hasMorePages())
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->url($last) }}"
-                                            aria-label="Dernière page">
+                                        <a class="page-link" href="{{ $naissances->url($last) }}" aria-label="Dernière page">
                                             <i class="fas fa-angle-double-right"></i>
                                         </a>
                                     </li>
@@ -1002,11 +989,11 @@
     </div>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Recherche dans le tableau
-            $('#searchInput').on('keyup', function() {
+            $('#searchInput').on('keyup', function () {
                 const value = $(this).val().toLowerCase();
-                $('table tbody tr').filter(function() {
+                $('table tbody tr').filter(function () {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                 });
             });
@@ -1015,7 +1002,7 @@
             function adaptForMobile() {
                 if (window.innerWidth <= 768) {
                     // Ajout des data-labels pour l'affichage mobile
-                    $('table thead th').each(function() {
+                    $('table thead th').each(function () {
                         const headerText = $(this).text();
                         const columnIndex = $(this).index();
                         $('table tbody tr td:nth-child(' + (columnIndex + 1) + ')').attr('data-label',
@@ -1038,7 +1025,7 @@
         function showRequestDetails(naissanceOrElement) {
             let naissance = naissanceOrElement;
             if (naissanceOrElement && (naissanceOrElement.dataset || (naissanceOrElement.getAttribute && naissanceOrElement
-                    .getAttribute('data-task')))) {
+                .getAttribute('data-task')))) {
                 const raw = naissanceOrElement.dataset.task || naissanceOrElement.getAttribute('data-task');
                 if (raw) {
                     try {
@@ -1050,7 +1037,7 @@
             } else if (typeof naissanceOrElement === 'string') {
                 try {
                     naissance = JSON.parse(naissanceOrElement);
-                } catch (e) {}
+                } catch (e) { }
             }
             const user = (naissance && naissance.user) || {};
             const documentType = naissance.type === 'simple' ? 'Copie Simple' : (naissance.type === 'groupee' ?
@@ -1115,92 +1102,104 @@
                 if (!docs.length)
                     return `<div style="text-align:center;padding:24px;color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:2rem;margin-bottom:8px;display:block;"></i><p style="margin:0;font-size:0.85rem;">Aucun document joint</p></div>`;
                 return docs.map(d => `
-          <div style="display:flex;align-items:center;gap:14px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px;">
-            <div style="width:60px;height:60px;border-radius:8px;overflow:hidden;background:white;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              ${d.isPdf ? '<i class="fas fa-file-pdf" style="color:#ef4444;font-size:1.8rem;"></i>' : `<img src="${d.path}" onclick="openImageModal('${d.path}')" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" alt="${d.label}">`}
-            </div>
-            <div style="flex:1;">
-              <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
-              <div style="display:flex;gap:8px;">
-                ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
-                <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
+              <div style="display:flex;align-items:center;gap:14px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px;">
+                <div style="width:60px;height:60px;border-radius:8px;overflow:hidden;background:white;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  ${d.isPdf ? '<i class="fas fa-file-pdf" style="color:#ef4444;font-size:1.8rem;"></i>' : `<img src="${d.path}" onclick="openImageModal('${d.path}')" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" alt="${d.label}">`}
+                </div>
+                <div style="flex:1;">
+                  <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
+                  <div style="display:flex;gap:8px;">
+                    ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
+                    <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        `).join('');
+            `).join('');
             };
 
             // Créer le contenu HTML moderne pour SweetAlert
+            const nData = encodeURIComponent(JSON.stringify(naissance)).replace(/'/g, "%27");
             const htmlContent = `
-        <div class="dp-wrap">
-          <div class="dp-hero">
-            <div class="dp-status-pill"><i class="fas ${status.icon}"></i> ${status.label}</div>
-            <div class="dp-hero-icon"><i class="fas fa-baby"></i></div>
-            <div class="dp-hero-title">Demande de Naissance</div>
-            <div class="dp-hero-meta">
-              <span><i class="fas fa-hashtag"></i> #${naissance.id}</span>
-              <span style="opacity:.4">|</span>
-              <span><i class="fas fa-calendar-alt"></i> ${new Date(naissance.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>
-              <span style="opacity:.4">|</span>
-              <span><i class="fas fa-file-alt"></i> ${documentType}</span>
-            </div>
-          </div>
-          <div class="dp-tabs" id="dpTabsN">
-            <div class="dp-tab dp-active" data-panel="dpPN-infos"><i class="fas fa-info-circle"></i> Informations</div>
-            <div class="dp-tab" data-panel="dpPN-livraison"><i class="fas fa-${naissance.choix_option === 'livraison' ? 'truck' : 'store'}"></i> ${naissance.choix_option === 'livraison' ? 'Livraison' : 'Retrait'}</div>
-            <div class="dp-tab" data-panel="dpPN-docs"><i class="fas fa-paperclip"></i> Documents</div>
-          </div>
-          <div class="dp-panel dp-active" id="dpPN-infos">
-            ${naissance.motif_de_rejet ? `<div class="dp-alert"><div class="dp-alert-icon"><i class="fas fa-exclamation-triangle"></i></div><div><div class="dp-alert-title">Demande rejetée</div><div class="dp-alert-text">${naissance.motif_de_rejet}</div></div></div>` : ''}
-            <div class="dp-grid">
-              <div class="dp-section">
-                <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-child"></i></div><div class="dp-section-title">Informations de l'Enfant</div></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${naissance.name||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom</span><span class="dp-value">${naissance.prenom||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${naissance.number||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Date Reg.</span><span class="dp-value">${naissance.DateR||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Commune</span><span class="dp-value">${naissance.commune||'--'}</span></div>
+            <div class="dp-wrap">
+              <div class="dp-hero">
+                <div class="dp-status-pill"><i class="fas ${status.icon}"></i> ${status.label}</div>
+                <div class="dp-hero-icon"><i class="fas fa-baby"></i></div>
+                <div class="dp-hero-title">Demande de Naissance</div>
+                <div class="dp-hero-meta">
+                  <span><i class="fas fa-hashtag"></i> #${naissance.id}</span>
+                  <span style="opacity:.4">|</span>
+                  <span><i class="fas fa-calendar-alt"></i> ${new Date(naissance.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  <span style="opacity:.4">|</span>
+                  <span><i class="fas fa-file-alt"></i> ${documentType}</span>
+                </div>
               </div>
-              <div class="dp-section">
-                <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-user-circle"></i></div><div class="dp-section-title">Demandeur</div></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${(user.name||'')+' '+(user.prenom||'')}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${user.email||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${user.contact||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-clock"></i> Date</span><span class="dp-value">${new Date(naissance.created_at).toLocaleString('fr-FR')}</span></div>
+              <div class="dp-tabs" id="dpTabsN">
+                <div class="dp-tab dp-active" data-panel="dpPN-infos"><i class="fas fa-info-circle"></i> Informations</div>
+                <div class="dp-tab" data-panel="dpPN-livraison"><i class="fas fa-${naissance.choix_option === 'livraison' ? 'truck' : 'store'}"></i> ${naissance.choix_option === 'livraison' ? 'Livraison' : 'Retrait'}</div>
+                <div class="dp-tab" data-panel="dpPN-docs"><i class="fas fa-paperclip"></i> Documents</div>
               </div>
-            </div>
-            <div class="dp-section">
-              <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-file-invoice"></i></div><div class="dp-section-title">Détails de la Commande</div></div>
-              <div class="dp-row"><span class="dp-label"><i class="fas fa-file-alt"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">${documentType}</span></div>
-              <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${naissance.quantite} copie(s)${naissance.type==='groupee'?` <small style="color:#64748b;font-weight:400;">(${naissance.qty_simple||0}s + ${naissance.qty_integral||0}i)</small>`:''}</span></div>
-              <div class="dp-row"><span class="dp-label"><i class="fas fa-user-friends"></i> Pour</span><span class="dp-value">${naissance.pour === 'proprie' ? 'Lui-même' : (naissance.pour === 'tiers' ? 'Un tiers' : (naissance.pour || '--'))}</span></div>
-              ${naissance.relation ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-project-diagram"></i> Relation</span><span class="dp-value">${naissance.relation}</span></div>` : ''}
-              <div class="dp-row"><span class="dp-label"><i class="fas fa-circle"></i> Statut</span><span class="dp-value"><span class="dp-badge" style="background:${status.bg};color:${status.color};border:1px solid ${status.border};"><i class="fas ${status.icon}"></i> ${status.label}</span></span></div>
-            </div>
-          </div>
-          <div class="dp-panel" id="dpPN-livraison">
-            ${naissance.choix_option === 'livraison' ? `
-                        <div class="dp-section">
-                          <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${naissance.nom_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${naissance.contact_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${naissance.email_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${naissance.adresse_livraison||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${naissance.ville||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${naissance.commune_livraison||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${naissance.quartier||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${naissance.code_postal||'--'}</span></div>
+              <div class="dp-panel dp-active" id="dpPN-infos">
+                ${naissance.motif_de_rejet ? `<div class="dp-alert"><div class="dp-alert-icon"><i class="fas fa-exclamation-triangle"></i></div><div><div class="dp-alert-title">Demande rejetée</div><div class="dp-alert-text">${naissance.motif_de_rejet}</div></div></div>` : ''}
+                <div class="dp-grid">
+                  <div class="dp-section">
+                    <div class="dp-section-head" style="justify-content: space-between;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="dp-section-icon"><i class="fas fa-child"></i></div>
+                            <div class="dp-section-title">Informations de la demande</div>
                         </div>
-                        ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
-          </div>
-          <div class="dp-panel" id="dpPN-docs">
-            <div class="dp-section">
-              <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-paperclip"></i></div><div class="dp-section-title">Documents Joints</div></div>
-              <div style="padding:12px;">${formatDocuments(naissance)}</div>
+                        <button type="button" onclick="printChildInfo('${nData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <i class="fas fa-print"></i> Imprimer
+                        </button>
+                    </div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${naissance.name || '--'}</span></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom</span><span class="dp-value">${naissance.prenom || '--'}</span></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar-day"></i> Date naiss.</span><span class="dp-value">${naissance.date_naissance ? new Date(naissance.date_naissance).toLocaleDateString('fr-FR') : '--'}</span></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Lieu naiss.</span><span class="dp-value">${naissance.commune_naissance || '--'}</span></div>
+                    ${naissance.nom_prenoms_pere ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-male"></i> Père</span><span class="dp-value">${naissance.nom_prenoms_pere}</span></div>` : ''}
+                    ${naissance.nom_prenoms_mere ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-female"></i> Mère</span><span class="dp-value">${naissance.nom_prenoms_mere}</span></div>` : ''}
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${naissance.number || '--'}</span></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Date Reg.</span><span class="dp-value">${naissance.DateR || '--'}</span></div>
+                  </div>
+                  <div class="dp-section">
+                    <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-user-circle"></i></div><div class="dp-section-title">Demandeur</div></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${(user.name || '') + ' ' + (user.prenom || '')}</span></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${user.email || '--'}</span></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${user.contact || '--'}</span></div>
+                    <div class="dp-row"><span class="dp-label"><i class="fas fa-clock"></i> Date</span><span class="dp-value">${new Date(naissance.created_at).toLocaleString('fr-FR')}</span></div>
+                  </div>
+                </div>
+                <div class="dp-section">
+                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-file-invoice"></i></div><div class="dp-section-title">Détails de la Commande</div></div>
+                  <div class="dp-row"><span class="dp-label"><i class="fas fa-file-alt"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">${documentType}</span></div>
+                  <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${naissance.quantite} copie(s)${naissance.type === 'groupee' ? ` <small style="color:#64748b;font-weight:400;">(${naissance.qty_simple || 0}s + ${naissance.qty_integral || 0}i)</small>` : ''}</span></div>
+                  <div class="dp-row"><span class="dp-label"><i class="fas fa-user-friends"></i> Pour</span><span class="dp-value">${naissance.pour === 'proprie' ? 'Lui-même' : (naissance.pour === 'tiers' ? 'Un tiers' : (naissance.pour || '--'))}</span></div>
+                  ${naissance.relation ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-project-diagram"></i> Relation</span><span class="dp-value">${naissance.relation}</span></div>` : ''}
+                  <div class="dp-row"><span class="dp-label"><i class="fas fa-circle"></i> Statut</span><span class="dp-value"><span class="dp-badge" style="background:${status.bg};color:${status.color};border:1px solid ${status.border};"><i class="fas ${status.icon}"></i> ${status.label}</span></span></div>
+                </div>
+              </div>
+              <div class="dp-panel" id="dpPN-livraison">
+                ${naissance.choix_option === 'livraison' ? `
+                            <div class="dp-section">
+                              <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${naissance.nom_destinataire || '--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${naissance.contact_destinataire || '--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${naissance.email_destinataire || '--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${naissance.adresse_livraison || '--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${naissance.ville || '--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${naissance.commune_livraison || '--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${naissance.quartier || '--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${naissance.code_postal || '--'}</span></div>
+                            </div>
+                            ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+              </div>
+              <div class="dp-panel" id="dpPN-docs">
+                <div class="dp-section">
+                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-paperclip"></i></div><div class="dp-section-title">Documents Joints</div></div>
+                  <div style="padding:12px;">${formatDocuments(naissance)}</div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      `;
+          `;
 
             Swal.fire({
                 html: htmlContent,
@@ -1214,12 +1213,12 @@
                 },
                 didOpen: () => {
                     var tabs = document.querySelectorAll('#dpTabsN .dp-tab');
-                    tabs.forEach(function(t) {
-                        t.addEventListener('click', function() {
-                            tabs.forEach(function(x) {
+                    tabs.forEach(function (t) {
+                        t.addEventListener('click', function () {
+                            tabs.forEach(function (x) {
                                 x.classList.remove('dp-active');
                             });
-                            document.querySelectorAll('#dpTabsN ~ .dp-panel').forEach(function(
+                            document.querySelectorAll('#dpTabsN ~ .dp-panel').forEach(function (
                                 p) {
                                 p.classList.remove('dp-active');
                             });
@@ -1232,23 +1231,91 @@
             });
         }
 
+        // Fonction pour imprimer uniquement les informations de l'enfant
+        function printChildInfo(encodedData) {
+            const naissance = JSON.parse(decodeURIComponent(encodedData));
+            const printWindow = window.open('', '_blank');
+            const dateNaiss = naissance.date_naissance ? new Date(naissance.date_naissance).toLocaleDateString('fr-FR') : '--';
+            const dateReg = naissance.DateR || '--';
+
+            printWindow.document.title = "Impression Informations Demande";
+
+            const style = printWindow.document.createElement('style');
+            style.textContent = `
+                    body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 10px; color: #000; margin: 0; }
+                    .info-block { border: 1px solid #000; padding: 15px; border-radius: 8px; max-width: 280px; margin: 0 auto; background: #fff; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #94a3b8; padding-bottom: 4px; align-items: center; }
+                    .row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                    .label { font-weight: 700; color: #000; font-size: 0.75rem; }
+                    .value { font-weight: 700; color: #000; text-transform: uppercase; font-size: 0.8rem; text-align: right; max-width: 65%; word-wrap: break-word; }
+                    .title { text-align: center; font-size: 0.95rem; margin-bottom: 15px; font-weight: 800; color: #000; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 6px; }
+                    @media print {
+                        body { padding: 0; margin: 0; }
+                        .info-block { border: none; padding: 0; width: 100%; max-width: none; }
+                    }
+                `;
+            printWindow.document.head.appendChild(style);
+
+            const container = printWindow.document.createElement('div');
+            container.className = 'info-block';
+
+            const title = printWindow.document.createElement('div');
+            title.className = 'title';
+            title.textContent = 'Informations de la demande';
+            container.appendChild(title);
+
+            const fields = [
+                { label: 'Nom', value: naissance.name || '--' },
+                { label: 'Prénom', value: naissance.prenom || '--' },
+                { label: 'Date naiss.', value: dateNaiss },
+                { label: 'Lieu naiss.', value: naissance.commune_naissance || '--' },
+                { label: 'N° Registre', value: naissance.number || '--' },
+                { label: 'Date Reg.', value: dateReg }
+            ];
+
+            fields.forEach(field => {
+                const row = printWindow.document.createElement('div');
+                row.className = 'row';
+
+                const labelSpan = printWindow.document.createElement('span');
+                labelSpan.className = 'label';
+                labelSpan.textContent = field.label;
+
+                const valueSpan = printWindow.document.createElement('span');
+                valueSpan.className = 'value';
+                valueSpan.textContent = field.value;
+
+                row.appendChild(labelSpan);
+                row.appendChild(valueSpan);
+                container.appendChild(row);
+            });
+
+            printWindow.document.body.appendChild(container);
+
+            // Imprimer et fermer après un court délai pour permettre le rendu
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        }
+
         // Fonction pour ouvrir une image en grand dans une modal
         function openImageModal(imageSrc) {
             const htmlContent = `
-        <div style="text-align:center;">
-          <div style="border-radius:12px;overflow:hidden;background:#000;display:inline-block;max-width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
-            <img src="${imageSrc}" style="max-width:100%;max-height:65vh;display:block;" alt="Document">
-          </div>
-          <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-            <a href="${imageSrc}" download style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
-              <i class="fas fa-download"></i> Télécharger
-            </a>
-            <button onclick="Swal.close()" style="color:#475569;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #e2e8f0;border-radius:8px;background:white;font-size:0.85rem;font-weight:600;cursor:pointer;">
-              <i class="fas fa-times"></i> Fermer
-            </button>
-          </div>
-        </div>
-      `;
+            <div style="text-align:center;">
+              <div style="border-radius:12px;overflow:hidden;background:#000;display:inline-block;max-width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+                <img src="${imageSrc}" style="max-width:100%;max-height:65vh;display:block;" alt="Document">
+              </div>
+              <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+                <a href="${imageSrc}" download style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
+                  <i class="fas fa-download"></i> Télécharger
+                </a>
+                <button onclick="Swal.close()" style="color:#475569;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #e2e8f0;border-radius:8px;background:white;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                  <i class="fas fa-times"></i> Fermer
+                </button>
+              </div>
+            </div>
+          `;
             Swal.fire({
                 title: '<span style="font-size:1rem;color:#0f172a;">Visualisation du document</span>',
                 html: htmlContent,
@@ -1288,11 +1355,11 @@
                             statut_livraison: 'livré',
                             reference: result.value
                         },
-                        success: function(response) {
+                        success: function (response) {
                             Swal.fire('Succès!', 'La demande a été marquée comme livrée.', 'success');
                             location.reload();
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             const errorMessage = xhr.responseJSON.error ||
                                 'Une erreur est survenue lors de la mise à jour.';
                             Swal.fire('Erreur!', errorMessage, 'error');
@@ -1307,8 +1374,8 @@
             const url = downloadDeliveryInfoUrl.replace(':id', id);
             const printWindow = window.open(url, '_blank');
             if (printWindow) {
-                printWindow.onload = function() {
-                    setTimeout(function() {
+                printWindow.onload = function () {
+                    setTimeout(function () {
                         printWindow.print();
                     }, 500);
                 };
@@ -1322,38 +1389,38 @@
 
             // Formater le contenu HTML pour SweetAlert
             const htmlContent = `
-                <div style="text-align: center;">
-                    <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
+                    <div style="text-align: center;">
+                        <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
 
-                    <div style="margin-bottom: 15px;">
-                        <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || naissance.user.name + ' ' + naissance.user.prenom}
-                    </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || naissance.user.name + ' ' + naissance.user.prenom}
+                        </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <strong>Téléphone:</strong> ${deliveryInfo.telephone || naissance.user.contact}
-                    </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Téléphone:</strong> ${deliveryInfo.telephone || naissance.user.contact}
+                        </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <strong>Ville:</strong> ${deliveryInfo.ville || 'Non spécifiée'}
-                    </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Ville:</strong> ${deliveryInfo.ville || 'Non spécifiée'}
+                        </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <strong>Commune:</strong> ${deliveryInfo.commune_livraison || 'Non spécifiée'}
-                    </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Commune:</strong> ${deliveryInfo.commune_livraison || 'Non spécifiée'}
+                        </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <strong>Quartier:</strong> ${deliveryInfo.quartier || 'Non spécifiée'}
-                    </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Quartier:</strong> ${deliveryInfo.quartier || 'Non spécifiée'}
+                        </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <strong>Code de livraison:</strong> ${deliveryInfo.livraison_code || 'Non spécifiée'}
-                    </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>Code de livraison:</strong> ${deliveryInfo.livraison_code || 'Non spécifiée'}
+                        </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <strong>Adresse de livraison:</strong> ${deliveryInfo.adresse_livraison || 'Non spécifiée'}
+                        <div style="margin-bottom: 15px;">
+                            <strong>Adresse de livraison:</strong> ${deliveryInfo.adresse_livraison || 'Non spécifiée'}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
             // Afficher les informations dans une popup SweetAlert
             Swal.fire({
@@ -1378,8 +1445,8 @@
                     const url = downloadDeliveryInfoUrl.replace(':id', naissance.id);
                     const printWindow = window.open(url, '_blank');
                     if (printWindow) {
-                        printWindow.onload = function() {
-                            setTimeout(function() {
+                        printWindow.onload = function () {
+                            setTimeout(function () {
                                 printWindow.print();
                             }, 500);
                         };

@@ -49,6 +49,7 @@ class NaissanceController extends Controller
             'type' => 'required',
             'name' => 'required',
             'prenom' => 'required',
+            'date_naissance' => 'required|date',
             'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'nom_prenoms_pere' => 'nullable|string|max:255',
@@ -145,6 +146,7 @@ class NaissanceController extends Controller
         $pendingAttributes['type'] = $request->type;
         $pendingAttributes['name'] = $request->name;
         $pendingAttributes['prenom'] = $request->prenom;
+        $pendingAttributes['date_naissance'] = $request->date_naissance;
         $pendingAttributes['commune'] = $request->commune;
         $pendingAttributes['commune_naissance'] = $request->commune_naissance;
         $pendingAttributes['number'] = $request->number;
@@ -484,6 +486,7 @@ class NaissanceController extends Controller
             'type' => 'required',
             'name' => 'required',
             'prenom' => 'required',
+            'date_naissance' => 'required|date',
             'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'nom_prenoms_pere' => 'nullable|string|max:255',
@@ -512,6 +515,8 @@ class NaissanceController extends Controller
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
             'name.required' => 'Le nom est obligatoire',
             'prenom.required' => 'Le prénom est obligatoire',
+            'date_naissance.required' => 'La date de naissance est obligatoire',
+            'date_naissance.date' => 'La date de naissance doit être une date valide',
             'number.required_without_all' => 'Le numéro de registre est obligatoire si les informations parentales ne sont pas fournies',
             'DateR.required_without_all' => 'La date de registre est obligatoire si les informations parentales ne sont pas fournies',
             'commune.required' => 'La commune est obligatoire',
@@ -623,6 +628,7 @@ class NaissanceController extends Controller
         $naissance->qty_integral = $qtyIntegral;
         $naissance->quantite = $totalQuantity;
         $naissance->prenom = $request->prenom;
+        $naissance->date_naissance = $request->date_naissance;
         $naissance->nom_prenoms_pere = $request->nom_prenoms_pere;
         $naissance->nom_prenoms_mere = $request->nom_prenoms_mere;
         $naissance->number = $request->number;

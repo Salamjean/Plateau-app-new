@@ -952,7 +952,7 @@
                     <i class="bi bi-search"></i>
                     <span>Suivre ma demande</span>
                 </a>
-                <a href="{{ route('login') }}" class="btn-figma-primary btn-figma-md">
+                <a href="#" onclick="checkOpening(event)" class="btn-figma-primary btn-figma-md">
                     <i class="bi bi-person-fill"></i>
                     <span>Mon espace</span>
                 </a>
@@ -1324,7 +1324,19 @@
                 behavior: 'smooth'
             });
         });
+
+        function checkOpening(event) {
+            event.preventDefault();
+            Swal.fire({
+                icon: 'info',
+                title: 'Information',
+                text: 'L\'ouverture de l\'espace citoyen est prévue pour ce lundi.',
+                confirmButtonColor: '#1f4083',
+                confirmButtonText: 'Compris'
+            });
+        }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

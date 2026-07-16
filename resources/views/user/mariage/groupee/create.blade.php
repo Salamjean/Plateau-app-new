@@ -353,9 +353,7 @@
 
             <!-- Détails du mariage (calque du formulaire existant) -->
             <div class="form-section-title" style="font-size: 0.95rem;">
-                <i class="fas fa-book"></i> Détails du mariage
-            </div>
-            <div class="row">
+                <i c            <div class="row">
                 <div class="col-md-6 mb-3">
                     <div class="input-group-custom">
                         <label>Commune de mariage : *</label>
@@ -374,6 +372,28 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="input-group-custom">
+                        <label>Numéro de registre : *</label>
+                        <div class="input-wrapper">
+                            <input type="text" name="lignes[${position}][numero_registre]" class="form-control-custom" placeholder="Numéro de registre" required>
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="input-group-custom">
+                        <label>Date de registre : *</label>
+                        <div class="input-wrapper">
+                            <input type="date" name="lignes[${position}][date_registre]" class="form-control-custom" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            ${blocConjoint}         </div>
             </div>
 
             ${blocConjoint}

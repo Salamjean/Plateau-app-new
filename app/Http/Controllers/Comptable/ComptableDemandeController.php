@@ -24,6 +24,7 @@ class ComptableDemandeController extends Controller
         $mapNaissance = function ($item) {
             $item->type_demande  = 'naissance';
             $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
+            $item->nom_sur_extrait = trim(($item->name ?? '') . ' ' . ($item->prenom ?? ''));
             $item->contact       = $item->user->contact ?? '';
             return $item;
         };
@@ -31,6 +32,7 @@ class ComptableDemandeController extends Controller
         $mapDeces = function ($item) {
             $item->type_demande  = 'deces';
             $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
+            $item->nom_sur_extrait = trim($item->name ?? '');
             $item->contact       = $item->user->contact ?? '';
             return $item;
         };
@@ -38,6 +40,7 @@ class ComptableDemandeController extends Controller
         $mapMariage = function ($item) {
             $item->type_demande  = 'mariage';
             $item->demandeur_nom = ($item->user->name ?? '') . ' ' . ($item->user->prenom ?? '');
+            $item->nom_sur_extrait = trim(($item->nomEpoux ?? '') . ' ' . ($item->prenomEpoux ?? '')) . ' & ' . trim(($item->nomEpouse ?? '') . ' ' . ($item->prenomEpouse ?? ''));
             $item->contact       = $item->user->contact ?? '';
             return $item;
         };

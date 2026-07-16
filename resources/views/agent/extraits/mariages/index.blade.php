@@ -1158,6 +1158,8 @@
             `).join('');
             };
 
+            const mData = encodeURIComponent(JSON.stringify(mariage)).replace(/'/g, "%27");
+
             const htmlContent = `
           <div class="dp-wrap">
             <div class="dp-hero">
@@ -1181,7 +1183,15 @@
               ${mariage.motif_de_rejet ? `<div class="dp-alert"><div class="dp-alert-icon"><i class="fas fa-exclamation-triangle"></i></div><div><div class="dp-alert-title">Demande rejetée</div><div class="dp-alert-text">${mariage.motif_de_rejet}</div></div></div>` : ''}
               <div class="dp-grid">
                 <div class="dp-section">
-                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div><div class="dp-section-title">${isCopieSimple ? 'Informations Générales' : 'Informations des Conjoints'}</div></div>
+                  <div class="dp-section-head" style="justify-content: space-between;">
+                      <div style="display:flex; align-items:center; gap:10px;">
+                          <div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div>
+                          <div class="dp-section-title">${isCopieSimple ? 'Informations Générales' : 'Informations des Conjoints'}</div>
+                      </div>
+                      <button type="button" onclick="printMariageInfo('${mData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                          <i class="fas fa-print"></i> Imprimer
+                      </button>
+                  </div>
                   ${isCopieSimple ? `
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
                               ` : `
@@ -1189,8 +1199,10 @@
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Naiss. Époux</span><span class="dp-value">${mariage.dateNaissanceEpoux||'--'}</span></div>
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Lieu naiss.</span><span class="dp-value">${mariage.lieuNaissanceEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Commune</span><span class="dp-value">${mariage.commune||'--'}</span></div>
                               `}
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Commune</span><span class="dp-value">${mariage.commune_mariage||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${mariage.numero_registre||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar-alt"></i> Date Registre</span><span class="dp-value">${mariage.date_registre ? new Date(mariage.date_registre).toLocaleDateString('fr-FR') : '--'}</span></div>
                 </div>
                 <div class="dp-section">
                   <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-user-circle"></i></div><div class="dp-section-title">Demandeur</div></div>
@@ -1260,6 +1272,83 @@
                     });
                 }
             });
+        }
+
+        function printMariageInfo(encodedData) {
+            const mariage = JSON.parse(decodeURIComponent(encodedData));
+            const printWindow = window.open('', '_blank');
+            const isCopieSimple = mariage.nomEpoux === null;
+
+            printWindow.document.title = "Impression Informations Demande";
+
+            const style = printWindow.document.createElement('style');
+            style.textContent = `
+                    body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 10px; color: #000; margin: 0; }
+                    .info-block { border: 1px solid #000; padding: 15px; border-radius: 8px; max-width: 280px; margin: 0 auto; background: #fff; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #94a3b8; padding-bottom: 4px; align-items: center; }
+                    .row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                    .label { font-weight: 700; color: #000; font-size: 0.75rem; }
+                    .value { font-weight: 700; color: #000; text-transform: uppercase; font-size: 0.8rem; text-align: right; max-width: 65%; word-wrap: break-word; }
+                    .title { text-align: center; font-size: 0.95rem; margin-bottom: 15px; font-weight: 800; color: #000; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 6px; }
+                    @media print {
+                        body { padding: 0; margin: 0; }
+                        .info-block { border: none; padding: 0; width: 100%; max-width: none; }
+                    }
+                `;
+            printWindow.document.head.appendChild(style);
+
+            const container = printWindow.document.createElement('div');
+            container.className = 'info-block';
+
+            const title = printWindow.document.createElement('div');
+            title.className = 'title';
+            title.textContent = 'Informations de la demande';
+            container.appendChild(title);
+
+            let fields = [];
+            if (isCopieSimple) {
+                fields = [
+                    { label: 'Type', value: 'Copie Simple' }
+                ];
+            } else {
+                fields = [
+                    { label: 'Type', value: 'Extrait Complet' },
+                    { label: 'Nom Époux', value: mariage.nomEpoux || '--' },
+                    { label: 'Prénom Époux', value: mariage.prenomEpoux || '--' },
+                    { label: 'Naiss. Époux', value: mariage.dateNaissanceEpoux || '--' },
+                    { label: 'Lieu naiss.', value: mariage.lieuNaissanceEpoux || '--' }
+                ];
+            }
+
+            fields.push(
+                { label: 'Commune', value: mariage.commune_mariage || '--' },
+                { label: 'N° Registre', value: mariage.numero_registre || '--' },
+                { label: 'Date Registre', value: mariage.date_registre ? new Date(mariage.date_registre).toLocaleDateString('fr-FR') : '--' }
+            );
+
+            fields.forEach(field => {
+                const row = printWindow.document.createElement('div');
+                row.className = 'row';
+
+                const labelSpan = printWindow.document.createElement('span');
+                labelSpan.className = 'label';
+                labelSpan.textContent = field.label;
+
+                const valueSpan = printWindow.document.createElement('span');
+                valueSpan.className = 'value';
+                valueSpan.textContent = field.value;
+
+                row.appendChild(labelSpan);
+                row.appendChild(valueSpan);
+                container.appendChild(row);
+            });
+
+            printWindow.document.body.appendChild(container);
+
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
         }
 
         // Fonction pour ouvrir une image en grand dans une modal

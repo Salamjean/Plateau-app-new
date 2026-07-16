@@ -708,7 +708,7 @@
                         <thead>
                             <tr>
                                 <th>Type de Demande</th>
-                                <th>Demandeur</th>
+                                <th>Nom sur l'extrait</th>
                                 <th>Date & Heure</th>
                                 <th>Nb Timbres</th>
                                 <th>État Timbre</th>
@@ -721,7 +721,7 @@
                             @forelse($demandesEnAttente as $demande)
                                 <tr class="data-row pending-row" data-type="{{ $demande->type_demande }}"
                                     data-date="{{ \Carbon\Carbon::parse($demande->created_at)->format('Y-m-d') }}"
-                                    data-search="{{ strtolower($demande->demandeur_nom . ' ' . ($demande->contact ?? '') . ' ' . $demande->type_demande) }}">
+                                    data-search="{{ strtolower($demande->nom_sur_extrait . ' ' . ($demande->contact ?? '') . ' ' . $demande->type_demande) }}">
                                     <td>
                                         @if (in_array($demande->type_demande, ['naissance', 'naissance_groupe']))
                                             <span class="badge badge-naissance"><i class="fas fa-baby"></i>
@@ -735,7 +735,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="demandeur-name">{{ $demande->demandeur_nom }}</div>
+                                        <div class="demandeur-name">{{ $demande->nom_sur_extrait }}</div>
                                         <div class="demandeur-contact">{{ $demande->contact }}</div>
                                     </td>
                                     <td>
@@ -788,7 +788,7 @@
                                 <tr class="data-row treated-row" style="display:none;"
                                     data-type="{{ $demande->type_demande }}"
                                     data-date="{{ \Carbon\Carbon::parse($demande->created_at)->format('Y-m-d') }}"
-                                    data-search="{{ strtolower($demande->demandeur_nom . ' ' . ($demande->contact ?? '') . ' ' . $demande->type_demande) }}">
+                                    data-search="{{ strtolower($demande->nom_sur_extrait . ' ' . ($demande->contact ?? '') . ' ' . $demande->type_demande) }}">
                                     <td>
                                         @if (in_array($demande->type_demande, ['naissance', 'naissance_groupe']))
                                             <span class="badge badge-naissance"><i class="fas fa-baby"></i>
@@ -802,7 +802,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="demandeur-name">{{ $demande->demandeur_nom }}</div>
+                                        <div class="demandeur-name">{{ $demande->nom_sur_extrait }}</div>
                                         <div class="demandeur-contact">{{ $demande->contact }}</div>
                                     </td>
                                     <td>

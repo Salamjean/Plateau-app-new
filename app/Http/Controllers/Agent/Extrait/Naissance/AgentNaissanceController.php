@@ -157,23 +157,23 @@ class AgentNaissanceController extends Controller
         // Notification push + DB
         $user = $naissance->user;
         $pushTitle = '';
-        $pushBody  = '';
+        $pushBody = '';
 
         switch ($naissance->etat) {
             case 'réçu':
                 $pushTitle = 'Demande reçue';
-                $pushBody  = "Votre demande d’extrait de naissance a été reçue et sera traitée dans les plus brefs délais.";
+                $pushBody = "Votre demande d’extrait de naissance a été reçue et sera traitée dans les plus brefs délais.";
                 break;
             case 'terminé':
                 $pushTitle = 'Demande traitée ✔';
-                $pushBody  = "Votre demande d’extrait de naissance a été traitée.";
+                $pushBody = "Votre demande d’extrait de naissance a été traitée.";
                 if ($naissance->livraison_code) {
                     $pushBody .= ' Code de livraison : ' . $naissance->livraison_code;
                 }
                 break;
             case 'rejetée':
                 $pushTitle = 'Demande rejetée — Modification requise';
-                $pushBody  = "Votre demande d’extrait de naissance n’a pas pu être traitée. Veuillez corriger les informations.";
+                $pushBody = "Votre demande d’extrait de naissance n’a pas pu être traitée. Veuillez corriger les informations.";
                 break;
         }
 

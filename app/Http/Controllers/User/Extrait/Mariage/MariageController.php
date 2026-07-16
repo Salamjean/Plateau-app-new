@@ -164,6 +164,8 @@ class MariageController extends Controller
         $mariage->quantite = $totalQuantity;
         $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
         $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
+        $mariage->numero_registre = $request->numero_registre;
+        $mariage->date_registre = $request->date_registre;
         $mariage->commune = $commune; // Utilisation de la commune spécifiée
         $mariage->commune_mariage = $request->commune_mariage;
         $mariage->choix_option = $request->choix_option;
@@ -398,6 +400,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             'lieuNaissanceEpouse' => 'nullable|string|max:255',
             'commune' => 'required|string',
             'commune_mariage' => 'required|string|max:255',
+            'numero_registre' => 'required|string|max:255',
+            'date_registre' => 'required|date',
             'qty_simple' => 'nullable|integer|min:0|max:10',
             'qty_integral' => 'nullable|integer|min:0|max:10',
             'pieceIdentite' => $demande->pieceIdentite ? 'nullable|mimes:png,jpg,jpeg,pdf|max:25600' : 'required|mimes:png,jpg,jpeg,pdf|max:25600',
@@ -495,6 +499,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         $pendingAttributes['prenomEpouse'] = $request->input('prenomEpouse');
         $pendingAttributes['dateNaissanceEpouse'] = $request->input('dateNaissanceEpouse');
         $pendingAttributes['lieuNaissanceEpouse'] = $request->input('lieuNaissanceEpouse');
+        $pendingAttributes['numero_registre'] = $request->input('numero_registre');
+        $pendingAttributes['date_registre'] = $request->input('date_registre');
         $pendingAttributes['commune'] = $request->input('commune');
         $pendingAttributes['commune_mariage'] = $request->input('commune_mariage');
         $pendingAttributes['qty_simple'] = $qtySimple;

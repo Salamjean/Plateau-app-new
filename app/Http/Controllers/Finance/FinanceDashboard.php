@@ -407,35 +407,59 @@ class FinanceDashboard extends Controller
         // Solution 1 : Tout est automatiquement et instantanément reversé à TrésorPay.
         $totalReversements = $totalPerçuEnLigne;
 
-        // Calcul dynamique du cumul du mois sélectionné
+        // Calcul dynamique du cumul de la période sélectionnée
+        $filterType = $request->input('filter_type', 'month');
         $selectedMonth = $request->input('month');
-        if ($selectedMonth) {
-            try {
-                $date = Carbon::parse($selectedMonth . '-01');
-                $startOfMonth = $date->copy()->startOfMonth();
-                $endOfMonth = $date->copy()->endOfMonth();
-            } catch (\Exception $e) {
-                $startOfMonth = Carbon::now()->startOfMonth();
-                $endOfMonth = Carbon::now()->endOfMonth();
+        $selectedWeek = $request->input('week');
+
+        if ($filterType === 'week') {
+            if ($selectedWeek) {
+                try {
+                    list($year, $week) = explode('-W', $selectedWeek);
+                    $date = Carbon::now()->setISODate($year, $week);
+                    $startOfPeriod = $date->copy()->startOfWeek();
+                    $endOfPeriod = $date->copy()->endOfWeek();
+                } catch (\Exception $e) {
+                    $startOfPeriod = Carbon::now()->startOfWeek();
+                    $endOfPeriod = Carbon::now()->endOfWeek();
+                    $selectedWeek = Carbon::now()->format('Y-\WW');
+                }
+            } else {
+                $startOfPeriod = Carbon::now()->startOfWeek();
+                $endOfPeriod = Carbon::now()->endOfWeek();
+                $selectedWeek = Carbon::now()->format('Y-\WW');
+            }
+            $selectedMonth = ''; // On réinitialise pour ne pas avoir de conflit visuel
+        } else {
+            if ($selectedMonth) {
+                try {
+                    $date = Carbon::parse($selectedMonth . '-01');
+                    $startOfPeriod = $date->copy()->startOfMonth();
+                    $endOfPeriod = $date->copy()->endOfMonth();
+                } catch (\Exception $e) {
+                    $startOfPeriod = Carbon::now()->startOfMonth();
+                    $endOfPeriod = Carbon::now()->endOfMonth();
+                    $selectedMonth = Carbon::now()->format('Y-m');
+                }
+            } else {
+                $startOfPeriod = Carbon::now()->startOfMonth();
+                $endOfPeriod = Carbon::now()->endOfMonth();
                 $selectedMonth = Carbon::now()->format('Y-m');
             }
-        } else {
-            $startOfMonth = Carbon::now()->startOfMonth();
-            $endOfMonth = Carbon::now()->endOfMonth();
-            $selectedMonth = Carbon::now()->format('Y-m');
+            $selectedWeek = ''; // On réinitialise
         }
 
-        $naissanceMonthPaiements = $naissancesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
+        $naissanceMonthPaiements = $naissancesPaiements->whereBetween('paid_at', [$startOfPeriod, $endOfPeriod]);
         $totalNaissanceMonth = $naissanceMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
         $naissanceWaveMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
         $naissanceTresorpayMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
 
-        $mariageMonthPaiements = $mariagesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
+        $mariageMonthPaiements = $mariagesPaiements->whereBetween('paid_at', [$startOfPeriod, $endOfPeriod]);
         $totalMariageMonth = $mariageMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
         $mariageWaveMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
         $mariageTresorpayMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
 
-        $decesMonthPaiements = $decesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
+        $decesMonthPaiements = $decesPaiements->whereBetween('paid_at', [$startOfPeriod, $endOfPeriod]);
         $totalDecesMonth = $decesMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
         $decesWaveMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
         $decesTresorpayMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
@@ -449,7 +473,7 @@ class FinanceDashboard extends Controller
                   ->orWhereNotNull('deces_id');
         })
         ->where('status', 'ACCEPTED')
-        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+        ->whereBetween('paid_at', [$startOfPeriod, $endOfPeriod])
         ->where(function ($query) use ($commune) {
             $query->whereHas('naissance', function ($q) use ($commune) {
                 $q->where('commune', $commune);
@@ -488,8 +512,8 @@ class FinanceDashboard extends Controller
         // Récupérer les derniers paiements réels de timbres pour alimenter l'historique des reversements instantanés
         $derniersPaiements = $this->getCommunePaymentsFeed($commune);
 
-        $historiqueFiltre = $derniersPaiements->filter(function($item) use ($startOfMonth, $endOfMonth) {
-            return Carbon::parse($item->date)->between($startOfMonth, $endOfMonth);
+        $historiqueFiltre = $derniersPaiements->filter(function($item) use ($startOfPeriod, $endOfPeriod) {
+            return Carbon::parse($item->date)->between($startOfPeriod, $endOfPeriod);
         });
 
         $sortedFeed = $historiqueFiltre->sortByDesc('date');
@@ -531,6 +555,8 @@ class FinanceDashboard extends Controller
             'totalDecesMonth',
             'naissanceWaveMonth',
             'selectedMonth',
+            'selectedWeek',
+            'filterType',
             'naissanceTresorpayMonth',
             'mariageWaveMonth',
             'mariageTresorpayMonth',
