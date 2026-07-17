@@ -1076,6 +1076,31 @@
             }
             const user = (mariage && mariage.user) || {};
             const isCopieSimple = mariage.nomEpoux === null;
+            let documentType = '';
+            const qtySimple = parseInt(mariage.qty_simple) || 0;
+            const qtyIntegral = parseInt(mariage.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                documentType = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    documentType = "copie simple";
+                } else {
+                    documentType = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    documentType = "copie intégrale";
+                } else {
+                    documentType = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (isCopieSimple) {
+                    documentType = "copie simple";
+                } else {
+                    documentType = "copie intégrale";
+                }
+            }
             const statusMap = {
                 'en attente': {
                     color: '#f59e0b',
@@ -1171,7 +1196,7 @@
                 <span style="opacity:.4">|</span>
                 <span><i class="fas fa-calendar-alt"></i> ${new Date(mariage.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>
                 <span style="opacity:.4">|</span>
-                <span><i class="fas fa-file-alt"></i> ${isCopieSimple ? 'Copie Simple' : 'Extrait Complet'}</span>
+                <span><i class="fas fa-file-alt"></i> ${documentType}</span>
               </div>
             </div>
             <div class="dp-tabs" id="dpTabsM">
@@ -1186,7 +1211,7 @@
                   <div class="dp-section-head" style="justify-content: space-between;">
                       <div style="display:flex; align-items:center; gap:10px;">
                           <div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div>
-                          <div class="dp-section-title">${isCopieSimple ? 'Informations Générales' : 'Informations des Conjoints'}</div>
+                          <div class="dp-section-title">${isCopieSimple ? 'Informations de la demande' : 'Informations de la demande'}</div>
                       </div>
                       <button type="button" onclick="printMariageInfo('${mData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
                           <i class="fas fa-print"></i> Imprimer
@@ -1214,7 +1239,8 @@
               </div>
               <div class="dp-section">
                 <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-file-invoice"></i></div><div class="dp-section-title">Détails de la Commande</div></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${mariage.quantite} copie(s)${(mariage.qty_simple>0&&mariage.qty_integral>0)?` <small style="color:#64748b;font-weight:400;">(${mariage.qty_simple||0}s + ${mariage.qty_integral||0}i)</small>`:''}</span></div>
+                <div class="dp-row"><span class="dp-label"><i class="fas fa-file-alt"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">${documentType}</span></div>
+                <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${mariage.quantite} copie(s)</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-user-friends"></i> Pour</span><span class="dp-value">${mariage.pour === 'proprie' ? 'Lui-même' : (mariage.pour === 'tiers' ? 'Un tiers' : (mariage.pour || '--'))}</span></div>
                 ${mariage.relation ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-project-diagram"></i> Relation</span><span class="dp-value">${mariage.relation}</span></div>` : ''}
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-circle"></i> Statut</span><span class="dp-value"><span class="dp-badge" style="background:${status.bg};color:${status.color};border:1px solid ${status.border};"><i class="fas ${status.icon}"></i> ${status.label}</span></span></div>
@@ -1305,14 +1331,44 @@
             title.textContent = 'Informations de la demande';
             container.appendChild(title);
 
+            let docTypes = '';
+            const qtySimple = parseInt(mariage.qty_simple) || 0;
+            const qtyIntegral = parseInt(mariage.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                docTypes = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    docTypes = "copie intégrale";
+                } else {
+                    docTypes = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (isCopieSimple) {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = "copie intégrale";
+                }
+            }
+
+            const totalQty = mariage.quantite || (qtySimple + qtyIntegral) || 1;
+
             let fields = [];
             if (isCopieSimple) {
                 fields = [
-                    { label: 'Type', value: 'Copie Simple' }
+                    { label: 'Type', value: docTypes },
+                    { label: 'Quantité', value: `${totalQty} copie(s)` }
                 ];
             } else {
                 fields = [
-                    { label: 'Type', value: 'Extrait Complet' },
+                    { label: 'Type', value: docTypes },
+                    { label: 'Quantité', value: `${totalQty} copie(s)` },
                     { label: 'Nom Époux', value: mariage.nomEpoux || '--' },
                     { label: 'Prénom Époux', value: mariage.prenomEpoux || '--' },
                     { label: 'Naiss. Époux', value: mariage.dateNaissanceEpoux || '--' },

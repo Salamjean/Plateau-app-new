@@ -109,14 +109,14 @@
 
                 <!-- Boutons download -->
                 <div class="download-buttons">
-                    <a href="#" class="btn-store">
+                    <a href="https://apps.apple.com/app/plateau-apps-mairie/id6788332032" target="_blank" class="btn-store">
                         <i class="fab fa-apple"></i>
                         <div class="store-text">
                             <small>Télécharger</small>
                             <span>l'App Store</span>
                         </div>
                     </a>
-                    <a href="#" class="btn-store">
+                    <a href="https://play.google.com/store/apps/details?id=com.abibuali09.plateau_apps&pcampaignid=web_share" target="_blank" class="btn-store">
                         <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play"
                             style="width: 32px; height: 32px; object-fit: contain;">
                         <div class="store-text">
@@ -529,7 +529,7 @@
                     </div>
                 </div>
 
-                <a href="#" class="btn-store-dark">
+                <a href="https://apps.apple.com/app/plateau-apps-mairie/id6788332032" target="_blank" class="btn-store-dark">
                     <i class="fab fa-apple"></i>
                     <div class="store-text">
                         <small>Télécharger</small>
@@ -537,7 +537,7 @@
                     </div>
                 </a>
 
-                <a href="#" class="btn-store-dark">
+                <a href="https://play.google.com/store/apps/details?id=com.abibuali09.plateau_apps&pcampaignid=web_share" target="_blank" class="btn-store-dark">
                     <img src="{{ asset('assets/assets/img/icons8-google-play-96.png') }}" alt="Google Play"
                         style="width: 26px; height: 26px; object-fit: contain;">
                     <div class="store-text">

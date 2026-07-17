@@ -1040,8 +1040,31 @@
                 } catch (e) { }
             }
             const user = (naissance && naissance.user) || {};
-            const documentType = naissance.type === 'simple' ? 'Copie Simple' : (naissance.type === 'groupee' ?
-                'Simple + Intégral' : 'Copie Intégrale');
+            let documentType = '';
+            const qtySimple = parseInt(naissance.qty_simple) || 0;
+            const qtyIntegral = parseInt(naissance.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                documentType = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    documentType = "copie simple";
+                } else {
+                    documentType = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    documentType = "copie intégrale";
+                } else {
+                    documentType = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (naissance.type === 'integrale' || naissance.type === 'copieIntegrale') {
+                    documentType = "copie intégrale";
+                } else {
+                    documentType = "copie simple";
+                }
+            }
             const statusMap = {
                 'en attente': {
                     color: '#f59e0b',
@@ -1264,7 +1287,37 @@
             title.textContent = 'Informations de la demande';
             container.appendChild(title);
 
+            let docTypes = '';
+            const qtySimple = parseInt(naissance.qty_simple) || 0;
+            const qtyIntegral = parseInt(naissance.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                docTypes = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    docTypes = "copie intégrale";
+                } else {
+                    docTypes = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (naissance.type === 'integrale' || naissance.type === 'copieIntegrale') {
+                    docTypes = "copie intégrale";
+                } else {
+                    docTypes = "copie simple";
+                }
+            }
+
+            const totalQty = naissance.quantite || (qtySimple + qtyIntegral) || 1;
+
             const fields = [
+                { label: 'Type', value: docTypes },
+                { label: 'Quantité', value: `${totalQty} copie(s)` },
                 { label: 'Nom', value: naissance.name || '--' },
                 { label: 'Prénom', value: naissance.prenom || '--' },
                 { label: 'Date naiss.', value: dateNaiss },

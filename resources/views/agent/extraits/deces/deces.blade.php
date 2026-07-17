@@ -1100,8 +1100,33 @@
                 } catch (e) {}
             }
             const user = (dece && dece.user) || {};
-            const documentType = dece.type === 'simple' ? 'Copie Simple' : (dece.type === 'simpleIntegrale' || dece.type ===
-                'groupee' ? 'Simple + Intégral' : 'Copie Intégrale');
+            let documentType = '';
+            const qtySimple = parseInt(dece.qty_simple) || 0;
+            const qtyIntegral = parseInt(dece.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                documentType = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    documentType = "copie simple";
+                } else {
+                    documentType = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    documentType = "copie intégrale";
+                } else {
+                    documentType = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (dece.type === 'copieIntegrale') {
+                    documentType = "copie intégrale";
+                } else if (dece.type === 'extraitSimple') {
+                    documentType = "copie simple";
+                } else {
+                    documentType = dece.type || '--';
+                }
+            }
             const statusMap = {
                 'en attente': {
                     color: '#f59e0b',
@@ -1228,7 +1253,7 @@
                 <div class="dp-section-head" style="justify-content: space-between;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div class="dp-section-icon"><i class="fas fa-cross"></i></div>
-                        <div class="dp-section-title">Informations du Défunt</div>
+                        <div class="dp-section-title">Informations de la demande</div>
                     </div>
                     <button type="button" onclick="printDecesInfo('${dData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
                         <i class="fas fa-print"></i> Imprimer
@@ -1341,8 +1366,39 @@
             title.textContent = 'Informations de la demande';
             container.appendChild(title);
 
+            let docTypes = '';
+            const qtySimple = parseInt(dece.qty_simple) || 0;
+            const qtyIntegral = parseInt(dece.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                docTypes = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    docTypes = "copie intégrale";
+                } else {
+                    docTypes = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (dece.type === 'copieIntegrale') {
+                    docTypes = "copie intégrale";
+                } else if (dece.type === 'extraitSimple') {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = dece.type || '--';
+                }
+            }
+
+            const totalQty = dece.quantite || (qtySimple + qtyIntegral) || 1;
+
             const fields = [
-                { label: 'Type', value: documentType },
+                { label: 'Type', value: docTypes },
+                { label: 'Quantité', value: `${totalQty} copie(s)` },
                 { label: 'Nom', value: dece.name || '--' },
                 { label: 'N° Registre', value: dece.numberR || '--' },
                 { label: 'Date Reg.', value: dece.dateR || '--' },
