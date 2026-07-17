@@ -802,6 +802,8 @@ class StatistiqueController extends Controller
             }
 
             // RÉPONSE JSON
+            $statusCode = ($paiementInfo && $paiementInfo->status === 'FAILED') ? 402 : 200;
+
             return response()->json([
                 'demande' => $demandeData,
                 'paiement' => $paiementInfo,
@@ -810,7 +812,7 @@ class StatistiqueController extends Controller
                 'historique' => $historique,
                 'prochaines_etapes' => $this->getProchainesEtapes($demande->etat),
                 'statut' => $statutCalcule
-            ]);
+            ], $statusCode);
         } catch (\Exception $e) {
             Log::error('Erreur suiviDemandeTresorPay: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur serveur'], 500);
