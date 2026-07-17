@@ -1255,9 +1255,15 @@
                         <div class="dp-section-icon"><i class="fas fa-cross"></i></div>
                         <div class="dp-section-title">Informations de la demande</div>
                     </div>
+                    ${(dece.etat === 'terminé' || dece.etat === 'traité') ? `
+                    <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                        <i class="fas fa-print"></i> Imprimer
+                    </button>
+                    ` : `
                     <button type="button" onclick="printDecesInfo('${dData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
                         <i class="fas fa-print"></i> Imprimer
                     </button>
+                    `}
                 </div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${dece.name||'--'}</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${dece.numberR||'--'}</span></div>
@@ -1363,7 +1369,7 @@
 
             const title = printWindow.document.createElement('div');
             title.className = 'title';
-            title.textContent = 'Informations de la demande';
+            title.textContent = 'Demande de Décès';
             container.appendChild(title);
 
             let docTypes = '';

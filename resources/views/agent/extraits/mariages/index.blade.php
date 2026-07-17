@@ -1213,9 +1213,15 @@
                           <div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div>
                           <div class="dp-section-title">${isCopieSimple ? 'Informations de la demande' : 'Informations de la demande'}</div>
                       </div>
+                      ${(mariage.etat === 'terminé' || mariage.etat === 'traité') ? `
+                      <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                          <i class="fas fa-print"></i> Imprimer
+                      </button>
+                      ` : `
                       <button type="button" onclick="printMariageInfo('${mData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
                           <i class="fas fa-print"></i> Imprimer
                       </button>
+                      `}
                   </div>
                   ${isCopieSimple ? `
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
@@ -1328,7 +1334,7 @@
 
             const title = printWindow.document.createElement('div');
             title.className = 'title';
-            title.textContent = 'Informations de la demande';
+            title.textContent = 'Demande de Mariage';
             container.appendChild(title);
 
             let docTypes = '';
