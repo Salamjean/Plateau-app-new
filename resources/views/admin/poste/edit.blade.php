@@ -48,11 +48,11 @@
                                     <label for="name_respo" class="form-label">Nom du service <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-user" style="color:#1f4083"></i></span>
-                                        <input type="text" class="form-control rounded-end" id="name_respo" name="name_respo" 
-                                               value="{{ old('name_respo', $etatCivil->name) }}" readonly 
+                                        <input type="text" class="form-control rounded-end" id="name_respo" name="name" 
+                                               value="{{ old('name', $etatCivil->name) }}" readonly 
                                                placeholder="Nom et prénom du responsable">
                                     </div>
-                                    @error('name_respo')
+                                    @error('name')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -409,7 +409,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Multi-step form functionality
-        const form = document.getElementById('registrationForm');
+        const form = document.getElementById('editForm');
         const steps = document.querySelectorAll('.step-content');
         const progressSteps = document.querySelectorAll('.step');
         
