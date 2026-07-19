@@ -89,7 +89,7 @@ class Deces extends Model
      */
     public function scopePaye($query)
     {
-        return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+        return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente', 'en attente de paiement', 'paiement_echoue']);
     }
 
     public function scopeIndividuelle($query)

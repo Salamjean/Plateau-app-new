@@ -47,7 +47,7 @@
                         href="#">Contact</a></li>
             </ul>
             <div class="d-flex align-items-center justify-content-center gap-4 mt-3 mt-lg-0">
-                <a href="#" onclick="checkOpening(event)" class="btn-portal w-100 w-lg-auto text-center">Mon espace citoyen</a>
+                <a href="{{ route('login') }}" class="btn-portal w-100 w-lg-auto text-center">Mon espace citoyen</a>
             </div>
         </div>
     </div>

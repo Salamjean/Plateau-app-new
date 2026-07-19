@@ -952,7 +952,7 @@
                     <i class="bi bi-search"></i>
                     <span>Suivre ma demande</span>
                 </a>
-                <a href="#" onclick="checkOpening(event)" class="btn-figma-primary btn-figma-md">
+                <a href="{{ route('login') }}" class="btn-figma-primary btn-figma-md">
                     <i class="bi bi-person-fill"></i>
                     <span>Mon espace</span>
                 </a>

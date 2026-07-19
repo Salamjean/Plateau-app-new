@@ -79,7 +79,7 @@
                     <li><a href="#" class="text-white-50 text-decoration-none hover-link">Contact</a></li>
                 </ul>
                 <div class="mt-4 pt-2">
-                    <a href="#" onclick="checkOpening(event)" class="text-white-50 text-decoration-none hover-link fw-700" style="color: #60a5fa !important;">Mon espace citoyen</a>
+                    <a href="{{ route('login') }}" class="text-white-50 text-decoration-none hover-link fw-700" style="color: #60a5fa !important;">Mon espace citoyen</a>
                 </div>
             </div>
 

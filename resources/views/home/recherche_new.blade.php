@@ -2177,7 +2177,7 @@
             <a href="{{ route('recherche.demande') }}" class="btn-pill outline">
                 <i class="fas fa-search"></i> Suivre ma demande
             </a>
-            <a href="#" onclick="checkOpening(event)" class="btn-pill solid">
+            <a href="{{ route('login') }}" class="btn-pill solid">
                 <i class="fas fa-user"></i> Mon espace
             </a>
         </nav>
