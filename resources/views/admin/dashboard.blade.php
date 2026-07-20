@@ -53,11 +53,11 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="stat-icon">
-                            <i class="fas fa-city fa-2x" style="color: #6777ef;"></i>
+                            <i class="fas fa-users fa-2x" style="color: #6777ef;"></i>
                         </div>
                         <div class="ml-3">
-                            <h5 class="card-title mb-0">{{ $mairie }}</h5>
-                            <span class="text-muted">Mairies actives</span>
+                            <h5 class="card-title mb-0">{{ $utilisateurs }}</h5>
+                            <span class="text-muted">Utilisateurs inscrits</span>
                         </div>
                     </div>
                 </div>

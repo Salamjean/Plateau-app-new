@@ -8,6 +8,7 @@ use App\Models\Deces;
 use App\Models\Mairie;
 use App\Models\Mariage;
 use App\Models\Naissance;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,7 @@ class AdminDashboard extends Controller
         $naissance = Naissance::paye()->count();
 
         $mairie = Mairie::whereNull('archived_at')->count();
+        $utilisateurs = User::count();
         $total = $deces + $mariage + $naissance;
 
         // Récupérer le solde total de toutes les mairies
@@ -149,6 +151,7 @@ class AdminDashboard extends Controller
             'soldeDebite',
             'soldeRestant',
             'mairie',
+            'utilisateurs',
             'soldeTotalMairies',
             'activites',
             'soldeDisponible',
