@@ -115,4 +115,18 @@ class Naissance extends Model
             return 1;
         }
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($model) {
+            \App\Models\DeletedDemande::create([
+                'type_demande' => get_class($model),
+                'original_id' => $model->id,
+                'user_id' => $model->user_id,
+                'data' => $model->toJson(),
+            ]);
+        });
+    }
 }

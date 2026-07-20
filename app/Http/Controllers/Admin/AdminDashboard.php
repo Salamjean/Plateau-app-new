@@ -455,4 +455,10 @@ class AdminDashboard extends Controller
 
         return view('admin.transactions.all', compact('transactions', 'selectedMonth'));
     }
+
+    public function deletedDemandes()
+    {
+        $deletedDemandes = \App\Models\DeletedDemande::orderBy('created_at', 'desc')->paginate(20);
+        return view('admin.deleted_demandes.index', compact('deletedDemandes'));
+    }
 }

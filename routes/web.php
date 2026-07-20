@@ -87,6 +87,7 @@ Route::prefix('admin')->group(function () {
 Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminDashboard::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/rapports/download', [AdminDashboard::class, 'downloadRapport'])->name('admin.rapports.download');
+    Route::get('/admin/deleted-demandes', [AdminDashboard::class, 'deletedDemandes'])->name('admin.deleted_demandes');
     Route::get('/transactions', [AdminDashboard::class, 'transactions'])->name('admin.transactions');
     Route::get('/transactions/all', [AdminDashboard::class, 'allTransactions'])->name('admin.transactions.all');
     Route::get('/logout', [AdminDashboard::class, 'logout'])->name('admin.logout');
