@@ -35,17 +35,7 @@ class AdminDashboard extends Controller
         // Solde initial
         $soldeActuel = $soldeTotalMairies;
 
-        // Déduction uniquement pour les demandes gratuites (qui sont valides)
-        $debit = 500;
-
-        $freeTimbresMontant = 0;
-        $freeTimbresMontant += Naissance::where('is_free_request', true)->paye()->sum('free_timbres_count') * $debit;
-        $freeTimbresMontant += Deces::where('is_free_request', true)->paye()->sum('free_timbres_count') * $debit;
-        $freeTimbresMontant += Mariage::where('is_free_request', true)->paye()->sum('free_timbres_count') * $debit;
-        
-        $soldeDebite = $freeTimbresMontant;
-
-        $soldeRestant = $soldeActuel - $soldeDebite; // Calcul du solde restant
+        $timbresSortis = abs(\App\Models\Timbre::where('nombre_timbre', '<', 0)->sum('nombre_timbre'));
 
         $modelMap = [
             'Naissance' => 'naissance',
@@ -148,8 +138,7 @@ class AdminDashboard extends Controller
             'naissance',
             'total',
             'soldeActuel',
-            'soldeDebite',
-            'soldeRestant',
+            'timbresSortis',
             'mairie',
             'utilisateurs',
             'soldeTotalMairies',

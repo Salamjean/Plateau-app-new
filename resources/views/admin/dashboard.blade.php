@@ -65,9 +65,9 @@
         </div>
     </div>
 
-    <!-- Section des statistiques financières - Modifiée pour 4 cartes -->
+    <!-- Section des statistiques financières -->
 <div class="row mt-4">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
             <div class="card-body text-center">
                 <h5 class="card-title">Solde Actuel</h5>
@@ -76,21 +76,12 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
             <div class="card-body text-center">
-                <h5 class="card-title">Déductions</h5>
-                <h3 class="text-danger">{{ number_format($soldeDebite, 0, ',', ' ') }} FCFA</h3>
-                <p class="text-muted">Total des déductions pour demandes</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
-            <div class="card-body text-center">
-                <h5 class="card-title">Solde Restant</h5>
-                <h3 class="text-success">{{ number_format($soldeRestant, 0, ',', ' ') }} FCFA</h3>
-                <p class="text-muted">Solde après déductions</p>
+                <h5 class="card-title">Timbres sortis</h5>
+                <h3 class="text-danger">{{ number_format($timbresSortis, 0, ',', ' ') }}</h3>
+                <p class="text-muted">Nombre total de timbres délivrés</p>
             </div>
         </div>
     </div>
@@ -281,7 +272,7 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
-                                                @if(isset($activite->statut_livraison ))
+                                                @if(!empty($activite->statut_livraison))
                                                     <span class="badge 
                                                         @if($activite->statut_livraison == 'livré') badge-success
                                                         @elseif($activite->statut_livraison == 'en cours') badge-warning
@@ -290,7 +281,11 @@
                                                         {{ $activite->statut_livraison  }}
                                                     </span>
                                                 @else
-                                                    <span class="badge badge-secondary">En attente de livraison</span>
+                                                    @if(isset($activite->choix_option) && strtolower(trim($activite->choix_option)) === 'retrait sur place')
+                                                        <span class="badge badge-secondary">En attente de retrait</span>
+                                                    @else
+                                                        <span class="badge badge-secondary">En attente de livraison</span>
+                                                    @endif
                                                 @endif
                                             </td>
                                         </tr>
