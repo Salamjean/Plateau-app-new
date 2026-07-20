@@ -254,6 +254,15 @@
         color: var(--secondary) !important;
     }
     
+    .table th, .table td {
+        white-space: nowrap;
+    }
+    
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .table th {
         font-weight: 600;
         text-transform: uppercase;
@@ -325,7 +334,12 @@
         
         .table-responsive {
             border-radius: 10px;
-            overflow: hidden;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .table {
+            white-space: nowrap;
         }
         
         .d-flex.justify-content-between {

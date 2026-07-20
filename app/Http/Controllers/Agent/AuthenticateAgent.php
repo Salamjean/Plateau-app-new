@@ -10,9 +10,49 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\SendEmailToAgentForPasswordResetNotification;
 
 class AuthenticateAgent extends Controller
 {
+    public function showForgotForm()
+    {
+        return view('agent.auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:agents,email',
+        ], [
+            'email.required' => 'Le mail est obligatoire.',
+            'email.email' => 'L\'adresse e-mail n\'est pas valide.',
+            'email.exists' => 'Cette adresse mail n\'existe pas dans notre système.',
+        ]);
+
+        try {
+            $agent = Agent::where('email', $request->email)->first();
+
+            // Générer un code OTP
+            ResetCodePasswordAgent::where('email', $agent->email)->delete();
+            $code1 = rand(1000, 4000);
+            $code = $code1 . '' . $agent->id;
+
+            ResetCodePasswordAgent::create([
+                'code' => $code,
+                'email' => $agent->email,
+            ]);
+
+            // Envoyer la notification par e-mail
+            Notification::route('mail', $agent->email)
+                ->notify(new SendEmailToAgentForPasswordResetNotification($code, $agent->email));
+
+            return back()->with('success', 'Un e-mail de réinitialisation vous a été envoyé avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la réinitialisation du mot de passe agent: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de l\'envoi de l\'e-mail.');
+        }
+    }
     public function defineAccess($email){
         $checkSousadminExiste = Agent::where('email', $email)->first();
         if($checkSousadminExiste){

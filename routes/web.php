@@ -238,6 +238,8 @@ Route::middleware('etatCivil')->prefix('state')->group(function () {
 Route::prefix('civil-agent')->group(function () {
     Route::get('/', [AuthenticateAgent::class, 'login'])->name('agent.login');
     Route::post('/', [AuthenticateAgent::class, 'handleLogin'])->name('agent.handleLogin');
+    Route::get('/forgot-password', [AuthenticateAgent::class, 'showForgotForm'])->name('agent.password.request');
+    Route::post('/forgot-password', [AuthenticateAgent::class, 'sendResetLink'])->name('agent.password.email');
 });
 
 Route::middleware('agent')->prefix('agent')->group(function () {

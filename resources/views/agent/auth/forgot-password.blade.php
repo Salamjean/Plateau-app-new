@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="shortcut icon" href="{{ asset('assets/assets/img/logo plateau.png') }}" />
-    <title>State - agent - login</title>
+    <title>Agent - Mot de passe oublié</title>
     <style>
         :root {
             --primary-color: #1f4083;
@@ -62,38 +62,9 @@
             transition: all var(--transition-speed) ease;
         }
 
-        /* Le reste du CSS reste inchangé */
-        .form-container:hover {
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
-        }
-
         .form-header {
             text-align: center;
             margin-bottom: 10px;
-        }
-
-        .title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-            background: linear-gradient(to right, #ff8800, #ff8800);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            position: relative;
-            display: inline-block;
-        }
-
-        .title::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 3px;
-            background: linear-gradient(to right, #ff8800, #ff8800);
-            border-radius: 3px;
         }
 
         .subtitle {
@@ -162,21 +133,6 @@
             z-index: 3;
         }
 
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #adb5bd;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-            z-index: 2;
-        }
-
-        .password-toggle:hover {
-            color: var(--primary-color);
-        }
-
         .submit-btn {
             margin-top: 20px;
             height: 55px;
@@ -190,32 +146,11 @@
             cursor: pointer;
             transition: all var(--transition-speed) ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .submit-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: all 0.6s ease;
         }
 
         .submit-btn:hover {
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
-        }
-
-        .submit-btn:hover::before {
-            left: 100%;
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
         }
 
         .error-message {
@@ -225,7 +160,6 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            animation: fadeIn var(--transition-speed) ease;
         }
 
         .success-message {
@@ -233,7 +167,6 @@
             text-align: center;
             margin-bottom: 15px;
             font-weight: 500;
-            animation: fadeIn var(--transition-speed) ease;
         }
 
         .form-footer {
@@ -254,66 +187,11 @@
             text-decoration: underline;
         }
 
-        .forgot-password {
-            text-align: right;
-            margin-top: -15px;
-            margin-bottom: 10px;
+        .auth-logo {
+            height: 80px;
+            margin-bottom: 1rem;
         }
 
-        .forgot-password a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-size: 0.85rem;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .forgot-password a:hover {
-            text-decoration: underline;
-            color: var(--secondary-color);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 576px) {
-            .form-container {
-                padding: 30px 20px;
-            }
-
-            .title {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Floating animation */
-        .floating {
-            animation: floating 3s ease-in-out infinite;
-        }
-
-        @keyframes floating {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        /* Nouveaux styles pour le bouton retour */
         .back-btn {
             position: absolute;
             top: 20px;
@@ -337,65 +215,27 @@
             background: var(--secondary-color);
             transform: translateX(-3px);
         }
-
-        .no-account {
-            text-align: center;
-            margin-top: 15px;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-
-        .no-account a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 600;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .no-account a:hover {
-            text-decoration: underline;
-        }
-
-        .auth-logo {
-            height: 80px;
-            margin-bottom: 1rem;
-        }
     </style>
 </head>
 
 <body>
+    <!-- Bouton Retour -->
+    <a href="{{ route('agent.login') }}" class="back-btn" title="Retour à la connexion">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+
     <form class="form-container animate__animated animate__fadeIn" method="POST"
-        action="{{ route('agent.handleLogin') }}">
+        action="{{ route('agent.password.email') }}">
 
         <div class="form-header">
-            <img src="{{ asset('assets/assets/img/logo plateau.png') }}" class="auth-logo floating" alt="Logo"
+            <img src="{{ asset('assets/assets/img/logo plateau.png') }}" class="auth-logo" alt="Logo"
                 style="margin-bottom:-20px"><br>
-            <img src="{{ asset('assets/assets/img/plateau-mart.png') }}" class="subtitle" alt="Logo"
-                style="height: 80px; ">
-            <p class="subtitle">Entrez vos identifiants pour accéder à votre espace</p>
+            <h2 style="color: var(--primary-color); margin-bottom: 10px; margin-top: 20px;">Mot de passe oublié</h2>
+            <p class="subtitle">Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
         </div>
 
         @csrf
         @method('post')
-
-        @if (Session::get('success'))
-            <div class="success-message animate__animated animate__bounceIn">
-                <i class="fas fa-check-circle"></i> {{ Session::get('success') }}
-            </div>
-        @endif
-
-        @if (Session::get('error'))
-            <div class="error-message animate__animated animate__shakeX">
-                <i class="fas fa-exclamation-circle"></i> {{ Session::get('error') }}
-            </div>
-        @endif
-
-        <!-- Message si aucun compte n'existe -->
-        @if (Session::get('no_account'))
-            <div class="no-account animate__animated animate__fadeIn">
-                <p>Vous n'avez pas de compte ? <a href="{{ route('user.register') }}">Créer un compte</a></p>
-            </div>
-        @endif
 
         <!-- Email Field -->
         <div class="input-group">
@@ -410,40 +250,13 @@
             @enderror
         </div>
 
-        <!-- Password Field -->
-        <div class="input-group">
-            <i class="fas fa-key input-icon"></i>
-            <input class="input-field" type="password" name="password" id="password" placeholder=" " required />
-            <label class="input-label" for="password">Mot de passe</label>
-            <i class="fas fa-eye password-toggle" id="togglePassword"></i>
-            @error('password')
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
-                </div>
-            @enderror
-        </div>
-
-        <div class="forgot-password">
-            <a href="{{ route('agent.password.request') }}">Mot de passe oublié ?</a>
-        </div>
-
-        <button type="submit" class="submit-btn animate__animated animate__pulse animate__infinite animate__slower">
-            <i class="fas fa-sign-in-alt"></i> Se connecter
+        <button type="submit" class="submit-btn animate__animated animate__pulse">
+            <i class="fas fa-paper-plane"></i> Envoyer le lien
         </button>
     </form>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Password toggle functionality
-            const togglePassword = document.querySelector('#togglePassword');
-            const password = document.querySelector('#password');
-
-            togglePassword.addEventListener('click', function() {
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-                this.classList.toggle('fa-eye-slash');
-            });
-
             // SweetAlert notifications
             @if (Session::has('success'))
                 Swal.fire({
@@ -462,33 +275,8 @@
                     text: '{{ Session::get('error') }}',
                     confirmButtonText: 'OK',
                     background: 'var(--light-color)',
-
                 });
             @endif
-
-            @if (Session::has('no_account'))
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Information',
-                    text: '{{ Session::get('no_account') }}',
-                    confirmButtonText: 'Créer un compte',
-                    background: 'var(--light-color)',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '{{ route('register') }}';
-                    }
-                });
-            @endif
-
-            // Add floating animation to form on hover
-            const form = document.querySelector('.form-container');
-            form.addEventListener('mouseenter', () => {
-                form.classList.add('animate__animated', 'animate__pulse');
-            });
-
-            form.addEventListener('animationend', () => {
-                form.classList.remove('animate__animated', 'animate__pulse');
-            });
         });
     </script>
 </body>

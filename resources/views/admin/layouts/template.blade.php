@@ -12,6 +12,22 @@
   <link href="{{ asset("assets1/vendor/fontawesome-free/css/all.min.css") }}" rel="stylesheet" type="text/css">
   <link href="{{ asset("assets1/vendor/bootstrap/css/bootstrap.min.css") }}" rel="stylesheet" type="text/css">
   <link href="{{ asset("assets1/css/ruang-admin.min.css") }}" rel="stylesheet">
+  <style>
+      @media (max-width: 768px) {
+          .table-responsive {
+              overflow-x: auto !important;
+              -webkit-overflow-scrolling: touch;
+              display: block;
+              width: 100%;
+          }
+          .table-responsive table {
+              min-width: 800px;
+          }
+          .table-responsive th, .table-responsive td {
+              white-space: nowrap !important;
+          }
+      }
+  </style>
 </head>
 
 <body id="page-top" >
