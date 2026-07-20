@@ -367,5 +367,10 @@
         const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
         document.getElementById('mois').value = currentMonth;
     });
+
+    // Actualisation automatique chaque 15 secondes
+    setTimeout(function() {
+        window.location.reload();
+    }, 15000);
 </script>
 @endsection
