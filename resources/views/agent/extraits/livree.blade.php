@@ -687,7 +687,7 @@
                           <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
                           <div style="display:flex;gap:8px;">
                               ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
-                              <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
+                              <a href="javascript:void(0)" onclick="imprimerDocument('${d.path}')" style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-print"></i> Imprimer</a>
                           </div>
                       </div>
                   </div>
@@ -738,7 +738,7 @@
                           <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
                           <div style="display:flex;gap:8px;">
                               ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
-                              <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
+                              <a href="javascript:void(0)" onclick="imprimerDocument('${d.path}')" style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-print"></i> Imprimer</a>
                           </div>
                       </div>
                   </div>
@@ -784,7 +784,7 @@
                           <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
                           <div style="display:flex;gap:8px;">
                               ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
-                              <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
+                              <a href="javascript:void(0)" onclick="imprimerDocument('${d.path}')" style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-print"></i> Imprimer</a>
                           </div>
                       </div>
                   </div>
@@ -889,8 +889,8 @@
               <img src="${imageSrc}" style="max-width:100%;max-height:65vh;display:block;" alt="Document">
             </div>
             <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-              <a href="${imageSrc}" download style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
-                <i class="fas fa-download"></i> Télécharger
+              <a href="javascript:void(0)" onclick="imprimerDocument('${imageSrc}')" style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
+                <i class="fas fa-print"></i> Imprimer
               </a>
               <button onclick="Swal.close()" style="color:#475569;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #e2e8f0;border-radius:8px;background:white;font-size:0.85rem;font-weight:600;cursor:pointer;">
                 <i class="fas fa-times"></i> Fermer
@@ -908,6 +908,45 @@
               popup: 'image-modal-popup'
           }
       });
+  }
+
+  // Fonction pour imprimer directement un document (image ou PDF)
+  function imprimerDocument(url) {
+      if (!url) return;
+      const isPdf = url.toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+          const printWindow = window.open(url, '_blank');
+          if (printWindow) {
+              printWindow.onload = function () {
+                  setTimeout(function () {
+                      printWindow.print();
+                  }, 500);
+              };
+          }
+      } else {
+          const printWindow = window.open('', '_blank');
+          if (!printWindow) return;
+          printWindow.document.title = "Impression Document";
+          const style = printWindow.document.createElement('style');
+          style.textContent = `
+              body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff; }
+              img { max-width: 100%; height: auto; page-break-inside: avoid; }
+              @media print {
+                  body { display: block; }
+                  img { max-width: 100%; width: 100%; height: auto; }
+              }
+          `;
+          printWindow.document.head.appendChild(style);
+          const img = printWindow.document.createElement('img');
+          img.src = url;
+          img.onload = function() {
+              setTimeout(function() {
+                  printWindow.print();
+                  printWindow.close();
+              }, 300);
+          };
+          printWindow.document.body.appendChild(img);
+      }
   }
 </script>
 <style>
