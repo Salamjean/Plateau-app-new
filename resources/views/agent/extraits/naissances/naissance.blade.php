@@ -716,7 +716,8 @@
                                         @endif
                                     </td>
                                     <td style="text-align: center" data-label="Demandeur">
-                                        <div class="user-info" style="text-align: center; display:flex; justify-content:center">
+                                        <div class="user-info"
+                                            style="text-align: center; display:flex; justify-content:center">
                                             <div class="user-avatar" style="text-align: center">
                                                 {{ substr($naissance->user->name, 0, 1) . '' . substr($naissance->user->prenom, 0, 1) }}
                                             </div>
@@ -730,7 +731,8 @@
                                         </div>
                                     </td>
                                     <td style="text-align: center" data-label="Demandeur">
-                                        <div class="user-info" style="text-align: center; display:flex; justify-content:center">
+                                        <div class="user-info"
+                                            style="text-align: center; display:flex; justify-content:center">
                                             <div class="user-avatar1" style="text-align: center">
                                                 {{ substr($naissance->name, 0, 1) . '' . substr($naissance->prenom, 0, 1) }}
                                             </div>
@@ -759,7 +761,8 @@
                                         @elseif($naissance->type == 'integrale')
                                             <span class="badge bg-primary text-white">Copie Intégrale</span>
                                         @else
-                                            <span class="badge bg-secondary text-white">{{ ucfirst($naissance->type) }}</span>
+                                            <span
+                                                class="badge bg-secondary text-white">{{ ucfirst($naissance->type) }}</span>
                                         @endif
                                     </td>
                                     <td style="text-align: center">
@@ -771,8 +774,8 @@
                                             @endphp
                                             @if ($isCNIPdf)
                                                 <a href="{{ $CNIPath }}" target="_blank" class="document-preview">
-                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" style="width: 40px" alt="PDF"
-                                                        class="document-preview">
+                                                    <img src="{{ asset('assets/assets/img/pdf.jpg') }}" style="width: 40px"
+                                                        alt="PDF" class="document-preview">
                                                 </a>
                                             @else
                                                 <img src="{{ $CNIPath }}" alt="CNI" class="document-preview"
@@ -795,20 +798,23 @@
                                     </td>
                                     <td style="text-align: center" data-label="Actions">
                                         <!-- Bouton pour voir les détails -->
-                                        <button class="btn-action btn-icon" style="background-color: #17a2b8; cursor: pointer;"
+                                        <button class="btn-action btn-icon"
+                                            style="background-color: #17a2b8; cursor: pointer;"
                                             data-task="{{ json_encode($naissance) }}" onclick="showRequestDetails(this)"
                                             title="Voir les détails de la demande">
                                             <i class="fas fa-eye"></i>
                                         </button>
 
                                         @if ($naissance->etat === 'terminé')
-                                            <a href="#" class="btn-action btn-secondary btn-icon disabled" title="Demande terminée"
+                                            <a href="#" class="btn-action btn-secondary btn-icon disabled"
+                                                title="Demande terminée"
                                                 style="opacity: 0.5; pointer-events: none; background-color: #6c757d;">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @else
                                             <a href="{{ route('agent.demandes.naissance.edit', $naissance->id) }}"
-                                                class="btn-action btn-secondary btn-icon" title="Modifier l'état de la demande">
+                                                class="btn-action btn-secondary btn-icon"
+                                                title="Modifier l'état de la demande">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @endif
@@ -837,7 +843,8 @@
                                                         place</span>
                                                 @endif
                                                 @if ($naissance->etat == 'terminé')
-                                                    <button class="btn-action" onclick="markAsDelivered({{ $naissance->id }})"
+                                                    <button class="btn-action"
+                                                        onclick="markAsDelivered({{ $naissance->id }})"
                                                         title="Livré l'extrait">
                                                         <i class="fas fa-file"></i>Retrait
                                                     </button>
@@ -880,7 +887,8 @@
                                     </li>
                                 @else
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->url(1) }}" aria-label="Première page">
+                                        <a class="page-link" href="{{ $naissances->url(1) }}"
+                                            aria-label="Première page">
                                             <i class="fas fa-angle-double-left"></i>
                                         </a>
                                     </li>
@@ -895,7 +903,8 @@
                                     </li>
                                 @else
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->previousPageUrl() }}" aria-label="Précédent">
+                                        <a class="page-link" href="{{ $naissances->previousPageUrl() }}"
+                                            aria-label="Précédent">
                                             <i class="fas fa-chevron-left"></i>
                                         </a>
                                     </li>
@@ -935,7 +944,8 @@
                                         @if ($i == $current)
                                             <span class="page-link">{{ $i }}</span>
                                         @else
-                                            <a class="page-link" href="{{ $naissances->url($i) }}">{{ $i }}</a>
+                                            <a class="page-link"
+                                                href="{{ $naissances->url($i) }}">{{ $i }}</a>
                                         @endif
                                     </li>
                                 @endfor
@@ -947,14 +957,16 @@
                                         </li>
                                     @endif
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->url($last) }}">{{ $last }}</a>
+                                        <a class="page-link"
+                                            href="{{ $naissances->url($last) }}">{{ $last }}</a>
                                     </li>
                                 @endif
 
                                 <!-- Page suivante -->
                                 @if ($naissances->hasMorePages())
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->nextPageUrl() }}" aria-label="Suivant">
+                                        <a class="page-link" href="{{ $naissances->nextPageUrl() }}"
+                                            aria-label="Suivant">
                                             <i class="fas fa-chevron-right"></i>
                                         </a>
                                     </li>
@@ -969,7 +981,8 @@
                                 <!-- Dernière page -->
                                 @if ($naissances->hasMorePages())
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ $naissances->url($last) }}" aria-label="Dernière page">
+                                        <a class="page-link" href="{{ $naissances->url($last) }}"
+                                            aria-label="Dernière page">
                                             <i class="fas fa-angle-double-right"></i>
                                         </a>
                                     </li>
@@ -989,11 +1002,11 @@
     </div>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Recherche dans le tableau
-            $('#searchInput').on('keyup', function () {
+            $('#searchInput').on('keyup', function() {
                 const value = $(this).val().toLowerCase();
-                $('table tbody tr').filter(function () {
+                $('table tbody tr').filter(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
                 });
             });
@@ -1002,7 +1015,7 @@
             function adaptForMobile() {
                 if (window.innerWidth <= 768) {
                     // Ajout des data-labels pour l'affichage mobile
-                    $('table thead th').each(function () {
+                    $('table thead th').each(function() {
                         const headerText = $(this).text();
                         const columnIndex = $(this).index();
                         $('table tbody tr td:nth-child(' + (columnIndex + 1) + ')').attr('data-label',
@@ -1025,7 +1038,7 @@
         function showRequestDetails(naissanceOrElement) {
             let naissance = naissanceOrElement;
             if (naissanceOrElement && (naissanceOrElement.dataset || (naissanceOrElement.getAttribute && naissanceOrElement
-                .getAttribute('data-task')))) {
+                    .getAttribute('data-task')))) {
                 const raw = naissanceOrElement.dataset.task || naissanceOrElement.getAttribute('data-task');
                 if (raw) {
                     try {
@@ -1037,7 +1050,7 @@
             } else if (typeof naissanceOrElement === 'string') {
                 try {
                     naissance = JSON.parse(naissanceOrElement);
-                } catch (e) { }
+                } catch (e) {}
             }
             const user = (naissance && naissance.user) || {};
             let documentType = '';
@@ -1045,7 +1058,8 @@
             const qtyIntegral = parseInt(naissance.qty_integral) || 0;
 
             if (qtySimple > 0 && qtyIntegral > 0) {
-                documentType = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+                documentType =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
             } else if (qtySimple > 0) {
                 if (qtySimple === 1) {
                     documentType = "copie simple";
@@ -1171,14 +1185,14 @@
                             <div class="dp-section-title">Informations de la demande</div>
                         </div>
                         ${(naissance.etat === 'terminé' || naissance.etat === 'traité') ? `
-                        <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
-                            <i class="fas fa-print"></i> Imprimer
-                        </button>
-                        ` : `
-                        <button type="button" onclick="printChildInfo('${nData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                            <i class="fas fa-print"></i> Imprimer
-                        </button>
-                        `}
+                            <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                            ` : `
+                            <button type="button" onclick="printChildInfo('${nData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                            `}
                     </div>
                     <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${naissance.name || '--'}</span></div>
                     <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom</span><span class="dp-value">${naissance.prenom || '--'}</span></div>
@@ -1208,18 +1222,18 @@
               </div>
               <div class="dp-panel" id="dpPN-livraison">
                 ${naissance.choix_option === 'livraison' ? `
-                            <div class="dp-section">
-                              <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${naissance.nom_destinataire || '--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${naissance.contact_destinataire || '--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${naissance.email_destinataire || '--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${naissance.adresse_livraison || '--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${naissance.ville || '--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${naissance.commune_livraison || '--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${naissance.quartier || '--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${naissance.code_postal || '--'}</span></div>
-                            </div>
-                            ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                                <div class="dp-section">
+                                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${naissance.nom_destinataire || '--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${naissance.contact_destinataire || '--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${naissance.email_destinataire || '--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${naissance.adresse_livraison || '--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${naissance.ville || '--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${naissance.commune_livraison || '--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${naissance.quartier || '--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${naissance.code_postal || '--'}</span></div>
+                                </div>
+                                ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
               </div>
               <div class="dp-panel" id="dpPN-docs">
                 <div class="dp-section">
@@ -1242,12 +1256,12 @@
                 },
                 didOpen: () => {
                     var tabs = document.querySelectorAll('#dpTabsN .dp-tab');
-                    tabs.forEach(function (t) {
-                        t.addEventListener('click', function () {
-                            tabs.forEach(function (x) {
+                    tabs.forEach(function(t) {
+                        t.addEventListener('click', function() {
+                            tabs.forEach(function(x) {
                                 x.classList.remove('dp-active');
                             });
-                            document.querySelectorAll('#dpTabsN ~ .dp-panel').forEach(function (
+                            document.querySelectorAll('#dpTabsN ~ .dp-panel').forEach(function(
                                 p) {
                                 p.classList.remove('dp-active');
                             });
@@ -1264,7 +1278,8 @@
         function printChildInfo(encodedData) {
             const naissance = JSON.parse(decodeURIComponent(encodedData));
             const printWindow = window.open('', '_blank');
-            const dateNaiss = naissance.date_naissance ? new Date(naissance.date_naissance).toLocaleDateString('fr-FR') : '--';
+            const dateNaiss = naissance.date_naissance ? new Date(naissance.date_naissance).toLocaleDateString('fr-FR') :
+                '--';
             const dateReg = naissance.DateR || '--';
 
             printWindow.document.title = "Impression Informations Demande";
@@ -1298,7 +1313,8 @@
             const qtyIntegral = parseInt(naissance.qty_integral) || 0;
 
             if (qtySimple > 0 && qtyIntegral > 0) {
-                docTypes = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+                docTypes =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
             } else if (qtySimple > 0) {
                 if (qtySimple === 1) {
                     docTypes = "copie simple";
@@ -1321,15 +1337,38 @@
 
             const totalQty = naissance.quantite || (qtySimple + qtyIntegral) || 1;
 
-            const fields = [
-                { label: 'Type', value: docTypes },
-                { label: 'Quantité', value: `${totalQty} copie(s)` },
-                { label: 'Nom', value: naissance.name || '--' },
-                { label: 'Prénom', value: naissance.prenom || '--' },
-                { label: 'Date naiss.', value: dateNaiss },
-                { label: 'Lieu naiss.', value: naissance.commune_naissance || '--' },
-                { label: 'N° Registre', value: naissance.number || '--' },
-                { label: 'Date Reg.', value: dateReg }
+            const fields = [{
+                    label: 'Type',
+                    value: docTypes
+                },
+                {
+                    label: 'Quantité',
+                    value: `${totalQty} copie(s)`
+                },
+                {
+                    label: 'Nom',
+                    value: naissance.name || '--'
+                },
+                {
+                    label: 'Prénom',
+                    value: naissance.prenom || '--'
+                },
+                {
+                    label: 'Date naiss.',
+                    value: dateNaiss
+                },
+                {
+                    label: 'Lieu naiss.',
+                    value: naissance.commune_naissance || '--'
+                },
+                {
+                    label: 'N° Registre',
+                    value: naissance.number || '--'
+                },
+                {
+                    label: 'Date Reg.',
+                    value: dateReg
+                }
             ];
 
             fields.forEach(field => {
@@ -1394,8 +1433,8 @@
             if (isPdf) {
                 const printWindow = window.open(url, '_blank');
                 if (printWindow) {
-                    printWindow.onload = function () {
-                        setTimeout(function () {
+                    printWindow.onload = function() {
+                        setTimeout(function() {
                             printWindow.print();
                         }, 500);
                     };
@@ -1453,11 +1492,11 @@
                             statut_livraison: 'livré',
                             reference: result.value
                         },
-                        success: function (response) {
+                        success: function(response) {
                             Swal.fire('Succès!', 'La demande a été marquée comme livrée.', 'success');
                             location.reload();
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             const errorMessage = xhr.responseJSON.error ||
                                 'Une erreur est survenue lors de la mise à jour.';
                             Swal.fire('Erreur!', errorMessage, 'error');
@@ -1472,8 +1511,8 @@
             const url = downloadDeliveryInfoUrl.replace(':id', id);
             const printWindow = window.open(url, '_blank');
             if (printWindow) {
-                printWindow.onload = function () {
-                    setTimeout(function () {
+                printWindow.onload = function() {
+                    setTimeout(function() {
                         printWindow.print();
                     }, 500);
                 };
@@ -1484,6 +1523,17 @@
         function showDeliveryInfo(naissance) {
             // Récupérer les informations de livraison
             const deliveryInfo = naissance || {};
+            const fallbackUser = naissance.user || {};
+            const destinataire = [deliveryInfo.nom_destinataire, deliveryInfo.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || [fallbackUser.name, fallbackUser.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || 'Non spécifié';
+            const telephone = deliveryInfo.contact_destinataire || deliveryInfo.telephone || fallbackUser.contact ||
+                'Non spécifié';
+            const email = deliveryInfo.email_destinataire || fallbackUser.email || 'Non spécifié';
 
             // Formater le contenu HTML pour SweetAlert
             const htmlContent = `
@@ -1491,11 +1541,15 @@
                         <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
 
                         <div style="margin-bottom: 15px;">
-                            <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || naissance.user.name + ' ' + naissance.user.prenom}
+                            <strong>Nom du destinataire:</strong> ${destinataire}
                         </div>
 
                         <div style="margin-bottom: 15px;">
-                            <strong>Téléphone:</strong> ${deliveryInfo.telephone || naissance.user.contact}
+                            <strong>Téléphone:</strong> ${telephone}
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <strong>Email:</strong> ${email}
                         </div>
 
                         <div style="margin-bottom: 15px;">
@@ -1543,8 +1597,8 @@
                     const url = downloadDeliveryInfoUrl.replace(':id', naissance.id);
                     const printWindow = window.open(url, '_blank');
                     if (printWindow) {
-                        printWindow.onload = function () {
-                            setTimeout(function () {
+                        printWindow.onload = function() {
+                            setTimeout(function() {
                                 printWindow.print();
                             }, 500);
                         };

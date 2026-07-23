@@ -1081,7 +1081,8 @@
             const qtyIntegral = parseInt(mariage.qty_integral) || 0;
 
             if (qtySimple > 0 && qtyIntegral > 0) {
-                documentType = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+                documentType =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
             } else if (qtySimple > 0) {
                 if (qtySimple === 1) {
                     documentType = "copie simple";
@@ -1214,23 +1215,23 @@
                           <div class="dp-section-title">${isCopieSimple ? 'Informations de la demande' : 'Informations de la demande'}</div>
                       </div>
                       ${(mariage.etat === 'terminé' || mariage.etat === 'traité') ? `
-                      <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
-                          <i class="fas fa-print"></i> Imprimer
-                      </button>
-                      ` : `
-                      <button type="button" onclick="printMariageInfo('${mData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                          <i class="fas fa-print"></i> Imprimer
-                      </button>
-                      `}
+                          <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                              <i class="fas fa-print"></i> Imprimer
+                          </button>
+                          ` : `
+                          <button type="button" onclick="printMariageInfo('${mData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                              <i class="fas fa-print"></i> Imprimer
+                          </button>
+                          `}
                   </div>
                   ${isCopieSimple ? `
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
-                              ` : `
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom Époux</span><span class="dp-value">${mariage.nomEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Naiss. Époux</span><span class="dp-value">${mariage.dateNaissanceEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Lieu naiss.</span><span class="dp-value">${mariage.lieuNaissanceEpoux||'--'}</span></div>
-                              `}
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
+                                  ` : `
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom Époux</span><span class="dp-value">${mariage.nomEpoux||'--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Naiss. Époux</span><span class="dp-value">${mariage.dateNaissanceEpoux||'--'}</span></div>
+                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Lieu naiss.</span><span class="dp-value">${mariage.lieuNaissanceEpoux||'--'}</span></div>
+                                  `}
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Commune</span><span class="dp-value">${mariage.commune_mariage||'--'}</span></div>
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${mariage.numero_registre||'--'}</span></div>
                               <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar-alt"></i> Date Registre</span><span class="dp-value">${mariage.date_registre ? new Date(mariage.date_registre).toLocaleDateString('fr-FR') : '--'}</span></div>
@@ -1254,18 +1255,18 @@
             </div>
             <div class="dp-panel" id="dpPM-livraison">
               ${mariage.choix_option === 'livraison' ? `
-                          <div class="dp-section">
-                            <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${mariage.nom_destinataire||'--'} ${mariage.prenom_destinataire||''}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${mariage.contact_destinataire||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${mariage.email_destinataire||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${mariage.adresse_livraison||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${mariage.ville||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${mariage.commune_livraison||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${mariage.quartier||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${mariage.code_postal||'--'}</span></div>
-                          </div>
-                          ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                              <div class="dp-section">
+                                <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${mariage.nom_destinataire||'--'} ${mariage.prenom_destinataire||''}</span></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${mariage.contact_destinataire||'--'}</span></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${mariage.email_destinataire||'--'}</span></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${mariage.adresse_livraison||'--'}</span></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${mariage.ville||'--'}</span></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${mariage.commune_livraison||'--'}</span></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${mariage.quartier||'--'}</span></div>
+                                <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${mariage.code_postal||'--'}</span></div>
+                              </div>
+                              ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
             </div>
             <div class="dp-panel" id="dpPM-docs">
               <div class="dp-section">
@@ -1342,7 +1343,8 @@
             const qtyIntegral = parseInt(mariage.qty_integral) || 0;
 
             if (qtySimple > 0 && qtyIntegral > 0) {
-                docTypes = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+                docTypes =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
             } else if (qtySimple > 0) {
                 if (qtySimple === 1) {
                     docTypes = "copie simple";
@@ -1367,26 +1369,53 @@
 
             let fields = [];
             if (isCopieSimple) {
-                fields = [
-                    { label: 'Type', value: docTypes },
-                    { label: 'Quantité', value: `${totalQty} copie(s)` }
+                fields = [{
+                        label: 'Type',
+                        value: docTypes
+                    },
+                    {
+                        label: 'Quantité',
+                        value: `${totalQty} copie(s)`
+                    }
                 ];
             } else {
-                fields = [
-                    { label: 'Type', value: docTypes },
-                    { label: 'Quantité', value: `${totalQty} copie(s)` },
-                    { label: 'Nom Époux', value: mariage.nomEpoux || '--' },
-                    { label: 'Prénom Époux', value: mariage.prenomEpoux || '--' },
-                    { label: 'Naiss. Époux', value: mariage.dateNaissanceEpoux || '--' },
-                    { label: 'Lieu naiss.', value: mariage.lieuNaissanceEpoux || '--' }
+                fields = [{
+                        label: 'Type',
+                        value: docTypes
+                    },
+                    {
+                        label: 'Quantité',
+                        value: `${totalQty} copie(s)`
+                    },
+                    {
+                        label: 'Nom Époux',
+                        value: mariage.nomEpoux || '--'
+                    },
+                    {
+                        label: 'Prénom Époux',
+                        value: mariage.prenomEpoux || '--'
+                    },
+                    {
+                        label: 'Naiss. Époux',
+                        value: mariage.dateNaissanceEpoux || '--'
+                    },
+                    {
+                        label: 'Lieu naiss.',
+                        value: mariage.lieuNaissanceEpoux || '--'
+                    }
                 ];
             }
 
-            fields.push(
-                { label: 'Commune', value: mariage.commune_mariage || '--' },
-                { label: 'N° Registre', value: mariage.numero_registre || '--' },
-                { label: 'Date Registre', value: mariage.date_registre ? new Date(mariage.date_registre).toLocaleDateString('fr-FR') : '--' }
-            );
+            fields.push({
+                label: 'Commune',
+                value: mariage.commune_mariage || '--'
+            }, {
+                label: 'N° Registre',
+                value: mariage.numero_registre || '--'
+            }, {
+                label: 'Date Registre',
+                value: mariage.date_registre ? new Date(mariage.date_registre).toLocaleDateString('fr-FR') : '--'
+            });
 
             fields.forEach(field => {
                 const row = printWindow.document.createElement('div');
@@ -1449,8 +1478,8 @@
             if (isPdf) {
                 const printWindow = window.open(url, '_blank');
                 if (printWindow) {
-                    printWindow.onload = function () {
-                        setTimeout(function () {
+                    printWindow.onload = function() {
+                        setTimeout(function() {
                             printWindow.print();
                         }, 500);
                     };
@@ -1538,17 +1567,32 @@
         // Fonction pour afficher les informations de livraison
         function showDeliveryInfo(mariage) {
             const deliveryInfo = mariage || {};
+            const fallbackUser = mariage.user || {};
+            const destinataire = [deliveryInfo.nom_destinataire, deliveryInfo.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || [fallbackUser.name, fallbackUser.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || 'Non spécifié';
+            const telephone = deliveryInfo.contact_destinataire || deliveryInfo.telephone || fallbackUser.contact ||
+                'Non spécifié';
+            const email = deliveryInfo.email_destinataire || fallbackUser.email || 'Non spécifié';
 
             const htmlContent = `
             <div style="text-align: center;">
                 <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
                 
                 <div style="margin-bottom: 15px;">
-                    <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || mariage.user.name + ' ' + mariage.user.prenom}
+                    <strong>Nom du destinataire:</strong> ${destinataire}
                 </div>
                 
                 <div style="margin-bottom: 15px;">
-                    <strong>Téléphone:</strong> ${deliveryInfo.contact_destinataire || mariage.user.contact}
+                    <strong>Téléphone:</strong> ${telephone}
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Email:</strong> ${email}
                 </div>
                 
                 <div style="margin-bottom: 15px;">

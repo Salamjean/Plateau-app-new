@@ -70,7 +70,7 @@
             <a href="{{ route('admin.transactions') }}" class="btn btn-light rounded-pill px-3 fw-bold me-3 shadow-sm">
                 <i class="fas fa-arrow-left me-1"></i> Retour au Portefeuille
             </a>
-            <form method="GET" action="" class="d-flex align-items-center bg-white rounded p-1 shadow-sm">
+            <form method="GET" action="{{ route('admin.transactions.all') }}" class="d-flex align-items-center bg-white rounded p-1 shadow-sm">
                 <i class="fas fa-calendar-alt text-muted ms-2 me-2"></i>
                 <input type="month" name="month" value="{{ $selectedMonth }}" class="form-control border-0 bg-transparent text-dark fw-bold" style="box-shadow: none; width: 140px;" onchange="this.form.submit()">
             </form>

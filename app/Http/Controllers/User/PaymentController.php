@@ -30,6 +30,7 @@ class PaymentController extends Controller
             'reference' => 'nullable|string|max:255',
         ]);
         $reference = $validated['reference'] ?? null;
+        $provider = strtolower((string) $request->query('provider', ''));
 
         Log::info("Page de succès paiement atteinte. Référence: {$reference}");
 
@@ -153,7 +154,11 @@ class PaymentController extends Controller
             }
 
             $operator = 'WAVE';
-            if (session()->has('mtn_ref_' . $reference) || session()->has('mtn_ref_' . $baseReference)) {
+            if ($provider === 'stripe') {
+                $operator = 'STRIPE';
+            } elseif ($provider === 'tresorpay') {
+                $operator = 'TRESORPAY';
+            } elseif (session()->has('mtn_ref_' . $reference) || session()->has('mtn_ref_' . $baseReference)) {
                 $operator = 'MTN';
             }
 
@@ -493,13 +498,13 @@ class PaymentController extends Controller
         $paiement = Paiement::where('transaction_id', $reference)
             ->where('operator_id', 'TRESORPAY')
             ->first();
-            
+
         Log::info("tresorpayCheck appelé pour la référence: {$reference}. Paiement trouvé: " . ($paiement ? 'OUI' : 'NON') . ". Status: " . ($paiement ? $paiement->status : 'N/A'));
 
         if ($paiement && $paiement->status === 'ACCEPTED') {
             return response()->json(['status' => 'SUCCESSFUL', 'redirect' => route('payment.success', ['reference' => $reference, 'type' => $type])]);
         }
-        
+
         if ($paiement && $paiement->status === 'FAILED') {
             return response()->json(['status' => 'FAILED', 'redirect' => route('payment.cancel', ['reference' => $reference, 'type' => $type])]);
         }

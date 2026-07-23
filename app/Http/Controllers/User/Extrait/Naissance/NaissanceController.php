@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Stripe\StripeClient;
 
 class NaissanceController extends Controller
 {
@@ -321,6 +322,14 @@ class NaissanceController extends Controller
                         return redirect($checkoutSession['wave_launch_url']);
                     }
                     return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'stripe') {
+                    try {
+                        $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $transactionReference, $user, $request->getSchemeAndHttpHost());
+                        return redirect($checkoutUrl);
+                    } catch (\Throwable $e) {
+                        Log::error('Erreur Stripe (modification naissance) ' . $transactionReference . ': ' . $e->getMessage());
+                        return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                    }
                 } elseif (strtolower($paymentMethod) === 'mtn') {
                     $mtnPhoneNumber = $request->input('mtn_number');
                     $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
@@ -713,6 +722,14 @@ class NaissanceController extends Controller
 
                 Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
                 return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'stripe') {
+                try {
+                    $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $naissance->reference, $user, $request->getSchemeAndHttpHost());
+                    return redirect($checkoutUrl);
+                } catch (\Throwable $e) {
+                    Log::error('Erreur Stripe (naissance) ' . $naissance->reference . ': ' . $e->getMessage());
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                }
             } elseif (strtolower($paymentMethod) === 'mtn') {
                 $mtnPhoneNumber = $request->input('mtn_number');
                 // Format number to international format (starting with 225)
@@ -848,5 +865,48 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             Log::error('Erreur lors de la suppression de la demande : ' . $e->getMessage());
             return redirect()->route('user.extrait.index')->with('error1', 'Une erreur est survenue lors de la suppression de la demande.');
         }
+    }
+
+    private function createStripeCheckoutUrl(float $amount, string $reference, $user, ?string $baseUrl = null): string
+    {
+        $secretKey = config('services.stripe.secret_key');
+        if (!$secretKey) {
+            throw new \RuntimeException('Configuration Stripe manquante (STRIPE_SECRET_KEY).');
+        }
+
+        $baseUrl = rtrim($baseUrl ?: config('app.url'), '/');
+        $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($reference) . '&type=naissance&provider=stripe';
+        $cancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($reference) . '&type=naissance&provider=stripe';
+
+        $stripe = new StripeClient($secretKey);
+        $session = $stripe->checkout->sessions->create([
+            'mode' => 'payment',
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'xof',
+                    'unit_amount' => (int) round($amount),
+                    'product_data' => [
+                        'name' => 'Demande extrait de naissance',
+                        'description' => 'Reference: ' . $reference,
+                    ],
+                ],
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => [
+                'reference' => $reference,
+                'demande_type' => 'naissance',
+            ],
+            'client_reference_id' => $reference,
+            'customer_email' => $user?->email,
+        ]);
+
+        if (!isset($session->url) || !$session->url) {
+            throw new \RuntimeException('URL Stripe Checkout indisponible.');
+        }
+
+        return $session->url;
     }
 }

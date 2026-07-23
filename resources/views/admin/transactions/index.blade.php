@@ -230,7 +230,7 @@
             <p class="mb-0 text-white-50">Vue d'ensemble des revenus générés sur toute la plateforme (Timbres & Livraisons).</p>
         </div>
         <div>
-            <form method="GET" action="" class="d-flex align-items-center bg-white rounded p-1 shadow-sm">
+            <form method="GET" action="{{ route('admin.transactions') }}" class="d-flex align-items-center bg-white rounded p-1 shadow-sm">
                 <i class="fas fa-calendar-alt text-muted ms-2 me-2"></i>
                 <input type="month" name="month" value="{{ $selectedMonth }}" class="form-control border-0 bg-transparent text-dark fw-bold" style="box-shadow: none; width: 140px;" onchange="this.form.submit()">
             </form>

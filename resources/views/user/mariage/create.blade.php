@@ -776,7 +776,9 @@
                             </span>
                             <div class="pour-toggle-group" style="margin-bottom:0;">
                                 <label class="pour-toggle-label">
-                                    <input type="radio" name="pour" value="Moi" {{ old('pour', 'Moi') !== 'une_autre_personne' ? 'checked' : '' }} onchange="updateFields()">
+                                    <input type="radio" name="pour" value="Moi"
+                                        {{ old('pour', 'Moi') !== 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
                                     <div class="pour-toggle-content">
                                         <span class="check-dot"></span>
                                         <i class="fas fa-user"></i>
@@ -784,7 +786,9 @@
                                     </div>
                                 </label>
                                 <label class="pour-toggle-label">
-                                    <input type="radio" name="pour" value="une_autre_personne" {{ old('pour') === 'une_autre_personne' ? 'checked' : '' }} onchange="updateFields()">
+                                    <input type="radio" name="pour" value="une_autre_personne"
+                                        {{ old('pour') === 'une_autre_personne' ? 'checked' : '' }}
+                                        onchange="updateFields()">
                                     <div class="pour-toggle-content">
                                         <span class="check-dot"></span>
                                         <i class="fas fa-users"></i>
@@ -800,7 +804,8 @@
 
                         <div class="type-cards-grid">
                             <label class="type-option-card">
-                                <input type="radio" name="typeDemande" value="simple" {{ old('typeDemande', isset($mariage) ? $mariage->type : 'simple') === 'simple' ? 'checked' : '' }}
+                                <input type="radio" name="typeDemande" value="simple"
+                                    {{ old('typeDemande', isset($mariage) ? $mariage->type : 'simple') === 'simple' ? 'checked' : '' }}
                                     onchange="onMariageTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-alt"></i>
@@ -809,7 +814,8 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="typeDemande" value="integrale" {{ old('typeDemande', isset($mariage) ? $mariage->type : '') === 'integrale' ? 'checked' : '' }}
+                                <input type="radio" name="typeDemande" value="integrale"
+                                    {{ old('typeDemande', isset($mariage) ? $mariage->type : '') === 'integrale' ? 'checked' : '' }}
                                     onchange="onMariageTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-file-contract"></i>
@@ -818,7 +824,8 @@
                                 </div>
                             </label>
                             <label class="type-option-card">
-                                <input type="radio" name="typeDemande" value="groupee" {{ old('typeDemande', isset($mariage) ? $mariage->type : '') === 'groupee' ? 'checked' : '' }}
+                                <input type="radio" name="typeDemande" value="groupee"
+                                    {{ old('typeDemande', isset($mariage) ? $mariage->type : '') === 'groupee' ? 'checked' : '' }}
                                     onchange="onMariageTypeChange(this)">
                                 <div class="type-option-content">
                                     <i class="fas fa-copy"></i>
@@ -837,11 +844,14 @@
                                 <select id="relation" name="relation" class="form-control-custom"
                                     onchange="onRelationChange()">
                                     <option value="">-- Choisir le lien de parenté --</option>
-                                    <option value="enfant" {{ old('relation', isset($mariage) ? $mariage->relation : '') === 'enfant' ? 'selected' : '' }}>
+                                    <option value="enfant"
+                                        {{ old('relation', isset($mariage) ? $mariage->relation : '') === 'enfant' ? 'selected' : '' }}>
                                         Je suis leur enfant</option>
-                                    <option value="parent" {{ old('relation', isset($mariage) ? $mariage->relation : '') === 'parent' ? 'selected' : '' }}>
+                                    <option value="parent"
+                                        {{ old('relation', isset($mariage) ? $mariage->relation : '') === 'parent' ? 'selected' : '' }}>
                                         Je suis leur parent</option>
-                                    <option value="connaissance" {{ old('relation', isset($mariage) ? $mariage->relation : '') === 'connaissance' ? 'selected' : '' }}>
+                                    <option value="connaissance"
+                                        {{ old('relation', isset($mariage) ? $mariage->relation : '') === 'connaissance' ? 'selected' : '' }}>
                                         Autre / Mandataire</option>
                                 </select>
                                 <i class="fas fa-link"></i>
@@ -857,8 +867,9 @@
                                     {{ isset($mariage) && $mariage->document_autorisation ? 'Procuration déjà téléversée (cliquez pour remplacer)' : "Téléverser le justificatif d'autorisation" }}
                                 </h6>
                                 <p class="x-small text-grey mb-0">PDF, JPG ou PNG (Max 2Mo)</p>
-                                <input type="file" id="document_autorisation" name="document_autorisation" class="d-none"
-                                    onchange="updateAutorisationFileName(this)" accept=".jpg,.jpeg,.png,.pdf">
+                                <input type="file" id="document_autorisation" name="document_autorisation"
+                                    class="d-none" onchange="updateAutorisationFileName(this)"
+                                    accept=".jpg,.jpeg,.png,.pdf">
                             </label>
                         </div>
 
@@ -871,8 +882,8 @@
                             @endphp
                             <div class="quantity-cards-row single-card" id="qty-row-mariage">
                                 <!-- Card simple -->
-                                <div class="quantity-card has-value" id="qty-card-simple" @if ($isDeliveryDisabled)
-                                style="pointer-events: none; opacity: 0.6;" @endif>
+                                <div class="quantity-card has-value" id="qty-card-simple"
+                                    @if ($isDeliveryDisabled) style="pointer-events: none; opacity: 0.6;" @endif>
                                     <div class="quantity-card-header">
                                         <div class="quantity-card-title">
                                             <div
@@ -885,8 +896,8 @@
                                             @php
                                                 $orig_min_simple =
                                                     isset($mariage) && $mariage->qty_simple > 0
-                                                    ? (int) $mariage->qty_simple
-                                                    : 1;
+                                                        ? (int) $mariage->qty_simple
+                                                        : 1;
                                                 $current_val_simple = old(
                                                     'qty_simple',
                                                     isset($mariage) ? $mariage->qty_simple : 1,
@@ -896,11 +907,13 @@
                                                 }
                                             @endphp
                                             <button type="button" class="qty-btn" onclick="updateMQtySimple(-1)"
-                                                id="mQtySimpleMinus" {{ $current_val_simple > $orig_min_simple ? '' : 'disabled' }}>-</button>
+                                                id="mQtySimpleMinus"
+                                                {{ $current_val_simple > $orig_min_simple ? '' : 'disabled' }}>-</button>
                                             <input type="number" name="qty_simple" id="qty_simple" class="qty-input"
                                                 value="{{ $current_val_simple }}" min="{{ $orig_min_simple }}"
                                                 data-original-min="{{ $orig_min_simple }}" max="20" readonly>
-                                            <button type="button" class="qty-btn" onclick="updateMQtySimple(1)">+</button>
+                                            <button type="button" class="qty-btn"
+                                                onclick="updateMQtySimple(1)">+</button>
                                         </div>
                                     </div>
                                     <div class="quantity-card-meta">500 FCFA / exemplaire</div>
@@ -920,8 +933,8 @@
                                             @php
                                                 $orig_min_integral =
                                                     isset($mariage) && $mariage->qty_integral > 0
-                                                    ? (int) $mariage->qty_integral
-                                                    : 1;
+                                                        ? (int) $mariage->qty_integral
+                                                        : 1;
                                                 $current_val_integral = old(
                                                     'qty_integral',
                                                     isset($mariage) ? $mariage->qty_integral : 0,
@@ -936,11 +949,14 @@
                                                 }
                                             @endphp
                                             <button type="button" class="qty-btn" onclick="updateMQtyIntegral(-1)"
-                                                id="mQtyIntegralMinus" {{ $current_val_integral > $orig_min_integral ? '' : 'disabled' }}>-</button>
-                                            <input type="number" name="qty_integral" id="qty_integral" class="qty-input"
-                                                value="{{ $current_val_integral }}" min="{{ $orig_min_integral }}"
+                                                id="mQtyIntegralMinus"
+                                                {{ $current_val_integral > $orig_min_integral ? '' : 'disabled' }}>-</button>
+                                            <input type="number" name="qty_integral" id="qty_integral"
+                                                class="qty-input" value="{{ $current_val_integral }}"
+                                                min="{{ $orig_min_integral }}"
                                                 data-original-min="{{ $orig_min_integral }}" max="20" readonly>
-                                            <button type="button" class="qty-btn" onclick="updateMQtyIntegral(1)">+</button>
+                                            <button type="button" class="qty-btn"
+                                                onclick="updateMQtyIntegral(1)">+</button>
                                         </div>
                                     </div>
                                     <div class="quantity-card-meta">500 FCFA / exemplaire</div>
@@ -1064,53 +1080,57 @@
                             <i class="fas fa-book"></i> Détails du mariage
                         </div>
                         <div class="form-section-content">
-                           <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="input-group-custom">
-                                    <label>Commune de mariage :</label>
-                                    <div class="input-wrapper">
-                                        <input type="text" id="commune_mariage" name="commune_mariage"
-                                            class="form-control-custom" placeholder="Ville ou commune"
-                                            value="{{ old('commune_mariage', isset($mariage) ? $mariage->commune_mariage : '') }}">
-                                        <i class="fas fa-map-marker-alt"></i>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Commune de mariage :</label>
+                                        <div class="input-wrapper">
+                                            <input type="text" id="commune_mariage" name="commune_mariage"
+                                                class="form-control-custom" placeholder="Ville ou commune"
+                                                value="{{ old('commune_mariage', isset($mariage) ? $mariage->commune_mariage : '') }}">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Numéro NNI (Optionnel) :</label>
+                                        <div class="input-wrapper">
+                                            <input type="text" id="CMU" name="CMU"
+                                                class="form-control-custom"
+                                                value="{{ old('CMU', isset($mariage) ? $mariage->CMU : Auth::user()->CMU) }}"
+                                                placeholder="Votre NNI">
+                                            <i class="fas fa-id-card"></i>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="input-group-custom">
-                                    <label>Numéro NNI (Optionnel) :</label>
-                                    <div class="input-wrapper">
-                                        <input type="text" id="CMU" name="CMU" class="form-control-custom"
-                                            value="{{ old('CMU', isset($mariage) ? $mariage->CMU : Auth::user()->CMU) }}"
-                                            placeholder="Votre NNI">
-                                        <i class="fas fa-id-card"></i>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Numéro de registre : <span class="text-danger">*</span></label>
+                                        <div class="input-wrapper">
+                                            <input type="text" id="numero_registre" name="numero_registre"
+                                                class="form-control-custom" placeholder="Numéro de registre"
+                                                value="{{ old('numero_registre', isset($mariage) ? $mariage->numero_registre : '') }}"
+                                                required>
+                                            <i class="fas fa-hashtag"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group-custom">
+                                        <label>Date de registre : <span class="text-danger">*</span></label>
+                                        <div class="input-wrapper">
+                                            <input type="date" id="date_registre" name="date_registre"
+                                                class="form-control-custom"
+                                                value="{{ old('date_registre', isset($mariage) ? $mariage->date_registre : '') }}"
+                                                required>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="input-group-custom">
-                                    <label>Numéro de registre : <span class="text-danger">*</span></label>
-                                    <div class="input-wrapper">
-                                        <input type="text" id="numero_registre" name="numero_registre"
-                                            class="form-control-custom" placeholder="Numéro de registre"
-                                            value="{{ old('numero_registre', isset($mariage) ? $mariage->numero_registre : '') }}" required>
-                                        <i class="fas fa-hashtag"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="input-group-custom">
-                                    <label>Date de registre : <span class="text-danger">*</span></label>
-                                    <div class="input-wrapper">
-                                        <input type="date" id="date_registre" name="date_registre"
-                                            class="form-control-custom"
-                                            value="{{ old('date_registre', isset($mariage) ? $mariage->date_registre : '') }}" required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>                </div>
 
                         <!-- Bloc Conjoint (Si Copie Intégrale) -->
                         <div id="infoEpoux"
@@ -1123,8 +1143,8 @@
                                     <div class="input-group-custom">
                                         <label>Nom du conjoint(e) :</label>
                                         <div class="input-wrapper">
-                                            <input type="text" id="nomEpoux" name="nomEpoux" class="form-control-custom"
-                                                placeholder="Nom"
+                                            <input type="text" id="nomEpoux" name="nomEpoux"
+                                                class="form-control-custom" placeholder="Nom"
                                                 value="{{ old('nomEpoux', isset($mariage) ? $mariage->nomEpoux : '') }}">
                                             <i class="fas fa-user"></i>
                                         </div>
@@ -1219,7 +1239,9 @@
                         <div class="delivery-card-grid">
                             <label class="delivery-option-card"
                                 style="{{ isset($mariage) && $mariage->choix_option === 'livraison' ? 'opacity: 0.5; pointer-events: none;' : '' }}">
-                                <input type="radio" name="choix_option" id="option1" value="Retrait sur place" {{ old('choix_option', isset($mariage) ? $mariage->choix_option : 'Retrait sur place') === 'Retrait sur place' ? 'checked' : '' }} {{ isset($mariage) && $mariage->choix_option === 'livraison' ? 'disabled' : '' }}>
+                                <input type="radio" name="choix_option" id="option1" value="Retrait sur place"
+                                    {{ old('choix_option', isset($mariage) ? $mariage->choix_option : 'Retrait sur place') === 'Retrait sur place' ? 'checked' : '' }}
+                                    {{ isset($mariage) && $mariage->choix_option === 'livraison' ? 'disabled' : '' }}>
                                 <div class="delivery-option-content">
                                     <i class="fas fa-university"></i>
                                     <h5>Retrait en Mairie</h5>
@@ -1227,7 +1249,8 @@
                                 </div>
                             </label>
                             <label class="delivery-option-card">
-                                <input type="radio" name="choix_option" id="option2" value="livraison" {{ old('choix_option', isset($mariage) ? $mariage->choix_option : '') === 'livraison' ? 'checked' : '' }}>
+                                <input type="radio" name="choix_option" id="option2" value="livraison"
+                                    {{ old('choix_option', isset($mariage) ? $mariage->choix_option : '') === 'livraison' ? 'checked' : '' }}>
                                 <div class="delivery-option-content">
                                     <i class="fas fa-motorcycle"></i>
                                     <h5>Livraison Express</h5>
@@ -1240,7 +1263,8 @@
                         <button type="button" class="btn-step btn-prev" onclick="prevStep(3)">
                             <i class="fas fa-arrow-left"></i> Précédent
                         </button>
-                        <button type="submit" id="btnValider" class="btn-step btn-next" style="background: var(--success);">
+                        <button type="submit" id="btnValider" class="btn-step btn-next"
+                            style="background: var(--success);">
                             <i class="fas fa-check-circle"></i> Valider ma demande
                         </button>
                     </div>
@@ -1308,8 +1332,8 @@
             }
         }
 
-        document.querySelectorAll('input[name="typeDemande"]').forEach(function (radio) {
-            radio.addEventListener('change', function () {
+        document.querySelectorAll('input[name="typeDemande"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
                 const infoEpoux = document.getElementById('infoEpoux');
                 infoEpoux.style.display = (this.value === 'integrale' || this.value ===
                     'groupee') ? 'block' : 'none';
@@ -1317,7 +1341,7 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             toggleRelationFields();
             updateFields();
         });
@@ -1363,7 +1387,7 @@
                 const typeSelect = document.querySelector('input[name="typeDemande"]:checked');
                 if (pourSelect && typeSelect) {
                     if (pourSelect.value === 'une_autre_personne' && (typeSelect.value === 'integrale' || typeSelect
-                        .value === 'groupee')) {
+                            .value === 'groupee')) {
                         const relation = document.getElementById('relation');
                         if (!relation.value) {
                             isValid = false;
@@ -1371,7 +1395,7 @@
                         } else if (relation.value === 'connaissance') {
                             const docInput = document.getElementById('document_autorisation');
                             const hasExistingDoc =
-                                    {{ isset($mariage) && $mariage->document_autorisation ? 'true' : 'false' }};
+                                {{ isset($mariage) && $mariage->document_autorisation ? 'true' : 'false' }};
                             if (docInput.files.length === 0 && !hasExistingDoc) {
                                 isValid = false;
                                 displayError(docInput, "Veuillez téléverser le document d'autorisation.");
@@ -1391,7 +1415,7 @@
                     const nom = document.getElementById('nomEpoux');
                     const prenom = document.getElementById('prenomEpoux');
                     const dateNaissance = document.getElementById('dateNaissanceEpoux');
-                    
+
                     if (!nom.value.trim()) {
                         isValid = false;
                         displayError(nom, "Le nom du conjoint est obligatoire.");
@@ -1400,7 +1424,7 @@
                         isValid = false;
                         displayError(prenom, "Le prénom du conjoint est obligatoire.");
                     }
-                    
+
                     if (dateNaissance && dateNaissance.value) {
                         const birthDate = new Date(dateNaissance.value);
                         const today = new Date();
@@ -1409,7 +1433,7 @@
                         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
                             age--;
                         }
-                        
+
                         if (age < 18) {
                             isValid = false;
                             displayError(dateNaissance, "Le conjoint doit avoir au moins 18 ans.");
@@ -1445,7 +1469,7 @@
             input.closest('.input-group-custom').appendChild(err);
         }
 
-        document.getElementById('demandeForm').addEventListener('submit', function (e) {
+        document.getElementById('demandeForm').addEventListener('submit', function(e) {
             if (formSubmitted) return;
             e.preventDefault();
 
@@ -1456,7 +1480,7 @@
                 const qtyIntegral = parseInt(document.getElementById('qty_integral').value) || 0;
                 const totalTimbres = typeVal === 'groupee' ? qtySimple + qtyIntegral :
                     typeVal === 'integrale' ? qtyIntegral :
-                        qtySimple;
+                    qtySimple;
                 const montantTimbreUnitaire = 500;
                 const montantLivraison = 1500;
                 const livraisonCheckbox = document.getElementById('option2');
@@ -1499,17 +1523,17 @@
                     // Pour retrait sur place gratuit
                     const form = this;
                     const fields = [{
-                        name: 'choix_option',
-                        value: 'Retrait sur place'
-                    },
-                    {
-                        name: 'montant_timbre',
-                        value: 0
-                    },
-                    {
-                        name: 'montant_livraison',
-                        value: 0
-                    }
+                            name: 'choix_option',
+                            value: 'Retrait sur place'
+                        },
+                        {
+                            name: 'montant_timbre',
+                            value: 0
+                        },
+                        {
+                            name: 'montant_livraison',
+                            value: 0
+                        }
                     ];
                     fields.forEach(f => {
                         let input = document.querySelector(`input[name="${f.name}"]`);
@@ -1536,7 +1560,7 @@
             let qtyIntegral = parseInt(document.getElementById('qty_integral').value) || 0;
             let totalTimbres = type === 'groupee' ? qtySimple + qtyIntegral :
                 type === 'integrale' ? qtyIntegral :
-                    qtySimple;
+                qtySimple;
 
             // Calcul des timbres gratuits (max 2 demandes gratuites)
             let freeTimbres = 0;
@@ -1633,35 +1657,35 @@
 
                             <div id="payment-section-container">
                                 ${!needsPayment ? `
-                                                    <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
-                                                        <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
-                                                        <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
-                                                        La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
-                                                    </div>
-                                                    <input type="hidden" id="swal-payment_method" value="deja_paye">
-                                                    <input type="hidden" id="swal-mtn_number" value="">
-                                                ` : `
-                                                    <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Moyen de paiement</h4>
-                                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
-                                                        <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
-                                                <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                                        <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
-                                                            <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                                                        </button>
-                                                        <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                            <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                                                        </button>
-                                                    </div>
-                                                    <input type="hidden" id="swal-payment_method" value="wave">
-                                                    <div id="payment-phone-container" style="display: none; margin-top: 10px;">
-                                                        <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN à débiter</label>
-                                                        <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="05XXXXXXXX (10 chiffres)" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
-                                                    </div>
-                                                `}
+                                                            <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
+                                                                <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
+                                                                <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
+                                                                La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
+                                                            </div>
+                                                            <input type="hidden" id="swal-payment_method" value="deja_paye">
+                                                            <input type="hidden" id="swal-mtn_number" value="">
+                                                        ` : `
+                                                            <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Moyen de paiement</h4>
+                                                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+                                                                <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-stripe" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('stripe')">
+                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">STRIPE</span>
+                                                    </button>
+                                                    <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
+                                                        <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                                <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
+                                                                    <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                                                </button>
+                                                            </div>
+                                                            <input type="hidden" id="swal-payment_method" value="wave">
+                                                            <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                                                <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN à débiter</label>
+                                                                <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="05XXXXXXXX (10 chiffres)" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                                            </div>
+                                                        `}
                             </div>
                         </div>
                     `,
@@ -1689,13 +1713,14 @@
                     if (payment_method === 'tresorpay') {
                         if (!payment_number || payment_number.length !== 10) {
                             Swal.showValidationMessage(
-                                'Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.');
+                                'Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.'
+                            );
                             return false;
                         }
                     }
 
                     if (needsPayment) {
-                        if (payment_method === 'wave') {
+                        if (payment_method === 'wave' || payment_method === 'stripe') {
                             window.PaymentPopup = window.open('', 'PaymentPopup');
                         }
                     }
@@ -1716,7 +1741,8 @@
                         montant_timbre: needsPayment ? window.retraitData.montantTimbreTotal : 0,
                         montant_livraison: 0,
                         payment_method: payment_method,
-                        mtn_number: (payment_method === 'mtn' || payment_method === 'tresorpay') ? payment_number : '',
+                        mtn_number: (payment_method === 'mtn' || payment_method === 'tresorpay') ?
+                            payment_number : '',
                         wave_number: ''
                     };
                 }
@@ -1727,37 +1753,37 @@
 
                     // Créer des champs cachés
                     const hiddenFields = [{
-                        name: 'choix_option',
-                        value: 'Retrait sur place'
-                    },
-                    {
-                        name: 'montant_timbre_unitaire',
-                        value: formData.montant_timbre_unitaire
-                    },
-                    {
-                        name: 'montant_timbre',
-                        value: formData.montant_timbre
-                    },
-                    {
-                        name: 'montant_livraison',
-                        value: 0
-                    },
-                    {
-                        name: 'montant_a_payer',
-                        value: formData.montant_timbre
-                    },
-                    {
-                        name: 'payment_method',
-                        value: formData.payment_method
-                    },
-                    {
-                        name: 'mtn_number',
-                        value: formData.mtn_number
-                    },
-                    {
-                        name: 'wave_number',
-                        value: formData.wave_number
-                    }
+                            name: 'choix_option',
+                            value: 'Retrait sur place'
+                        },
+                        {
+                            name: 'montant_timbre_unitaire',
+                            value: formData.montant_timbre_unitaire
+                        },
+                        {
+                            name: 'montant_timbre',
+                            value: formData.montant_timbre
+                        },
+                        {
+                            name: 'montant_livraison',
+                            value: 0
+                        },
+                        {
+                            name: 'montant_a_payer',
+                            value: formData.montant_timbre
+                        },
+                        {
+                            name: 'payment_method',
+                            value: formData.payment_method
+                        },
+                        {
+                            name: 'mtn_number',
+                            value: formData.mtn_number
+                        },
+                        {
+                            name: 'wave_number',
+                            value: formData.wave_number
+                        }
                     ];
 
                     hiddenFields.forEach(field => {
@@ -1788,7 +1814,8 @@
                                 if (!document.getElementById('mtn-spin-style')) {
                                     const style = document.createElement('style');
                                     style.id = 'mtn-spin-style';
-                                    style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                                    style.innerHTML =
+                                        `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
                                     document.head.appendChild(style);
                                 }
                             }
@@ -1797,16 +1824,18 @@
                         formSubmitted = true;
                         const formPayload = new FormData(form);
                         fetch(form.action, {
-                            method: 'POST',
-                            body: formPayload,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            }
-                        })
+                                method: 'POST',
+                                body: formPayload,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            })
                             .then(response => {
                                 if (!response.ok) {
-                                    return response.json().then(err => { throw err; });
+                                    return response.json().then(err => {
+                                        throw err;
+                                    });
                                 }
                                 return response.json();
                             })
@@ -1814,7 +1843,8 @@
                                 if (data.success && data.reference && data.mtn_ref) {
                                     startMtnPaymentPolling(data.reference, data.mtn_ref, 'mariage');
                                 } else {
-                                    throw new Error(data.message || 'Erreur lors de l\'initialisation du paiement.');
+                                    throw new Error(data.message ||
+                                        'Erreur lors de l\'initialisation du paiement.');
                                 }
                             })
                             .catch(error => {
@@ -1822,7 +1852,8 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Erreur',
-                                    text: error.message || 'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
+                                    text: error.message ||
+                                        'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
                                     confirmButtonColor: '#1f4083'
                                 });
                             });
@@ -1836,7 +1867,7 @@
                             form.target = '_blank';
                         }
 
-                        if (formData.payment_method === 'wave') {
+                        if (formData.payment_method === 'wave' || formData.payment_method === 'stripe') {
                             Swal.fire({
                                 title: 'Paiement en cours',
                                 html: 'Suite de paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
@@ -1848,25 +1879,31 @@
                             });
 
                             const timer = setInterval(() => {
-                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                if (window.paymentSuccess) {
                                     clearInterval(timer);
                                     Swal.close();
-                                    if (window.paymentSuccess) {
-                                        window.location.href = window.paymentSuccessUrl ||
+                                    window.location.href = window.paymentSuccessUrl ||
+                                        "{{ route('user.extrait.mariage.index') }}";
+                                    return;
+                                }
+
+                                try {
+                                    var result = JSON.parse(localStorage.getItem('plateauPaymentResult') ||
+                                        '{}');
+                                    var age = Date.now() - (result.timestamp || 0);
+                                    if (result.status === 'success' && age < 120000) {
+                                        clearInterval(timer);
+                                        Swal.close();
+                                        localStorage.removeItem('plateauPaymentResult');
+                                        window.location.href = result.listUrl ||
                                             "{{ route('user.extrait.mariage.index') }}";
                                         return;
                                     }
-                                    try {
-                                        var result = JSON.parse(localStorage.getItem(
-                                            'plateauPaymentResult') || '{}');
-                                        var age = Date.now() - (result.timestamp || 0);
-                                        if (result.status === 'success' && age < 120000) {
-                                            localStorage.removeItem('plateauPaymentResult');
-                                            window.location.href = result.listUrl ||
-                                                "{{ route('user.extrait.mariage.index') }}";
-                                            return;
-                                        }
-                                    } catch (e) { }
+                                } catch (e) {}
+
+                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                    clearInterval(timer);
+                                    Swal.close();
                                     window.location.reload();
                                 }
                             }, 1000);
@@ -1908,7 +1945,7 @@
             const qtyIntegral = parseInt(document.getElementById('qty_integral').value) || 0;
             const quantite = typeVal === 'groupee' ? qtySimple + qtyIntegral :
                 typeVal === 'integrale' ? qtyIntegral :
-                    qtySimple;
+                qtySimple;
             const montantTimbreUnitaire = 500;
             const montantLivraison = 1500;
 
@@ -2057,35 +2094,35 @@
 
                                 <div id="payment-section-container">
                                     ${!needsPayment ? `
-                                                                <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
-                                                                    <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
-                                                                    <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
-                                                                    La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
-                                                                </div>
-                                                                <input type="hidden" id="swal-payment_method" value="deja_paye">
-                                                                <input type="hidden" id="swal-mtn_number" value="">
-                                                            ` : `
-                                                                <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
-                                                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
-                                                                    <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
-                                                <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                                                    <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                                                                    </button>
-                                                                    <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
-                                                                        <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                                                                    </button>
-                                                                </div>
-                                                                <input type="hidden" id="swal-payment_method" value="wave">
-                                                                <div id="payment-phone-container" style="display: block; margin-top: 10px;">
-                                                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                                                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
-                                                                </div>
-                                                            `}
+                                                                        <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
+                                                                            <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
+                                                                            <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
+                                                                            La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
+                                                                        </div>
+                                                                        <input type="hidden" id="swal-payment_method" value="deja_paye">
+                                                                        <input type="hidden" id="swal-mtn_number" value="">
+                                                                    ` : `
+                                                                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
+                                                                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+                                                                            <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-stripe" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('stripe')">
+                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">STRIPE</span>
+                                                    </button>
+                                                    <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
+                                                        <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                                            <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
+                                                                                <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                                                            </button>
+                                                                        </div>
+                                                                        <input type="hidden" id="swal-payment_method" value="wave">
+                                                                        <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                                                            <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
+                                                                            <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                                                        </div>
+                                                                    `}
                                 </div>
                             </div>
                         </div>
@@ -2143,7 +2180,8 @@
                         date: document.getElementById('swal-date_livraison').value,
                         heure: document.getElementById('swal-heure_livraison').value,
                         method: document.getElementById('swal-payment_method').value,
-                        number: document.getElementById('swal-mtn_number') ? document.getElementById('swal-mtn_number').value : ''
+                        number: document.getElementById('swal-mtn_number') ? document.getElementById(
+                            'swal-mtn_number').value : ''
                     };
                     if (!d.nom || !d.prenom || !d.contact || !d.adresse) {
                         Swal.showValidationMessage('Veuillez remplir tous les champs obligatoires');
@@ -2151,18 +2189,21 @@
                     }
                     if (d.method === 'mtn') {
                         if (!/^05\d{8}$/.test(d.number.replace(/\s+/g, ''))) {
-                            Swal.showValidationMessage('Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
+                            Swal.showValidationMessage(
+                                'Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
                             return false;
                         }
                     }
                     if (d.method === 'tresorpay') {
                         if (!d.number || d.number.replace(/\s+/g, '').length !== 10) {
-                            Swal.showValidationMessage('Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.');
+                            Swal.showValidationMessage(
+                                'Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.'
+                            );
                             return false;
                         }
                     }
                     if (needsPayment) {
-                        if (d.method === 'wave') {
+                        if (d.method === 'wave' || d.method === 'stripe') {
                             window.PaymentPopup = window.open('', 'PaymentPopup');
                         }
                     }
@@ -2212,7 +2253,8 @@
                                 if (!document.getElementById('mtn-spin-style')) {
                                     const style = document.createElement('style');
                                     style.id = 'mtn-spin-style';
-                                    style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                                    style.innerHTML =
+                                        `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
                                     document.head.appendChild(style);
                                 }
                             }
@@ -2221,16 +2263,18 @@
                         formSubmitted = true;
                         const formPayload = new FormData(form);
                         fetch(form.action, {
-                            method: 'POST',
-                            body: formPayload,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            }
-                        })
+                                method: 'POST',
+                                body: formPayload,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            })
                             .then(response => {
                                 if (!response.ok) {
-                                    return response.json().then(err => { throw err; });
+                                    return response.json().then(err => {
+                                        throw err;
+                                    });
                                 }
                                 return response.json();
                             })
@@ -2238,7 +2282,8 @@
                                 if (data.success && data.reference && data.mtn_ref) {
                                     startMtnPaymentPolling(data.reference, data.mtn_ref, 'mariage');
                                 } else {
-                                    throw new Error(data.message || 'Erreur lors de l\'initialisation du paiement.');
+                                    throw new Error(data.message ||
+                                        'Erreur lors de l\'initialisation du paiement.');
                                 }
                             })
                             .catch(error => {
@@ -2246,7 +2291,8 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Erreur',
-                                    text: error.message || 'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
+                                    text: error.message ||
+                                        'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
                                     confirmButtonColor: '#1f4083'
                                 });
                             });
@@ -2272,8 +2318,31 @@
                         });
 
                         const check = setInterval(() => {
+                            if (window.paymentSuccess) {
+                                clearInterval(check);
+                                Swal.close();
+                                window.location.href = window.paymentSuccessUrl ||
+                                    "{{ route('user.extrait.mariage.index') }}";
+                                return;
+                            }
+
+                            try {
+                                var result = JSON.parse(localStorage.getItem('plateauPaymentResult') ||
+                                    '{}');
+                                var age = Date.now() - (result.timestamp || 0);
+                                if (result.status === 'success' && age < 120000) {
+                                    clearInterval(check);
+                                    Swal.close();
+                                    localStorage.removeItem('plateauPaymentResult');
+                                    window.location.href = result.listUrl ||
+                                        "{{ route('user.extrait.mariage.index') }}";
+                                    return;
+                                }
+                            } catch (e) {}
+
                             if (window.PaymentPopup && window.PaymentPopup.closed) {
                                 clearInterval(check);
+                                Swal.close();
                                 location.href = "{{ route('user.extrait.mariage.index') }}";
                             }
                         }, 1000);
@@ -2311,6 +2380,10 @@
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';
                 document.getElementById('payment-phone-container').style.display = 'none';
+            } else if (method === 'stripe') {
+                activeBtn.style.border = '2px solid #635bff';
+                activeBtn.style.backgroundColor = '#f5f3ff';
+                document.getElementById('payment-phone-container').style.display = 'none';
             } else if (method === 'tresorpay') {
                 activeBtn.style.border = '2px solid #e35205';
                 activeBtn.style.backgroundColor = '#fff5f0';
@@ -2328,21 +2401,22 @@
         function startMtnPaymentPolling(reference, mtnRef, type) {
             const csrfToken = document.querySelector('meta[name="csrf-token"]') ?
                 document.querySelector('meta[name="csrf-token"]').getAttribute('content') :
-                (document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value : '');
+                (document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value :
+                    '');
 
             const checkStatus = () => {
-                fetch('{{ route("user.payment.mtn.check") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    },
-                    body: JSON.stringify({
-                        reference: reference,
-                        type: type,
-                        mtn_ref: mtnRef
+                fetch('{{ route('user.payment.mtn.check') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            reference: reference,
+                            type: type,
+                            mtn_ref: mtnRef
+                        })
                     })
-                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'SUCCESSFUL') {
@@ -2353,7 +2427,8 @@
                                 confirmButtonColor: '#1f4083',
                                 allowOutsideClick: false
                             }).then(() => {
-                                window.location.href = data.redirect || "{{ route('user.extrait.mariage.index') }}";
+                                window.location.href = data.redirect ||
+                                    "{{ route('user.extrait.mariage.index') }}";
                             });
                         } else if (data.status === 'FAILED') {
                             Swal.fire({
@@ -2363,7 +2438,8 @@
                                 confirmButtonColor: '#1f4083',
                                 allowOutsideClick: false
                             }).then(() => {
-                                window.location.href = data.redirect || "{{ route('user.extrait.mariage.index') }}";
+                                window.location.href = data.redirect ||
+                                    "{{ route('user.extrait.mariage.index') }}";
                             });
                         } else {
                             // Si toujours PENDING, on continue le polling

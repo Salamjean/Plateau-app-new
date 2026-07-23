@@ -65,6 +65,11 @@ return [
         'base_url' => 'https://api.wave.com/v1/checkout/sessions',
     ],
 
+    'stripe' => [
+        'public_key' => env('STRIPE_PUBLIC_KEY'),
+        'secret_key' => env('STRIPE_SECRET_KEY'),
+    ],
+
     'mtn' => [
         'api_user_id' => env('MTN_API_USER_ID'),
         'api_key' => env('MTN_API_KEY'),

@@ -1105,7 +1105,8 @@
             const qtyIntegral = parseInt(dece.qty_integral) || 0;
 
             if (qtySimple > 0 && qtyIntegral > 0) {
-                documentType = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+                documentType =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
             } else if (qtySimple > 0) {
                 if (qtySimple === 1) {
                     documentType = "copie simple";
@@ -1256,14 +1257,14 @@
                         <div class="dp-section-title">Informations de la demande</div>
                     </div>
                     ${(dece.etat === 'terminé' || dece.etat === 'traité') ? `
-                    <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
-                        <i class="fas fa-print"></i> Imprimer
-                    </button>
-                    ` : `
-                    <button type="button" onclick="printDecesInfo('${dData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                        <i class="fas fa-print"></i> Imprimer
-                    </button>
-                    `}
+                        <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                            <i class="fas fa-print"></i> Imprimer
+                        </button>
+                        ` : `
+                        <button type="button" onclick="printDecesInfo('${dData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <i class="fas fa-print"></i> Imprimer
+                        </button>
+                        `}
                 </div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${dece.name||'--'}</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${dece.numberR||'--'}</span></div>
@@ -1289,18 +1290,18 @@
           </div>
           <div class="dp-panel" id="dpPD-livraison">
             ${dece.choix_option === 'livraison' ? `
-                        <div class="dp-section">
-                          <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${dece.nom_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${dece.contact_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${dece.email_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${dece.adresse_livraison||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${dece.ville||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${dece.commune_livraison||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${dece.quartier||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${dece.code_postal||'--'}</span></div>
-                        </div>
-                        ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                            <div class="dp-section">
+                              <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${dece.nom_destinataire||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${dece.contact_destinataire||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${dece.email_destinataire||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${dece.adresse_livraison||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${dece.ville||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${dece.commune_livraison||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${dece.quartier||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${dece.code_postal||'--'}</span></div>
+                            </div>
+                            ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
           </div>
           <div class="dp-panel" id="dpPD-docs">
             <div class="dp-section">
@@ -1344,7 +1345,9 @@
         function printDecesInfo(encodedData) {
             const dece = JSON.parse(decodeURIComponent(encodedData));
             const printWindow = window.open('', '_blank');
-            const documentType = dece.type === 'copieIntegrale' ? 'Copie Intégrale' : (dece.type === 'extraitSimple' ? 'Extrait Simple' : (dece.type === 'simpleIntegrale' ? 'Extrait + Copie' : (dece.type === 'groupee' ? 'Demande Groupée' : (dece.type || '--'))));
+            const documentType = dece.type === 'copieIntegrale' ? 'Copie Intégrale' : (dece.type === 'extraitSimple' ?
+                'Extrait Simple' : (dece.type === 'simpleIntegrale' ? 'Extrait + Copie' : (dece.type === 'groupee' ?
+                    'Demande Groupée' : (dece.type || '--'))));
 
             printWindow.document.title = "Impression Informations Demande";
 
@@ -1377,7 +1380,8 @@
             const qtyIntegral = parseInt(dece.qty_integral) || 0;
 
             if (qtySimple > 0 && qtyIntegral > 0) {
-                docTypes = `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+                docTypes =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
             } else if (qtySimple > 0) {
                 if (qtySimple === 1) {
                     docTypes = "copie simple";
@@ -1402,13 +1406,30 @@
 
             const totalQty = dece.quantite || (qtySimple + qtyIntegral) || 1;
 
-            const fields = [
-                { label: 'Type', value: docTypes },
-                { label: 'Quantité', value: `${totalQty} copie(s)` },
-                { label: 'Nom', value: dece.name || '--' },
-                { label: 'N° Registre', value: dece.numberR || '--' },
-                { label: 'Date Reg.', value: dece.dateR || '--' },
-                { label: 'Commune', value: dece.commune || '--' }
+            const fields = [{
+                    label: 'Type',
+                    value: docTypes
+                },
+                {
+                    label: 'Quantité',
+                    value: `${totalQty} copie(s)`
+                },
+                {
+                    label: 'Nom',
+                    value: dece.name || '--'
+                },
+                {
+                    label: 'N° Registre',
+                    value: dece.numberR || '--'
+                },
+                {
+                    label: 'Date Reg.',
+                    value: dece.dateR || '--'
+                },
+                {
+                    label: 'Commune',
+                    value: dece.commune || '--'
+                }
             ];
 
             fields.forEach(field => {
@@ -1471,8 +1492,8 @@
             if (isPdf) {
                 const printWindow = window.open(url, '_blank');
                 if (printWindow) {
-                    printWindow.onload = function () {
-                        setTimeout(function () {
+                    printWindow.onload = function() {
+                        setTimeout(function() {
                             printWindow.print();
                         }, 500);
                     };
@@ -1561,6 +1582,17 @@
         function showDeliveryInfo(dece) {
             // Récupérer les informations de livraison
             const deliveryInfo = dece || {};
+            const fallbackUser = dece.user || {};
+            const destinataire = [deliveryInfo.nom_destinataire, deliveryInfo.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || [fallbackUser.name, fallbackUser.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || 'Non spécifié';
+            const telephone = deliveryInfo.contact_destinataire || deliveryInfo.telephone || fallbackUser.contact ||
+                'Non spécifié';
+            const email = deliveryInfo.email_destinataire || fallbackUser.email || 'Non spécifié';
 
             // Formater le contenu HTML pour SweetAlert
             const htmlContent = `
@@ -1568,11 +1600,15 @@
             <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
 
             <div style="margin-bottom: 15px;">
-              <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || dece.user.name + ' ' + dece.user.prenom}
+                            <strong>Nom du destinataire:</strong> ${destinataire}
             </div>
 
             <div style="margin-bottom: 15px;">
-              <strong>Téléphone:</strong> ${deliveryInfo.telephone || dece.user.contact}
+                            <strong>Téléphone:</strong> ${telephone}
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <strong>Email:</strong> ${email}
             </div>
 
             <div style="margin-bottom: 15px;">

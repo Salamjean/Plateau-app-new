@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Stripe\StripeClient;
 
 class MariageController extends Controller
 {
@@ -246,6 +247,24 @@ class MariageController extends Controller
 
                 Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
                 return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'stripe') {
+                try {
+                    $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $mariage->reference, $user, 'mariage', 'Demande extrait de mariage', $request->getSchemeAndHttpHost());
+
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => $checkoutUrl,
+                        ]);
+                    }
+
+                    return redirect($checkoutUrl);
+                } catch (\Throwable $e) {
+                    Log::error('Erreur Stripe (mariage/store) : ' . $e->getMessage(), [
+                        'reference' => $mariage->reference,
+                    ]);
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                }
             } elseif (strtolower($paymentMethod) === 'mtn') {
                 $mtnPhoneNumber = $request->input('mtn_number');
                 // Format number to international format (starting with 225)
@@ -671,6 +690,24 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         return redirect($checkoutSession['wave_launch_url']);
                     }
                     return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'stripe') {
+                    try {
+                        $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $transactionReference, $user, 'mariage', 'Paiement complementaire extrait de mariage', $request->getSchemeAndHttpHost());
+
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => $checkoutUrl,
+                            ]);
+                        }
+
+                        return redirect($checkoutUrl);
+                    } catch (\Throwable $e) {
+                        Log::error('Erreur Stripe (mariage/modifierDemande) : ' . $e->getMessage(), [
+                            'reference' => $transactionReference,
+                        ]);
+                        return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                    }
                 } elseif (strtolower($paymentMethod) === 'mtn') {
                     $mtnPhoneNumber = $request->input('mtn_number');
                     $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
@@ -815,5 +852,48 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Rediriger avec un message d'erreur
             return redirect()->route('user.extrait.mariage.index')->with('error1', 'Une erreur est survenue lors de la suppression de la demande.');
         }
+    }
+
+    private function createStripeCheckoutUrl(float $amount, string $reference, $user, string $type, string $description, ?string $baseUrl = null): string
+    {
+        $secretKey = config('services.stripe.secret_key');
+        if (!$secretKey) {
+            throw new \RuntimeException('Configuration Stripe manquante (STRIPE_SECRET_KEY).');
+        }
+
+        $baseUrl = rtrim($baseUrl ?: config('app.url'), '/');
+        $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+        $cancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+
+        $stripe = new StripeClient($secretKey);
+        $session = $stripe->checkout->sessions->create([
+            'mode' => 'payment',
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'xof',
+                    'unit_amount' => (int) round($amount),
+                    'product_data' => [
+                        'name' => $description,
+                        'description' => 'Reference: ' . $reference,
+                    ],
+                ],
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => [
+                'reference' => $reference,
+                'demande_type' => $type,
+            ],
+            'client_reference_id' => $reference,
+            'customer_email' => $user?->email,
+        ]);
+
+        if (!isset($session->url) || !$session->url) {
+            throw new \RuntimeException('URL Stripe Checkout indisponible.');
+        }
+
+        return $session->url;
     }
 }

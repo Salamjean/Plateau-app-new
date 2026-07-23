@@ -240,6 +240,28 @@
                 </table>
 
                 <!-- Block 3: Destinataire (Main big block) -->
+                @php
+                    $destinataireNom = trim(
+                        (string) ($naissance->nom_destinataire ?? '') .
+                            ' ' .
+                            (string) ($naissance->prenom_destinataire ?? ''),
+                    );
+                    $destinataireNom =
+                        $destinataireNom !== ''
+                            ? $destinataireNom
+                            : trim(
+                                (string) ($naissance->user->name ?? '') .
+                                    ' ' .
+                                    (string) ($naissance->user->prenom ?? ''),
+                            );
+                    $destinataireNom = $destinataireNom !== '' ? $destinataireNom : 'Non spécifié';
+
+                    $telephoneDestinataire = !empty($naissance->contact_destinataire)
+                        ? $naissance->contact_destinataire
+                        : $naissance->user->contact ?? 'Non spécifié';
+
+                    $adresseLivraison = trim((string) ($naissance->adresse_livraison ?? ''));
+                @endphp
                 <table class="grid-table" style="margin-bottom: 3mm;">
                     <tr>
                         <td class="grid-card" style="padding: 10px 12px;">
@@ -247,12 +269,12 @@
                                 style="font-size: 9pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Destinataire
                                 & Adresse de Livraison</span>
                             <div class="card-value-large" style="font-size: 10pt; margin-bottom: 6px;">
-                                Dest. : {{ $naissance->nom_destinataire ?? $naissance->user->name }}
-                                {{ $naissance->prenom_destinataire ?? $naissance->user->prenom }}
+                                Dest. : {{ $destinataireNom }}
                             </div>
                             <div class="sub-info" style="font-size: 10pt; line-height: 1.5;">
-                                Téléphone : {{ $naissance->contact_destinataire ?? $naissance->user->contact }} <br>
-                                Adresse : {{ $naissance->adresse_livraison ?? 'Adresse non spécifiée' }}
+                                Téléphone : {{ $telephoneDestinataire }} <br>
+                                Adresse : {{ $adresseLivraison !== '' ? $adresseLivraison : 'Adresse non spécifiée' }}
+                                <br>
                             </div>
                         </td>
                     </tr>
