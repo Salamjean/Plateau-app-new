@@ -87,8 +87,26 @@ class AdminDashboard extends Controller
         ];
 
         $counts = array_fill_keys(array_values($modelMap), 0);
-        $soldeDisponible = 0;
-        $soldeMoisEnCours = 0; // Nouvelle variable pour le solde du mois en cours
+
+        // Calcul du solde livraison depuis la table Paiement (même logique que la page Transactions)
+        $allPaymentsForSolde = \App\Models\Paiement::where('status', 'ACCEPTED')
+            ->with(['naissance', 'mariage', 'deces'])
+            ->get();
+
+        $soldeDisponible = 0.0;
+        $soldeMoisEnCours = 0.0;
+        $startOfSelectedMonth = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $endOfSelectedMonth   = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth();
+
+        foreach ($allPaymentsForSolde as $paiement) {
+            $parts = $this->getPaymentParts($paiement);
+            $soldeDisponible += $parts['livraison'];
+
+            $paidAt = \Carbon\Carbon::parse($paiement->paid_at ?? $paiement->created_at);
+            if ($paidAt->between($startOfSelectedMonth, $endOfSelectedMonth)) {
+                $soldeMoisEnCours += $parts['livraison'];
+            }
+        }
 
         $activites = collect();
         $chartData = ['labels' => [], 'livre' => [], 'en_cours' => []];
@@ -140,31 +158,7 @@ class AdminDashboard extends Controller
                     ->whereBetween('updated_at', [$dateStart, $dateEnd])->count();
             }
 
-            // Calcul du solde disponible TOTAL (toutes les livraisons payées dès le paiement, simples et groupées)
-            $soldeDisponible += $class::paye()
-                ->where('choix_option', 'livraison')
-                ->sum('montant_livraison');
-
-            if (class_exists($groupeClass)) {
-                $soldeDisponible += $groupeClass::paye()
-                    ->where('choix_option', 'livraison')
-                    ->sum('montant_livraison');
-            }
-
-            // Calcul du solde du MOIS SÉLECTIONNÉ uniquement (Porte-feuille)
-            $soldeMoisEnCours += $class::paye()
-                ->where('choix_option', 'livraison')
-                ->whereYear('created_at', $year)
-                ->whereMonth('created_at', $month)
-                ->sum('montant_livraison');
-
-            if (class_exists($groupeClass)) {
-                $soldeMoisEnCours += $groupeClass::paye()
-                    ->where('choix_option', 'livraison')
-                    ->whereYear('created_at', $year)
-                    ->whereMonth('created_at', $month)
-                    ->sum('montant_livraison');
-            }
+            // soldeDisponible et soldeMoisEnCours sont désormais calculés depuis la table Paiement (voir ci-dessus)
 
             // Activités récentes (uniquement les demandes payées)
             $activites = $activites->merge(
