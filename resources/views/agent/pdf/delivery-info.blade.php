@@ -218,7 +218,9 @@
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
                                     <td style="width: 50%; border-right: 1px solid #dddddd; padding-right: 5px;">
-                                        <span style="font-size: 9.5pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Date Demande</span>
+                                        <span
+                                            style="font-size: 9.5pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Date
+                                            Demande</span>
                                         <div class="card-value">
                                             {{ $naissance->created_at->format('d/m/Y') }}
                                             <span style="font-size: 8.5pt; color: #00000; margin-left: 3px;">
@@ -227,7 +229,8 @@
                                         </div>
                                     </td>
                                     <td style="width: 50%; padding-left: 8px;">
-                                        <span style="font-size: 9.5pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Expéditeur</span>
+                                        <span
+                                            style="font-size: 9.5pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Expéditeur</span>
                                         <div class="card-value">Mairie de {{ $naissance->commune ?? 'Plateau' }}</div>
                                     </td>
                                 </tr>
@@ -238,28 +241,42 @@
 
                 <!-- Block 3: Destinataire (Main big block) -->
                 @php
-                    $destinataireNom = trim((string) ($naissance->nom_destinataire ?? '') . ' ' . (string) ($naissance->prenom_destinataire ?? ''));
-                    $destinataireNom = $destinataireNom !== ''
-                        ? $destinataireNom
-                        : trim((string) ($naissance->user->name ?? '') . ' ' . (string) ($naissance->user->prenom ?? ''));
+                    $destinataireNom = trim(
+                        (string) ($naissance->nom_destinataire ?? '') .
+                            ' ' .
+                            (string) ($naissance->prenom_destinataire ?? ''),
+                    );
+                    $destinataireNom =
+                        $destinataireNom !== ''
+                            ? $destinataireNom
+                            : trim(
+                                (string) ($naissance->user->name ?? '') .
+                                    ' ' .
+                                    (string) ($naissance->user->prenom ?? ''),
+                            );
                     $destinataireNom = $destinataireNom !== '' ? $destinataireNom : 'Non spécifié';
 
                     $telephoneDestinataire = !empty($naissance->contact_destinataire)
                         ? $naissance->contact_destinataire
-                        : ($naissance->user->contact ?? 'Non spécifié');
+                        : (!empty($naissance->contact)
+                            ? $naissance->contact
+                            : $naissance->user->contact ?? 'Non spécifié');
 
-                    $adresseLivraison = trim((string) ($naissance->adresse_livraison ?? ''));
+                    $adresseLivraison = trim((string) ($naissance->adresse_livraison ?? ($naissance->adresse ?? '')));
                 @endphp
                 <table class="grid-table" style="margin-bottom: 3mm;">
                     <tr>
                         <td class="grid-card" style="padding: 10px 12px;">
-                            <span style="font-size: 9pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Destinataire & Adresse de Livraison</span>
+                            <span
+                                style="font-size: 9pt; letter-spacing: 0.5px; display: block; color: #000000; text-transform: uppercase;">Destinataire
+                                & Adresse de Livraison</span>
                             <div class="card-value-large" style="font-size: 10pt; margin-bottom: 6px;">
                                 Dest. : {{ $destinataireNom }}
                             </div>
                             <div class="sub-info" style="font-size: 10pt; line-height: 1.5;">
                                 Téléphone : {{ $telephoneDestinataire }} <br>
-                                Adresse : {{ $adresseLivraison !== '' ? $adresseLivraison : 'Adresse non spécifiée' }} <br>
+                                Adresse : {{ $adresseLivraison !== '' ? $adresseLivraison : 'Adresse non spécifiée' }}
+                                <br>
                             </div>
                         </td>
                     </tr>

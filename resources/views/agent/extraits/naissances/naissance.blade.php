@@ -1053,6 +1053,22 @@
                 } catch (e) {}
             }
             const user = (naissance && naissance.user) || {};
+            const choixOption = String(naissance.choix_option || '').toLowerCase().trim();
+            const isLivraison = choixOption.includes('livraison');
+            const destNom = [naissance.nom_destinataire, naissance.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || naissance.destinataire || [user.name, user.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || '--';
+            const destContact = naissance.contact_destinataire || naissance.contact || user.contact || '--';
+            const destEmail = naissance.email_destinataire || naissance.email || user.email || '--';
+            const destAdresse = naissance.adresse_livraison || naissance.adresse || '--';
+            const destVille = naissance.ville || '--';
+            const destCommune = naissance.commune_livraison || naissance.commune || '--';
+            const destQuartier = naissance.quartier || '--';
+            const destCodePostal = naissance.code_postal || '--';
             let documentType = '';
             const qtySimple = parseInt(naissance.qty_simple) || 0;
             const qtyIntegral = parseInt(naissance.qty_integral) || 0;
@@ -1172,7 +1188,7 @@
               </div>
               <div class="dp-tabs" id="dpTabsN">
                 <div class="dp-tab dp-active" data-panel="dpPN-infos"><i class="fas fa-info-circle"></i> Informations</div>
-                <div class="dp-tab" data-panel="dpPN-livraison"><i class="fas fa-${naissance.choix_option === 'livraison' ? 'truck' : 'store'}"></i> ${naissance.choix_option === 'livraison' ? 'Livraison' : 'Retrait'}</div>
+                                <div class="dp-tab" data-panel="dpPN-livraison"><i class="fas fa-${isLivraison ? 'truck' : 'store'}"></i> ${isLivraison ? 'Livraison' : 'Retrait'}</div>
                 <div class="dp-tab" data-panel="dpPN-docs"><i class="fas fa-paperclip"></i> Documents</div>
               </div>
               <div class="dp-panel dp-active" id="dpPN-infos">
@@ -1185,14 +1201,14 @@
                             <div class="dp-section-title">Informations de la demande</div>
                         </div>
                         ${(naissance.etat === 'terminé' || naissance.etat === 'traité') ? `
-                            <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
-                                <i class="fas fa-print"></i> Imprimer
-                            </button>
-                            ` : `
-                            <button type="button" onclick="printChildInfo('${nData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                                <i class="fas fa-print"></i> Imprimer
-                            </button>
-                            `}
+                                <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                                    <i class="fas fa-print"></i> Imprimer
+                                </button>
+                                ` : `
+                                <button type="button" onclick="printChildInfo('${nData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                    <i class="fas fa-print"></i> Imprimer
+                                </button>
+                                `}
                     </div>
                     <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${naissance.name || '--'}</span></div>
                     <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom</span><span class="dp-value">${naissance.prenom || '--'}</span></div>
@@ -1221,19 +1237,19 @@
                 </div>
               </div>
               <div class="dp-panel" id="dpPN-livraison">
-                ${naissance.choix_option === 'livraison' ? `
-                                <div class="dp-section">
-                                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${naissance.nom_destinataire || '--'}</span></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${naissance.contact_destinataire || '--'}</span></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${naissance.email_destinataire || '--'}</span></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${naissance.adresse_livraison || '--'}</span></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${naissance.ville || '--'}</span></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${naissance.commune_livraison || '--'}</span></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${naissance.quartier || '--'}</span></div>
-                                  <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${naissance.code_postal || '--'}</span></div>
-                                </div>
-                                ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                                ${isLivraison ? `
+                                    <div class="dp-section">
+                                      <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${destNom}</span></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${destContact}</span></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${destEmail}</span></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${destAdresse}</span></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${destVille}</span></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${destCommune}</span></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${destQuartier}</span></div>
+                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${destCodePostal}</span></div>
+                                    </div>
+                                    ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
               </div>
               <div class="dp-panel" id="dpPN-docs">
                 <div class="dp-section">

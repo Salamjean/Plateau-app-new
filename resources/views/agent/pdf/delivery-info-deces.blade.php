@@ -258,9 +258,11 @@
 
                     $telephoneDestinataire = !empty($naissance->contact_destinataire)
                         ? $naissance->contact_destinataire
-                        : $naissance->user->contact ?? 'Non spécifié';
+                        : (!empty($naissance->contact)
+                            ? $naissance->contact
+                            : $naissance->user->contact ?? 'Non spécifié');
 
-                    $adresseLivraison = trim((string) ($naissance->adresse_livraison ?? ''));
+                    $adresseLivraison = trim((string) ($naissance->adresse_livraison ?? ($naissance->adresse ?? '')));
                 @endphp
                 <table class="grid-table" style="margin-bottom: 3mm;">
                     <tr>
