@@ -243,7 +243,16 @@
                                   <td>{{ strtoupper($naissance->user->name).' '.strtoupper($naissance->user->prenom) }}</td>
                                   <td>{{ $naissance->reference }}</td>
                                   <td>{{ $naissance->etat}}</td>
-                                  <td>{{ $naissance->choix_option == 'livraison' ? $naissance->statut_livraison : 'Retrait sur place'}}</td>
+                                  <td>
+                                      @php
+                                          $isLivre = ($naissance->statut_livraison == 'livré' || $naissance->statut_livraison == 'livre' || !empty($naissance->timbre_recupere));
+                                          $statutTxt = $isLivre ? 'livré' : ($naissance->statut_livraison ?: 'en attente');
+                                          $typeOption = (strtolower($naissance->choix_option) == 'livraison') ? 'Livraison' : 'Retrait sur place';
+                                      @endphp
+                                      <span class="badge {{ $isLivre ? 'bg-success' : ($statutTxt == 'en cours' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                                          {{ $statutTxt }} ({{ $typeOption }})
+                                      </span>
+                                  </td>
                                   <td>{{ $naissance->agent ? $naissance->agent->name.' '.$naissance->agent->prenom : 'non attribué' }}</td>
 
                                   <td>{{ $naissance->created_at->format('d/m/Y H:i')}}</td>

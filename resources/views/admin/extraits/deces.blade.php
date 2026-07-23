@@ -243,7 +243,16 @@
                                   <td>{{ strtoupper($items->user->name).' '.strtoupper($items->user->prenom) }}</td>
                                   <td>{{ $items->reference }}</td>
                                   <td>{{ $items->etat}}</td>
-                                  <td>{{ $items->choix_option == 'livraison' ? $items->statut_livraison : 'Retrait sur place'}}</td>
+                                  <td>
+                                      @php
+                                          $isLivre = ($items->statut_livraison == 'livré' || $items->statut_livraison == 'livre' || !empty($items->timbre_recupere));
+                                          $statutTxt = $isLivre ? 'livré' : ($items->statut_livraison ?: 'en attente');
+                                          $typeOption = (strtolower($items->choix_option) == 'livraison') ? 'Livraison' : 'Retrait sur place';
+                                      @endphp
+                                      <span class="badge {{ $isLivre ? 'bg-success' : ($statutTxt == 'en cours' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                                          {{ $statutTxt }} ({{ $typeOption }})
+                                      </span>
+                                  </td>
                                   <td>{{ $items->agent ? $items->agent->name.' '.$items->agent->prenom : 'non attribué' }}</td>
 
                                   <td>{{ $items->created_at->format('d/m/Y H:i')}}</td>
