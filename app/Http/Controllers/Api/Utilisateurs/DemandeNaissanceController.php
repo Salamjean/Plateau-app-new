@@ -179,7 +179,7 @@ class DemandeNaissanceController extends Controller
             // Calcul des quantités comme dans NaissanceController web
             $qtySimpleRaw = $request->input('qty_simple', 0);
             $qtyIntegralRaw = $request->input('qty_integral', 0);
-            
+
             // Validation de la plage des quantités
             $qtySimple = max(0, min(100, (int) $qtySimpleRaw));
             $qtyIntegral = max(0, min(100, (int) $qtyIntegralRaw));
@@ -443,12 +443,12 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Si c'est TrésorPay, utiliser TresorPayService
             if (strtolower($paymentMethod) === 'tresorpay') {
                 $tresorPhone = request()->input('mtn_number');
-                $tresorPhone = preg_replace('/[^0-9]/', '', (string)$tresorPhone);
+                $tresorPhone = preg_replace('/[^0-9]/', '', (string) $tresorPhone);
 
                 $tresorService = app(\App\Services\TresorPayService::class);
                 $nom = auth()->check() ? auth()->user()->name : 'Client';
                 $prenoms = auth()->check() ? auth()->user()->prenoms : 'Plateau';
-                
+
                 $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $nom, $prenoms);
 
                 if ($response && ($response['success'] ?? false)) {
@@ -841,7 +841,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             if ($request->has('qty_simple')) {
                 $val = $request->input('qty_simple');
                 if (is_numeric($val)) {
-                    $valInt = (int)$val;
+                    $valInt = (int) $val;
                     if ($valInt >= 0 && $valInt <= 100) {
                         $qtySimpleInput = $valInt;
                     }
@@ -852,7 +852,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             if ($request->has('qty_integral')) {
                 $val = $request->input('qty_integral');
                 if (is_numeric($val)) {
-                    $valInt = (int)$val;
+                    $valInt = (int) $val;
                     if ($valInt >= 0 && $valInt <= 100) {
                         $qtyIntegralInput = $valInt;
                     }
@@ -1361,7 +1361,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Si la quantité a été modifiée ou que le type de document a changé dans les champs rejetés
             if (in_array('quantite', $champsAModifier) || in_array('type', $champsAModifier)) {
                 $rawQuantite = $request->input('quantite', $naissance->quantite);
-                
+
                 // Validation stricte de la quantité
                 if (!is_numeric($rawQuantite) || $rawQuantite < 0 || $rawQuantite > 100) {
                     return response()->json([
@@ -1369,7 +1369,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'message' => 'La quantité doit être un nombre entier positif raisonnable.'
                     ], 422);
                 }
-                
+
                 $naissance->quantite = (int) $rawQuantite;
                 if ($naissance->type === 'integrale') {
                     $naissance->qty_integral = $naissance->quantite;
