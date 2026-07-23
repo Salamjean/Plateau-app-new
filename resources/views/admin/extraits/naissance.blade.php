@@ -231,6 +231,7 @@
                           <tr style="font-size: 12px" class="text-center">
                               <th>Demandeur</th>
                               <th>Reference</th>
+                              <th>Nombre de copies</th>
                               <th>Statut de traitement</th>
                               <th>Statut de livraison</th>
                               <th>Agent de la mairie</th>
@@ -240,8 +241,22 @@
                       <tbody>
                           @forelse ($naissances as $naissance)
                               <tr style="font-size: 12px"  class="text-center">
-                                  <td>{{ strtoupper($naissance->user->name).' '.strtoupper($naissance->user->prenom) }}</td>
+                                  <td>
+                                      <div class="fw-bold">{{ strtoupper($naissance->user->name ?? '').' '.strtoupper($naissance->user->prenom ?? '') }}</div>
+                                      @php
+                                          $contactNav = $naissance->contact_destinataire ?: ($naissance->user->contact ?? '');
+                                      @endphp
+                                      @if ($contactNav)
+                                          <div class="text-muted" style="font-size: 11px;"><i class="fas fa-phone-alt me-1"></i>{{ $contactNav }}</div>
+                                      @endif
+                                  </td>
                                   <td>{{ $naissance->reference }}</td>
+                                  <td>
+                                      @php
+                                          $qty = (int) ($naissance->quantite ?? (($naissance->qty_simple ?? 0) + ($naissance->qty_integral ?? 0)));
+                                      @endphp
+                                      <span class="badge bg-light text-dark border fw-bold">{{ $qty > 0 ? $qty : 1 }}</span>
+                                  </td>
                                   <td>{{ $naissance->etat}}</td>
                                   <td>
                                       @if (!empty($naissance->statut_livraison))
@@ -264,7 +279,7 @@
                               </tr>
                           @empty
                               <tr>
-                                  <td colspan="9" class="text-center">Aucune demande effectuée</td>
+                                  <td colspan="7" class="text-center">Aucune demande effectuée</td>
                               </tr>
                           @endforelse
                       </tbody>

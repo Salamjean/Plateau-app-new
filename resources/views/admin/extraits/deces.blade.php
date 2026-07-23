@@ -231,6 +231,7 @@
                           <tr style="font-size: 12px" class="text-center">
                               <th>Demandeur</th>
                               <th>Reference</th>
+                              <th>Nombre de copies</th>
                               <th>Statut de traitement</th>
                               <th>Statut de livraison</th>
                               <th>Agent de la mairie</th>
@@ -240,8 +241,22 @@
                       <tbody>
                           @forelse ($deces as $items)
                               <tr style="font-size: 12px"  class="text-center">
-                                  <td>{{ strtoupper($items->user->name).' '.strtoupper($items->user->prenom) }}</td>
+                                  <td>
+                                      <div class="fw-bold">{{ strtoupper($items->user->name ?? '').' '.strtoupper($items->user->prenom ?? '') }}</div>
+                                      @php
+                                          $contactNav = $items->contact_destinataire ?: ($items->user->contact ?? '');
+                                      @endphp
+                                      @if ($contactNav)
+                                          <div class="text-muted" style="font-size: 11px;"><i class="fas fa-phone-alt me-1"></i>{{ $contactNav }}</div>
+                                      @endif
+                                  </td>
                                   <td>{{ $items->reference }}</td>
+                                  <td>
+                                      @php
+                                          $qty = (int) ($items->quantite ?? (($items->qty_simple ?? 0) + ($items->qty_integral ?? 0)));
+                                      @endphp
+                                      <span class="badge bg-light text-dark border fw-bold">{{ $qty > 0 ? $qty : 1 }}</span>
+                                  </td>
                                   <td>{{ $items->etat}}</td>
                                   <td>
                                       @if (!empty($items->statut_livraison))
@@ -264,7 +279,7 @@
                               </tr>
                           @empty
                               <tr>
-                                  <td colspan="9" class="text-center">Aucune demande effectuée</td>
+                                  <td colspan="7" class="text-center">Aucune demande effectuée</td>
                               </tr>
                           @endforelse
                       </tbody>
