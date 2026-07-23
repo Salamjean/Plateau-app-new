@@ -1053,22 +1053,30 @@
                 } catch (e) {}
             }
             const user = (naissance && naissance.user) || {};
+            const pickValue = (...values) => {
+                for (const v of values) {
+                    if (v === null || v === undefined) continue;
+                    const s = String(v).trim();
+                    if (s !== '') return s;
+                }
+                return '--';
+            };
             const choixOption = String(naissance.choix_option || '').toLowerCase().trim();
             const isLivraison = choixOption.includes('livraison');
             const destNom = [naissance.nom_destinataire, naissance.prenom_destinataire]
                 .filter(v => v && String(v).trim() !== '')
                 .join(' ')
-                .trim() || naissance.destinataire || [user.name, user.prenom]
+                .trim() || pickValue(naissance.destinataire, [user.name, user.prenom]
                 .filter(v => v && String(v).trim() !== '')
                 .join(' ')
-                .trim() || '--';
-            const destContact = naissance.contact_destinataire || naissance.contact || user.contact || '--';
-            const destEmail = naissance.email_destinataire || naissance.email || user.email || '--';
-            const destAdresse = naissance.adresse_livraison || naissance.adresse || '--';
-            const destVille = naissance.ville || '--';
-            const destCommune = naissance.commune_livraison || naissance.commune || '--';
-            const destQuartier = naissance.quartier || '--';
-            const destCodePostal = naissance.code_postal || '--';
+                .trim());
+            const destContact = pickValue(naissance.contact_destinataire, naissance.contact, user.contact);
+            const destEmail = pickValue(naissance.email_destinataire, naissance.email, user.email);
+            const destAdresse = pickValue(naissance.adresse_livraison, naissance.adresse);
+            const destVille = pickValue(naissance.ville);
+            const destCommune = pickValue(naissance.commune_livraison, naissance.commune);
+            const destQuartier = pickValue(naissance.quartier);
+            const destCodePostal = pickValue(naissance.code_postal);
             let documentType = '';
             const qtySimple = parseInt(naissance.qty_simple) || 0;
             const qtyIntegral = parseInt(naissance.qty_integral) || 0;
@@ -1540,6 +1548,14 @@
             // Récupérer les informations de livraison
             const deliveryInfo = naissance || {};
             const fallbackUser = naissance.user || {};
+            const pickValue = (...values) => {
+                for (const v of values) {
+                    if (v === null || v === undefined) continue;
+                    const s = String(v).trim();
+                    if (s !== '') return s;
+                }
+                return 'Non spécifié';
+            };
             const destinataire = [deliveryInfo.nom_destinataire, deliveryInfo.prenom_destinataire]
                 .filter(v => v && String(v).trim() !== '')
                 .join(' ')
@@ -1547,9 +1563,9 @@
                 .filter(v => v && String(v).trim() !== '')
                 .join(' ')
                 .trim() || 'Non spécifié';
-            const telephone = deliveryInfo.contact_destinataire || deliveryInfo.telephone || fallbackUser.contact ||
-                'Non spécifié';
-            const email = deliveryInfo.email_destinataire || fallbackUser.email || 'Non spécifié';
+            const telephone = pickValue(deliveryInfo.contact_destinataire, deliveryInfo.telephone, fallbackUser.contact);
+            const email = pickValue(deliveryInfo.email_destinataire, fallbackUser.email);
+            const adresse = pickValue(deliveryInfo.adresse_livraison, deliveryInfo.adresse);
 
             // Formater le contenu HTML pour SweetAlert
             const htmlContent = `
@@ -1585,7 +1601,7 @@
                         </div>
 
                         <div style="margin-bottom: 15px;">
-                            <strong>Adresse de livraison:</strong> ${deliveryInfo.adresse_livraison || 'Non spécifiée'}
+                            <strong>Adresse de livraison:</strong> ${adresse}
                         </div>
                     </div>
                 `;
