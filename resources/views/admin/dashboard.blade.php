@@ -67,7 +67,7 @@
 
     <!-- Section des statistiques financières -->
 <div class="row mt-4">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
             <div class="card-body text-center">
                 <h5 class="card-title">Solde Actuel</h5>
@@ -76,12 +76,21 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
+    <div class="col-md-4">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #28a745;">
             <div class="card-body text-center">
-                <h5 class="card-title">Timbres sortis</h5>
-                <h3 class="text-danger">{{ number_format($timbresSortis, 0, ',', ' ') }}</h3>
-                <p class="text-muted">Nombre total de timbres délivrés</p>
+                <h5 class="card-title">Timbres gratuits sortis</h5>
+                <h3 class="text-success">{{ number_format($timbresGratuitsSortis, 0, ',', ' ') }}</h3>
+                <p class="text-muted">Nombre de timbres gratuits délivrés</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #fc544b;">
+            <div class="card-body text-center">
+                <h5 class="card-title">Timbres payants sortis</h5>
+                <h3 class="text-danger">{{ number_format($timbresPayantsSortis, 0, ',', ' ') }}</h3>
+                <p class="text-muted">Nombre de timbres payants délivrés</p>
             </div>
         </div>
     </div>
