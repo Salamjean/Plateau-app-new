@@ -244,14 +244,19 @@
                                   <td>{{ $items->reference }}</td>
                                   <td>{{ $items->etat}}</td>
                                   <td>
-                                      @php
-                                          $isLivre = ($items->statut_livraison == 'livré' || $items->statut_livraison == 'livre' || !empty($items->timbre_recupere));
-                                          $statutTxt = $isLivre ? 'livré' : ($items->statut_livraison ?: 'en attente');
-                                          $typeOption = (strtolower($items->choix_option) == 'livraison') ? 'Livraison' : 'Retrait sur place';
-                                      @endphp
-                                      <span class="badge {{ $isLivre ? 'bg-success' : ($statutTxt == 'en cours' ? 'bg-warning text-dark' : 'bg-secondary') }}">
-                                          {{ $statutTxt }} ({{ $typeOption }})
-                                      </span>
+                                      @if (!empty($items->statut_livraison))
+                                          @php
+                                              $st = strtolower($items->statut_livraison);
+                                              $badgeClass = in_array($st, ['livré', 'livre', 'récupéré', 'recupere', 'retiré', 'retire', 'terminé', 'termine']) ? 'bg-success' : (in_array($st, ['en cours', 'disponible']) ? 'bg-warning text-dark' : 'bg-secondary');
+                                          @endphp
+                                          <span class="badge {{ $badgeClass }}">
+                                              {{ $items->statut_livraison }}
+                                          </span>
+                                      @else
+                                          <span class="badge bg-secondary">
+                                              {{ strtolower($items->choix_option) == 'livraison' ? 'en attente' : 'Retrait sur place' }}
+                                          </span>
+                                      @endif
                                   </td>
                                   <td>{{ $items->agent ? $items->agent->name.' '.$items->agent->prenom : 'non attribué' }}</td>
 
