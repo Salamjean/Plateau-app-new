@@ -37,13 +37,20 @@ class AdminDashboard extends Controller
 
         $timbresSortis = abs(\App\Models\Timbre::where('nombre_timbre', '<', 0)->sum('nombre_timbre'));
 
-        // Calcul des timbres gratuits et payants sortis
+        // Calcul des timbres gratuits et payants sortis (uniquement si marqués sortis / récupérés / livrés)
         $timbresGratuitsSortis = 0;
         $timbresPayantsSortis = 0;
 
         foreach ([\App\Models\Naissance::class, \App\Models\Mariage::class, \App\Models\Deces::class] as $modelClass) {
-            $demandesPayees = $modelClass::paye()->get(['quantite', 'qty_simple', 'qty_integral', 'free_timbres_count', 'is_free_request']);
-            foreach ($demandesPayees as $d) {
+            $demandesSorties = $modelClass::paye()
+                ->where(function ($q) {
+                    $q->where('timbre_recupere', 1)
+                      ->orWhere('statut_livraison', 'livré')
+                      ->orWhere('statut_livraison', 'livre');
+                })
+                ->get(['quantite', 'qty_simple', 'qty_integral', 'free_timbres_count', 'is_free_request']);
+
+            foreach ($demandesSorties as $d) {
                 $totalQty = (int) ($d->quantite ?? (($d->qty_simple ?? 0) + ($d->qty_integral ?? 0)));
                 if ($totalQty <= 0) {
                     $totalQty = 1;
