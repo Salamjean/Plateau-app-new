@@ -1067,9 +1067,9 @@
                 .filter(v => v && String(v).trim() !== '')
                 .join(' ')
                 .trim() || pickValue(naissance.destinataire, [user.name, user.prenom]
-                .filter(v => v && String(v).trim() !== '')
-                .join(' ')
-                .trim());
+                    .filter(v => v && String(v).trim() !== '')
+                    .join(' ')
+                    .trim());
             const destContact = pickValue(naissance.contact_destinataire, naissance.contact, user.contact);
             const destEmail = pickValue(naissance.email_destinataire, naissance.email, user.email);
             const destAdresse = pickValue(naissance.adresse_livraison, naissance.adresse);
@@ -1209,14 +1209,14 @@
                             <div class="dp-section-title">Informations de la demande</div>
                         </div>
                         ${(naissance.etat === 'terminé' || naissance.etat === 'traité') ? `
-                                <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
-                                    <i class="fas fa-print"></i> Imprimer
-                                </button>
-                                ` : `
-                                <button type="button" onclick="printChildInfo('${nData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
-                                    <i class="fas fa-print"></i> Imprimer
-                                </button>
-                                `}
+                                    <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                                        <i class="fas fa-print"></i> Imprimer
+                                    </button>
+                                    ` : `
+                                    <button type="button" onclick="printChildInfo('${nData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                        <i class="fas fa-print"></i> Imprimer
+                                    </button>
+                                    `}
                     </div>
                     <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${naissance.name || '--'}</span></div>
                     <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom</span><span class="dp-value">${naissance.prenom || '--'}</span></div>
@@ -1246,18 +1246,18 @@
               </div>
               <div class="dp-panel" id="dpPN-livraison">
                                 ${isLivraison ? `
-                                    <div class="dp-section">
-                                      <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${destNom}</span></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${destContact}</span></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${destEmail}</span></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${destAdresse}</span></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${destVille}</span></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${destCommune}</span></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${destQuartier}</span></div>
-                                                                        <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${destCodePostal}</span></div>
-                                    </div>
-                                    ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                                        <div class="dp-section">
+                                          <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${destNom}</span></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${destContact}</span></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${destEmail}</span></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${destAdresse}</span></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${destVille}</span></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${destCommune}</span></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${destQuartier}</span></div>
+                                                                            <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${destCodePostal}</span></div>
+                                        </div>
+                                        ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
               </div>
               <div class="dp-panel" id="dpPN-docs">
                 <div class="dp-section">
