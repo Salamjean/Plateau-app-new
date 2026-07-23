@@ -37,6 +37,10 @@ class AgentNaissanceController extends Controller
             ->with('user')
             ->paginate(10);
 
+        foreach ($naissances as $naissanceItem) {
+            $this->applyDeliveryFallback($naissanceItem);
+        }
+
         return view('agent.extraits.naissances.naissance', compact('naissances'));
     }
 
@@ -443,6 +447,8 @@ class AgentNaissanceController extends Controller
     {
         $naissance = Naissance::with(['user'])->findOrFail($id);
 
+        $this->applyDeliveryFallback($naissance);
+
         $data = [
             'naissance' => $naissance,
             'livraison' => $naissance->livraison,
@@ -454,5 +460,46 @@ class AgentNaissanceController extends Controller
             ->setOption('isRemoteEnabled', true);
 
         return $pdf->stream('etiquette-livraison-' . $naissance->livraison_code . '.pdf');
+    }
+
+    /**
+     * Complete missing delivery info from user profile or other requests if needed.
+     */
+    public function applyDeliveryFallback(Naissance $naissance)
+    {
+        if (empty($naissance->nom_destinataire) && empty($naissance->prenom_destinataire) && $naissance->user) {
+            $naissance->nom_destinataire = $naissance->user->name;
+            $naissance->prenom_destinataire = $naissance->user->prenom;
+        }
+
+        if (empty($naissance->contact_destinataire) && $naissance->user) {
+            $naissance->contact_destinataire = $naissance->user->contact;
+        }
+
+        if (empty($naissance->email_destinataire) && $naissance->user) {
+            $naissance->email_destinataire = $naissance->user->email;
+        }
+
+        if (empty($naissance->adresse_livraison)) {
+            $fallback = Naissance::where('user_id', $naissance->user_id)
+                ->where('choix_option', 'livraison')
+                ->where('id', '!=', $naissance->id)
+                ->whereNotNull('adresse_livraison')
+                ->where('adresse_livraison', '!=', '')
+                ->latest()
+                ->first();
+
+            if ($fallback) {
+                $naissance->nom_destinataire    = $naissance->nom_destinataire    ?: $fallback->nom_destinataire;
+                $naissance->prenom_destinataire = $naissance->prenom_destinataire ?: $fallback->prenom_destinataire;
+                $naissance->contact_destinataire = $naissance->contact_destinataire ?: $fallback->contact_destinataire;
+                $naissance->email_destinataire  = $naissance->email_destinataire  ?: $fallback->email_destinataire;
+                $naissance->adresse_livraison   = $naissance->adresse_livraison   ?: $fallback->adresse_livraison;
+                $naissance->ville               = $naissance->ville               ?: $fallback->ville;
+                $naissance->commune_livraison   = $naissance->commune_livraison   ?: $fallback->commune_livraison;
+                $naissance->quartier            = $naissance->quartier            ?: $fallback->quartier;
+                $naissance->code_postal         = $naissance->code_postal         ?: $fallback->code_postal;
+            }
+        }
     }
 }

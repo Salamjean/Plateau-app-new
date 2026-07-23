@@ -61,8 +61,53 @@ class AgentMariageController extends Controller
         // Récupérer tous les mariages correspondant aux critères de filtrage
         $mariages = $query->paginate(10);
 
+        foreach ($mariages as $item) {
+            $this->applyDeliveryFallback($item);
+        }
+
         // Retourner la vue avec les mariages filtrés et les alertes
         return view('agent.extraits.mariages.index', compact('mariages'));
+    }
+
+    /**
+     * Complete missing delivery info from user profile or other requests if needed.
+     */
+    public function applyDeliveryFallback(Mariage $mariageItem)
+    {
+        if (empty($mariageItem->nom_destinataire) && empty($mariageItem->prenom_destinataire) && $mariageItem->user) {
+            $mariageItem->nom_destinataire = $mariageItem->user->name;
+            $mariageItem->prenom_destinataire = $mariageItem->user->prenom;
+        }
+
+        if (empty($mariageItem->contact_destinataire) && $mariageItem->user) {
+            $mariageItem->contact_destinataire = $mariageItem->user->contact;
+        }
+
+        if (empty($mariageItem->email_destinataire) && $mariageItem->user) {
+            $mariageItem->email_destinataire = $mariageItem->user->email;
+        }
+
+        if (empty($mariageItem->adresse_livraison)) {
+            $fallback = Mariage::where('user_id', $mariageItem->user_id)
+                ->where('choix_option', 'livraison')
+                ->where('id', '!=', $mariageItem->id)
+                ->whereNotNull('adresse_livraison')
+                ->where('adresse_livraison', '!=', '')
+                ->latest()
+                ->first();
+
+            if ($fallback) {
+                $mariageItem->nom_destinataire    = $mariageItem->nom_destinataire    ?: $fallback->nom_destinataire;
+                $mariageItem->prenom_destinataire = $mariageItem->prenom_destinataire ?: $fallback->prenom_destinataire;
+                $mariageItem->contact_destinataire = $mariageItem->contact_destinataire ?: $fallback->contact_destinataire;
+                $mariageItem->email_destinataire  = $mariageItem->email_destinataire  ?: $fallback->email_destinataire;
+                $mariageItem->adresse_livraison   = $mariageItem->adresse_livraison   ?: $fallback->adresse_livraison;
+                $mariageItem->ville               = $mariageItem->ville               ?: $fallback->ville;
+                $mariageItem->commune_livraison   = $mariageItem->commune_livraison   ?: $fallback->commune_livraison;
+                $mariageItem->quartier            = $mariageItem->quartier            ?: $fallback->quartier;
+                $mariageItem->code_postal         = $mariageItem->code_postal         ?: $fallback->code_postal;
+            }
+        }
     }
 
     public function edit($id)
@@ -382,6 +427,8 @@ class AgentMariageController extends Controller
     public function downloadDeliveryInfo($id)
     {
         $naissance = Mariage::with(['user'])->findOrFail($id);
+
+        $this->applyDeliveryFallback($naissance);
 
         $data = [
             'naissance' => $naissance,
