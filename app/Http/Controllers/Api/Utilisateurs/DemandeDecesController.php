@@ -914,7 +914,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
             // États réellement payés (paiement confirmé) : on utilise une liste blanche
-            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé', 'rejeté', 'rejetée'];
             $demandeDejaPayee = in_array(strtolower($deces->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $deces->montant_timbre + (float) $deces->montant_livraison) : 0;
 
@@ -1417,7 +1417,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé', 'rejeté', 'rejetée'];
             $demandeDejaPayee = in_array(strtolower($deces->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $deces->montant_timbre + (float) $deces->montant_livraison) : 0;
 

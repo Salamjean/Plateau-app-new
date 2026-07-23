@@ -590,13 +590,8 @@
             // On permet de modifier tous les champs principaux.
             if (!demande.agent_id && !demande.peut_modifier) {
                 champsAModifier = ['name', 'numberR', 'dateR', 'quantite', 'CNIdfnt', 'CNIdcl', 'documentMariage',
-                    'RequisPolice', 'commune'
+                    'RequisPolice', 'commune', 'commune_deces'
                 ];
-            }
-
-            // On s'assure que la quantité est toujours sélectionnable/modifiable pour calculer la différence
-            if (!champsAModifier.includes('quantite')) {
-                champsAModifier.push('quantite');
             }
 
             const fieldLabels = {
@@ -658,8 +653,9 @@
 
             // Ajouter les champs non modifiés en tant que champs cachés pour éviter qu'ils soient écrasés ou qu'ils échouent la validation
             const allPossibleFields = [
-                'type', 'name', 'numberR', 'dateR', 'commune',
-                'qty_simple', 'qty_integral', 'quantite', 'choix_option'
+                'type', 'name', 'numberR', 'dateR', 'commune', 'commune_deces',
+                'qty_simple', 'qty_integral', 'quantite', 'choix_option',
+                'CNIdfnt', 'CNIdcl', 'documentMariage', 'RequisPolice'
             ];
 
             allPossibleFields.forEach(field => {
@@ -675,8 +671,6 @@
                     formHtml += `<input type="hidden" name="${field}" value="${val}">`;
                 }
             });
-
-            formHtml += `</form>`;
 
             formHtml += `
             <div id="payment-section-modification" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e0;">
@@ -705,7 +699,7 @@
                 <input type="hidden" name="payment_method" id="mod-payment_method" value="wave">
                 <div id="mod-payment-phone-container" style="display: block; margin-top: 8px; text-align: left;">
                     <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #4a5568; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                    <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || demande.number || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                    <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                 </div>
             </div>
             `;
@@ -841,8 +835,11 @@
                         }
                     }
 
+                    const paymentSection = form.querySelector('#payment-section-modification');
+                    const isPaymentVisible = paymentSection && paymentSection.style.display !== 'none';
                     const paymentMethodInput = form.querySelector('#mod-payment_method');
-                    if (paymentMethodInput) {
+
+                    if (isPaymentVisible && paymentMethodInput) {
                         const method = paymentMethodInput.value;
                         const phoneInput = form.querySelector('#mod-mtn_number');
                         const phoneVal = phoneInput ? phoneInput.value.replace(/\s+/g, '') : '';

@@ -111,8 +111,10 @@
          @foreach([
            'name' => 'Nom',
            'prenom' => 'Prénoms', 
+           'date_naissance' => 'Date de naissance',
            'number' => 'Numéro de registre',
            'DateR' => 'Date de registre',
+           'commune_naissance' => 'Commune de naissance',
            'CNI' => 'Pièce d\'identité'
          ] as $field => $label)
          <div class="rejet-item">
@@ -127,8 +129,8 @@
              <span class="value-text">
                @if($field === 'CNI')
                  {{ $naissance->CNI ? 'Fichier joint' : 'Non fourni' }}
-               @elseif($field === 'DateR')
-                 {{ \Carbon\Carbon::parse($naissance->DateR)->format('d/m/Y') }}
+               @elseif(($field === 'DateR' || $field === 'date_naissance') && $naissance->$field)
+                 {{ \Carbon\Carbon::parse($naissance->$field)->format('d/m/Y') }}
                @else
                  {{ $naissance->$field ?? 'Non renseigné' }}
                @endif

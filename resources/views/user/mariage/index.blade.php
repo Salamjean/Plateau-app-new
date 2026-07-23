@@ -669,27 +669,29 @@
             // Si la demande n'a pas d'agent assigné et n'a pas de champs spécifiques à modifier définis par l'IA (peut_modifier est faux)
             // On permet de modifier tous les champs principaux.
             if (!demande.agent_id && !demande.peut_modifier) {
-                champsAModifier = ['typeDemande', 'nomEpoux', 'prenomEpoux', 'dateNaissanceEpoux', 'lieuNaissanceEpoux',
-                    'quantite', 'pieceIdentite', 'extraitMariage', 'commune'
-                ];
-            }
-
-            // On s'assure que la quantité est toujours sélectionnable/modifiable pour calculer la différence
-            if (!champsAModifier.includes('quantite')) {
-                champsAModifier.push('quantite');
+                champsAModifier = ['typeDemande', 'nomEpoux', 'prenomEpoux', 'dateNaissanceEpoux', 'lieuNaissanceEpoux', 'nomEpouse', 'prenomEpouse', 'dateNaissanceEpouse', 'lieuNaissanceEpouse', 'numero_registre', 'date_registre', 'quantite', 'pieceIdentite', 'extraitMariage', 'commune', 'commune_mariage'];
             }
 
             const fieldLabels = {
                 'typeDemande': 'Type de demande',
-                'nomEpoux': 'Nom conjoint',
-                'prenomEpoux': 'Prénom conjoint',
-                'dateNaissanceEpoux': 'Date naissance conjoint',
-                'lieuNaissanceEpoux': 'Lieu naissance conjoint',
+                'nomEpoux': 'Nom conjoint (Époux)',
+                'prenomEpoux': 'Prénom conjoint (Époux)',
+                'dateNaissanceEpoux': 'Date naissance conjoint (Époux)',
+                'lieuNaissanceEpoux': 'Lieu naissance conjoint (Époux)',
+                'nomEpouse': 'Nom conjoint (Épouse)',
+                'prenomEpouse': 'Prénom conjoint (Épouse)',
+                'dateNaissanceEpouse': 'Date naissance conjoint (Épouse)',
+                'lieuNaissanceEpouse': 'Lieu naissance conjoint (Épouse)',
+                'numero_registre': 'Numéro de registre',
+                'date_registre': 'Date de registre',
                 'quantite': 'Quantité',
                 'pieceIdentite': 'Pièce d\'identité',
                 'extraitMariage': 'Ancien acte',
+                'document_autorisation': 'Document d\'autorisation',
+                'relation': 'Lien de parenté',
                 'CMU': 'Numéro NNI',
-                'commune': 'Commune'
+                'commune': 'Commune',
+                'commune_mariage': 'Commune de mariage'
             };
 
             let formHtml = '';
@@ -718,19 +720,20 @@
             formHtml += `<form id="modificationForm" class="text-start" enctype="multipart/form-data">`;
             champsAModifier.forEach(field => {
                 const label = fieldLabels[field] || field;
-                let val = demande[field] || '';
-                if (field === 'dateNaissanceEpoux' && val) val = new Date(val).toISOString().split('T')[0];
+                let val = field === 'typeDemande' ? (demande.typeDemande || demande.type || '') : (demande[field] || '');
+                if (['dateNaissanceEpoux', 'dateNaissanceEpouse', 'date_registre'].includes(field) && val) val = new Date(val).toISOString().split('T')[0];
 
                 formHtml += `<div class="mb-3">
                         <label class="form-label fw-bold small text-uppercase">${label}</label>`;
 
                 if (field === 'typeDemande') {
+                    const currentType = val || 'simple';
                     formHtml +=
-                        `<select name="${field}" class="form-select"><option value="simple" ${val === 'simple' ? 'selected' : ''}>Simple</option><option value="integrale" ${val === 'integrale' ? 'selected' : ''}>Intégrale</option><option value="groupee" ${val === 'groupee' ? 'selected' : ''}>Simple + Intégrale</option></select>`;
-                } else if (['pieceIdentite', 'extraitMariage'].includes(field)) {
+                        `<select name="${field}" class="form-select"><option value="simple" ${currentType === 'simple' ? 'selected' : ''}>Simple</option><option value="integrale" ${currentType === 'integrale' ? 'selected' : ''}>Intégrale</option><option value="groupee" ${currentType === 'groupee' ? 'selected' : ''}>Simple + Intégrale</option></select>`;
+                } else if (['pieceIdentite', 'extraitMariage', 'document_autorisation'].includes(field)) {
                     formHtml +=
                         `<input type="file" name="${field}" class="form-control" accept=".jpg,.jpeg,.png,.pdf">`;
-                } else if (field === 'dateNaissanceEpoux') {
+                } else if (['dateNaissanceEpoux', 'dateNaissanceEpouse', 'date_registre'].includes(field)) {
                     formHtml += `<input type="date" name="${field}" class="form-control" value="${val}">`;
                 } else {
                     formHtml +=
@@ -744,6 +747,7 @@
                 'typeDemande', 'pour', 'relation', 'nomEpoux', 'prenomEpoux',
                 'dateNaissanceEpoux', 'lieuNaissanceEpoux', 'nomEpouse', 'prenomEpouse',
                 'dateNaissanceEpouse', 'lieuNaissanceEpouse', 'commune', 'commune_mariage',
+                'numero_registre', 'date_registre',
                 'qty_simple', 'qty_integral', 'quantite', 'choix_option', 'CMU'
             ];
 
@@ -755,8 +759,9 @@
                     if (field === 'quantite' && (champsAModifier.includes('qty_simple') || champsAModifier.includes(
                             'qty_integral'))) return;
 
-                    let val = demande[field] !== null && demande[field] !== undefined ? demande[field] : '';
-                    if (['dateNaissanceEpoux', 'dateNaissanceEpouse'].includes(field) && val) val = new Date(val)
+                    let rawVal = field === 'typeDemande' ? (demande.typeDemande || demande.type) : demande[field];
+                    let val = rawVal !== null && rawVal !== undefined ? rawVal : '';
+                    if (['dateNaissanceEpoux', 'dateNaissanceEpouse', 'date_registre'].includes(field) && val) val = new Date(val)
                         .toISOString().split('T')[0];
                     formHtml += `<input type="hidden" name="${field}" value="${val}">`;
                 }
@@ -789,7 +794,7 @@
                 <input type="hidden" name="payment_method" id="mod-payment_method" value="wave">
                 <div id="mod-payment-phone-container" style="display: block; margin-top: 8px; text-align: left;">
                     <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #4a5568; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                    <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || demande.number || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                    <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                 </div>
             </div>
             `;
@@ -925,8 +930,11 @@
                         }
                     }
 
+                    const paymentSection = form.querySelector('#payment-section-modification');
+                    const isPaymentVisible = paymentSection && paymentSection.style.display !== 'none';
                     const paymentMethodInput = form.querySelector('#mod-payment_method');
-                    if (paymentMethodInput) {
+
+                    if (isPaymentVisible && paymentMethodInput) {
                         const method = paymentMethodInput.value;
                         const phoneInput = form.querySelector('#mod-mtn_number');
                         const phoneVal = phoneInput ? phoneInput.value.replace(/\s+/g, '') : '';
