@@ -300,16 +300,20 @@
           })
           .then(data => {
             console.log('Data reçu:', data);
-            const status = data.status;
+            const status = (data.status || '').toLowerCase();
 
-            if (status === 'en attente') {
+            const successStatuses = ['en attente', 'en cours', 'traité', 'traite', 'livré', 'livre', 'terminé', 'termine', 'complété', 'complete', 'paye', 'payé', 'successful', 'approved', 'validated', 'completed'];
+            const failureStatuses = ['paiement_echoue', 'refused', 'failed', 'cancelled', 'canceled', 'annulé', 'annule', 'rejeté', 'rejetee', 'rejete', 'rejetée'];
+            const pendingStatuses = ['en attente de paiement', 'non_paye', 'paiement_en_attente', 'pending', 'awaiting', 'processing'];
+
+            if (successStatuses.includes(status)) {
               showSuccess();
-            } else if (status === 'paiement_echoue' || status === 'REFUSED') {
+            } else if (failureStatuses.includes(status)) {
               showFailure();
-            } else if (status === 'en attente de paiement' || status === 'PENDING' || status === 'AWAITING') {
+            } else if (pendingStatuses.includes(status)) {
               setTimeout(pollStatus, 2000);
             } else {
-              showError('Statut de transaction inconnu: ' + status);
+              showError('Statut de transaction inconnu: ' + data.status);
             }
           })
           .catch(err => {
