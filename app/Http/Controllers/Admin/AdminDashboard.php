@@ -104,6 +104,7 @@ class AdminDashboard extends Controller
         // Parcours des modèles
         foreach ($modelMap as $model => $key) {
             $class = "App\\Models\\$model";
+            $groupeClass = "App\\Models\\{$model}Groupe";
 
             // Comptage (uniquement les demandes payées)
             $counts[$key] = $class::paye()->count();
@@ -139,10 +140,16 @@ class AdminDashboard extends Controller
                     ->whereBetween('updated_at', [$dateStart, $dateEnd])->count();
             }
 
-            // Calcul du solde disponible TOTAL (toutes les livraisons payées)
+            // Calcul du solde disponible TOTAL (toutes les livraisons payées dès le paiement, simples et groupées)
             $soldeDisponible += $class::paye()
                 ->where('choix_option', 'livraison')
                 ->sum('montant_livraison');
+
+            if (class_exists($groupeClass)) {
+                $soldeDisponible += $groupeClass::paye()
+                    ->where('choix_option', 'livraison')
+                    ->sum('montant_livraison');
+            }
 
             // Calcul du solde du MOIS SÉLECTIONNÉ uniquement (Porte-feuille)
             $soldeMoisEnCours += $class::paye()
@@ -150,6 +157,14 @@ class AdminDashboard extends Controller
                 ->whereYear('created_at', $year)
                 ->whereMonth('created_at', $month)
                 ->sum('montant_livraison');
+
+            if (class_exists($groupeClass)) {
+                $soldeMoisEnCours += $groupeClass::paye()
+                    ->where('choix_option', 'livraison')
+                    ->whereYear('created_at', $year)
+                    ->whereMonth('created_at', $month)
+                    ->sum('montant_livraison');
+            }
 
             // Activités récentes (uniquement les demandes payées)
             $activites = $activites->merge(
