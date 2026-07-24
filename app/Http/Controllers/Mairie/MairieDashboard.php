@@ -94,9 +94,9 @@ class MairieDashboard extends Controller
         $naissancesPaiementsMonth = Paiement::whereHas('naissance', function ($query) use ($mairie) {
             $query->where('commune', $mairie->name);
         })
-        ->where('status', 'ACCEPTED')
-        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
-        ->get();
+            ->where('status', 'ACCEPTED')
+            ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+            ->get();
         $totalNaissanceMonth = $naissancesPaiementsMonth->sum(function ($p) {
             return $this->getPaymentPartTimbre($p);
         });
@@ -104,9 +104,9 @@ class MairieDashboard extends Controller
         $mariagesPaiementsMonth = Paiement::whereHas('mariage', function ($query) use ($mairie) {
             $query->where('commune', $mairie->name);
         })
-        ->where('status', 'ACCEPTED')
-        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
-        ->get();
+            ->where('status', 'ACCEPTED')
+            ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+            ->get();
         $totalMariageMonth = $mariagesPaiementsMonth->sum(function ($p) {
             return $this->getPaymentPartTimbre($p);
         });
@@ -114,9 +114,9 @@ class MairieDashboard extends Controller
         $decesPaiementsMonth = Paiement::whereHas('deces', function ($query) use ($mairie) {
             $query->where('commune', $mairie->name);
         })
-        ->where('status', 'ACCEPTED')
-        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
-        ->get();
+            ->where('status', 'ACCEPTED')
+            ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+            ->get();
         $totalDecesMonth = $decesPaiementsMonth->sum(function ($p) {
             return $this->getPaymentPartTimbre($p);
         });
@@ -227,20 +227,20 @@ class MairieDashboard extends Controller
                 ->orWhereNotNull('mariage_id')
                 ->orWhereNotNull('deces_id');
         })
-        ->where('status', 'ACCEPTED')
-        ->where(function ($query) use ($commune) {
-            $query->whereHas('naissance', function ($q) use ($commune) {
-                $q->where('commune', $commune);
+            ->where('status', 'ACCEPTED')
+            ->where(function ($query) use ($commune) {
+                $query->whereHas('naissance', function ($q) use ($commune) {
+                    $q->where('commune', $commune);
+                })
+                    ->orWhereHas('mariage', function ($q) use ($commune) {
+                        $q->where('commune', $commune);
+                    })
+                    ->orWhereHas('deces', function ($q) use ($commune) {
+                        $q->where('commune', $commune);
+                    });
             })
-            ->orWhereHas('mariage', function ($q) use ($commune) {
-                $q->where('commune', $commune);
-            })
-            ->orWhereHas('deces', function ($q) use ($commune) {
-                $q->where('commune', $commune);
-            });
-        })
-        ->with(['naissance', 'mariage', 'deces'])
-        ->get();
+            ->with(['naissance', 'mariage', 'deces'])
+            ->get();
 
         $feed = collect();
         foreach ($payments as $p) {
@@ -286,9 +286,9 @@ class MairieDashboard extends Controller
         $naissancesPaiements = Paiement::whereHas('naissance', function ($query) use ($mairie) {
             $query->where('commune', $mairie->name);
         })
-        ->where('status', 'ACCEPTED')
-        ->with('naissance')
-        ->get();
+            ->where('status', 'ACCEPTED')
+            ->with('naissance')
+            ->get();
         $totalNaissance = $naissancesPaiements->sum(function ($p) {
             return $this->getPaymentPartTimbre($p);
         });
@@ -297,9 +297,9 @@ class MairieDashboard extends Controller
         $mariagesPaiements = Paiement::whereHas('mariage', function ($query) use ($mairie) {
             $query->where('commune', $mairie->name);
         })
-        ->where('status', 'ACCEPTED')
-        ->with('mariage')
-        ->get();
+            ->where('status', 'ACCEPTED')
+            ->with('mariage')
+            ->get();
         $totalMariage = $mariagesPaiements->sum(function ($p) {
             return $this->getPaymentPartTimbre($p);
         });
@@ -308,9 +308,9 @@ class MairieDashboard extends Controller
         $decesPaiements = Paiement::whereHas('deces', function ($query) use ($mairie) {
             $query->where('commune', $mairie->name);
         })
-        ->where('status', 'ACCEPTED')
-        ->with('deces')
-        ->get();
+            ->where('status', 'ACCEPTED')
+            ->with('deces')
+            ->get();
         $totalDeces = $decesPaiements->sum(function ($p) {
             return $this->getPaymentPartTimbre($p);
         });
@@ -340,61 +340,84 @@ class MairieDashboard extends Controller
         }
 
         $naissanceMonthPaiements = $naissancesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
-        $totalNaissanceMonth = $naissanceMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
-        $naissanceWaveMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
-        $naissanceTresorpayMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $totalNaissanceMonth = $naissanceMonthPaiements->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
+        $naissanceWaveMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
+        $naissanceTresorpayMonth = $naissanceMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
 
         $mariageMonthPaiements = $mariagesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
-        $totalMariageMonth = $mariageMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
-        $mariageWaveMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
-        $mariageTresorpayMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $totalMariageMonth = $mariageMonthPaiements->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
+        $mariageWaveMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
+        $mariageTresorpayMonth = $mariageMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
 
         $decesMonthPaiements = $decesPaiements->whereBetween('paid_at', [$startOfMonth, $endOfMonth]);
-        $totalDecesMonth = $decesMonthPaiements->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
-        $decesWaveMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
-        $decesTresorpayMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) { return $this->getPaymentPartTimbre($p); });
+        $totalDecesMonth = $decesMonthPaiements->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
+        $decesWaveMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'wave')->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
+        $decesTresorpayMonth = $decesMonthPaiements->filter(fn($p) => strtolower($p->operator_id) === 'tresorpay')->sum(function ($p) {
+            return $this->getPaymentPartTimbre($p);
+        });
 
         $soldePortefeuille = $totalNaissanceMonth + $totalMariageMonth + $totalDecesMonth;
 
         // Calcul des paiements Wave et TresorPay
         $allCommunePaiementsMonth = Paiement::where(function ($query) {
             $query->whereNotNull('naissance_id')
-                  ->orWhereNotNull('mariage_id')
-                  ->orWhereNotNull('deces_id');
+                ->orWhereNotNull('mariage_id')
+                ->orWhereNotNull('deces_id');
         })
-        ->where('status', 'ACCEPTED')
-        ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
-        ->where(function ($query) use ($mairie) {
-            $query->whereHas('naissance', function ($q) use ($mairie) {
-                $q->where('commune', $mairie->name);
+            ->where('status', 'ACCEPTED')
+            ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+            ->where(function ($query) use ($mairie) {
+                $query->whereHas('naissance', function ($q) use ($mairie) {
+                    $q->where('commune', $mairie->name);
+                })
+                    ->orWhereHas('mariage', function ($q) use ($mairie) {
+                        $q->where('commune', $mairie->name);
+                    })
+                    ->orWhereHas('deces', function ($q) use ($mairie) {
+                        $q->where('commune', $mairie->name);
+                    });
             })
-            ->orWhereHas('mariage', function ($q) use ($mairie) {
-                $q->where('commune', $mairie->name);
-            })
-            ->orWhereHas('deces', function ($q) use ($mairie) {
-                $q->where('commune', $mairie->name);
-            });
-        })
-        ->get();
+            ->get();
 
         $statsWave = ['total' => 0, 'timbre' => 0, 'livraison' => 0];
         $statsTresorpay = ['total' => 0, 'timbre' => 0, 'livraison' => 0];
+        $statsStripe = ['total' => 0, 'timbre' => 0, 'livraison' => 0];
 
         foreach ($allCommunePaiementsMonth as $p) {
             $operator = strtolower($p->operator_id);
-            if ($operator === 'wave' || $operator === 'tresorpay') {
+            if ($operator === 'wave' || $operator === 'tresorpay' || $operator === 'stripe') {
                 $t = $this->getPaymentPartTimbre($p);
                 $total = (float)$p->montant;
                 $l = max(0, $total - $t);
-                
+
                 if ($operator === 'wave') {
                     $statsWave['total'] += $total;
                     $statsWave['timbre'] += $t;
                     $statsWave['livraison'] += $l;
-                } else {
+                } elseif ($operator === 'tresorpay') {
                     $statsTresorpay['total'] += $total;
                     $statsTresorpay['timbre'] += $t;
                     $statsTresorpay['livraison'] += $l;
+                } elseif ($operator === 'stripe') {
+                    $statsStripe['total'] += $total;
+                    $statsStripe['timbre'] += $t;
+                    $statsStripe['livraison'] += $l;
                 }
             }
         }
@@ -402,7 +425,7 @@ class MairieDashboard extends Controller
         // Récupérer les derniers paiements réels de timbres pour alimenter l'historique des reversements instantanés
         $derniersPaiements = $this->getCommunePaymentsFeed($mairie->name);
 
-        $historiqueFiltre = $derniersPaiements->filter(function($item) use ($startOfMonth, $endOfMonth) {
+        $historiqueFiltre = $derniersPaiements->filter(function ($item) use ($startOfMonth, $endOfMonth) {
             return Carbon::parse($item->date)->between($startOfMonth, $endOfMonth);
         });
 
@@ -442,6 +465,7 @@ class MairieDashboard extends Controller
             'currentYear',
             'statsWave',
             'statsTresorpay',
+            'statsStripe',
             'totalNaissanceMonth',
             'totalMariageMonth',
             'totalDecesMonth',

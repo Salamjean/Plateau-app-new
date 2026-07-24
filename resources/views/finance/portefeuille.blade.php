@@ -219,10 +219,12 @@
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         .wave-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(0, 195, 255, 0.4);
         }
+
         .wave-card::before {
             content: '';
             position: absolute;
@@ -230,10 +232,11 @@
             right: 0;
             width: 250px;
             height: 250px;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
             border-radius: 50%;
             transform: translate(30%, -30%);
         }
+
         .wave-card::after {
             content: '';
             position: absolute;
@@ -241,9 +244,10 @@
             left: -50px;
             width: 200px;
             height: 200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             border-radius: 50%;
         }
+
         .wave-card-header {
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
@@ -254,7 +258,7 @@
             align-items: center;
             gap: 12px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         /* TresorPay Card Premium Design */
@@ -268,10 +272,12 @@
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         .tresor-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 40px rgba(212, 175, 55, 0.4);
         }
+
         .tresor-card::before {
             content: '';
             position: absolute;
@@ -279,10 +285,11 @@
             right: 0;
             width: 250px;
             height: 250px;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
             border-radius: 50%;
             transform: translate(30%, -30%);
         }
+
         .tresor-card::after {
             content: '';
             position: absolute;
@@ -290,9 +297,10 @@
             left: -50px;
             width: 200px;
             height: 200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             border-radius: 50%;
         }
+
         .tresor-card-header {
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
@@ -303,7 +311,60 @@
             align-items: center;
             gap: 12px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Stripe Card Premium Design */
+        .stripe-card {
+            background: linear-gradient(135deg, #635bff 0%, #0a2540 100%);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(99, 91, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stripe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(99, 91, 255, 0.4);
+        }
+
+        .stripe-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .stripe-card::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+        }
+
+        .stripe-card-header {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
     </style>
     <div class="portefeuille-page">
@@ -321,44 +382,61 @@
 
             <div class="row g-4 mb-4">
                 <!-- Carte PAIEMENTS WAVE -->
-                <div class="col-lg-6 animate-up" style="animation-delay: 0.2s;">
+                <div class="col-lg-4 animate-up" style="animation-delay: 0.2s;">
                     <div class="wave-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div style="position: relative; z-index: 2;">
                             <div class="d-flex justify-content-between align-items-start mb-4">
                                 <div class="wave-card-header">
-                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave Logo" style="height: 24px; border-radius: 4px;">
+                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave Logo"
+                                        style="height: 24px; border-radius: 4px;">
                                     <span class="fw-bold tracking-wider small mb-0">PAIEMENTS WAVE</span>
                                 </div>
                                 <form method="GET" action="" class="m-0 d-flex gap-2">
-                                    <select name="filter_type" class="border-0 text-dark fw-bold bg-white rounded-pill px-3 py-1 shadow-sm" style="outline: none; font-size: 0.85rem;" onchange="this.form.submit()">
+                                    <select name="filter_type"
+                                        class="border-0 text-dark fw-bold bg-white rounded-pill px-3 py-1 shadow-sm"
+                                        style="outline: none; font-size: 0.85rem;" onchange="this.form.submit()">
                                         <option value="month" {{ $filterType === 'month' ? 'selected' : '' }}>Mois</option>
-                                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Semaine</option>
+                                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Semaine
+                                        </option>
                                     </select>
                                     <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">
                                         <i class="fas fa-calendar-alt me-2" style="color: #0062ff;"></i>
-                                        @if($filterType === 'week')
-                                            <input type="week" name="week" value="{{ $selectedWeek }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 140px;" onchange="this.form.submit()">
+                                        @if ($filterType === 'week')
+                                            <input type="week" name="week" value="{{ $selectedWeek }}"
+                                                class="border-0 text-dark fw-bold"
+                                                style="outline: none; background: transparent; font-size: 0.85rem; width: 140px;"
+                                                onchange="this.form.submit()">
                                         @else
-                                            <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
+                                            <input type="month" name="month" value="{{ $selectedMonth }}"
+                                                class="border-0 text-dark fw-bold"
+                                                style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;"
+                                                onchange="this.form.submit()">
                                         @endif
                                     </div>
                                 </form>
                             </div>
                             <div class="mt-4 pt-2 text-center">
-                                <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider">Cumul Timbres Vendus</h6>
-                                <h1 class="display-4 fw-bold mb-0" style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                                    <span>{{ number_format($statsWave['timbre'], 0, ',', ' ') }}</span> <span class="fs-4 opacity-75">FCFA</span>
+                                <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider">Cumul Timbres
+                                    Vendus</h6>
+                                <h1 class="display-4 fw-bold mb-0"
+                                    style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                    <span>{{ number_format($statsWave['timbre'], 0, ',', ' ') }}</span> <span
+                                        class="fs-4 opacity-75">FCFA</span>
                                 </h1>
                             </div>
                         </div>
                         <div style="position: relative; z-index: 2; margin-top: 30px;">
-                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4" style="background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);">
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4"
+                                style="background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);">
                                 <div class="d-flex align-items-baseline">
-                                    <span class="text-white-50 text-uppercase fw-bold me-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Mairie du</span>
+                                    <span class="text-white-50 text-uppercase fw-bold me-2"
+                                        style="font-size: 0.75rem; letter-spacing: 0.5px;">Mairie du</span>
                                     <span class="fw-bold fs-4 tracking-wider text-uppercase">{{ $finance->communeM }}</span>
                                 </div>
-                                <div class="bg-white rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
-                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave Logo" style="max-width: 32px; max-height: 32px; border-radius: 4px;">
+                                <div class="bg-white rounded-3 d-flex align-items-center justify-content-center shadow-sm"
+                                    style="width: 48px; height: 48px;">
+                                    <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave Logo"
+                                        style="max-width: 32px; max-height: 32px; border-radius: 4px;">
                                 </div>
                             </div>
                         </div>
@@ -366,511 +444,601 @@
                 </div>
 
                 <!-- Carte PAIEMENTS TRÉSORPAY -->
-                <div class="col-lg-6 animate-up" style="animation-delay: 0.3s;">
+                <div class="col-lg-4 animate-up" style="animation-delay: 0.3s;">
                     <div class="tresor-card p-4 h-100 d-flex flex-column justify-content-between">
                         <div style="position: relative; z-index: 2;">
                             <div class="d-flex justify-content-between align-items-start mb-4">
                                 <div class="tresor-card-header">
-                                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay Logo" style="height: 24px; border-radius: 4px;">
+                                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay Logo"
+                                        style="height: 24px; border-radius: 4px;">
                                     <span class="fw-bold tracking-wider small mb-0">PAIEMENTS TRÉSORPAY</span>
                                 </div>
                                 <form method="GET" action="" class="m-0 d-flex gap-2">
-                                    <select name="filter_type" class="border-0 text-dark fw-bold bg-white rounded-pill px-3 py-1 shadow-sm" style="outline: none; font-size: 0.85rem;" onchange="this.form.submit()">
-                                        <option value="month" {{ $filterType === 'month' ? 'selected' : '' }}>Mois</option>
-                                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Semaine</option>
+                                    <select name="filter_type"
+                                        class="border-0 text-dark fw-bold bg-white rounded-pill px-3 py-1 shadow-sm"
+                                        style="outline: none; font-size: 0.85rem;" onchange="this.form.submit()">
+                                        <option value="month" {{ $filterType === 'month' ? 'selected' : '' }}>Mois
+                                        </option>
+                                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Semaine
+                                        </option>
                                     </select>
                                     <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">
                                         <i class="fas fa-calendar-alt me-2" style="color: #b8860b;"></i>
-                                        @if($filterType === 'week')
-                                            <input type="week" name="week" value="{{ $selectedWeek }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 140px;" onchange="this.form.submit()">
+                                        @if ($filterType === 'week')
+                                            <input type="week" name="week" value="{{ $selectedWeek }}"
+                                                class="border-0 text-dark fw-bold"
+                                                style="outline: none; background: transparent; font-size: 0.85rem; width: 140px;"
+                                                onchange="this.form.submit()">
                                         @else
-                                            <input type="month" name="month" value="{{ $selectedMonth }}" class="border-0 text-dark fw-bold" style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;" onchange="this.form.submit()">
+                                            <input type="month" name="month" value="{{ $selectedMonth }}"
+                                                class="border-0 text-dark fw-bold"
+                                                style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;"
+                                                onchange="this.form.submit()">
                                         @endif
                                     </div>
                                 </form>
                             </div>
                             <div class="mt-4 pt-2 d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="text-white-50 text-uppercase d-block fw-bold tracking-wider mb-1" style="font-size: 0.7rem;">Timbre</small>
-                                    <span class="fw-bold fs-5">{{ number_format($statsTresorpay['timbre'], 0, ',', ' ') }}</span>
+                                    <small class="text-white-50 text-uppercase d-block fw-bold tracking-wider mb-1"
+                                        style="font-size: 0.7rem;">Timbre</small>
+                                    <span
+                                        class="fw-bold fs-5">{{ number_format($statsTresorpay['timbre'], 0, ',', ' ') }}</span>
                                 </div>
                                 <div class="text-center mx-2">
-                                    <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider" style="font-size: 0.7rem;">CUMUL DE LA PÉRIODE</h6>
-                                    <h1 class="display-6 fw-bold mb-0" style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                                        <span>{{ number_format($statsTresorpay['total'], 0, ',', ' ') }}</span> <span class="fs-6 opacity-75">FCFA</span>
+                                    <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider"
+                                        style="font-size: 0.7rem;">CUMUL DE LA PÉRIODE</h6>
+                                    <h1 class="display-6 fw-bold mb-0"
+                                        style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                        <span>{{ number_format($statsTresorpay['total'], 0, ',', ' ') }}</span> <span
+                                            class="fs-6 opacity-75">FCFA</span>
                                     </h1>
                                 </div>
                                 <div class="text-end">
-                                    <small class="text-white-50 text-uppercase d-block fw-bold tracking-wider mb-1" style="font-size: 0.7rem;">Livraison</small>
-                                    <span class="fw-bold fs-5">{{ number_format($statsTresorpay['livraison'], 0, ',', ' ') }}</span>
+                                    <small class="text-white-50 text-uppercase d-block fw-bold tracking-wider mb-1"
+                                        style="font-size: 0.7rem;">Livraison</small>
+                                    <span
+                                        class="fw-bold fs-5">{{ number_format($statsTresorpay['livraison'], 0, ',', ' ') }}</span>
                                 </div>
                             </div>
                         </div>
                         <div style="position: relative; z-index: 2; margin-top: 30px;">
-                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4" style="background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);">
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4"
+                                style="background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);">
                                 <div class="d-flex align-items-baseline">
-                                    <span class="text-white-50 text-uppercase fw-bold me-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Mairie du</span>
-                                    <span class="fw-bold fs-4 tracking-wider text-uppercase">{{ $finance->communeM }}</span>
+                                    <span class="text-white-50 text-uppercase fw-bold me-2"
+                                        style="font-size: 0.75rem; letter-spacing: 0.5px;">Mairie du</span>
+                                    <span
+                                        class="fw-bold fs-4 tracking-wider text-uppercase">{{ $finance->communeM }}</span>
                                 </div>
-                                <div class="bg-white rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
-                                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay Logo" style="max-width: 32px; max-height: 32px; border-radius: 4px;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-                <!-- Les statistiques détaillées par type d'acte -->
-                <div class="row g-4 mb-4 animate-up" style="animation-delay: 0.4s;">
-                    <div class="col-md-4">
-                        <div class="card stat-card p-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Naissance</small>
-                                    <h3 class="fw-bold text-dark mt-1 mb-0">
-                                        {{ number_format($totalNaissanceMonth, 0, ',', ' ') }} XOF</h3>
-                                </div>
-                                <div class="p-3 rounded-circle"
-                                    style="background-color: rgba(31, 64, 131, 0.1); color: var(--primary);">
-                                    <i class="fas fa-baby fa-2x"></i>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-3 border-top">
-                                <div class="d-flex justify-content-between text-muted small">
-                                    <span>Wave: <strong class="text-dark">{{ number_format($naissanceWaveMonth, 0, ',', ' ') }}</strong></span>
-                                    <span>TrésorPay: <strong class="text-dark">{{ number_format($naissanceTresorpayMonth, 0, ',', ' ') }}</strong></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card p-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Mariage</small>
-                                    <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalMariageMonth, 0, ',', ' ') }}
-                                        XOF</h3>
-                                </div>
-                                <div class="p-3 rounded-circle"
-                                    style="background-color: rgba(138, 43, 226, 0.1); color: var(--accent-violet);">
-                                    <i class="fas fa-ring fa-2x"></i>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-3 border-top">
-                                <div class="d-flex justify-content-between text-muted small">
-                                    <span>Wave: <strong class="text-dark">{{ number_format($mariageWaveMonth, 0, ',', ' ') }}</strong></span>
-                                    <span>TrésorPay: <strong class="text-dark">{{ number_format($mariageTresorpayMonth, 0, ',', ' ') }}</strong></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card p-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="text-muted d-block text-uppercase small">Timbres Actes Décès</small>
-                                    <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalDecesMonth, 0, ',', ' ') }}
-                                        XOF</h3>
-                                </div>
-                                <div class="p-3 rounded-circle"
-                                    style="background-color: rgba(231, 29, 54, 0.1); color: var(--danger);">
-                                    <i class="fas fa-spa fa-2x"></i>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-3 border-top">
-                                <div class="d-flex justify-content-between text-muted small">
-                                    <span>Wave: <strong class="text-dark">{{ number_format($decesWaveMonth, 0, ',', ' ') }}</strong></span>
-                                    <span>TrésorPay: <strong class="text-dark">{{ number_format($decesTresorpayMonth, 0, ',', ' ') }}</strong></span>
+                                <div class="bg-white rounded-3 d-flex align-items-center justify-content-center shadow-sm"
+                                    style="width: 48px; height: 48px;">
+                                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TresorPay Logo"
+                                        style="max-width: 32px; max-height: 32px; border-radius: 4px;">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-
-
-                <!-- Historique à gauche & Comptabilisation Mensuelle à droite -->
-                <div class="row g-4 animate-up" style="animation-delay: 0.5s;">
-                    <!-- Historique unifié des Transactions -->
-                    <div class="col-lg-8">
-                        <div class="table-container h-100">
-                            <div class="table-header p-4 d-flex justify-content-between align-items-center"
-                                style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
-                                <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des paiements</h5>
-                                <div class="d-flex align-items-center gap-2">
-                                    <a href="{{ route('finance.portefeuille.historique') }}"
-                                        class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 me-2">
-                                        <i class="fas fa-expand me-1"></i> Voir tout l'historique
-                                    </a>
+                <!-- Carte PAIEMENTS STRIPE -->
+                <div class="col-lg-4 animate-up" style="animation-delay: 0.4s;">
+                    <div class="stripe-card p-4 h-100 d-flex flex-column justify-content-between">
+                        <div style="position: relative; z-index: 2;">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div class="stripe-card-header">
+                                    <i class="fab fa-stripe fs-3 text-white"></i>
+                                    <span class="fw-bold tracking-wider small mb-0">PAIEMENTS STRIPE</span>
                                 </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0 text-center">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th class="py-3 text-secondary text-center">DATE & HEURE</th>
-                                            <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
-                                            <th class="py-3 text-secondary text-center">MÉTHODE</th>
-                                            <th class="py-3 text-secondary text-center">MONTANT</th>
-                                            <th class="py-3 text-secondary text-center">STATUT</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($transactions as $t)
-                                            <tr>
-                                                <td class="text-center">
-                                                    <div class="d-flex align-items-center justify-content-center">
-                                                        <div class="p-2 bg-light rounded-3 me-2">
-                                                            <i class="fas fa-calendar-days text-muted"></i>
-                                                        </div>
-                                                        <div class="text-center">
-                                                            <span
-                                                                class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
-                                                            <small
-                                                                class="text-muted">{{ $t->date->format('H:i') }}</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
-                                                </td>
-                                                <td class="text-center">
-                                                    <span class="small fw-bold text-uppercase badge bg-secondary">{{ $t->payment_method ?? 'N/A' }}</span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="d-flex flex-column align-items-center">
-                                                        <span class="fw-bold text-success mb-1">
-                                                            {{ number_format($t->part_timbre, 0, ',', ' ') }} FCFA
-                                                        </span>
-                                                        <small class="text-muted" style="font-size: 0.7rem;">
-                                                            Timbre: {{ number_format($t->part_timbre, 0, ',', ' ') }} | Liv: {{ number_format($t->part_livraison, 0, ',', ' ') }}
-                                                        </small>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <span class="badge rounded-pill px-3 py-2 badge-credit">
-                                                        <i class="fas fa-circle-check me-1"></i> {{ $t->status }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="5" class="py-5 text-center">
-                                                    <div class="py-4 text-center">
-                                                        <i class="fas fa-receipt fa-3x text-light mb-3"></i>
-                                                        <h5 class="text-muted">Aucun transfert effectué</h5>
-                                                        <p class="text-muted small mb-0">Les transferts vers TrésorPay
-                                                            s'afficheront ici en temps réel au fil des paiements des
-                                                            citoyens.</p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Comptabilisation Mensuelle TrésorPay -->
-                    <div class="col-lg-4">
-                        <div class="card stat-card h-100 p-0 overflow-hidden"
-                            style="border: none; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05); border-radius: 15px;">
-                            <div class="p-4"
-                                style="background: linear-gradient(120deg, #d4af37, #b8860b); color: black;">
-                                <h5 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2"></i>Reçu par TrésorPay
-                                    ({{ $currentYear }})</h5>
-                                <p class="mb-0 small text-black-50 fw-bold">Comptabilisation mensuelle automatique</p>
-                            </div>
-                            <div class="p-3" style="max-height: 420px; overflow-y: auto;">
-                                <ul class="list-group list-group-flush">
-                                    @foreach ($comptabiliteMensuelle as $num => $m)
-                                        <li
-                                            class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 border-bottom border-light">
-                                            <div class="d-flex align-items-center">
-                                                <div class="p-2 bg-light rounded-circle me-3 text-center d-flex align-items-center justify-content-center"
-                                                    style="width: 32px; height: 32px;">
-                                                    <span class="fw-bold text-muted small"
-                                                        style="font-size: 0.8rem;">{{ str_pad($num, 2, '0', STR_PAD_LEFT) }}</span>
-                                                </div>
-                                                <span class="fw-bold text-dark"
-                                                    style="font-size: 0.9rem;">{{ $m['nom'] }}</span>
-                                            </div>
-                                            <span
-                                                class="badge bg-success-light text-success rounded-pill px-3 py-2 fw-bold"
-                                                style="font-size: 0.85rem; background-color: rgba(46, 196, 182, 0.12);">
-                                                {{ number_format($m['montant'], 0, ',', ' ') }} FCFA
-                                            </span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL INTERACTIF DE REVERSEMENT TRESORPAY -->
-            <div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 rounded-4 shadow">
-                        <div class="modal-header border-0 pb-0"
-                            style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white; border-radius: 12px 12px 0 0;">
-                            <h5 class="modal-title fw-bold" id="transferModalLabel"><i
-                                    class="fas fa-paper-plane me-2"></i>Reversement TrésorPay</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                aria-label="Fermer"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <div id="transfer-form-container">
-                                <form id="remittance-form">
-                                    <div class="mb-3">
-                                        <label class="form-label text-uppercase text-muted fw-bold small">Montant à
-                                            reverser (FCFA)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light border-0"><i
-                                                    class="fas fa-money-bill-wave text-success"></i></span>
-                                            <input type="number" name="montant" id="remittance-amount"
-                                                class="form-control bg-light border-0 py-3 fw-bold text-dark"
-                                                max="{{ $soldePortefeuille }}" min="1"
-                                                value="{{ $soldePortefeuille }}" required>
-                                        </div>
-                                        <div class="form-text text-end">Solde max disponible :
-                                            <strong>{{ number_format($soldePortefeuille, 0, ',', ' ') }} XOF</strong></div>
+                                <form method="GET" action="" class="m-0 d-flex gap-2">
+                                    <select name="filter_type"
+                                        class="border-0 text-dark fw-bold bg-white rounded-pill px-3 py-1 shadow-sm"
+                                        style="outline: none; font-size: 0.85rem;" onchange="this.form.submit()">
+                                        <option value="month" {{ $filterType === 'month' ? 'selected' : '' }}>Mois
+                                        </option>
+                                        <option value="week" {{ $filterType === 'week' ? 'selected' : '' }}>Semaine
+                                        </option>
+                                    </select>
+                                    <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">
+                                        <i class="fas fa-calendar-alt me-2" style="color: #635bff;"></i>
+                                        @if ($filterType === 'week')
+                                            <input type="week" name="week" value="{{ $selectedWeek }}"
+                                                class="border-0 text-dark fw-bold"
+                                                style="outline: none; background: transparent; font-size: 0.85rem; width: 140px;"
+                                                onchange="this.form.submit()">
+                                        @else
+                                            <input type="month" name="month" value="{{ $selectedMonth }}"
+                                                class="border-0 text-dark fw-bold"
+                                                style="outline: none; background: transparent; font-size: 0.85rem; width: 120px;"
+                                                onchange="this.form.submit()">
+                                        @endif
                                     </div>
-                                    <div class="mb-4">
-                                        <label class="form-label text-uppercase text-muted fw-bold small">Identifiant
-                                            Credential TrésorPay</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light border-0"><i
-                                                    class="fas fa-key text-muted"></i></span>
-                                            <input type="text" name="credential_id"
-                                                class="form-control bg-light border-0 py-3" value="gtvB04rzE_wkvb4S2"
-                                                readonly required style="font-family: monospace;">
-                                        </div>
-                                        <div class="form-text">Ce compte partenaire recevra les recettes de timbres de la
-                                            Mairie du Plateau.</div>
-                                    </div>
-                                    <div class="alert alert-warning border-0 small mb-4">
-                                        <i class="fas fa-triangle-exclamation me-2 text-warning"></i>
-                                        Cette transaction va initier le virement électronique vers le compte bancaire
-                                        public. Cette action est irréversible.
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3"
-                                        id="btn-confirm-remittance">
-                                        <i class="fas fa-vault me-2"></i> Confirmer le virement
-                                    </button>
                                 </form>
                             </div>
-
-                            <!-- Écran de chargement et succès animé -->
-                            <div id="transfer-loading-container" class="text-center py-5" style="display: none;">
-                                <div class="spinner-border text-primary" role="status"
-                                    style="width: 3rem; height: 3rem;">
-                                    <span class="visually-hidden">Traitement...</span>
-                                </div>
-                                <h5 class="fw-bold mt-4 text-dark">Connexion sécurisée TrésorPay...</h5>
-                                <p class="text-muted small">Veuillez ne pas fermer cette fenêtre pendant le transfert.</p>
+                            <div class="mt-4 pt-2 text-center">
+                                <h6 class="text-white-50 text-uppercase small mb-2 fw-bold tracking-wider">Cumul Timbres
+                                    Vendus</h6>
+                                <h1 class="display-4 fw-bold mb-0"
+                                    style="font-feature-settings: 'tnum'; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                    <span>{{ number_format($statsStripe['timbre'], 0, ',', ' ') }}</span> <span
+                                        class="fs-4 opacity-75">FCFA</span>
+                                </h1>
                             </div>
-
-                            <div id="transfer-success-container" class="text-center py-4" style="display: none;">
-                                <div class="p-3 bg-success-light text-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3"
-                                    style="width: 80px; height: 80px; background-color: rgba(46, 196, 182, 0.15);">
-                                    <i class="fas fa-circle-check fa-4x animate__animated animate__bounceIn"></i>
+                        </div>
+                        <div style="position: relative; z-index: 2; margin-top: 30px;">
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded-4"
+                                style="background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-baseline">
+                                    <span class="text-white-50 text-uppercase fw-bold me-2"
+                                        style="font-size: 0.75rem; letter-spacing: 0.5px;">Mairie du</span>
+                                    <span
+                                        class="fw-bold fs-4 tracking-wider text-uppercase">{{ $finance->communeM }}</span>
                                 </div>
-                                <h4 class="fw-bold text-dark">Transfert Réussi !</h4>
-                                <p class="text-muted small px-3">Les fonds de timbres en ligne ont été reversés avec succès
-                                    vers le Trésor Public.</p>
-                                <div class="p-3 bg-light border rounded-3 mb-4 mx-3">
-                                    <span class="small text-muted d-block">Montant Transféré</span>
-                                    <h3 class="fw-bold text-success mb-0" id="success-transferred-amount">0 FCFA</h3>
+                                <div class="bg-white rounded-3 d-flex align-items-center justify-content-center shadow-sm"
+                                    style="width: 48px; height: 48px;">
+                                    <i class="fab fa-stripe fs-2" style="color: #635bff;"></i>
                                 </div>
-                                <button type="button" class="btn btn-dark px-4 py-2" data-bs-dismiss="modal"
-                                    id="btn-success-close">Fermer</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // 1. Animation d'incrémentation progressive du solde
-                    const balanceEl = document.getElementById('wallet-balance');
-                    const targetValue = parseInt(balanceEl.getAttribute('data-target'), 10);
+            <!-- Les statistiques détaillées par type d'acte -->
+            <div class="row g-4 mb-4 animate-up" style="animation-delay: 0.4s;">
+                <div class="col-md-4">
+                    <div class="card stat-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block text-uppercase small">Timbres Actes Naissance</small>
+                                <h3 class="fw-bold text-dark mt-1 mb-0">
+                                    {{ number_format($totalNaissanceMonth, 0, ',', ' ') }} XOF</h3>
+                            </div>
+                            <div class="p-3 rounded-circle"
+                                style="background-color: rgba(31, 64, 131, 0.1); color: var(--primary);">
+                                <i class="fas fa-baby fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>Wave: <strong
+                                        class="text-dark">{{ number_format($naissanceWaveMonth, 0, ',', ' ') }}</strong></span>
+                                <span>TrésorPay: <strong
+                                        class="text-dark">{{ number_format($naissanceTresorpayMonth, 0, ',', ' ') }}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block text-uppercase small">Timbres Actes Mariage</small>
+                                <h3 class="fw-bold text-dark mt-1 mb-0">
+                                    {{ number_format($totalMariageMonth, 0, ',', ' ') }}
+                                    XOF</h3>
+                            </div>
+                            <div class="p-3 rounded-circle"
+                                style="background-color: rgba(138, 43, 226, 0.1); color: var(--accent-violet);">
+                                <i class="fas fa-ring fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>Wave: <strong
+                                        class="text-dark">{{ number_format($mariageWaveMonth, 0, ',', ' ') }}</strong></span>
+                                <span>TrésorPay: <strong
+                                        class="text-dark">{{ number_format($mariageTresorpayMonth, 0, ',', ' ') }}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block text-uppercase small">Timbres Actes Décès</small>
+                                <h3 class="fw-bold text-dark mt-1 mb-0">{{ number_format($totalDecesMonth, 0, ',', ' ') }}
+                                    XOF</h3>
+                            </div>
+                            <div class="p-3 rounded-circle"
+                                style="background-color: rgba(231, 29, 54, 0.1); color: var(--danger);">
+                                <i class="fas fa-spa fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>Wave: <strong
+                                        class="text-dark">{{ number_format($decesWaveMonth, 0, ',', ' ') }}</strong></span>
+                                <span>TrésorPay: <strong
+                                        class="text-dark">{{ number_format($decesTresorpayMonth, 0, ',', ' ') }}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                    if (targetValue > 0) {
-                        let start = 0;
-                        const duration = 1200; // ms
-                        const stepTime = 15;
-                        const steps = duration / stepTime;
-                        const increment = targetValue / steps;
 
-                        const timer = setInterval(() => {
-                            start += increment;
-                            if (start >= targetValue) {
-                                balanceEl.textContent = targetValue.toLocaleString('fr-FR');
-                                clearInterval(timer);
-                            } else {
-                                balanceEl.textContent = Math.floor(start).toLocaleString('fr-FR');
-                            }
-                        }, stepTime);
-                    } else {
-                        balanceEl.textContent = '0';
+
+            <!-- Historique à gauche & Comptabilisation Mensuelle à droite -->
+            <div class="row g-4 animate-up" style="animation-delay: 0.5s;">
+                <!-- Historique unifié des Transactions -->
+                <div class="col-lg-8">
+                    <div class="table-container h-100">
+                        <div class="table-header p-4 d-flex justify-content-between align-items-center"
+                            style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white;">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Historique des paiements</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ route('finance.portefeuille.historique') }}"
+                                    class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 me-2">
+                                    <i class="fas fa-expand me-1"></i> Voir tout l'historique
+                                </a>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 text-center">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="py-3 text-secondary text-center">DATE & HEURE</th>
+                                        <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
+                                        <th class="py-3 text-secondary text-center">MÉTHODE</th>
+                                        <th class="py-3 text-secondary text-center">MONTANT</th>
+                                        <th class="py-3 text-secondary text-center">STATUT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($transactions as $t)
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="p-2 bg-light rounded-3 me-2">
+                                                        <i class="fas fa-calendar-days text-muted"></i>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <span
+                                                            class="fw-bold text-dark d-block">{{ $t->date->format('d M Y') }}</span>
+                                                        <small class="text-muted">{{ $t->date->format('H:i') }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="small fw-bold text-uppercase badge bg-secondary">{{ $t->payment_method ?? 'N/A' }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <span class="fw-bold text-success mb-1">
+                                                        {{ number_format($t->part_timbre, 0, ',', ' ') }} FCFA
+                                                    </span>
+                                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                                        Timbre: {{ number_format($t->part_timbre, 0, ',', ' ') }} | Liv:
+                                                        {{ number_format($t->part_livraison, 0, ',', ' ') }}
+                                                    </small>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge rounded-pill px-3 py-2 badge-credit">
+                                                    <i class="fas fa-circle-check me-1"></i> {{ $t->status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="py-5 text-center">
+                                                <div class="py-4 text-center">
+                                                    <i class="fas fa-receipt fa-3x text-light mb-3"></i>
+                                                    <h5 class="text-muted">Aucun transfert effectué</h5>
+                                                    <p class="text-muted small mb-0">Les transferts vers TrésorPay
+                                                        s'afficheront ici en temps réel au fil des paiements des
+                                                        citoyens.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comptabilisation Mensuelle TrésorPay -->
+                <div class="col-lg-4">
+                    <div class="card stat-card h-100 p-0 overflow-hidden"
+                        style="border: none; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05); border-radius: 15px;">
+                        <div class="p-4" style="background: linear-gradient(120deg, #d4af37, #b8860b); color: black;">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2"></i>Reçu par TrésorPay
+                                ({{ $currentYear }})</h5>
+                            <p class="mb-0 small text-black-50 fw-bold">Comptabilisation mensuelle automatique</p>
+                        </div>
+                        <div class="p-3" style="max-height: 420px; overflow-y: auto;">
+                            <ul class="list-group list-group-flush">
+                                @foreach ($comptabiliteMensuelle as $num => $m)
+                                    <li
+                                        class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 border-bottom border-light">
+                                        <div class="d-flex align-items-center">
+                                            <div class="p-2 bg-light rounded-circle me-3 text-center d-flex align-items-center justify-content-center"
+                                                style="width: 32px; height: 32px;">
+                                                <span class="fw-bold text-muted small"
+                                                    style="font-size: 0.8rem;">{{ str_pad($num, 2, '0', STR_PAD_LEFT) }}</span>
+                                            </div>
+                                            <span class="fw-bold text-dark"
+                                                style="font-size: 0.9rem;">{{ $m['nom'] }}</span>
+                                        </div>
+                                        <span class="badge bg-success-light text-success rounded-pill px-3 py-2 fw-bold"
+                                            style="font-size: 0.85rem; background-color: rgba(46, 196, 182, 0.12);">
+                                            {{ number_format($m['montant'], 0, ',', ' ') }} FCFA
+                                        </span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL INTERACTIF DE REVERSEMENT TRESORPAY -->
+        <div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 rounded-4 shadow">
+                    <div class="modal-header border-0 pb-0"
+                        style="background: linear-gradient(120deg, var(--primary), #0d6efd); color: white; border-radius: 12px 12px 0 0;">
+                        <h5 class="modal-title fw-bold" id="transferModalLabel"><i
+                                class="fas fa-paper-plane me-2"></i>Reversement TrésorPay</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div id="transfer-form-container">
+                            <form id="remittance-form">
+                                <div class="mb-3">
+                                    <label class="form-label text-uppercase text-muted fw-bold small">Montant à
+                                        reverser (FCFA)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i
+                                                class="fas fa-money-bill-wave text-success"></i></span>
+                                        <input type="number" name="montant" id="remittance-amount"
+                                            class="form-control bg-light border-0 py-3 fw-bold text-dark"
+                                            max="{{ $soldePortefeuille }}" min="1"
+                                            value="{{ $soldePortefeuille }}" required>
+                                    </div>
+                                    <div class="form-text text-end">Solde max disponible :
+                                        <strong>{{ number_format($soldePortefeuille, 0, ',', ' ') }} XOF</strong>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label text-uppercase text-muted fw-bold small">Identifiant
+                                        Credential TrésorPay</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i
+                                                class="fas fa-key text-muted"></i></span>
+                                        <input type="text" name="credential_id"
+                                            class="form-control bg-light border-0 py-3" value="gtvB04rzE_wkvb4S2" readonly
+                                            required style="font-family: monospace;">
+                                    </div>
+                                    <div class="form-text">Ce compte partenaire recevra les recettes de timbres de la
+                                        Mairie du Plateau.</div>
+                                </div>
+                                <div class="alert alert-warning border-0 small mb-4">
+                                    <i class="fas fa-triangle-exclamation me-2 text-warning"></i>
+                                    Cette transaction va initier le virement électronique vers le compte bancaire
+                                    public. Cette action est irréversible.
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3"
+                                    id="btn-confirm-remittance">
+                                    <i class="fas fa-vault me-2"></i> Confirmer le virement
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Écran de chargement et succès animé -->
+                        <div id="transfer-loading-container" class="text-center py-5" style="display: none;">
+                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Traitement...</span>
+                            </div>
+                            <h5 class="fw-bold mt-4 text-dark">Connexion sécurisée TrésorPay...</h5>
+                            <p class="text-muted small">Veuillez ne pas fermer cette fenêtre pendant le transfert.</p>
+                        </div>
+
+                        <div id="transfer-success-container" class="text-center py-4" style="display: none;">
+                            <div class="p-3 bg-success-light text-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3"
+                                style="width: 80px; height: 80px; background-color: rgba(46, 196, 182, 0.15);">
+                                <i class="fas fa-circle-check fa-4x animate__animated animate__bounceIn"></i>
+                            </div>
+                            <h4 class="fw-bold text-dark">Transfert Réussi !</h4>
+                            <p class="text-muted small px-3">Les fonds de timbres en ligne ont été reversés avec succès
+                                vers le Trésor Public.</p>
+                            <div class="p-3 bg-light border rounded-3 mb-4 mx-3">
+                                <span class="small text-muted d-block">Montant Transféré</span>
+                                <h3 class="fw-bold text-success mb-0" id="success-transferred-amount">0 FCFA</h3>
+                            </div>
+                            <button type="button" class="btn btn-dark px-4 py-2" data-bs-dismiss="modal"
+                                id="btn-success-close">Fermer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // 1. Animation d'incrémentation progressive du solde
+                const balanceEl = document.getElementById('wallet-balance');
+                const targetValue = parseInt(balanceEl.getAttribute('data-target'), 10);
+
+                if (targetValue > 0) {
+                    let start = 0;
+                    const duration = 1200; // ms
+                    const stepTime = 15;
+                    const steps = duration / stepTime;
+                    const increment = targetValue / steps;
+
+                    const timer = setInterval(() => {
+                        start += increment;
+                        if (start >= targetValue) {
+                            balanceEl.textContent = targetValue.toLocaleString('fr-FR');
+                            clearInterval(timer);
+                        } else {
+                            balanceEl.textContent = Math.floor(start).toLocaleString('fr-FR');
+                        }
+                    }, stepTime);
+                } else {
+                    balanceEl.textContent = '0';
+                }
+
+                // 2. Gestionnaire du Formulaire de Reversement
+                const remittanceForm = document.getElementById('remittance-form');
+                const formContainer = document.getElementById('transfer-form-container');
+                const loadingContainer = document.getElementById('transfer-loading-container');
+                const successContainer = document.getElementById('transfer-success-container');
+
+                remittanceForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const amountInput = document.getElementById('remittance-amount');
+                    const amount = parseFloat(amountInput.value);
+
+                    if (amount <= 0 || isNaN(amount)) {
+                        alert('Veuillez saisir un montant valide.');
+                        return;
                     }
 
-                    // 2. Gestionnaire du Formulaire de Reversement
-                    const remittanceForm = document.getElementById('remittance-form');
-                    const formContainer = document.getElementById('transfer-form-container');
-                    const loadingContainer = document.getElementById('transfer-loading-container');
-                    const successContainer = document.getElementById('transfer-success-container');
+                    // Passer à l'écran de chargement
+                    formContainer.style.display = 'none';
+                    loadingContainer.style.display = 'block';
 
-                    remittanceForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
+                    // Simuler un appel AJAX avec un délai de 2 secondes
+                    const formData = new FormData(remittanceForm);
 
-                        const amountInput = document.getElementById('remittance-amount');
-                        const amount = parseFloat(amountInput.value);
-
-                        if (amount <= 0 || isNaN(amount)) {
-                            alert('Veuillez saisir un montant valide.');
-                            return;
-                        }
-
-                        // Passer à l'écran de chargement
-                        formContainer.style.display = 'none';
-                        loadingContainer.style.display = 'block';
-
-                        // Simuler un appel AJAX avec un délai de 2 secondes
-                        const formData = new FormData(remittanceForm);
-
-                        fetch("{{ route('mairie.portefeuille.reverser') }}", {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                        .getAttribute('content'),
-                                    'Accept': 'application/json'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.status === 'success') {
-                                    setTimeout(() => {
-                                        loadingContainer.style.display = 'none';
-                                        successContainer.style.display = 'block';
-                                        document.getElementById('success-transferred-amount')
-                                            .textContent = amount.toLocaleString('fr-FR') + ' FCFA';
-
-                                        // Déclencher les confettis
-                                        startConfetti();
-                                    }, 1800);
-                                } else {
-                                    alert(data.message || 'Une erreur est survenue.');
-                                    formContainer.style.display = 'block';
+                    fetch("{{ route('mairie.portefeuille.reverser') }}", {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                setTimeout(() => {
                                     loadingContainer.style.display = 'none';
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                alert('Une erreur de réseau est survenue.');
+                                    successContainer.style.display = 'block';
+                                    document.getElementById('success-transferred-amount')
+                                        .textContent = amount.toLocaleString('fr-FR') + ' FCFA';
+
+                                    // Déclencher les confettis
+                                    startConfetti();
+                                }, 1800);
+                            } else {
+                                alert(data.message || 'Une erreur est survenue.');
                                 formContainer.style.display = 'block';
                                 loadingContainer.style.display = 'none';
-                            });
-                    });
-
-                    // Recharger la page à la fermeture du modal succès pour actualiser les soldes
-                    document.getElementById('btn-success-close').addEventListener('click', function() {
-                        window.location.reload();
-                    });
-
-                    document.getElementById('transferModal').addEventListener('hidden.bs.modal', function() {
-                        if (successContainer.style.display === 'block') {
-                            window.location.reload();
-                        }
-                    });
-
-                    // 3. Script d'animation de Confettis Vanilla JS (Sans librairie externe)
-                    const canvas = document.getElementById('confetti-canvas');
-                    const ctx = canvas.getContext('2d');
-                    let pieces = [];
-                    let numberOfPieces = 150;
-                    let active = false;
-
-                    function updateCanvasSize() {
-                        canvas.width = window.innerWidth;
-                        canvas.height = window.innerHeight;
-                    }
-
-                    window.addEventListener('resize', updateCanvasSize);
-
-                    function randomColor() {
-                        const colors = ['#f4a261', '#e76f51', '#2a9d8f', '#e9c46a', '#457b9d', '#e63946', '#8a2be2',
-                            '#ffd700'
-                        ];
-                        return colors[Math.floor(Math.random() * colors.length)];
-                    }
-
-                    class ConfettiPiece {
-                        constructor() {
-                            this.x = Math.random() * canvas.width;
-                            this.y = Math.random() * canvas.height - canvas.height;
-                            this.size = Math.random() * 8 + 6;
-                            this.color = randomColor();
-                            this.speed = Math.random() * 4 + 3;
-                            this.rotation = Math.random() * 360;
-                            this.rotationSpeed = Math.random() * 4 - 2;
-                        }
-
-                        update() {
-                            this.y += this.speed;
-                            this.rotation += this.rotationSpeed;
-                            if (this.y > canvas.height) {
-                                this.y = -20;
-                                this.x = Math.random() * canvas.width;
                             }
-                        }
-
-                        draw() {
-                            ctx.save();
-                            ctx.translate(this.x, this.y);
-                            ctx.rotate(this.rotation * Math.PI / 180);
-                            ctx.fillStyle = this.color;
-                            ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-                            ctx.restore();
-                        }
-                    }
-
-                    function startConfetti() {
-                        updateCanvasSize();
-                        canvas.style.display = 'block';
-                        pieces = [];
-                        for (let i = 0; i < numberOfPieces; i++) {
-                            pieces.push(new ConfettiPiece());
-                        }
-                        active = true;
-                        animateConfetti();
-
-                        // Arrêter automatiquement après 5 secondes
-                        setTimeout(() => {
-                            active = false;
-                            ctx.clearRect(0, 0, canvas.width, canvas.height);
-                            canvas.style.display = 'none';
-                        }, 5000);
-                    }
-
-                    function animateConfetti() {
-                        if (!active) return;
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        pieces.forEach(p => {
-                            p.update();
-                            p.draw();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Une erreur de réseau est survenue.');
+                            formContainer.style.display = 'block';
+                            loadingContainer.style.display = 'none';
                         });
-                        requestAnimationFrame(animateConfetti);
+                });
+
+                // Recharger la page à la fermeture du modal succès pour actualiser les soldes
+                document.getElementById('btn-success-close').addEventListener('click', function() {
+                    window.location.reload();
+                });
+
+                document.getElementById('transferModal').addEventListener('hidden.bs.modal', function() {
+                    if (successContainer.style.display === 'block') {
+                        window.location.reload();
                     }
                 });
-            </script>
-        </div>
-    @endsection
 
+                // 3. Script d'animation de Confettis Vanilla JS (Sans librairie externe)
+                const canvas = document.getElementById('confetti-canvas');
+                const ctx = canvas.getContext('2d');
+                let pieces = [];
+                let numberOfPieces = 150;
+                let active = false;
+
+                function updateCanvasSize() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+
+                window.addEventListener('resize', updateCanvasSize);
+
+                function randomColor() {
+                    const colors = ['#f4a261', '#e76f51', '#2a9d8f', '#e9c46a', '#457b9d', '#e63946', '#8a2be2',
+                        '#ffd700'
+                    ];
+                    return colors[Math.floor(Math.random() * colors.length)];
+                }
+
+                class ConfettiPiece {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height - canvas.height;
+                        this.size = Math.random() * 8 + 6;
+                        this.color = randomColor();
+                        this.speed = Math.random() * 4 + 3;
+                        this.rotation = Math.random() * 360;
+                        this.rotationSpeed = Math.random() * 4 - 2;
+                    }
+
+                    update() {
+                        this.y += this.speed;
+                        this.rotation += this.rotationSpeed;
+                        if (this.y > canvas.height) {
+                            this.y = -20;
+                            this.x = Math.random() * canvas.width;
+                        }
+                    }
+
+                    draw() {
+                        ctx.save();
+                        ctx.translate(this.x, this.y);
+                        ctx.rotate(this.rotation * Math.PI / 180);
+                        ctx.fillStyle = this.color;
+                        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                        ctx.restore();
+                    }
+                }
+
+                function startConfetti() {
+                    updateCanvasSize();
+                    canvas.style.display = 'block';
+                    pieces = [];
+                    for (let i = 0; i < numberOfPieces; i++) {
+                        pieces.push(new ConfettiPiece());
+                    }
+                    active = true;
+                    animateConfetti();
+
+                    // Arrêter automatiquement après 5 secondes
+                    setTimeout(() => {
+                        active = false;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        canvas.style.display = 'none';
+                    }, 5000);
+                }
+
+                function animateConfetti() {
+                    if (!active) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    pieces.forEach(p => {
+                        p.update();
+                        p.draw();
+                    });
+                    requestAnimationFrame(animateConfetti);
+                }
+            });
+        </script>
+    </div>
+@endsection

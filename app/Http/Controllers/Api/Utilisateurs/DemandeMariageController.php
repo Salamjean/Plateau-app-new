@@ -63,7 +63,7 @@ class DemandeMariageController extends Controller
         $validator = Validator::make($request->all(), [
             'qty_simple' => 'nullable|integer|min:0|max:10',
             'qty_integral' => 'nullable|integer|min:0|max:10',
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe',
             'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
             'pieceIdentite' => 'required',
             'extraitMariage' => 'nullable',
@@ -359,6 +359,53 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ];
             }
 
+            // Si c'est Stripe, utiliser Stripe Checkout Session
+            if (strtolower($paymentMethod) === 'stripe') {
+                $secretKey = config('services.stripe.secret_key');
+                if (!$secretKey) {
+                    return [
+                        'success' => false,
+                        'message' => 'Configuration Stripe manquante (STRIPE_SECRET_KEY).'
+                    ];
+                }
+
+                $stripeSuccessUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($transactionReference) . '&type=mariage&provider=stripe';
+                $stripeCancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($transactionReference) . '&type=mariage&provider=stripe';
+
+                $stripe = new \Stripe\StripeClient($secretKey);
+                $session = $stripe->checkout->sessions->create([
+                    'mode' => 'payment',
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'quantity' => 1,
+                        'price_data' => [
+                            'currency' => 'xof',
+                            'unit_amount' => (int) round($totalAmount),
+                            'product_data' => [
+                                'name' => 'Demande extrait de mariage',
+                                'description' => 'Reference: ' . $transactionReference,
+                            ],
+                        ],
+                    ]],
+                    'success_url' => $stripeSuccessUrl,
+                    'cancel_url' => $stripeCancelUrl,
+                    'metadata' => [
+                        'reference' => $transactionReference,
+                        'type' => 'mariage',
+                    ],
+                ]);
+
+                return [
+                    'success' => true,
+                    'payment_url' => $session->url,
+                    'generated_transaction_id' => $transactionReference,
+                    'return_url_deep_link' => $returnUrl,
+                    'cancel_url_deep_link' => $cancelUrl,
+                    'return_url_web_fallback' => $stripeSuccessUrl,
+                    'cancel_url_web_fallback' => $stripeCancelUrl,
+                ];
+            }
+
             // Si c'est MTN, utiliser MTN MoMo API en direct (MtnService)
             if (strtolower($paymentMethod) === 'mtn') {
                 $mtnPhoneNumber = request()->input('mtn_number');
@@ -395,9 +442,9 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     ];
                 }
 
-            // Si c'est TrésorPay, utiliser TresorPayService
+                // Si c'est TrésorPay, utiliser TresorPayService
             }
-            
+
             if (strtolower($paymentMethod) === 'tresorpay') {
                 $tresorPhone = request()->input('mtn_number');
                 $tresorPhone = preg_replace('/[^0-9]/', '', (string)$tresorPhone);
@@ -405,7 +452,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $tresorService = app(\App\Services\TresorPayService::class);
                 $nom = auth()->check() ? auth()->user()->name : 'Client';
                 $prenoms = auth()->check() ? auth()->user()->prenoms : 'Plateau';
-                
+
                 $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $nom, $prenoms);
 
                 if ($response && ($response['success'] ?? false)) {
@@ -428,11 +475,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ];
             }
 
-                return [
-                    'success' => false,
-                    'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
-                    'error_details' => $response
-                ];
+            return [
+                'success' => false,
+                'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
+                'error_details' => $response
+            ];
 
             // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, Moov)
             $channels = 'ALL';
@@ -497,7 +544,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     {
         // 0. Validation de la méthode et du numéro MTN
         $validator = Validator::make($request->all(), [
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe',
             'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
         ], [
             'mtn_number.required_if' => 'Le numéro de paiement est obligatoire lorsque le moyen de paiement choisi est MTN ou TrésorPay.',
@@ -1226,7 +1273,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Règles de livraison si choix_option est livraison
             if ($request->input('choix_option') === 'livraison') {
-                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay';
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe';
                 $rules['montant_timbre'] = 'required|numeric';
                 $rules['montant_livraison'] = 'required|numeric';
                 $rules['nom_destinataire'] = 'required|string|max:255';
@@ -1241,7 +1288,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             if ($request->has('payment_method') || $request->input('choix_option') === 'livraison') {
-                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay';
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe';
                 $rules['mtn_number'] = 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/';
             }
 
@@ -1349,7 +1396,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $rawQuantite = $request->input('quantite', $mariage->quantite);
                 $valQuantite = filter_var($rawQuantite, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 100]]);
                 $mariage->quantite = $valQuantite !== false ? (int) $valQuantite : max(1, (int) $mariage->quantite);
-                
+
                 if ($mariage->type === 'integrale') {
                     $qtyIntegral = $mariage->quantite;
                     $qtySimple = 0;

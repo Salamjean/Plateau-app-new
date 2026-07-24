@@ -324,7 +324,7 @@ class NaissanceController extends Controller
                     return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
                 } elseif (strtolower($paymentMethod) === 'stripe') {
                     try {
-                        $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $transactionReference, $user, $request->getSchemeAndHttpHost());
+                        $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $transactionReference, $user, 'naissance', $request->getSchemeAndHttpHost());
                         return redirect($checkoutUrl);
                     } catch (\Throwable $e) {
                         Log::error('Erreur Stripe (modification naissance) ' . $transactionReference . ': ' . $e->getMessage());
@@ -724,7 +724,7 @@ class NaissanceController extends Controller
                 return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
             } elseif (strtolower($paymentMethod) === 'stripe') {
                 try {
-                    $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $naissance->reference, $user, $request->getSchemeAndHttpHost());
+                    $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $naissance->reference, $user, 'naissance', $request->getSchemeAndHttpHost());
                     return redirect($checkoutUrl);
                 } catch (\Throwable $e) {
                     Log::error('Erreur Stripe (naissance) ' . $naissance->reference . ': ' . $e->getMessage());
@@ -867,7 +867,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         }
     }
 
-    private function createStripeCheckoutUrl(float $amount, string $reference, $user, ?string $baseUrl = null): string
+    private function createStripeCheckoutUrl(float $amount, string $reference, $user, string $type = 'naissance', ?string $baseUrl = null): string
     {
         $secretKey = config('services.stripe.secret_key');
         if (!$secretKey) {
@@ -875,8 +875,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         }
 
         $baseUrl = rtrim($baseUrl ?: config('app.url'), '/');
-        $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($reference) . '&type=naissance&provider=stripe';
-        $cancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($reference) . '&type=naissance&provider=stripe';
+        $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+        $cancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
 
         $stripe = new StripeClient($secretKey);
         $session = $stripe->checkout->sessions->create([

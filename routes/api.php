@@ -61,11 +61,15 @@ Route::prefix('webhooks')->group(function () {
         ->name('api.mtn.notify');
     Route::post('/tresorpay/notify', [\App\Http\Controllers\Api\TresorPayWebhookController::class, 'handle'])
         ->name('api.tresorpay.notify');
+    Route::post('/stripe/notify', [\App\Http\Controllers\Api\Webhook\StripeWebhookController::class, 'handleWebhook'])
+        ->name('api.stripe.notify');
 });
 
-// Alias pour les webhooks Wave selon la configuration de l'utilisateur sur le dashboard Wave
+// Alias pour les webhooks Wave/Stripe selon la configuration
 Route::post('/payments/wave/webhook', [WaveWebhookController::class, 'handleWebhook']);
 Route::post('/wave/webhook', [WaveWebhookController::class, 'handleWebhook']);
+Route::post('/payments/stripe/webhook', [\App\Http\Controllers\Api\Webhook\StripeWebhookController::class, 'handleWebhook']);
+Route::post('/stripe/webhook', [\App\Http\Controllers\Api\Webhook\StripeWebhookController::class, 'handleWebhook']);
 
 // Routes de polling de statut (publiques)
 Route::get('/deces/payment-status/{reference}', [DemandeDecesController::class, 'getPaymentStatus']);
@@ -149,7 +153,7 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::get('/{type}/{id}', [StatistiqueController::class, 'getDemandeSpecifique']);
             Route::get('/{type}/{id}/suivi', [StatistiqueController::class, 'suiviDemande']);
         });
-        
+
         Route::prefix('profil')->group(function () {
             Route::get('/', [UserProfilController::class, 'getProfil']);
             Route::post('/photo', [UserProfilController::class, 'updateProfilePicture']);
@@ -173,14 +177,13 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::get('/statistiques', [StatistiqueController::class, 'statistiquesRendezvousComplet']);
             Route::get('/{id}/details', [StatistiqueController::class, 'getRendezvousDetails']);
         });
-
     }); // Fin groupe utilisateurs
 
     // ... (Routes Livreur)
     Route::prefix('livreur')->middleware('auth:livreurApi')->group(function () {
         // Route de déconnexion
         Route::post('/logout', [LivreurAuthenticateController::class, 'logout']);
-        
+
         Route::prefix('livraisons')->group(function () {
             Route::get('/', [LivraisonController::class, 'listeLivraisons']);
             Route::get('/historique', [LivraisonController::class, 'historiqueLivraisons']);
@@ -188,7 +191,6 @@ Route::middleware(['apiMaintenance', 'auth:sanctum'])->group(function () {
             Route::get('/{type}/{id}', [LivraisonController::class, 'getLivraison']);
             Route::post('/valider', [LivraisonController::class, 'validerLivraison']);
             Route::post('/verifier-reference', [LivraisonController::class, 'checkReference']);
-            
         });
         Route::prefix('profil')->group(function () {
             Route::get('/', [ProfilLivreurController::class, 'getProfil']);
@@ -208,15 +210,15 @@ Route::get('/test-email', function (\Illuminate\Http\Request $request) {
     try {
         \Illuminate\Support\Facades\Mail::raw("Bonjour ! Ceci est un test direct depuis Laravel.\nSi vous recevez ce message, votre configuration SMTP Hostinger fonctionne parfaitement !", function ($message) use ($email) {
             $message->to($email)
-                    ->subject('Test SMTP Plateau App');
+                ->subject('Test SMTP Plateau App');
         });
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'message' => "L'e-mail a été envoyé au serveur SMTP avec succès pour l'adresse : $email. Vérifiez votre boîte de réception et vos spams."
         ]);
     } catch (\Exception $e) {
         return response()->json([
-            'success' => false, 
+            'success' => false,
             'message' => "Erreur lors de l'envoi de l'e-mail.",
             'error' => $e->getMessage()
         ], 500);

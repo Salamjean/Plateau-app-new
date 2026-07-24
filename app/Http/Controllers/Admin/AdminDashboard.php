@@ -45,8 +45,8 @@ class AdminDashboard extends Controller
             $demandesSorties = $modelClass::paye()
                 ->where(function ($q) {
                     $q->where('timbre_recupere', 1)
-                      ->orWhere('statut_livraison', 'livré')
-                      ->orWhere('statut_livraison', 'livre');
+                        ->orWhere('statut_livraison', 'livré')
+                        ->orWhere('statut_livraison', 'livre');
                 })
                 ->get(['quantite', 'qty_simple', 'qty_integral', 'free_timbres_count', 'is_free_request']);
 
@@ -148,12 +148,12 @@ class AdminDashboard extends Controller
                 $dateObj = Carbon::now()->subDays($i);
                 $dateStart = $dateObj->copy()->startOfDay();
                 $dateEnd = $dateObj->copy()->endOfDay();
-                
-                $chartData['livre'][6-$i] += $class::paye()
+
+                $chartData['livre'][6 - $i] += $class::paye()
                     ->where('statut_livraison', 'livré')
                     ->whereBetween('updated_at', [$dateStart, $dateEnd])->count();
-                    
-                $chartData['en_cours'][6-$i] += $class::paye()
+
+                $chartData['en_cours'][6 - $i] += $class::paye()
                     ->where('statut_livraison', 'en cours')
                     ->whereBetween('updated_at', [$dateStart, $dateEnd])->count();
             }
@@ -293,7 +293,7 @@ class AdminDashboard extends Controller
         if ($p->naissance_id) $relation = 'naissance';
         elseif ($p->mariage_id) $relation = 'mariage';
         elseif ($p->deces_id) $relation = 'deces';
-        
+
         if (!$relation || $p->naissance_groupe_id || $p->mariage_groupe_id || $p->deces_groupe_id) {
             return ['timbre' => $partTimbre, 'livraison' => 0.0];
         }
@@ -325,7 +325,7 @@ class AdminDashboard extends Controller
     public function transactions(Request $request)
     {
         \Carbon\Carbon::setLocale('fr');
-        
+
         $selectedMonth = $request->input('month');
         if ($selectedMonth) {
             try {
@@ -347,12 +347,23 @@ class AdminDashboard extends Controller
         $allPayments = \App\Models\Paiement::where('status', 'ACCEPTED')
             ->with(['naissance', 'mariage', 'deces'])
             ->get();
-            
+
         $stats = [
-            'total' => 0, 'timbre' => 0, 'livraison' => 0,
-            'wave_total' => 0, 'wave_timbre' => 0, 'wave_livraison' => 0,
-            'tresor_total' => 0, 'tresor_timbre' => 0, 'tresor_livraison' => 0,
-            'naissance_total' => 0, 'mariage_total' => 0, 'deces_total' => 0
+            'total' => 0,
+            'timbre' => 0,
+            'livraison' => 0,
+            'wave_total' => 0,
+            'wave_timbre' => 0,
+            'wave_livraison' => 0,
+            'tresor_total' => 0,
+            'tresor_timbre' => 0,
+            'tresor_livraison' => 0,
+            'stripe_total' => 0,
+            'stripe_timbre' => 0,
+            'stripe_livraison' => 0,
+            'naissance_total' => 0,
+            'mariage_total' => 0,
+            'deces_total' => 0
         ];
 
         $feed = collect();
@@ -371,7 +382,7 @@ class AdminDashboard extends Controller
         foreach ($allPayments as $p) {
             $parts = $this->getPaymentParts($p);
             $date = \Carbon\Carbon::parse($p->paid_at ?? $p->created_at);
-            
+
             // Si le paiement est dans le mois sélectionné, on met à jour les stats
             if ($date->between($startOfMonth, $endOfMonth)) {
                 $total = (float) $p->montant;
@@ -391,6 +402,10 @@ class AdminDashboard extends Controller
                     $stats['tresor_total'] += $total;
                     $stats['tresor_timbre'] += $t;
                     $stats['tresor_livraison'] += $l;
+                } else if ($operator === 'stripe') {
+                    $stats['stripe_total'] += $total;
+                    $stats['stripe_timbre'] += $t;
+                    $stats['stripe_livraison'] += $l;
                 }
 
                 if ($p->naissance_id || $p->naissance_groupe_id) $stats['naissance_total'] += $total;
@@ -419,7 +434,7 @@ class AdminDashboard extends Controller
         }
 
         $sortedFeed = $feed->sortByDesc('date');
-        
+
         $sortedFeed = $feed->sortByDesc('date');
         $transactions = $sortedFeed->take(6);
         $totalTransactionsCount = $sortedFeed->count();
@@ -437,7 +452,7 @@ class AdminDashboard extends Controller
     public function allTransactions(Request $request)
     {
         \Carbon\Carbon::setLocale('fr');
-        
+
         $selectedMonth = $request->input('month');
         if ($selectedMonth) {
             try {
@@ -456,24 +471,24 @@ class AdminDashboard extends Controller
         }
 
         $query = \App\Models\Paiement::where('status', 'ACCEPTED')->with(['naissance', 'mariage', 'deces']);
-        
+
         if ($startOfMonth && $endOfMonth) {
-            $query->where(function($q) use ($startOfMonth, $endOfMonth) {
+            $query->where(function ($q) use ($startOfMonth, $endOfMonth) {
                 $q->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
-                  ->orWhere(function($subQ) use ($startOfMonth, $endOfMonth) {
-                      $subQ->whereNull('paid_at')
-                           ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
-                  });
+                    ->orWhere(function ($subQ) use ($startOfMonth, $endOfMonth) {
+                        $subQ->whereNull('paid_at')
+                            ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                    });
             });
         }
-        
+
         $allPayments = $query->latest('paid_at')->get();
         $feed = collect();
 
         foreach ($allPayments as $p) {
             $parts = $this->getPaymentParts($p);
             $date = \Carbon\Carbon::parse($p->paid_at ?? $p->created_at);
-            
+
             $feed->push((object)[
                 'date' => $date,
                 'reference' => $p->transaction_id ?? ('TXN-' . str_pad($p->id, 5, '0', STR_PAD_LEFT)),
@@ -488,7 +503,7 @@ class AdminDashboard extends Controller
         }
 
         $sortedFeed = $feed->sortByDesc('date');
-        
+
         $page = $request->input('page', 1);
         $perPage = 20;
         $transactions = new \Illuminate\Pagination\LengthAwarePaginator(

@@ -70,9 +70,9 @@
         <div class="space-y-3">
             @php
                 $listUrl = match ($type) {
-                    'naissance' => url('/user/extract/index'),
-                    'mariage' => url('/user/wedding/index'),
-                    'deces' => url('/user/extract/death/index'),
+                    'naissance', 'naissance_groupe' => url('/user/extract/index'),
+                    'mariage', 'mariage_groupe' => url('/user/wedding/index'),
+                    'deces', 'deces_groupe' => url('/user/extract/death/index'),
                     default => url('/user/dashboard'),
                 };
             @endphp

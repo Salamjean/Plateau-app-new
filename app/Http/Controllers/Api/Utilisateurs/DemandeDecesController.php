@@ -81,7 +81,7 @@ class DemandeDecesController extends Controller
             'choix_option' => 'required|in:retrait,livraison',
             'communeD' => 'nullable|string|max:255',
             'commune_deces' => 'required|string|max:255',
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe',
             'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
             'pour' => 'nullable|string|max:255',
             'relation' => 'nullable|string|in:enfant,parent,connaissance',
@@ -378,6 +378,53 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ];
             }
 
+            // Si c'est Stripe, utiliser Stripe Checkout Session
+            if (strtolower($paymentMethod) === 'stripe') {
+                $secretKey = config('services.stripe.secret_key');
+                if (!$secretKey) {
+                    return [
+                        'success' => false,
+                        'message' => 'Configuration Stripe manquante (STRIPE_SECRET_KEY).'
+                    ];
+                }
+
+                $stripeSuccessUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($transactionReference) . '&type=deces&provider=stripe';
+                $stripeCancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($transactionReference) . '&type=deces&provider=stripe';
+
+                $stripe = new \Stripe\StripeClient($secretKey);
+                $session = $stripe->checkout->sessions->create([
+                    'mode' => 'payment',
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'quantity' => 1,
+                        'price_data' => [
+                            'currency' => 'xof',
+                            'unit_amount' => (int) round($totalAmount),
+                            'product_data' => [
+                                'name' => 'Demande extrait de décès',
+                                'description' => 'Reference: ' . $transactionReference,
+                            ],
+                        ],
+                    ]],
+                    'success_url' => $stripeSuccessUrl,
+                    'cancel_url' => $stripeCancelUrl,
+                    'metadata' => [
+                        'reference' => $transactionReference,
+                        'type' => 'deces',
+                    ],
+                ]);
+
+                return [
+                    'success' => true,
+                    'payment_url' => $session->url,
+                    'generated_transaction_id' => $transactionReference,
+                    'return_url_deep_link' => $returnUrl,
+                    'cancel_url_deep_link' => $cancelUrl,
+                    'return_url_web_fallback' => $stripeSuccessUrl,
+                    'cancel_url_web_fallback' => $stripeCancelUrl,
+                ];
+            }
+
             // Si c'est MTN, utiliser MTN MoMo API en direct (MtnService)
             if (strtolower($paymentMethod) === 'mtn') {
                 $mtnPhoneNumber = request()->input('mtn_number');
@@ -414,7 +461,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     ];
                 }
 
-            // Si c'est TrésorPay, utiliser TresorPayService
+                // Si c'est TrésorPay, utiliser TresorPayService
             }
             if (strtolower($paymentMethod) === 'tresorpay') {
                 $tresorPhone = request()->input('mtn_number');
@@ -423,7 +470,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $tresorService = app(\App\Services\TresorPayService::class);
                 $nom = auth()->check() ? auth()->user()->name : 'Client';
                 $prenoms = auth()->check() ? auth()->user()->prenoms : 'Plateau';
-                
+
                 $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $nom, $prenoms);
 
                 if ($response && ($response['success'] ?? false)) {
@@ -446,11 +493,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ];
             }
 
-                return [
-                    'success' => false,
-                    'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
-                    'error_details' => $response
-                ];
+            return [
+                'success' => false,
+                'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
+                'error_details' => $response
+            ];
 
             // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, Moov)
             $channels = 'ALL';
@@ -515,7 +562,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     {
         // 0. Validation de la méthode et du numéro MTN
         $validator = Validator::make($request->all(), [
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe',
             'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
         ], [
             'mtn_number.required_if' => 'Le numéro de paiement est obligatoire lorsque le moyen de paiement choisi est MTN ou TrésorPay.',
@@ -1228,7 +1275,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Règles de livraison si choix_option est livraison
             if ($request->input('choix_option') === 'livraison') {
-                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay';
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe';
                 $rules['montant_timbre'] = 'required|numeric';
                 $rules['montant_livraison'] = 'required|numeric';
                 $rules['nom_destinataire'] = 'required|string|max:255';
@@ -1243,7 +1290,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             if ($request->has('payment_method') || $request->input('choix_option') === 'livraison') {
-                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay';
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe';
                 $rules['mtn_number'] = 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/';
             }
 
@@ -1369,7 +1416,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'options' => ['min_range' => 1, 'max_range' => 100]
                 ]);
                 $deces->quantite = $validatedQuantite !== false ? $validatedQuantite : max(1, (int)$deces->quantite);
-                
+
                 if ($deces->type === 'integrale') {
                     $deces->qty_integral = $deces->quantite;
                     $deces->qty_simple = 0;
