@@ -345,7 +345,7 @@
                 <div class="stat-box stripe-box">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="stat-title"><i class="fab fa-stripe fs-5 me-2"
-                                style="color: var(--stripe-color);"></i>Via Stripe</div>
+                                style="color: var(--stripe-color);"></i>Via Carte de crédit</div>
                         <i class="fab fa-stripe fs-3" style="color: var(--stripe-color);"></i>
                     </div>
                     <div class="stat-value">{{ number_format($stats['stripe_total'], 0, ',', ' ') }} <span

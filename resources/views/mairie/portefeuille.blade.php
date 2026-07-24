@@ -498,7 +498,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-4">
                                 <div class="stripe-card-header">
                                     <i class="fab fa-stripe fs-3 text-white"></i>
-                                    <span class="fw-bold tracking-wider small mb-0">PAIEMENTS STRIPE</span>
+                                    <span class="fw-bold tracking-wider small mb-0">PAIEMENTS CARTE DE CRÉDIT</span>
                                 </div>
                                 <form method="GET" action="" class="m-0">
                                     <div class="bg-white rounded-pill shadow-sm d-flex align-items-center px-3 py-1">

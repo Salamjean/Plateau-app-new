@@ -1770,7 +1770,7 @@
                                                         <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
                                                     </button>
                                                     <button type="button" id="btn-pay-stripe" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('stripe')">
-                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">STRIPE</span>
+                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">Carte de crédit</span>
                                                     </button>
                                                     <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
                                                         <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
@@ -2206,7 +2206,7 @@
                                                         <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
                                                     </button>
                                                     <button type="button" id="btn-pay-stripe" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('stripe')">
-                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">STRIPE</span>
+                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">Carte de crédit</span>
                                                     </button>
                                                     <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
                                                         <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
