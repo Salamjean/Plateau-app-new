@@ -105,7 +105,8 @@ class FinanceTimbreController extends Controller
     public function history(){
         // Récupérer tout l'historique avec les relations et trié par date
         $historique = Timbre::with([
-                'finance:id,name_respo'
+                'finance:id,name_respo',
+                'comptable:id,name,prenom'
             ])
             ->orderBy('created_at', 'desc')
             ->paginate(20);

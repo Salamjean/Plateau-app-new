@@ -166,7 +166,7 @@
                             Affichage de {{ $ventes->firstItem() }} à {{ $ventes->lastItem() }} sur {{ $ventes->total() }} résultats
                         </div>
                         <div class="pagination-links">
-                            {{ $ventes->appends(request()->query())->links('pagination.custom') }}
+                            {{ $ventes->appends(request()->query())->links('components.custom-pagination') }}
                         </div>
                     </div>
                     @endif
