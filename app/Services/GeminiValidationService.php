@@ -12,7 +12,7 @@ class GeminiValidationService
     public function __construct()
     {
         // On récupère la clé de l'environnement ou on utilise celle fournie par défaut
-        $this->apiKey = env('GEMINI_API_KEY', 'AIzaSyBQzE-YBkvleaQekhK3NA1N8t7aMdmaZcw');
+        $this->apiKey = env('GEMINI_API_KEY');
     }
 
     /**
