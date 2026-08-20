@@ -130,7 +130,7 @@ class LivraisonExtraitController extends Controller
             $demandes = $demandes->merge($demandesModele);
         }
 
-        $livreurs = Livreur::where('disponible','1')->get();
+        $livreurs = Livreur::where('disponible', '1')->whereNull('archived_at')->get();
         
         // Trier par date de création (les plus récentes en premier)
         $demandes = $demandes->sortBy('created_at');

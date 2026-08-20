@@ -30,7 +30,6 @@ class DeliveryController extends Controller
                 }
             ])
             ->whereNull('archived_at')
-            ->where('disponible',true)
             ->get()
             ->map(function ($livreur) {
                 // Calcul du total des livraisons pour tous les modèles
@@ -47,6 +46,12 @@ class DeliveryController extends Controller
                 
                 // Calcul du solde disponible (montant total - versements)
                 $livreur->solde_disponible = $livreur->montant_total - ($livreur->total_versements ?? 0);
+                
+                // Alias pour les propriétés utilisées dans la vue index.blade.php
+                $livreur->nom = $livreur->name;
+                $livreur->telephone = $livreur->contact;
+                $livreur->ville = $livreur->communeM;
+                $livreur->solde = $livreur->solde_disponible;
                 
                 return $livreur;
             });
