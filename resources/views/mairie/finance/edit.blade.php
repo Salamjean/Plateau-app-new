@@ -62,7 +62,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-envelope" style="color:#1f4083"></i></span>
                                         <input type="email" class="form-control rounded-end" id="email" name="email" 
-                                               value="{{ old('email', $etatCivil->email) }}" readonly 
+                                               value="{{ old('email', $etatCivil->email) }}" 
                                                placeholder="adresse@exemple.com">
                                     </div>
                                     <div class="form-text">Un lien de confirmation sera envoyé à cette adresse</div>

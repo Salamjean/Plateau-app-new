@@ -1003,7 +1003,7 @@
 
                         <!-- Ligne 1: Identité et Lieu -->
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="input-group-custom">
                                     <label>Nom :</label>
                                     <div class="input-wrapper">
@@ -1014,7 +1014,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="input-group-custom">
                                     <label>Prénoms :</label>
                                     <div class="input-wrapper">
@@ -1025,7 +1025,19 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group-custom">
+                                    <label>Date de naissance :</label>
+                                    <div class="input-wrapper">
+                                        <input type="date" id="date_naissance" name="date_naissance"
+                                            class="form-control-custom"
+                                            value="{{ old('date_naissance', isset($naissance) && $naissance->date_naissance ? \Carbon\Carbon::parse($naissance->date_naissance)->format('Y-m-d') : '') }}"
+                                            onclick="this.showPicker()">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
                                 <div class="input-group-custom">
                                     <label>Lieu de naissance :</label>
                                     <div class="input-wrapper">
@@ -1898,35 +1910,35 @@
 
                         <div id="payment-section-container">
                             ${!needsPayment ? `
-                                        <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
-                                            <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
-                                            <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
-                                            La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
-                                        </div>
-                                        <input type="hidden" id="swal-payment_method" value="deja_paye">
-                                        <input type="hidden" id="swal-mtn_number" value="">
-                                    ` : `
-                                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Moyen de paiement</h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                            <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
-                                                <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                        </div>
-                                        <input type="hidden" id="swal-payment_method" value="wave">
-                                        <div id="payment-phone-container" style="display: none; margin-top: 10px;">
-                                            <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN à débiter</label>
-                                            <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="05XXXXXXXX (10 chiffres)" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
-                                        </div>
-                                    `}
+                                                <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
+                                                    <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
+                                                    <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
+                                                    La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
+                                                </div>
+                                                <input type="hidden" id="swal-payment_method" value="deja_paye">
+                                                <input type="hidden" id="swal-mtn_number" value="">
+                                            ` : `
+                                                <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Moyen de paiement</h4>
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+                                                    <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-stripe" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('stripe')">
+                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">Carte de crédit</span>
+                                                    </button>
+                                                    <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
+                                                        <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
+                                                        <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                </div>
+                                                <input type="hidden" id="swal-payment_method" value="wave">
+                                                <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro MTN à débiter</label>
+                                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="05XXXXXXXX (10 chiffres)" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                                </div>
+                                            `}
                         </div>
                     </div>
                 `,
@@ -1951,8 +1963,17 @@
                         }
                     }
 
+                    if (payment_method === 'tresorpay') {
+                        if (!payment_number || payment_number.length !== 10) {
+                            Swal.showValidationMessage(
+                                'Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.'
+                            );
+                            return false;
+                        }
+                    }
+
                     if (needsPayment) {
-                        if (payment_method === 'wave') {
+                        if (payment_method === 'wave' || payment_method === 'stripe') {
                             window.PaymentPopup = window.open('', 'PaymentPopup');
                         }
                     }
@@ -1973,7 +1994,8 @@
                         montant_timbre: needsPayment ? window.retraitData.montantTimbreTotal : 0,
                         montant_livraison: 0,
                         payment_method: payment_method,
-                        mtn_number: payment_method === 'mtn' ? payment_number : '',
+                        mtn_number: (payment_method === 'mtn' || payment_method === 'tresorpay') ?
+                            payment_number : '',
                         wave_number: ''
                     };
                 }
@@ -2042,7 +2064,8 @@
                                 if (!document.getElementById('mtn-spin-style')) {
                                     const style = document.createElement('style');
                                     style.id = 'mtn-spin-style';
-                                    style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                                    style.innerHTML =
+                                        `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
                                     document.head.appendChild(style);
                                 }
                             }
@@ -2051,35 +2074,39 @@
                         formSubmitted = true;
                         const formPayload = new FormData(form);
                         fetch(form.action, {
-                            method: 'POST',
-                            body: formPayload,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            }
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(err => { throw err; });
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success && data.reference && data.mtn_ref) {
-                                startMtnPaymentPolling(data.reference, data.mtn_ref, 'naissance');
-                            } else {
-                                throw new Error(data.message || 'Erreur lors de l\'initialisation du paiement.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Erreur MTN:', error);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Erreur',
-                                text: error.message || 'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
-                                confirmButtonColor: '#1f4083'
+                                method: 'POST',
+                                body: formPayload,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    return response.json().then(err => {
+                                        throw err;
+                                    });
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success && data.reference && data.mtn_ref) {
+                                    startMtnPaymentPolling(data.reference, data.mtn_ref, 'naissance');
+                                } else {
+                                    throw new Error(data.message ||
+                                        'Erreur lors de l\'initialisation du paiement.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Erreur MTN:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erreur',
+                                    text: error.message ||
+                                        'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
+                                    confirmButtonColor: '#1f4083'
+                                });
                             });
-                        });
                         return;
                     }
 
@@ -2090,7 +2117,7 @@
                             form.target = '_blank';
                         }
 
-                        if (formData.payment_method === 'wave') {
+                        if (formData.payment_method === 'wave' || formData.payment_method === 'stripe') {
                             Swal.fire({
                                 title: 'Paiement en cours',
                                 html: 'VSuite de paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
@@ -2102,25 +2129,31 @@
                             });
 
                             const timer = setInterval(() => {
-                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                if (window.paymentSuccess) {
                                     clearInterval(timer);
                                     Swal.close();
-                                    if (window.paymentSuccess) {
-                                        window.location.href = window.paymentSuccessUrl ||
+                                    window.location.href = window.paymentSuccessUrl ||
+                                        "{{ route('user.extrait.index') }}";
+                                    return;
+                                }
+
+                                try {
+                                    var result = JSON.parse(localStorage.getItem('plateauPaymentResult') ||
+                                        '{}');
+                                    var age = Date.now() - (result.timestamp || 0);
+                                    if (result.status === 'success' && age < 120000) {
+                                        clearInterval(timer);
+                                        Swal.close();
+                                        localStorage.removeItem('plateauPaymentResult');
+                                        window.location.href = result.listUrl ||
                                             "{{ route('user.extrait.index') }}";
                                         return;
                                     }
-                                    try {
-                                        var result = JSON.parse(localStorage.getItem(
-                                            'plateauPaymentResult') || '{}');
-                                        var age = Date.now() - (result.timestamp || 0);
-                                        if (result.status === 'success' && age < 120000) {
-                                            localStorage.removeItem('plateauPaymentResult');
-                                            window.location.href = result.listUrl ||
-                                                "{{ route('user.extrait.index') }}";
-                                            return;
-                                        }
-                                    } catch (e) {}
+                                } catch (e) {}
+
+                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                    clearInterval(timer);
+                                    Swal.close();
                                     window.location.reload();
                                 }
                             }, 1000);
@@ -2335,35 +2368,35 @@
 
                     <div id="payment-section-container">
                         ${!needsPayment ? `
-                                        <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
-                                            <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
-                                            <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
-                                            La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
-                                        </div>
-                                        <input type="hidden" id="swal-payment_method" value="deja_paye">
-                                        <input type="hidden" id="swal-mtn_number" value="">
-                                    ` : `
-                                        <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                            <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
-                                                <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-orange" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange Money" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
-                                                <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                            <button type="button" id="btn-pay-moov" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
-                                                <img src="{{ asset('assets/assets/img/Moov.png') }}" alt="Moov" style="height: 30px; object-fit: contain;">
-                                            </button>
-                                        </div>
-                                        <input type="hidden" id="swal-payment_method" value="wave">
-                                        <div id="payment-phone-container" style="display: block; margin-top: 10px;">
-                                            <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                                            <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
-                                        </div>
-                                    `}
+                                                <div style="background: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 12px; color: #234e52; text-align: center; font-size: 0.85rem; font-weight: 600;">
+                                                    <i class="fas fa-check-circle" style="color: #319795; margin-right: 5px; font-size: 1.2rem;"></i><br>
+                                                    <span style="font-size: 0.95rem; display: block; margin-top: 5px;">Modification Gratuite</span>
+                                                    La demande a déjà été réglée lors de la soumission initiale. Aucun frais supplémentaire n'est requis.
+                                                </div>
+                                                <input type="hidden" id="swal-payment_method" value="deja_paye">
+                                                <input type="hidden" id="swal-mtn_number" value="">
+                                            ` : `
+                                                <h4 style="font-size: 0.9rem; font-weight: bold; color: #1f4083; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">💳 Paiement</h4>
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+                                                    <button type="button" id="btn-pay-wave" class="payment-method-btn active-payment" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('wave')">
+                                                        <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-stripe" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('stripe')">
+                                                        <span style="font-size: 0.78rem; font-weight: 700; color: #635bff;">Carte de crédit</span>
+                                                    </button>
+                                                    <button type="button" id="btn-pay-tresorpay" class="payment-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="selectPaymentMethod('tresorpay')">
+                                                        <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                    <button type="button" id="btn-pay-mtn" class="payment-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 8px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
+                                                        <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 30px; object-fit: contain;">
+                                                    </button>
+                                                </div>
+                                                <input type="hidden" id="swal-payment_method" value="wave">
+                                                <div id="payment-phone-container" style="display: none; margin-top: 10px;">
+                                                    <label id="payment-phone-label" style="display: block; font-size: 0.7rem; font-weight: 700; color: #555; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
+                                                    <input id="swal-mtn_number" class="swal2-input" style="width: 100%; margin: 0; padding: 6px 10px; height: 35px; font-size: 0.85rem; border-radius: 6px;" placeholder="Entrez votre numéro" value="" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                                                </div>
+                                            `}
                     </div>
                 </div>
             </div>
@@ -2464,8 +2497,17 @@
                         }
                     }
 
+                    if (payment_method === 'tresorpay') {
+                        if (!payment_number || payment_number.length !== 10) {
+                            Swal.showValidationMessage(
+                                'Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.'
+                            );
+                            return false;
+                        }
+                    }
+
                     if (needsPayment) {
-                        if (payment_method === 'wave') {
+                        if (payment_method === 'wave' || payment_method === 'stripe') {
                             window.PaymentPopup = window.open('', 'PaymentPopup');
                         }
                     }
@@ -2486,7 +2528,8 @@
                         montant_timbre: needsPayment ? window.livraisonData.montantTimbreTotal : 0,
                         montant_livraison: needsPayment ? window.livraisonData.montantLivraison : 0,
                         payment_method: payment_method,
-                        mtn_number: payment_method === 'mtn' ? payment_number : '',
+                        mtn_number: (payment_method === 'mtn' || payment_method === 'tresorpay') ?
+                            payment_number : '',
                         wave_number: ''
                     };
                 }
@@ -2593,7 +2636,8 @@
                                 if (!document.getElementById('mtn-spin-style')) {
                                     const style = document.createElement('style');
                                     style.id = 'mtn-spin-style';
-                                    style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                                    style.innerHTML =
+                                        `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
                                     document.head.appendChild(style);
                                 }
                             }
@@ -2602,35 +2646,39 @@
                         formSubmitted = true;
                         const formPayload = new FormData(form);
                         fetch(form.action, {
-                            method: 'POST',
-                            body: formPayload,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            }
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(err => { throw err; });
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success && data.reference && data.mtn_ref) {
-                                startMtnPaymentPolling(data.reference, data.mtn_ref, 'naissance');
-                            } else {
-                                throw new Error(data.message || 'Erreur lors de l\'initialisation du paiement.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Erreur MTN:', error);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Erreur',
-                                text: error.message || 'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
-                                confirmButtonColor: '#1f4083'
+                                method: 'POST',
+                                body: formPayload,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    return response.json().then(err => {
+                                        throw err;
+                                    });
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success && data.reference && data.mtn_ref) {
+                                    startMtnPaymentPolling(data.reference, data.mtn_ref, 'naissance');
+                                } else {
+                                    throw new Error(data.message ||
+                                        'Erreur lors de l\'initialisation du paiement.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Erreur MTN:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erreur',
+                                    text: error.message ||
+                                        'Une erreur est survenue lors de l\'initialisation du paiement MTN. Veuillez réessayer.',
+                                    confirmButtonColor: '#1f4083'
+                                });
                             });
-                        });
                         return;
                     }
 
@@ -2641,7 +2689,7 @@
                             form.target = '_blank';
                         }
 
-                        if (formData.payment_method === 'wave') {
+                        if (formData.payment_method === 'wave' || formData.payment_method === 'stripe') {
                             Swal.fire({
                                 title: 'Paiement en cours',
                                 html: 'Veuillez finaliser le paiement dans le <b>nouvel onglet</b> qui vient de s\'ouvrir.<br><br><span style="color:#555;font-size:0.9rem;">La page s\'actualisera automatiquement dès que le paiement sera confirmé.</span>',
@@ -2653,28 +2701,31 @@
                             });
 
                             const timer = setInterval(() => {
-                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                if (window.paymentSuccess) {
                                     clearInterval(timer);
                                     Swal.close();
-                                    // Vérifier d'abord window.paymentSuccess (opener accessible)
-                                    if (window.paymentSuccess) {
-                                        window.location.href = window.paymentSuccessUrl ||
+                                    window.location.href = window.paymentSuccessUrl ||
+                                        "{{ route('user.extrait.index') }}";
+                                    return;
+                                }
+
+                                try {
+                                    var result = JSON.parse(localStorage.getItem('plateauPaymentResult') ||
+                                        '{}');
+                                    var age = Date.now() - (result.timestamp || 0);
+                                    if (result.status === 'success' && age < 120000) {
+                                        clearInterval(timer);
+                                        Swal.close();
+                                        localStorage.removeItem('plateauPaymentResult');
+                                        window.location.href = result.listUrl ||
                                             "{{ route('user.extrait.index') }}";
                                         return;
                                     }
-                                    // Fallback : lire localStorage (cas où COOP a rompu window.opener)
-                                    try {
-                                        var result = JSON.parse(localStorage.getItem(
-                                                'plateauPaymentResult') ||
-                                            '{}');
-                                        var age = Date.now() - (result.timestamp || 0);
-                                        if (result.status === 'success' && age < 120000) {
-                                            localStorage.removeItem('plateauPaymentResult');
-                                            window.location.href = result.listUrl ||
-                                                "{{ route('user.extrait.index') }}";
-                                            return;
-                                        }
-                                    } catch (e) {}
+                                } catch (e) {}
+
+                                if (window.PaymentPopup && window.PaymentPopup.closed) {
+                                    clearInterval(timer);
+                                    Swal.close();
                                     // Paiement annulé ou inconnu : recharger le formulaire
                                     window.location.reload();
                                 }
@@ -2716,7 +2767,7 @@
 
         // Fonction pour sélectionner la méthode de paiement
         function selectPaymentMethod(method) {
-            if (method !== 'wave' && method !== 'mtn') return;
+            if (method !== 'wave' && method !== 'stripe' && method !== 'mtn' && method !== 'tresorpay') return;
 
             // Réinitialiser tous les boutons
             document.querySelectorAll('.payment-method-btn').forEach(btn => {
@@ -2732,6 +2783,15 @@
                 activeBtn.style.border = '2px solid #1e3a8a';
                 activeBtn.style.backgroundColor = '#eff6ff';
                 document.getElementById('payment-phone-container').style.display = 'none';
+            } else if (method === 'stripe') {
+                activeBtn.style.border = '2px solid #635bff';
+                activeBtn.style.backgroundColor = '#f5f3ff';
+                document.getElementById('payment-phone-container').style.display = 'none';
+            } else if (method === 'tresorpay') {
+                activeBtn.style.border = '2px solid #e35205';
+                activeBtn.style.backgroundColor = '#fff5f0';
+                document.getElementById('payment-phone-container').style.display = 'block';
+                document.getElementById('payment-phone-label').innerText = 'Numéro TrésorMoney (ex: 0767664010)';
             } else if (method === 'mtn') {
                 activeBtn.style.border = '2px solid #fcb711'; // MTN Yellow
                 activeBtn.style.backgroundColor = '#fffbed';
@@ -2745,54 +2805,57 @@
 
         // Fonction de polling pour paiement MTN
         function startMtnPaymentPolling(reference, mtnRef, type) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]') ? 
-                document.querySelector('meta[name="csrf-token"]').getAttribute('content') : 
-                (document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value : '');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]') ?
+                document.querySelector('meta[name="csrf-token"]').getAttribute('content') :
+                (document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value :
+                    '');
 
             const checkStatus = () => {
-                fetch('{{ route("user.payment.mtn.check") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    },
-                    body: JSON.stringify({
-                        reference: reference,
-                        type: type,
-                        mtn_ref: mtnRef
+                fetch('{{ route('user.payment.mtn.check') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            reference: reference,
+                            type: type,
+                            mtn_ref: mtnRef
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'SUCCESSFUL') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Paiement Réussi',
-                            text: 'Votre paiement a été validé avec succès.',
-                            confirmButtonColor: '#1f4083',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = data.redirect || "{{ route('user.extrait.index') }}";
-                        });
-                    } else if (data.status === 'FAILED') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Échec du paiement',
-                            text: data.message || 'Le paiement a échoué ou a été annulé.',
-                            confirmButtonColor: '#1f4083',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = data.redirect || "{{ route('user.extrait.index') }}";
-                        });
-                    } else {
-                        // Si toujours PENDING, on continue le polling
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'SUCCESSFUL') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Paiement Réussi',
+                                text: 'Votre paiement a été validé avec succès.',
+                                confirmButtonColor: '#1f4083',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                window.location.href = data.redirect ||
+                                    "{{ route('user.extrait.index') }}";
+                            });
+                        } else if (data.status === 'FAILED') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Échec du paiement',
+                                text: data.message || 'Le paiement a échoué ou a été annulé.',
+                                confirmButtonColor: '#1f4083',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                window.location.href = data.redirect ||
+                                    "{{ route('user.extrait.index') }}";
+                            });
+                        } else {
+                            // Si toujours PENDING, on continue le polling
+                            setTimeout(checkStatus, 4000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur de vérification:', error);
                         setTimeout(checkStatus, 4000);
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur de vérification:', error);
-                    setTimeout(checkStatus, 4000);
-                });
+                    });
             };
 
             // Démarrer la vérification dans 4 secondes

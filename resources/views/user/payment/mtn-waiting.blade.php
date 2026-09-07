@@ -91,7 +91,11 @@
             .then(data => {
                 if (data.status === 'SUCCESSFUL' || data.status === 'FAILED') {
                     if (data.redirect) {
-                        window.location.href = data.redirect;
+                        if (typeof data.redirect === 'string' && data.redirect.startsWith('/') && !data.redirect.startsWith('//')) {
+                            window.location.href = data.redirect;
+                        } else {
+                            console.error('Redirection non autorisée : domaine externe ou URL invalide.');
+                        }
                     }
                 } else {
                     // Si toujours PENDING ou erreur, on réessaie dans 5 secondes

@@ -204,7 +204,7 @@
                     <i class="material-icons">location_on</i>
                     <div class="info-content">
                         <span class="info-label">Lieu de livraison</span>
-                        <span class="info-value">{{ $demande->commune_livraison }}, {{ $demande->quartier }}</span>
+                        <span class="info-value">{{  $demande->adresse_livraison  }}</span>
                     </div>
                 </div>
 

@@ -555,20 +555,17 @@
             // Si la demande n'a pas d'agent assigné et n'a pas de champs spécifiques à modifier définis par l'IA (peut_modifier est faux)
             // On permet de modifier tous les champs principaux.
             if (!demande.agent_id && !demande.peut_modifier) {
-                champsAModifier = ['name', 'prenom', 'number', 'DateR', 'type', 'quantite', 'CNI', 'commune'];
-            }
-
-            // On s'assure que la quantité est toujours sélectionnable/modifiable pour calculer la différence
-            if (!champsAModifier.includes('quantite')) {
-                champsAModifier.push('quantite');
+                champsAModifier = ['name', 'prenom', 'date_naissance', 'number', 'DateR', 'type', 'quantite', 'CNI', 'commune', 'commune_naissance'];
             }
 
             const fieldLabels = {
                 'name': 'Nom',
                 'prenom': 'Prénoms',
+                'date_naissance': 'Date de naissance',
                 'number': 'Numéro de registre',
                 'DateR': 'Date de registre',
                 'commune': 'Commune',
+                'commune_naissance': 'Commune de naissance',
                 'CNI': 'Pièce d\'identité',
                 'type': 'Type',
                 'quantite': 'Quantité'
@@ -601,7 +598,7 @@
             champsAModifier.forEach(field => {
                 const label = fieldLabels[field] || field;
                 let val = demande[field] || '';
-                if (field === 'DateR' && val) val = new Date(val).toISOString().split('T')[0];
+                if ((field === 'DateR' || field === 'date_naissance') && val) val = new Date(val).toISOString().split('T')[0];
 
                 formHtml += `<div class="mb-3">
                     <label class="form-label fw-bold small text-uppercase">${label}</label>`;
@@ -612,7 +609,7 @@
                 } else if (field === 'CNI') {
                     formHtml +=
                         `<input type="file" name="${field}" class="form-control" accept=".jpg,.jpeg,.png,.pdf">`;
-                } else if (field === 'DateR') {
+                } else if (field === 'DateR' || field === 'date_naissance') {
                     formHtml += `<input type="date" name="${field}" class="form-control" value="${val}">`;
                 } else {
                     formHtml +=
@@ -623,7 +620,7 @@
 
             // Ajouter les champs non modifiés en tant que champs cachés pour éviter qu'ils soient écrasés ou qu'ils échouent la validation
             const allPossibleFields = [
-                'pour', 'type', 'name', 'prenom', 'commune', 'commune_naissance',
+                'pour', 'type', 'name', 'prenom', 'date_naissance', 'commune', 'commune_naissance',
                 'number', 'DateR', 'nom_prenoms_pere', 'nom_prenoms_mere',
                 'relation', 'qty_simple', 'qty_integral', 'quantite', 'choix_option'
             ];
@@ -637,7 +634,7 @@
                             'qty_integral'))) return;
 
                     let val = demande[field] !== null && demande[field] !== undefined ? demande[field] : '';
-                    if (field === 'DateR' && val) val = new Date(val).toISOString().split('T')[0];
+                    if ((field === 'DateR' || field === 'date_naissance') && val) val = new Date(val).toISOString().split('T')[0];
                     formHtml += `<input type="hidden" name="${field}" value="${val}">`;
                 }
             });
@@ -652,18 +649,24 @@
                 </div>
                 
                 <h5 style="font-size: 0.85rem; font-weight: bold; color: #1f4083; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">💳 Moyen de paiement</h5>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
                     <button type="button" id="btn-mod-pay-wave" class="payment-mod-method-btn" style="background: #eff6ff; border: 2px solid #1e3a8a; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
                         <img src="{{ asset('assets/assets/img/Wave.png') }}" alt="Wave" style="height: 25px; object-fit: contain;">
                     </button>
+                    <button type="button" id="btn-mod-pay-tresorpay" class="payment-mod-method-btn" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" style="height: 25px; object-fit: contain;">
+                    </button>
                     <button type="button" id="btn-mod-pay-mtn" class="payment-mod-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Indisponible">
                         <img src="{{ asset('assets/assets/img/MTN.png') }}" alt="MTN" style="height: 25px; object-fit: contain;">
+                    </button>
+                    <button type="button" id="btn-mod-pay-orange" class="payment-mod-method-btn opacity-50" style="background: white; border: 1px solid #edf2f7; border-radius: 8px; padding: 6px; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 5px;" disabled title="Bientôt disponible">
+                        <img src="{{ asset('assets/assets/img/Orange.png') }}" alt="Orange" style="height: 25px; object-fit: contain;">
                     </button>
                 </div>
                 <input type="hidden" name="payment_method" id="mod-payment_method" value="wave">
                 <div id="mod-payment-phone-container" style="display: block; margin-top: 8px; text-align: left;">
                     <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #4a5568; margin-bottom: 3px; text-transform: uppercase;">Numéro Wave</label>
-                    <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || demande.number || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                    <input name="mtn_number" id="mod-mtn_number" class="form-control" style="font-size: 0.85rem; height: 35px; border-radius: 6px;" placeholder="Ex: 0707070707" value="${demande.contact_destinataire || ''}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                 </div>
             </div>
             `;
@@ -684,6 +687,7 @@
                     const paymentSection = dom.querySelector('#payment-section-modification');
                     const restePayerText = dom.querySelector('#modification-reste-payer-text');
                     const btnWave = dom.querySelector('#btn-mod-pay-wave');
+                    const btnTresorpay = dom.querySelector('#btn-mod-pay-tresorpay');
                     const btnMtn = dom.querySelector('#btn-mod-pay-mtn');
                     const inputPaymentMethod = dom.querySelector('#mod-payment_method');
                     const phoneContainer = dom.querySelector('#mod-payment-phone-container');
@@ -692,6 +696,10 @@
                         btnWave.addEventListener('click', () => {
                             btnWave.style.background = '#eff6ff';
                             btnWave.style.border = '2px solid #1e3a8a';
+                            if (btnTresorpay) {
+                                btnTresorpay.style.background = 'white';
+                                btnTresorpay.style.border = '1px solid #edf2f7';
+                            }
                             btnMtn.style.background = 'white';
                             btnMtn.style.border = '1px solid #edf2f7';
                             inputPaymentMethod.value = 'wave';
@@ -699,9 +707,27 @@
                             phoneContainer.querySelector('label').innerText = 'Numéro Wave';
                         });
 
+                        if (btnTresorpay) {
+                            btnTresorpay.addEventListener('click', () => {
+                                btnTresorpay.style.background = '#eff6ff';
+                                btnTresorpay.style.border = '2px solid #1e3a8a';
+                                btnWave.style.background = 'white';
+                                btnWave.style.border = '1px solid #edf2f7';
+                                btnMtn.style.background = 'white';
+                                btnMtn.style.border = '1px solid #edf2f7';
+                                inputPaymentMethod.value = 'tresorpay';
+                                phoneContainer.style.display = 'block';
+                                phoneContainer.querySelector('label').innerText = 'Numéro TrésorMoney (ex: 0767664010)';
+                            });
+                        }
+
                         btnMtn.addEventListener('click', () => {
                             btnMtn.style.background = '#eff6ff';
                             btnMtn.style.border = '2px solid #1e3a8a';
+                            if (btnTresorpay) {
+                                btnTresorpay.style.background = 'white';
+                                btnTresorpay.style.border = '1px solid #edf2f7';
+                            }
                             btnWave.style.background = 'white';
                             btnWave.style.border = '1px solid #edf2f7';
                             inputPaymentMethod.value = 'mtn';
@@ -724,7 +750,7 @@
 
                         const nouveauMontantTimbres = Math.max(0, nouvelleQuantite - freeCountInitial) * 500;
                         const nouveauMontantLivraison = (nouvelleOption === 'livraison') ? (parseFloat(demande
-                            .montant_livraison) || 1000) : 0;
+                            .montant_livraison) || 1500) : 0;
 
                         const nouveauMontantTotal = nouveauMontantTimbres + nouveauMontantLivraison;
                         const resteAPayer = Math.max(0, nouveauMontantTotal - ancienMontantPaye);
@@ -776,8 +802,11 @@
                         }
                     }
 
+                    const paymentSection = form.querySelector('#payment-section-modification');
+                    const isPaymentVisible = paymentSection && paymentSection.style.display !== 'none';
                     const paymentMethodInput = form.querySelector('#mod-payment_method');
-                    if (paymentMethodInput) {
+
+                    if (isPaymentVisible && paymentMethodInput) {
                         const method = paymentMethodInput.value;
                         const phoneInput = form.querySelector('#mod-mtn_number');
                         const phoneVal = phoneInput ? phoneInput.value.replace(/\s+/g, '') : '';
@@ -798,6 +827,14 @@
                             }
                             formData.set('wave_number', phoneVal);
                             formData.delete('mtn_number');
+                        } else if (method === 'tresorpay') {
+                            if (!/^0[157]\d{8}$/.test(phoneVal)) {
+                                Swal.showValidationMessage(
+                                    'Le numéro TrésorMoney doit comporter 10 chiffres et commencer par 01, 05 ou 07.');
+                                return false;
+                            }
+                            formData.set('mtn_number', phoneVal);
+                            formData.delete('wave_number');
                         }
                     }
 
@@ -868,7 +905,7 @@
         }
 
         function startMtnPaymentPolling(reference, mtnRef, type) {
-            const csrfToken = '{{ csrf_token() }}';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             const checkStatus = () => {
                 fetch('{{ route("user.payment.mtn.check") }}', {
                     method: 'POST',

@@ -1,0 +1,1 @@
+<?php echo json_encode(App\Models\Paiement::where("transaction_id", "AN02031P2026")->first());

@@ -642,7 +642,7 @@
                     img.width = 100;
                     img.height = 100;
                     
-                    document.getElementById('summary-photo').innerHTML = '';
+                    document.getElementById('summary-photo').textContent = '';
                     document.getElementById('summary-photo').appendChild(img);
                 }
                 

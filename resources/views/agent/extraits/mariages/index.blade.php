@@ -1075,7 +1075,49 @@
                 } catch (e) {}
             }
             const user = (mariage && mariage.user) || {};
+            const choixOption = String(mariage.choix_option || '').toLowerCase().trim();
+            const isLivraison = choixOption.includes('livraison');
+            const destNom = [mariage.nom_destinataire, mariage.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || mariage.destinataire || [user.name, user.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || '--';
+            const destContact = mariage.contact_destinataire || mariage.contact || user.contact || '--';
+            const destEmail = mariage.email_destinataire || mariage.email || user.email || '--';
+            const destAdresse = mariage.adresse_livraison || mariage.adresse || '--';
+            const destVille = mariage.ville || '--';
+            const destCommune = mariage.commune_livraison || mariage.commune || '--';
+            const destQuartier = mariage.quartier || '--';
+            const destCodePostal = mariage.code_postal || '--';
             const isCopieSimple = mariage.nomEpoux === null;
+            let documentType = '';
+            const qtySimple = parseInt(mariage.qty_simple) || 0;
+            const qtyIntegral = parseInt(mariage.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                documentType =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    documentType = "copie simple";
+                } else {
+                    documentType = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    documentType = "copie intégrale";
+                } else {
+                    documentType = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (isCopieSimple) {
+                    documentType = "copie simple";
+                } else {
+                    documentType = "copie intégrale";
+                }
+            }
             const statusMap = {
                 'en attente': {
                     color: '#f59e0b',
@@ -1151,12 +1193,14 @@
                   <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
                   <div style="display:flex;gap:8px;">
                     ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
-                    <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
+                    <a href="javascript:void(0)" onclick="imprimerDocument('${d.path}')" style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-print"></i> Imprimer</a>
                   </div>
                 </div>
               </div>
             `).join('');
             };
+
+            const mData = encodeURIComponent(JSON.stringify(mariage)).replace(/'/g, "%27");
 
             const htmlContent = `
           <div class="dp-wrap">
@@ -1169,28 +1213,44 @@
                 <span style="opacity:.4">|</span>
                 <span><i class="fas fa-calendar-alt"></i> ${new Date(mariage.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>
                 <span style="opacity:.4">|</span>
-                <span><i class="fas fa-file-alt"></i> ${isCopieSimple ? 'Copie Simple' : 'Extrait Complet'}</span>
+                <span><i class="fas fa-file-alt"></i> ${documentType}</span>
               </div>
             </div>
             <div class="dp-tabs" id="dpTabsM">
               <div class="dp-tab dp-active" data-panel="dpPM-infos"><i class="fas fa-info-circle"></i> Informations</div>
-              <div class="dp-tab" data-panel="dpPM-livraison"><i class="fas fa-${mariage.choix_option === 'livraison' ? 'truck' : 'store'}"></i> ${mariage.choix_option === 'livraison' ? 'Livraison' : 'Retrait'}</div>
+                            <div class="dp-tab" data-panel="dpPM-livraison"><i class="fas fa-${isLivraison ? 'truck' : 'store'}"></i> ${isLivraison ? 'Livraison' : 'Retrait'}</div>
               <div class="dp-tab" data-panel="dpPM-docs"><i class="fas fa-paperclip"></i> Documents</div>
             </div>
             <div class="dp-panel dp-active" id="dpPM-infos">
               ${mariage.motif_de_rejet ? `<div class="dp-alert"><div class="dp-alert-icon"><i class="fas fa-exclamation-triangle"></i></div><div><div class="dp-alert-title">Demande rejetée</div><div class="dp-alert-text">${mariage.motif_de_rejet}</div></div></div>` : ''}
               <div class="dp-grid">
                 <div class="dp-section">
-                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div><div class="dp-section-title">${isCopieSimple ? 'Informations Générales' : 'Informations des Conjoints'}</div></div>
-                  ${isCopieSimple ? `
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
+                  <div class="dp-section-head" style="justify-content: space-between;">
+                      <div style="display:flex; align-items:center; gap:10px;">
+                          <div class="dp-section-icon"><i class="fas fa-${isCopieSimple ? 'file-alt' : 'venus-mars'}"></i></div>
+                          <div class="dp-section-title">${isCopieSimple ? 'Informations de la demande' : 'Informations de la demande'}</div>
+                      </div>
+                      ${(mariage.etat === 'terminé' || mariage.etat === 'traité') ? `
+                              <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                                  <i class="fas fa-print"></i> Imprimer
+                              </button>
                               ` : `
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom Époux</span><span class="dp-value">${mariage.nomEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Naiss. Époux</span><span class="dp-value">${mariage.dateNaissanceEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Lieu naiss.</span><span class="dp-value">${mariage.lieuNaissanceEpoux||'--'}</span></div>
-                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Commune</span><span class="dp-value">${mariage.commune||'--'}</span></div>
+                              <button type="button" onclick="printMariageInfo('${mData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                  <i class="fas fa-print"></i> Imprimer
+                              </button>
                               `}
+                  </div>
+                  ${isCopieSimple ? `
+                                      <div class="dp-row"><span class="dp-label"><i class="fas fa-tag"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">Copie Simple</span></div>
+                                      ` : `
+                                      <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom Époux</span><span class="dp-value">${mariage.nomEpoux||'--'}</span></div>
+                                      <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom Époux</span><span class="dp-value">${mariage.prenomEpoux||'--'}</span></div>
+                                      <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Naiss. Époux</span><span class="dp-value">${mariage.dateNaissanceEpoux||'--'}</span></div>
+                                      <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Lieu naiss.</span><span class="dp-value">${mariage.lieuNaissanceEpoux||'--'}</span></div>
+                                      `}
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Commune</span><span class="dp-value">${mariage.commune_mariage||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${mariage.numero_registre||'--'}</span></div>
+                              <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar-alt"></i> Date Registre</span><span class="dp-value">${mariage.date_registre ? new Date(mariage.date_registre).toLocaleDateString('fr-FR') : '--'}</span></div>
                 </div>
                 <div class="dp-section">
                   <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-user-circle"></i></div><div class="dp-section-title">Demandeur</div></div>
@@ -1202,26 +1262,27 @@
               </div>
               <div class="dp-section">
                 <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-file-invoice"></i></div><div class="dp-section-title">Détails de la Commande</div></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${mariage.quantite} copie(s)${(mariage.qty_simple>0&&mariage.qty_integral>0)?` <small style="color:#64748b;font-weight:400;">(${mariage.qty_simple||0}s + ${mariage.qty_integral||0}i)</small>`:''}</span></div>
+                <div class="dp-row"><span class="dp-label"><i class="fas fa-file-alt"></i> Type</span><span class="dp-value" style="color:#1f4083;font-weight:700;">${documentType}</span></div>
+                <div class="dp-row"><span class="dp-label"><i class="fas fa-copy"></i> Quantité</span><span class="dp-value">${mariage.quantite} copie(s)</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-user-friends"></i> Pour</span><span class="dp-value">${mariage.pour === 'proprie' ? 'Lui-même' : (mariage.pour === 'tiers' ? 'Un tiers' : (mariage.pour || '--'))}</span></div>
                 ${mariage.relation ? `<div class="dp-row"><span class="dp-label"><i class="fas fa-project-diagram"></i> Relation</span><span class="dp-value">${mariage.relation}</span></div>` : ''}
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-circle"></i> Statut</span><span class="dp-value"><span class="dp-badge" style="background:${status.bg};color:${status.color};border:1px solid ${status.border};"><i class="fas ${status.icon}"></i> ${status.label}</span></span></div>
               </div>
             </div>
             <div class="dp-panel" id="dpPM-livraison">
-              ${mariage.choix_option === 'livraison' ? `
-                          <div class="dp-section">
-                            <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${mariage.nom_destinataire||'--'} ${mariage.prenom_destinataire||''}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${mariage.contact_destinataire||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${mariage.email_destinataire||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${mariage.adresse_livraison||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${mariage.ville||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${mariage.commune_livraison||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${mariage.quartier||'--'}</span></div>
-                            <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${mariage.code_postal||'--'}</span></div>
-                          </div>
-                          ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                            ${isLivraison ? `
+                                  <div class="dp-section">
+                                    <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${destNom}</span></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${destContact}</span></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${destEmail}</span></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${destAdresse}</span></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${destVille}</span></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${destCommune}</span></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${destQuartier}</span></div>
+                                                                    <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${destCodePostal}</span></div>
+                                  </div>
+                                  ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
             </div>
             <div class="dp-panel" id="dpPM-docs">
               <div class="dp-section">
@@ -1262,6 +1323,141 @@
             });
         }
 
+        function printMariageInfo(encodedData) {
+            const mariage = JSON.parse(decodeURIComponent(encodedData));
+            const printWindow = window.open('', '_blank');
+            const isCopieSimple = mariage.nomEpoux === null;
+
+            printWindow.document.title = "Impression Informations Demande";
+
+            const style = printWindow.document.createElement('style');
+            style.textContent = `
+                    body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 10px; color: #000; margin: 0; }
+                    .info-block { border: 1px solid #000; padding: 15px; border-radius: 8px; max-width: 280px; margin: 0 auto; background: #fff; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #94a3b8; padding-bottom: 4px; align-items: center; }
+                    .row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                    .label { font-weight: 700; color: #000; font-size: 0.75rem; }
+                    .value { font-weight: 700; color: #000; text-transform: uppercase; font-size: 0.8rem; text-align: right; max-width: 65%; word-wrap: break-word; }
+                    .title { text-align: center; font-size: 0.95rem; margin-bottom: 15px; font-weight: 800; color: #000; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 6px; }
+                    @media print {
+                        body { padding: 0; margin: 0; }
+                        .info-block { border: none; padding: 0; width: 100%; max-width: none; }
+                    }
+                `;
+            printWindow.document.head.appendChild(style);
+
+            const container = printWindow.document.createElement('div');
+            container.className = 'info-block';
+
+            const title = printWindow.document.createElement('div');
+            title.className = 'title';
+            title.textContent = 'Demande de Mariage';
+            container.appendChild(title);
+
+            let docTypes = '';
+            const qtySimple = parseInt(mariage.qty_simple) || 0;
+            const qtyIntegral = parseInt(mariage.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                docTypes =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    docTypes = "copie intégrale";
+                } else {
+                    docTypes = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (isCopieSimple) {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = "copie intégrale";
+                }
+            }
+
+            const totalQty = mariage.quantite || (qtySimple + qtyIntegral) || 1;
+
+            let fields = [];
+            if (isCopieSimple) {
+                fields = [{
+                        label: 'Type',
+                        value: docTypes
+                    },
+                    {
+                        label: 'Quantité',
+                        value: `${totalQty} copie(s)`
+                    }
+                ];
+            } else {
+                fields = [{
+                        label: 'Type',
+                        value: docTypes
+                    },
+                    {
+                        label: 'Quantité',
+                        value: `${totalQty} copie(s)`
+                    },
+                    {
+                        label: 'Nom Époux',
+                        value: mariage.nomEpoux || '--'
+                    },
+                    {
+                        label: 'Prénom Époux',
+                        value: mariage.prenomEpoux || '--'
+                    },
+                    {
+                        label: 'Naiss. Époux',
+                        value: mariage.dateNaissanceEpoux || '--'
+                    },
+                    {
+                        label: 'Lieu naiss.',
+                        value: mariage.lieuNaissanceEpoux || '--'
+                    }
+                ];
+            }
+
+            fields.push({
+                label: 'Commune',
+                value: mariage.commune_mariage || '--'
+            }, {
+                label: 'N° Registre',
+                value: mariage.numero_registre || '--'
+            }, {
+                label: 'Date Registre',
+                value: mariage.date_registre ? new Date(mariage.date_registre).toLocaleDateString('fr-FR') : '--'
+            });
+
+            fields.forEach(field => {
+                const row = printWindow.document.createElement('div');
+                row.className = 'row';
+
+                const labelSpan = printWindow.document.createElement('span');
+                labelSpan.className = 'label';
+                labelSpan.textContent = field.label;
+
+                const valueSpan = printWindow.document.createElement('span');
+                valueSpan.className = 'value';
+                valueSpan.textContent = field.value;
+
+                row.appendChild(labelSpan);
+                row.appendChild(valueSpan);
+                container.appendChild(row);
+            });
+
+            printWindow.document.body.appendChild(container);
+
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        }
+
         // Fonction pour ouvrir une image en grand dans une modal
         function openImageModal(imageSrc) {
             const htmlContent = `
@@ -1270,8 +1466,8 @@
                 <img src="${imageSrc}" style="max-width:100%;max-height:65vh;display:block;" alt="Document">
               </div>
               <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-                <a href="${imageSrc}" download style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
-                  <i class="fas fa-download"></i> Télécharger
+                <a href="javascript:void(0)" onclick="imprimerDocument('${imageSrc}')" style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
+                  <i class="fas fa-print"></i> Imprimer
                 </a>
                 <button onclick="Swal.close()" style="color:#475569;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #e2e8f0;border-radius:8px;background:white;font-size:0.85rem;font-weight:600;cursor:pointer;">
                   <i class="fas fa-times"></i> Fermer
@@ -1289,6 +1485,45 @@
                     popup: 'image-modal-popup'
                 }
             });
+        }
+
+        // Fonction pour imprimer directement un document (image ou PDF)
+        function imprimerDocument(url) {
+            if (!url) return;
+            const isPdf = url.toLowerCase().endsWith('.pdf');
+            if (isPdf) {
+                const printWindow = window.open(url, '_blank');
+                if (printWindow) {
+                    printWindow.onload = function() {
+                        setTimeout(function() {
+                            printWindow.print();
+                        }, 500);
+                    };
+                }
+            } else {
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) return;
+                printWindow.document.title = "Impression Document";
+                const style = printWindow.document.createElement('style');
+                style.textContent = `
+                    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff; }
+                    img { max-width: 100%; height: auto; page-break-inside: avoid; }
+                    @media print {
+                        body { display: block; }
+                        img { max-width: 100%; width: 100%; height: auto; }
+                    }
+                `;
+                printWindow.document.head.appendChild(style);
+                const img = printWindow.document.createElement('img');
+                img.src = url;
+                img.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                        printWindow.close();
+                    }, 300);
+                };
+                printWindow.document.body.appendChild(img);
+            }
         }
 
         function markAsDelivered(id) {
@@ -1348,17 +1583,32 @@
         // Fonction pour afficher les informations de livraison
         function showDeliveryInfo(mariage) {
             const deliveryInfo = mariage || {};
+            const fallbackUser = mariage.user || {};
+            const destinataire = [deliveryInfo.nom_destinataire, deliveryInfo.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || [fallbackUser.name, fallbackUser.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || 'Non spécifié';
+            const telephone = deliveryInfo.contact_destinataire || deliveryInfo.telephone || fallbackUser.contact ||
+                'Non spécifié';
+            const email = deliveryInfo.email_destinataire || fallbackUser.email || 'Non spécifié';
 
             const htmlContent = `
             <div style="text-align: center;">
                 <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
                 
                 <div style="margin-bottom: 15px;">
-                    <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || mariage.user.name + ' ' + mariage.user.prenom}
+                    <strong>Nom du destinataire:</strong> ${destinataire}
                 </div>
                 
                 <div style="margin-bottom: 15px;">
-                    <strong>Téléphone:</strong> ${deliveryInfo.contact_destinataire || mariage.user.contact}
+                    <strong>Téléphone:</strong> ${telephone}
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Email:</strong> ${email}
                 </div>
                 
                 <div style="margin-bottom: 15px;">

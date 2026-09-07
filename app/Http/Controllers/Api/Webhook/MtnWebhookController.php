@@ -28,17 +28,25 @@ class MtnWebhookController extends Controller
     {
         Log::info('MTN Webhook received: ' . json_encode($request->all()));
 
-        // MTN sends the reference ID, status, and other transaction details
-        $statusInfo = $request->all();
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'referenceId' => 'required|string',
+            'status' => 'required|string',
+            'externalId' => 'required|string',
+            'amount' => 'nullable|numeric',
+            'currency' => 'nullable|string',
+        ]);
 
-        $mtnRef = $statusInfo['referenceId'] ?? null;
-        $status = $statusInfo['status'] ?? null;
-        $externalId = $statusInfo['externalId'] ?? null; // This is our internal reference (e.g. AN...)
-
-        if (!$mtnRef || !$status || !$externalId) {
-            Log::warning('MTN Webhook missing essential data');
-            return response()->json(['message' => 'Missing data'], 400);
+        if ($validator->fails()) {
+            Log::warning('MTN Webhook validation failed: ' . json_encode($validator->errors()));
+            return response()->json(['message' => 'Missing or invalid data', 'errors' => $validator->errors()], 400);
         }
+
+        // MTN sends the reference ID, status, and other transaction details
+        $statusInfo = $validator->validated();
+
+        $mtnRef = $statusInfo['referenceId'];
+        $status = $statusInfo['status'];
+        $externalId = $statusInfo['externalId']; // This is our internal reference (e.g. AN...)
 
         if ($status === 'SUCCESSFUL') {
             Log::info("MTN Webhook: Transaction $externalId was successful");

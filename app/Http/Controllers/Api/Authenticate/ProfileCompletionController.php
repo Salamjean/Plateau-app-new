@@ -114,6 +114,8 @@ class ProfileCompletionController extends Controller
             'NNI'               => 'nullable|string|max:50',
             'diaspora'          => 'nullable|boolean',
             'pays_residence'    => 'nullable|string|max:255',
+            'ville_residence'   => 'nullable|string|max:255',
+            'adresse_etrangere' => 'nullable|string|max:500',
             'push_notification' => 'nullable|string|max:255',
         ], [
             'contact.unique' => 'Ce numéro est déjà associé à un autre compte.',
@@ -166,6 +168,8 @@ class ProfileCompletionController extends Controller
                     'NNI'               => $request->NNI,
                     'diaspora'          => $request->boolean('diaspora'),
                     'pays_residence'    => $request->pays_residence,
+                    'ville_residence'   => $request->ville_residence,
+                    'adresse_etrangere' => $request->adresse_etrangere,
                     'push_notification' => $request->push_notification ?? $pendingData['push_notification'] ?? null,
                 ]);
 
@@ -191,13 +195,15 @@ class ProfileCompletionController extends Controller
 
             // ── MODE 2 : Mise à jour d'un compte existant ────────────────────
             $updateData = [
-                'indicatif'      => $request->indicatif,
-                'contact'        => $request->contact,
-                'diaspora'       => $request->boolean('diaspora'),
-                'pays_residence' => $request->pays_residence,
+                'indicatif'         => $request->indicatif,
+                'contact'           => $request->contact,
+                'diaspora'          => $request->boolean('diaspora'),
+                'pays_residence'    => $request->pays_residence,
+                'ville_residence'   => $request->ville_residence,
+                'adresse_etrangere' => $request->adresse_etrangere,
             ];
 
-            if ($request->filled('NNI'))               $updateData['NNI']               = $request->NNI;
+            if ($request->has('NNI'))                   $updateData['NNI']               = $request->NNI;
             if ($request->filled('push_notification')) $updateData['push_notification'] = $request->push_notification;
             if ($request->filled('password'))          $updateData['password']          = Hash::make($request->password);
 
@@ -327,6 +333,8 @@ class ProfileCompletionController extends Controller
             'NNI'               => 'nullable|string|max:50',
             'diaspora'          => 'nullable|boolean',
             'pays_residence'    => 'nullable|string|max:255',
+            'ville_residence'   => 'nullable|string|max:255',
+            'adresse_etrangere' => 'nullable|string|max:500',
             'push_notification' => 'nullable|string|max:255',
         ], [
             'contact.unique' => 'Ce numéro est déjà associé à un autre compte.',
@@ -377,6 +385,8 @@ class ProfileCompletionController extends Controller
                     'NNI'               => $request->NNI,
                     'diaspora'          => $request->boolean('diaspora'),
                     'pays_residence'    => $request->pays_residence,
+                    'ville_residence'   => $request->ville_residence,
+                    'adresse_etrangere' => $request->adresse_etrangere,
                     'push_notification' => $request->push_notification ?? $pendingData['push_notification'] ?? null,
                 ]);
 
@@ -408,9 +418,11 @@ class ProfileCompletionController extends Controller
 
             if ($request->filled('indicatif'))         $updateData['indicatif']         = $request->indicatif;
             if ($request->filled('contact'))           $updateData['contact']           = $request->contact;
-            if ($request->filled('NNI'))               $updateData['NNI']               = $request->NNI;
+            if ($request->has('NNI'))                  $updateData['NNI']               = $request->NNI;
             if ($request->has('diaspora'))             $updateData['diaspora']          = $request->boolean('diaspora');
-            if ($request->filled('pays_residence'))    $updateData['pays_residence']    = $request->pays_residence;
+            if ($request->has('pays_residence'))    $updateData['pays_residence']    = $request->pays_residence;
+            if ($request->has('ville_residence'))   $updateData['ville_residence']   = $request->ville_residence;
+            if ($request->has('adresse_etrangere')) $updateData['adresse_etrangere'] = $request->adresse_etrangere;
             if ($request->filled('push_notification')) $updateData['push_notification'] = $request->push_notification;
 
             $authUser->update($updateData);
@@ -546,6 +558,8 @@ class ProfileCompletionController extends Controller
             'password'          => $isNewUser ? 'required|string|min:8|confirmed' : 'nullable|string|min:8|confirmed',
             'diaspora'          => 'nullable|boolean',
             'pays_residence'    => 'nullable|string|max:255',
+            'ville_residence'   => 'nullable|string|max:255',
+            'adresse_etrangere' => 'nullable|string|max:500',
             'push_notification' => 'nullable|string|max:255',
             'profile_picture'   => 'nullable',
         ], [
@@ -614,6 +628,8 @@ class ProfileCompletionController extends Controller
                     'NNI'               => $request->NNI,
                     'diaspora'          => $request->boolean('diaspora'),
                     'pays_residence'    => $request->pays_residence,
+                    'ville_residence'   => $request->ville_residence,
+                    'adresse_etrangere' => $request->adresse_etrangere,
                     'phone_verified_at' => $otpVerifiedData['phone_verified_at'] ?? now(),
                     'push_notification' => $request->push_notification,
                     'profile_picture'   => $profilePicturePath,
@@ -656,9 +672,11 @@ class ProfileCompletionController extends Controller
             if ($request->filled('indicatif'))         $updateData['indicatif']         = $request->indicatif;
             if ($request->filled('contact'))           $updateData['contact']           = $request->contact;
             if ($request->filled('email'))             $updateData['email']             = $request->email;
-            if ($request->filled('NNI'))               $updateData['NNI']               = $request->NNI;
+            if ($request->has('NNI'))                  $updateData['NNI']               = $request->NNI;
             if ($request->has('diaspora'))             $updateData['diaspora']          = $request->boolean('diaspora');
-            if ($request->filled('pays_residence'))    $updateData['pays_residence']    = $request->pays_residence;
+            if ($request->has('pays_residence'))    $updateData['pays_residence']    = $request->pays_residence;
+            if ($request->has('ville_residence'))   $updateData['ville_residence']   = $request->ville_residence;
+            if ($request->has('adresse_etrangere')) $updateData['adresse_etrangere'] = $request->adresse_etrangere;
             if ($request->filled('push_notification')) $updateData['push_notification'] = $request->push_notification;
 
             // Mettre à jour la photo si fournie
@@ -719,6 +737,8 @@ class ProfileCompletionController extends Controller
             'NNI'               => $user->NNI,
             'diaspora'          => (bool) $user->diaspora,
             'pays_residence'    => $user->pays_residence,
+            'ville_residence'   => $user->ville_residence,
+            'adresse_etrangere' => $user->adresse_etrangere,
             'push_notification' => $user->push_notification,
             'profile_picture'   => $pic
                 ? (Str::startsWith($pic, ['http://', 'https://']) ? $pic : Storage::url($pic))

@@ -386,7 +386,43 @@
             }
 
             .period-selector {
-                justify-content: space-between;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .btn-group-pill {
+                flex-wrap: wrap;
+                width: 100%;
+                justify-content: center;
+            }
+            .export-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .reports-container {
+                padding: 15px;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .agents-list {
+                grid-template-columns: 1fr;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .page-title {
+                font-size: 1.5rem;
             }
         }
     </style>

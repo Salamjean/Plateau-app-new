@@ -1,4 +1,4 @@
-﻿@extends('etatCivil.layouts.template')
+@extends('etatCivil.layouts.template')
 @section('content')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -195,6 +195,72 @@
             color: #2563eb;
         }
 
+        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            padding-left: 0;
+            list-style: none;
+            margin: 0;
+        }
+
+        .pagination .page-item {
+            display: inline-block;
+            margin: 0;
+        }
+
+        .pagination .page-link {
+            color: #475569;
+            border-radius: 8px;
+            margin: 0;
+            border: 1px solid #e2e8f0;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            background-color: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .pagination .page-link:hover {
+            background-color: #f8fafc;
+            color: var(--primary-color);
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(31, 64, 131, 0.3);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #94a3b8;
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Badges pour Action */
+        .badge-action {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
         .user-info-cell {
             display: flex;
             align-items: center;
@@ -315,8 +381,7 @@
                         <i class="fas fa-filter me-2"></i>Filtrer
                     </button>
                     @if (request()->anyFilled(['etat', 'type', 'livraison']))
-                        <a href="{{ route('etat_civil.request.birth') }}" class="btn-action"
-                            style="background-color: #64748b;">
+                        <a href="{{ route('etat_civil.request.birth') }}" class="btn-action" style="background-color: #64748b;">
                             <i class="fas fa-times"></i>
                         </a>
                     @endif
@@ -390,10 +455,8 @@
                 </table>
             </div>
 
-            @if ($naissances->count() > 0)
-                <div class="p-4 border-top">
-                    {{ $naissances->links() }}
-                </div>
+            @if ($naissances->hasPages())
+                {{ $naissances->links('components.custom-pagination') }}
             @endif
         </div>
     </div>

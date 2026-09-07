@@ -73,6 +73,8 @@ class MariageGroupeController extends Controller
             'lignes.*.type_document'         => 'required|in:simple,extrait_integral',
             // Détails du mariage (commun simple + intégral)
             'lignes.*.commune_mariage'       => 'required|string|max:255',
+            'lignes.*.numero_registre'       => 'required|string',
+            'lignes.*.date_registre'         => 'required|date',
             'lignes.*.CMU'                   => 'nullable|string|max:50',
             // Conjoint (présent uniquement dans intégral, optionnel)
             'lignes.*.nomEpoux'              => 'nullable|string|max:255',
@@ -184,6 +186,8 @@ class MariageGroupeController extends Controller
                     'dateNaissanceEpoux'  => $ligneData['dateNaissanceEpoux'] ?? null,
                     'lieuNaissanceEpoux'  => $ligneData['lieuNaissanceEpoux'] ?? null,
                     'commune_mariage'     => $ligneData['commune_mariage'] ?? null,
+                    'numero_registre'     => $ligneData['numero_registre'] ?? null,
+                    'date_registre'       => $ligneData['date_registre'] ?? null,
                     'CMU'                 => $ligneData['CMU'] ?? null,
                     'pieceIdentite'       => $piecePath,
                     'extraitMariage'      => $extraitPath ?? '',

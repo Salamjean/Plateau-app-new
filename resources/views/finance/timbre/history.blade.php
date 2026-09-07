@@ -172,7 +172,7 @@
                             Affichage de {{ $historique->firstItem() }} à {{ $historique->lastItem() }} sur {{ $historique->total() }} résultats
                         </div>
                         <div class="pagination-links">
-                            {{ $historique->appends(request()->query())->links('pagination.custom') }}
+                            {{ $historique->appends(request()->query())->links('components.custom-pagination') }}
                         </div>
                     </div>
                     @endif

@@ -1100,8 +1100,50 @@
                 } catch (e) {}
             }
             const user = (dece && dece.user) || {};
-            const documentType = dece.type === 'simple' ? 'Copie Simple' : (dece.type === 'simpleIntegrale' || dece.type ===
-                'groupee' ? 'Simple + Intégral' : 'Copie Intégrale');
+            const choixOption = String(dece.choix_option || '').toLowerCase().trim();
+            const isLivraison = choixOption.includes('livraison');
+            const destNom = [dece.nom_destinataire, dece.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || dece.destinataire || [user.name, user.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || '--';
+            const destContact = dece.contact_destinataire || dece.contact || user.contact || '--';
+            const destEmail = dece.email_destinataire || dece.email || user.email || '--';
+            const destAdresse = dece.adresse_livraison || dece.adresse || '--';
+            const destVille = dece.ville || '--';
+            const destCommune = dece.commune_livraison || dece.commune || '--';
+            const destQuartier = dece.quartier || '--';
+            const destCodePostal = dece.code_postal || '--';
+            let documentType = '';
+            const qtySimple = parseInt(dece.qty_simple) || 0;
+            const qtyIntegral = parseInt(dece.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                documentType =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    documentType = "copie simple";
+                } else {
+                    documentType = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    documentType = "copie intégrale";
+                } else {
+                    documentType = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (dece.type === 'copieIntegrale') {
+                    documentType = "copie intégrale";
+                } else if (dece.type === 'extraitSimple') {
+                    documentType = "copie simple";
+                } else {
+                    documentType = dece.type || '--';
+                }
+            }
             const statusMap = {
                 'en attente': {
                     color: '#f59e0b',
@@ -1193,12 +1235,14 @@
               <div style="font-weight:600;font-size:0.85rem;color:#0f172a;margin-bottom:6px;">${d.label}</div>
               <div style="display:flex;gap:8px;">
                 ${!d.isPdf ? `<a href="javascript:void(0)" onclick="openImageModal('${d.path}')" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-eye"></i> Aperçu</a>` : `<a href="${d.path}" target="_blank" style="color:#1f4083;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #bfdbfe;background:white;"><i class="fas fa-external-link-alt"></i> Ouvrir</a>`}
-                <a href="${d.path}" download style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-download"></i> Télécharger</a>
+                <a href="javascript:void(0)" onclick="imprimerDocument('${d.path}')" style="color:#475569;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid #e2e8f0;background:white;"><i class="fas fa-print"></i> Imprimer</a>
               </div>
             </div>
           </div>
         `).join('');
             };
+
+            const dData = encodeURIComponent(JSON.stringify(dece)).replace(/'/g, "%27");
 
             const htmlContent = `
         <div class="dp-wrap">
@@ -1216,19 +1260,32 @@
           </div>
           <div class="dp-tabs" id="dpTabsD">
             <div class="dp-tab dp-active" data-panel="dpPD-infos"><i class="fas fa-info-circle"></i> Informations</div>
-            <div class="dp-tab" data-panel="dpPD-livraison"><i class="fas fa-${dece.choix_option === 'livraison' ? 'truck' : 'store'}"></i> ${dece.choix_option === 'livraison' ? 'Livraison' : 'Retrait'}</div>
+                        <div class="dp-tab" data-panel="dpPD-livraison"><i class="fas fa-${isLivraison ? 'truck' : 'store'}"></i> ${isLivraison ? 'Livraison' : 'Retrait'}</div>
             <div class="dp-tab" data-panel="dpPD-docs"><i class="fas fa-paperclip"></i> Documents</div>
           </div>
           <div class="dp-panel dp-active" id="dpPD-infos">
             ${dece.motif_de_rejet ? `<div class="dp-alert"><div class="dp-alert-icon"><i class="fas fa-exclamation-triangle"></i></div><div><div class="dp-alert-title">Demande rejetée</div><div class="dp-alert-text">${dece.motif_de_rejet}</div></div></div>` : ''}
             <div class="dp-grid">
               <div class="dp-section">
-                <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-cross"></i></div><div class="dp-section-title">Informations du Défunt</div></div>
+                <div class="dp-section-head" style="justify-content: space-between;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="dp-section-icon"><i class="fas fa-cross"></i></div>
+                        <div class="dp-section-title">Informations de la demande</div>
+                    </div>
+                    ${(dece.etat === 'terminé' || dece.etat === 'traité') ? `
+                            <button type="button" disabled style="background:#94a3b8;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:not-allowed;opacity:0.6;" title="Cette demande est déjà terminée.">
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                            ` : `
+                            <button type="button" onclick="printDecesInfo('${dData}')" style="background:#1f4083;color:white;border-radius:5px;border:none;padding:5px 12px;font-size:0.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                            `}
+                </div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Nom</span><span class="dp-value">${dece.name||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Prénom</span><span class="dp-value">${dece.prenom||'--'}</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-hashtag"></i> N° Registre</span><span class="dp-value">${dece.numberR||'--'}</span></div>
                 <div class="dp-row"><span class="dp-label"><i class="fas fa-calendar"></i> Date Reg.</span><span class="dp-value">${dece.dateR||'--'}</span></div>
-                <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Commune</span><span class="dp-value">${dece.commune||'--'}</span></div>
+                <div class="dp-row"><span class="dp-label"><i class="fas fa-map-pin"></i> Commune</span><span class="dp-value">${dece.commune_deces||'--'}</span></div>
               </div>
               <div class="dp-section">
                 <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-user-circle"></i></div><div class="dp-section-title">Demandeur</div></div>
@@ -1248,19 +1305,19 @@
             </div>
           </div>
           <div class="dp-panel" id="dpPD-livraison">
-            ${dece.choix_option === 'livraison' ? `
-                        <div class="dp-section">
-                          <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${dece.nom_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${dece.contact_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${dece.email_destinataire||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${dece.adresse_livraison||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${dece.ville||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${dece.commune_livraison||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${dece.quartier||'--'}</span></div>
-                          <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${dece.code_postal||'--'}</span></div>
-                        </div>
-                        ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
+                        ${isLivraison ? `
+                                <div class="dp-section">
+                                  <div class="dp-section-head"><div class="dp-section-icon"><i class="fas fa-truck"></i></div><div class="dp-section-title">Informations de Livraison</div></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-user"></i> Destinataire</span><span class="dp-value">${destNom}</span></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-phone"></i> Contact</span><span class="dp-value">${destContact}</span></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-envelope"></i> Email</span><span class="dp-value">${destEmail}</span></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="dp-value">${destAdresse}</span></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-city"></i> Ville</span><span class="dp-value">${destVille}</span></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-map"></i> Commune</span><span class="dp-value">${destCommune}</span></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-home"></i> Quartier</span><span class="dp-value">${destQuartier}</span></div>
+                                                                <div class="dp-row"><span class="dp-label"><i class="fas fa-mail-bulk"></i> Code postal</span><span class="dp-value">${destCodePostal}</span></div>
+                                </div>
+                                ` : `<div style="text-align:center;padding:36px 20px;"><div class="dp-pickup"><i class="fas fa-store"></i> Retrait sur place</div><p style="margin-top:12px;color:#64748b;font-size:0.82rem;">Le demandeur récupérera son document directement à la mairie.</p></div>`}
           </div>
           <div class="dp-panel" id="dpPD-docs">
             <div class="dp-section">
@@ -1300,6 +1357,121 @@
                 }
             });
         }
+
+        function printDecesInfo(encodedData) {
+            const dece = JSON.parse(decodeURIComponent(encodedData));
+            const printWindow = window.open('', '_blank');
+            const documentType = dece.type === 'copieIntegrale' ? 'Copie Intégrale' : (dece.type === 'extraitSimple' ?
+                'Extrait Simple' : (dece.type === 'simpleIntegrale' ? 'Extrait + Copie' : (dece.type === 'groupee' ?
+                    'Demande Groupée' : (dece.type || '--'))));
+
+            printWindow.document.title = "Impression Informations Demande";
+
+            const style = printWindow.document.createElement('style');
+            style.textContent = `
+                    body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 10px; color: #000; margin: 0; }
+                    .info-block { border: 1px solid #000; padding: 15px; border-radius: 8px; max-width: 280px; margin: 0 auto; background: #fff; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #94a3b8; padding-bottom: 4px; align-items: center; }
+                    .row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                    .label { font-weight: 700; color: #000; font-size: 0.75rem; }
+                    .value { font-weight: 700; color: #000; text-transform: uppercase; font-size: 0.8rem; text-align: right; max-width: 65%; word-wrap: break-word; }
+                    .title { text-align: center; font-size: 0.95rem; margin-bottom: 15px; font-weight: 800; color: #000; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 6px; }
+                    @media print {
+                        body { padding: 0; margin: 0; }
+                        .info-block { border: none; padding: 0; width: 100%; max-width: none; }
+                    }
+                `;
+            printWindow.document.head.appendChild(style);
+
+            const container = printWindow.document.createElement('div');
+            container.className = 'info-block';
+
+            const title = printWindow.document.createElement('div');
+            title.className = 'title';
+            title.textContent = 'Demande de Décès';
+            container.appendChild(title);
+
+            let docTypes = '';
+            const qtySimple = parseInt(dece.qty_simple) || 0;
+            const qtyIntegral = parseInt(dece.qty_integral) || 0;
+
+            if (qtySimple > 0 && qtyIntegral > 0) {
+                docTypes =
+                    `${qtySimple} copie${qtySimple > 1 ? 's' : ''} simple${qtySimple > 1 ? 's' : ''} et ${qtyIntegral} copie${qtyIntegral > 1 ? 's' : ''} intégrale${qtyIntegral > 1 ? 's' : ''}`;
+            } else if (qtySimple > 0) {
+                if (qtySimple === 1) {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = `${qtySimple} copies simples`;
+                }
+            } else if (qtyIntegral > 0) {
+                if (qtyIntegral === 1) {
+                    docTypes = "copie intégrale";
+                } else {
+                    docTypes = `${qtyIntegral} copies intégrales`;
+                }
+            } else {
+                if (dece.type === 'copieIntegrale') {
+                    docTypes = "copie intégrale";
+                } else if (dece.type === 'extraitSimple') {
+                    docTypes = "copie simple";
+                } else {
+                    docTypes = dece.type || '--';
+                }
+            }
+
+            const totalQty = dece.quantite || (qtySimple + qtyIntegral) || 1;
+
+            const fields = [{
+                    label: 'Type',
+                    value: docTypes
+                },
+                {
+                    label: 'Quantité',
+                    value: `${totalQty} copie(s)`
+                },
+                {
+                    label: 'Nom',
+                    value: dece.name || '--'
+                },
+                {
+                    label: 'N° Registre',
+                    value: dece.numberR || '--'
+                },
+                {
+                    label: 'Date Reg.',
+                    value: dece.dateR || '--'
+                },
+                {
+                    label: 'Commune',
+                    value: dece.commune || '--'
+                }
+            ];
+
+            fields.forEach(field => {
+                const row = printWindow.document.createElement('div');
+                row.className = 'row';
+
+                const labelSpan = printWindow.document.createElement('span');
+                labelSpan.className = 'label';
+                labelSpan.textContent = field.label;
+
+                const valueSpan = printWindow.document.createElement('span');
+                valueSpan.className = 'value';
+                valueSpan.textContent = field.value;
+
+                row.appendChild(labelSpan);
+                row.appendChild(valueSpan);
+                container.appendChild(row);
+            });
+
+            printWindow.document.body.appendChild(container);
+
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        }
         // Fonction pour ouvrir une image en grand dans une modal
         function openImageModal(imageSrc) {
             const htmlContent = `
@@ -1308,8 +1480,8 @@
             <img src="${imageSrc}" style="max-width:100%;max-height:65vh;display:block;" alt="Document">
           </div>
           <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-            <a href="${imageSrc}" download style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
-              <i class="fas fa-download"></i> Télécharger
+            <a href="javascript:void(0)" onclick="imprimerDocument('${imageSrc}')" style="color:#1f4083;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;font-size:0.85rem;font-weight:600;">
+              <i class="fas fa-print"></i> Imprimer
             </a>
             <button onclick="Swal.close()" style="color:#475569;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border:1px solid #e2e8f0;border-radius:8px;background:white;font-size:0.85rem;font-weight:600;cursor:pointer;">
               <i class="fas fa-times"></i> Fermer
@@ -1327,6 +1499,45 @@
                     popup: 'image-modal-popup'
                 }
             });
+        }
+
+        // Fonction pour imprimer directement un document (image ou PDF)
+        function imprimerDocument(url) {
+            if (!url) return;
+            const isPdf = url.toLowerCase().endsWith('.pdf');
+            if (isPdf) {
+                const printWindow = window.open(url, '_blank');
+                if (printWindow) {
+                    printWindow.onload = function() {
+                        setTimeout(function() {
+                            printWindow.print();
+                        }, 500);
+                    };
+                }
+            } else {
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) return;
+                printWindow.document.title = "Impression Document";
+                const style = printWindow.document.createElement('style');
+                style.textContent = `
+                    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff; }
+                    img { max-width: 100%; height: auto; page-break-inside: avoid; }
+                    @media print {
+                        body { display: block; }
+                        img { max-width: 100%; width: 100%; height: auto; }
+                    }
+                `;
+                printWindow.document.head.appendChild(style);
+                const img = printWindow.document.createElement('img');
+                img.src = url;
+                img.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                        printWindow.close();
+                    }, 300);
+                };
+                printWindow.document.body.appendChild(img);
+            }
         }
 
         function markAsDelivered(id) {
@@ -1387,6 +1598,17 @@
         function showDeliveryInfo(dece) {
             // Récupérer les informations de livraison
             const deliveryInfo = dece || {};
+            const fallbackUser = dece.user || {};
+            const destinataire = [deliveryInfo.nom_destinataire, deliveryInfo.prenom_destinataire]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || [fallbackUser.name, fallbackUser.prenom]
+                .filter(v => v && String(v).trim() !== '')
+                .join(' ')
+                .trim() || 'Non spécifié';
+            const telephone = deliveryInfo.contact_destinataire || deliveryInfo.telephone || fallbackUser.contact ||
+                'Non spécifié';
+            const email = deliveryInfo.email_destinataire || fallbackUser.email || 'Non spécifié';
 
             // Formater le contenu HTML pour SweetAlert
             const htmlContent = `
@@ -1394,11 +1616,15 @@
             <h3 style="color: #1f4083; margin-bottom: 20px;">Informations de Livraison</h3>
 
             <div style="margin-bottom: 15px;">
-              <strong>Nom du destinataire:</strong> ${deliveryInfo.nom_destinataire + ' ' + deliveryInfo.prenom_destinataire || dece.user.name + ' ' + dece.user.prenom}
+                            <strong>Nom du destinataire:</strong> ${destinataire}
             </div>
 
             <div style="margin-bottom: 15px;">
-              <strong>Téléphone:</strong> ${deliveryInfo.telephone || dece.user.contact}
+                            <strong>Téléphone:</strong> ${telephone}
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <strong>Email:</strong> ${email}
             </div>
 
             <div style="margin-bottom: 15px;">

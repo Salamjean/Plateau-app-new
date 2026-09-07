@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Stripe\StripeClient;
 
 class NaissanceController extends Controller
 {
@@ -49,6 +50,7 @@ class NaissanceController extends Controller
             'type' => 'required',
             'name' => 'required',
             'prenom' => 'required',
+            'date_naissance' => 'required|date',
             'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'nom_prenoms_pere' => 'nullable|string|max:255',
@@ -145,6 +147,7 @@ class NaissanceController extends Controller
         $pendingAttributes['type'] = $request->type;
         $pendingAttributes['name'] = $request->name;
         $pendingAttributes['prenom'] = $request->prenom;
+        $pendingAttributes['date_naissance'] = $request->date_naissance;
         $pendingAttributes['commune'] = $request->commune;
         $pendingAttributes['commune_naissance'] = $request->commune_naissance;
         $pendingAttributes['number'] = $request->number;
@@ -319,8 +322,16 @@ class NaissanceController extends Controller
                         return redirect($checkoutSession['wave_launch_url']);
                     }
                     return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'stripe') {
+                    try {
+                        $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $transactionReference, $user, 'naissance', $request->getSchemeAndHttpHost());
+                        return redirect($checkoutUrl);
+                    } catch (\Throwable $e) {
+                        Log::error('Erreur Stripe (modification naissance) ' . $transactionReference . ': ' . $e->getMessage());
+                        return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                    }
                 } elseif (strtolower($paymentMethod) === 'mtn') {
-                    $mtnPhoneNumber = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $mtnPhoneNumber = $request->input('mtn_number');
                     $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
                     if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
                         $mtnPhoneNumber = '225' . $mtnPhoneNumber;
@@ -354,6 +365,30 @@ class NaissanceController extends Controller
                         ]);
                     }
                     return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                    $tresorPhone = $request->input('mtn_number');
+                    $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                    $tresorService = app(\App\Services\TresorPayService::class);
+                    $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                    if ($response && ($response['success'] ?? false)) {
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                    'reference' => $transactionReference,
+                                    'type' => 'naissance'
+                                ]),
+                                'reference' => $transactionReference,
+                            ]);
+                        }
+                        return redirect()->route('user.payment.tresorpay.waiting', [
+                            'reference' => $transactionReference,
+                            'type' => 'naissance'
+                        ]);
+                    }
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
                 } else {
                     $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
                     $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
@@ -460,6 +495,7 @@ class NaissanceController extends Controller
             'type' => 'required',
             'name' => 'required',
             'prenom' => 'required',
+            'date_naissance' => 'required|date',
             'number' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'DateR' => 'required_without_all:nom_prenoms_pere,nom_prenoms_mere',
             'nom_prenoms_pere' => 'nullable|string|max:255',
@@ -488,6 +524,8 @@ class NaissanceController extends Controller
             'type.required' => 'le type d\'extrait que vous-voulez demander est obligatoire',
             'name.required' => 'Le nom est obligatoire',
             'prenom.required' => 'Le prénom est obligatoire',
+            'date_naissance.required' => 'La date de naissance est obligatoire',
+            'date_naissance.date' => 'La date de naissance doit être une date valide',
             'number.required_without_all' => 'Le numéro de registre est obligatoire si les informations parentales ne sont pas fournies',
             'DateR.required_without_all' => 'La date de registre est obligatoire si les informations parentales ne sont pas fournies',
             'commune.required' => 'La commune est obligatoire',
@@ -599,6 +637,7 @@ class NaissanceController extends Controller
         $naissance->qty_integral = $qtyIntegral;
         $naissance->quantite = $totalQuantity;
         $naissance->prenom = $request->prenom;
+        $naissance->date_naissance = $request->date_naissance;
         $naissance->nom_prenoms_pere = $request->nom_prenoms_pere;
         $naissance->nom_prenoms_mere = $request->nom_prenoms_mere;
         $naissance->number = $request->number;
@@ -683,6 +722,14 @@ class NaissanceController extends Controller
 
                 Log::error('Échec de la création de la session Wave pour ' . $naissance->reference);
                 return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'stripe') {
+                try {
+                    $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $naissance->reference, $user, 'naissance', $request->getSchemeAndHttpHost());
+                    return redirect($checkoutUrl);
+                } catch (\Throwable $e) {
+                    Log::error('Erreur Stripe (naissance) ' . $naissance->reference . ': ' . $e->getMessage());
+                    return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                }
             } elseif (strtolower($paymentMethod) === 'mtn') {
                 $mtnPhoneNumber = $request->input('mtn_number');
                 // Format number to international format (starting with 225)
@@ -724,6 +771,33 @@ class NaissanceController extends Controller
 
                 Log::error('Échec de la création de la session MTN pour ' . $naissance->reference);
                 return redirect()->route('user.extrait.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                $tresorPhone = $request->input('mtn_number');
+                $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                $tresorService = app(\App\Services\TresorPayService::class);
+                $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $naissance->reference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                if ($response && ($response['success'] ?? false)) {
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                'reference' => $naissance->reference,
+                                'type' => 'naissance'
+                            ]),
+                            'reference' => $naissance->reference,
+                        ]);
+                    }
+
+                    return redirect()->route('user.payment.tresorpay.waiting', [
+                        'reference' => $naissance->reference,
+                        'type' => 'naissance'
+                    ]);
+                }
+
+                Log::error('Échec de la création de la session TrésorPay pour ' . $naissance->reference);
+                return redirect()->route('user.extrait.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
             } else {
                 // Générer la session CinetPay
                 $channels = 'ALL';
@@ -791,5 +865,48 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             Log::error('Erreur lors de la suppression de la demande : ' . $e->getMessage());
             return redirect()->route('user.extrait.index')->with('error1', 'Une erreur est survenue lors de la suppression de la demande.');
         }
+    }
+
+    private function createStripeCheckoutUrl(float $amount, string $reference, $user, string $type = 'naissance', ?string $baseUrl = null): string
+    {
+        $secretKey = config('services.stripe.secret_key');
+        if (!$secretKey) {
+            throw new \RuntimeException('Configuration Stripe manquante (STRIPE_SECRET_KEY).');
+        }
+
+        $baseUrl = rtrim($baseUrl ?: config('app.url'), '/');
+        $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+        $cancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+
+        $stripe = new StripeClient($secretKey);
+        $session = $stripe->checkout->sessions->create([
+            'mode' => 'payment',
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'xof',
+                    'unit_amount' => (int) round($amount),
+                    'product_data' => [
+                        'name' => 'Demande extrait de naissance',
+                        'description' => 'Reference: ' . $reference,
+                    ],
+                ],
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => [
+                'reference' => $reference,
+                'demande_type' => 'naissance',
+            ],
+            'client_reference_id' => $reference,
+            'customer_email' => $user?->email,
+        ]);
+
+        if (!isset($session->url) || !$session->url) {
+            throw new \RuntimeException('URL Stripe Checkout indisponible.');
+        }
+
+        return $session->url;
     }
 }

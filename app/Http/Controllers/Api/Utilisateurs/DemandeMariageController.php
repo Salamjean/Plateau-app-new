@@ -63,17 +63,19 @@ class DemandeMariageController extends Controller
         $validator = Validator::make($request->all(), [
             'qty_simple' => 'nullable|integer|min:0|max:10',
             'qty_integral' => 'nullable|integer|min:0|max:10',
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
-            'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe',
+            'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
             'pieceIdentite' => 'required',
             'extraitMariage' => 'nullable',
             'commune_mariage' => 'required|string',
+            'numero_registre' => 'required|string',
+            'date_registre' => 'required|date',
             'pour' => 'nullable|string|max:255',
             'relation' => 'nullable|string|in:enfant,parent,connaissance',
             'document_autorisation' => 'required_if:relation,connaissance|nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ], [
-            'mtn_number.required_if' => 'Le numéro MTN est obligatoire lorsque le moyen de paiement choisi est MTN.',
-            'mtn_number.regex' => 'Le numéro MTN doit comporter exactement 10 chiffres et commencer par 05.',
+            'mtn_number.required_if' => 'Le numéro de paiement est obligatoire lorsque le moyen de paiement choisi est MTN ou TrésorPay.',
+            'mtn_number.regex' => 'Le numéro de paiement doit comporter exactement 10 chiffres et commencer par 01, 05 ou 07.',
         ]);
 
         if ($validator->fails()) {
@@ -124,10 +126,29 @@ class DemandeMariageController extends Controller
             $mariage->dateNaissanceEpouse = $request->dateNaissanceEpouse;
             $mariage->lieuNaissanceEpouse = $request->lieuNaissanceEpouse;
             $mariage->commune_mariage = $request->commune_mariage;
+            $mariage->numero_registre = $request->numero_registre;
+            $mariage->date_registre = $request->date_registre;
 
-            // Calcul des quantités
-            $qtySimple = (int) $request->input('qty_simple', 0);
-            $qtyIntegral = (int) $request->input('qty_integral', 0);
+            // Calcul des quantités avec validation stricte
+            $rawQtySimple = $request->input('qty_simple', 0);
+            $rawQtyIntegral = $request->input('qty_integral', 0);
+
+            if (!is_numeric($rawQtySimple) || $rawQtySimple < 0 || $rawQtySimple > 100) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Quantité simple invalide (doit être entre 0 et 100).'
+                ], 422);
+            }
+
+            if (!is_numeric($rawQtyIntegral) || $rawQtyIntegral < 0 || $rawQtyIntegral > 100) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Quantité intégrale invalide (doit être entre 0 et 100).'
+                ], 422);
+            }
+
+            $qtySimple = (int) $rawQtySimple;
+            $qtyIntegral = (int) $rawQtyIntegral;
 
             $totalQuantity = $qtySimple + $qtyIntegral;
 
@@ -250,8 +271,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // 8. Succès ! Construire la réponse
-            $msg = strtolower($paymentMethod) === 'mtn'
-                ? 'Demande créée. Un message de validation de paiement (Push USSD) a été envoyé sur votre numéro MTN pour finaliser le paiement.'
+            $msg = in_array(strtolower($paymentMethod), ['mtn', 'tresorpay'])
+                ? 'Demande créée. Un message de validation de paiement (Push USSD) a été envoyé sur votre numéro pour finaliser le paiement.'
                 : 'Demande créée. Utilisez le payment_url pour payer.';
 
             return response()->json([
@@ -266,13 +287,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
                 ],
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['payment_url'],
-                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                    'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                    'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                    'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                     'mode' => 'PRODUCTION',
-                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                 ],
 
                 'data' => [
@@ -303,8 +326,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $baseUrl = config('app.url');
             $returnUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=success&transactionId={$transactionReference}";
             $cancelUrl = "plateauapps://app/payment-result?method={$paymentMethod}&status=cancel&transactionId={$transactionReference}";
-            $fallbackReturnUrl = $baseUrl . "/user/payment/success?reference=" . urlencode($transactionReference) . "&type=mariage";
-            $fallbackCancelUrl = $baseUrl . "/user/payment/cancel?reference=" . urlencode($transactionReference) . "&type=mariage";
+            $fallbackReturnUrl = $baseUrl . "/mariage/paiement/" . urlencode($transactionReference);
+            $fallbackCancelUrl = $baseUrl . "/mariage/paiement/" . urlencode($transactionReference);
 
             // Si c'est Wave, utiliser le service Wave
             if (strtolower($paymentMethod) === 'wave') {
@@ -336,9 +359,56 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 ];
             }
 
+            // Si c'est Stripe, utiliser Stripe Checkout Session
+            if (strtolower($paymentMethod) === 'stripe') {
+                $secretKey = config('services.stripe.secret_key');
+                if (!$secretKey) {
+                    return [
+                        'success' => false,
+                        'message' => 'Configuration Stripe manquante (STRIPE_SECRET_KEY).'
+                    ];
+                }
+
+                $stripeSuccessUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($transactionReference) . '&type=mariage&provider=stripe';
+                $stripeCancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($transactionReference) . '&type=mariage&provider=stripe';
+
+                $stripe = new \Stripe\StripeClient($secretKey);
+                $session = $stripe->checkout->sessions->create([
+                    'mode' => 'payment',
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'quantity' => 1,
+                        'price_data' => [
+                            'currency' => 'xof',
+                            'unit_amount' => (int) round($totalAmount),
+                            'product_data' => [
+                                'name' => 'Demande extrait de mariage',
+                                'description' => 'Reference: ' . $transactionReference,
+                            ],
+                        ],
+                    ]],
+                    'success_url' => $stripeSuccessUrl,
+                    'cancel_url' => $stripeCancelUrl,
+                    'metadata' => [
+                        'reference' => $transactionReference,
+                        'type' => 'mariage',
+                    ],
+                ]);
+
+                return [
+                    'success' => true,
+                    'payment_url' => $session->url,
+                    'generated_transaction_id' => $transactionReference,
+                    'return_url_deep_link' => $returnUrl,
+                    'cancel_url_deep_link' => $cancelUrl,
+                    'return_url_web_fallback' => $stripeSuccessUrl,
+                    'cancel_url_web_fallback' => $stripeCancelUrl,
+                ];
+            }
+
             // Si c'est MTN, utiliser MTN MoMo API en direct (MtnService)
             if (strtolower($paymentMethod) === 'mtn') {
-                $mtnPhoneNumber = request()->input('mtn_number') ?: $mariage->contact_destinataire ?: (auth()->check() ? auth()->user()->contact : '');
+                $mtnPhoneNumber = request()->input('mtn_number');
 
                 // Formater le numéro
                 $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
@@ -372,12 +442,44 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     ];
                 }
 
+                // Si c'est TrésorPay, utiliser TresorPayService
+            }
+
+            if (strtolower($paymentMethod) === 'tresorpay') {
+                $tresorPhone = request()->input('mtn_number');
+                $tresorPhone = preg_replace('/[^0-9]/', '', (string)$tresorPhone);
+
+                $tresorService = app(\App\Services\TresorPayService::class);
+                $nom = auth()->check() ? auth()->user()->name : 'Client';
+                $prenoms = auth()->check() ? auth()->user()->prenoms : 'Plateau';
+
+                $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $nom, $prenoms);
+
+                if ($response && ($response['success'] ?? false)) {
+                    return [
+                        'success' => true,
+                        'payment_url' => null, // Pas de lien pour le push USSD
+                        'is_ussd_push' => true,
+                        'generated_transaction_id' => $transactionReference,
+                        'return_url_deep_link' => $returnUrl,
+                        'cancel_url_deep_link' => $cancelUrl,
+                        'return_url_web_fallback' => $fallbackReturnUrl,
+                        'cancel_url_web_fallback' => $fallbackCancelUrl,
+                    ];
+                }
+
                 return [
                     'success' => false,
-                    'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
+                    'message' => 'Échec de l\'initiation du paiement TrésorPay (Push USSD). ' . ($response['message'] ?? ''),
                     'error_details' => $response
                 ];
             }
+
+            return [
+                'success' => false,
+                'message' => 'Échec de l\'initiation du paiement MTN direct (Push USSD).',
+                'error_details' => $response
+            ];
 
             // Sinon, utiliser CinetPay pour les autres moyens de paiement (Orange, Moov)
             $channels = 'ALL';
@@ -442,11 +544,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     {
         // 0. Validation de la méthode et du numéro MTN
         $validator = Validator::make($request->all(), [
-            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay',
-            'mtn_number' => 'required_if:payment_method,mtn|nullable|string|regex:/^05[0-9]{8}$/',
+            'payment_method' => 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe',
+            'mtn_number' => 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/',
         ], [
-            'mtn_number.required_if' => 'Le numéro MTN est obligatoire lorsque le moyen de paiement choisi est MTN.',
-            'mtn_number.regex' => 'Le numéro MTN doit comporter exactement 10 chiffres et commencer par 05.',
+            'mtn_number.required_if' => 'Le numéro de paiement est obligatoire lorsque le moyen de paiement choisi est MTN ou TrésorPay.',
+            'mtn_number.regex' => 'Le numéro de paiement doit comporter exactement 10 chiffres et commencer par 01, 05 ou 07.',
         ]);
 
         if ($validator->fails()) {
@@ -509,13 +611,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'requires_payment' => true,
 
                 'payment_details' => [
-                    'payment_url' => $paymentLinkResult['payment_url'],
-                    'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                    'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                    'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                    'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                    'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                     'mode' => 'PRODUCTION',
-                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                    'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                    'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                    'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                    'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                 ],
 
                 'data' => [
@@ -627,6 +731,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 'lieuNaissanceEpouse' => 'nullable|string|max:255',
                 'commune' => 'required|string',
                 'commune_mariage' => 'required|string|max:255',
+                'numero_registre' => 'required|string',
+                'date_registre' => 'required|date',
                 'qty_simple' => 'nullable|integer|min:0|max:10',
                 'qty_integral' => 'nullable|integer|min:0|max:10',
                 'pieceIdentite' => $mariage->pieceIdentite ? 'nullable' : 'required',
@@ -745,11 +851,22 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $mariage->lieuNaissanceEpouse = $request->input('lieuNaissanceEpouse', $mariage->lieuNaissanceEpouse);
             $mariage->commune = $request->input('commune', $mariage->commune);
             $mariage->commune_mariage = $request->input('commune_mariage', $mariage->commune_mariage);
+            $mariage->numero_registre = $request->input('numero_registre', $mariage->numero_registre);
+            $mariage->date_registre = $request->input('date_registre', $mariage->date_registre);
             $mariage->CMU = $request->input('CMU', $mariage->CMU);
 
             // Quantités : si l'utilisateur n'envoie pas de nouvelles valeurs, on conserve les valeurs existantes
-            $qtySimpleInput = $request->has('qty_simple') ? (int) $request->input('qty_simple') : null;
-            $qtyIntegralInput = $request->has('qty_integral') ? (int) $request->input('qty_integral') : null;
+            $qtySimpleInput = null;
+            if ($request->has('qty_simple')) {
+                $val = filter_var($request->input('qty_simple'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 100]]);
+                $qtySimpleInput = $val !== false ? (int) $val : 0;
+            }
+
+            $qtyIntegralInput = null;
+            if ($request->has('qty_integral')) {
+                $val = filter_var($request->input('qty_integral'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 100]]);
+                $qtyIntegralInput = $val !== false ? (int) $val : 0;
+            }
 
             if ($qtySimpleInput === null && $qtyIntegralInput === null) {
                 $qtySimple = (int) $mariage->qty_simple;
@@ -818,7 +935,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
             // États réellement payés (paiement confirmé) : on utilise une liste blanche
-            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé', 'rejeté', 'rejetée'];
             $demandeDejaPayee = in_array(strtolower($mariage->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $mariage->montant_timbre + (float) $mariage->montant_livraison) : 0;
 
@@ -949,6 +1066,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                     'lieuNaissanceEpouse' => $request->input('lieuNaissanceEpouse', $originalData['lieuNaissanceEpouse']),
                     'commune' => $request->input('commune', $originalData['commune']),
                     'commune_mariage' => $request->input('commune_mariage', $originalData['commune_mariage']),
+                    'numero_registre' => $request->input('numero_registre', $originalData['numero_registre'] ?? $mariage->numero_registre),
+                    'date_registre' => $request->input('date_registre', $originalData['date_registre'] ?? $mariage->date_registre),
                     'CMU' => $request->input('CMU', $originalData['CMU']),
                     'qty_simple' => $qtySimple,
                     'qty_integral' => $qtyIntegral,
@@ -989,13 +1108,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                             'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
                         ],
                         'payment_details' => [
-                            'payment_url' => $paymentLinkResult['payment_url'],
-                            'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                            'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                            'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                            'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                            'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                             'mode' => 'PRODUCTION',
-                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                         ],
                         'data' => [
                             'demande' => $this->formatDemandeResponse($mariage, true)
@@ -1065,7 +1186,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             }
 
             // Vérification restrictive : rejeter la modification de champs non spécifiés par la mairie
-            $champsDemande = ['type', 'typeDemande', 'pour', 'relation', 'nomEpoux', 'prenomEpoux', 'dateNaissanceEpoux', 'lieuNaissanceEpoux', 'nomEpouse', 'prenomEpouse', 'dateNaissanceEpouse', 'lieuNaissanceEpouse', 'commune', 'commune_mariage', 'qty_simple', 'qty_integral', 'quantite', 'pieceIdentite', 'extraitMariage', 'document_autorisation', 'CMU'];
+            $champsDemande = ['type', 'typeDemande', 'pour', 'relation', 'nomEpoux', 'prenomEpoux', 'dateNaissanceEpoux', 'lieuNaissanceEpoux', 'nomEpouse', 'prenomEpouse', 'dateNaissanceEpouse', 'lieuNaissanceEpouse', 'commune', 'commune_mariage', 'numero_registre', 'date_registre', 'qty_simple', 'qty_integral', 'quantite', 'pieceIdentite', 'extraitMariage', 'document_autorisation', 'CMU'];
             $champsEnvoyes = array_keys($request->all());
             $champsNonAutorises = [];
 
@@ -1152,7 +1273,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Règles de livraison si choix_option est livraison
             if ($request->input('choix_option') === 'livraison') {
-                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay';
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe';
                 $rules['montant_timbre'] = 'required|numeric';
                 $rules['montant_livraison'] = 'required|numeric';
                 $rules['nom_destinataire'] = 'required|string|max:255';
@@ -1164,6 +1285,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                 $rules['ville'] = 'nullable|string|max:255';
                 $rules['commune_livraison'] = 'nullable|string|max:255';
                 $rules['quartier'] = 'nullable|string|max:255';
+            }
+
+            if ($request->has('payment_method') || $request->input('choix_option') === 'livraison') {
+                $rules['payment_method'] = 'required|string|in:wave,orange,mtn,moov,cinetpay,tresorpay,stripe';
+                $rules['mtn_number'] = 'required_if:payment_method,mtn,tresorpay|nullable|string|regex:/^0[157][0-9]{8}$/';
             }
 
             // 5. Valider les données
@@ -1267,7 +1393,10 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
 
             // Si la quantité a été modifiée ou le type dans les champs rejetés
             if (in_array('quantite', $champsAModifier) || in_array('typeDemande', $champsAModifier) || in_array('type', $champsAModifier)) {
-                $mariage->quantite = (int) $request->input('quantite', $mariage->quantite);
+                $rawQuantite = $request->input('quantite', $mariage->quantite);
+                $valQuantite = filter_var($rawQuantite, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 100]]);
+                $mariage->quantite = $valQuantite !== false ? (int) $valQuantite : max(1, (int) $mariage->quantite);
+
                 if ($mariage->type === 'integrale') {
                     $qtyIntegral = $mariage->quantite;
                     $qtySimple = 0;
@@ -1319,7 +1448,7 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             $nouveauMontantTotal = $montantTimbreTotal + $montantLivraisonCible;
 
             // Calcul du montant déjà payé s'il a déjà effectué un paiement
-            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé'];
+            $etatsPayes = ['en attente', 'en cours', 'traité', 'livré', 'terminé', 'complété', 'paye', 'payé', 'rejeté', 'rejetée'];
             $demandeDejaPayee = in_array(strtolower($mariage->etat), array_map('strtolower', $etatsPayes));
             $ancienMontantPaye = $demandeDejaPayee ? ((float) $mariage->montant_timbre + (float) $mariage->montant_livraison) : 0;
 
@@ -1447,6 +1576,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         'lieuNaissanceEpouse' => $request->input('lieuNaissanceEpouse', $originalData['lieuNaissanceEpouse']),
                         'commune' => $request->input('commune', $originalData['commune']),
                         'commune_mariage' => $request->input('commune_mariage', $originalData['commune_mariage']),
+                        'numero_registre' => $request->input('numero_registre', $originalData['numero_registre'] ?? $mariage->numero_registre),
+                        'date_registre' => $request->input('date_registre', $originalData['date_registre'] ?? $mariage->date_registre),
                         'CMU' => $request->input('CMU', $originalData['CMU']),
                         'qty_simple' => $qtySimple ?? $mariage->qty_simple,
                         'qty_integral' => $qtyIntegral ?? $mariage->qty_integral,
@@ -1490,13 +1621,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                             'restants_apres_paiement' => max(0, $this->getRemainingFreeRequests($user) - $freeCalc['free_timbres']),
                         ],
                         'payment_details' => [
-                            'payment_url' => $paymentLinkResult['payment_url'],
-                            'transaction_id' => $paymentLinkResult['generated_transaction_id'],
+                            'payment_url' => $paymentLinkResult['payment_url'] ?? null,
+                            'is_ussd_push' => $paymentLinkResult['is_ussd_push'] ?? false,
+                            'mtn_ref' => $paymentLinkResult['mtn_ref'] ?? null,
+                            'transaction_id' => $paymentLinkResult['generated_transaction_id'] ?? null,
                             'mode' => 'PRODUCTION',
-                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'],
-                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'],
-                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'],
-                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'],
+                            'return_url_deep_link' => $paymentLinkResult['return_url_deep_link'] ?? null,
+                            'cancel_url_deep_link' => $paymentLinkResult['cancel_url_deep_link'] ?? null,
+                            'return_url_web_fallback' => $paymentLinkResult['return_url_web_fallback'] ?? null,
+                            'cancel_url_web_fallback' => $paymentLinkResult['cancel_url_web_fallback'] ?? null,
                         ],
                         'data' => [
                             'demande' => $this->formatDemandeResponse($mariage, true)
@@ -1611,8 +1744,15 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
     /**
      * Helper pour formater la réponse de la demande (Spécifique au Mariage)
      */
-    private function formatDemandeResponse(Mariage $mariage, bool $includeFiles = false)
+    private function formatDemandeResponse($mariage, bool $includeFiles = false)
     {
+        // Convert stdClass to Mariage model defensively if needed
+        if (is_object($mariage) && !$mariage instanceof Mariage) {
+            $model = new Mariage();
+            $model->forceFill((array) $mariage);
+            $mariage = $model;
+        }
+
         // montant_total = timbres + livraison (les timbres sont dus pour retrait ET livraison)
         $montant_total = (float) ($mariage->montant_timbre ?? 0) + (float) ($mariage->montant_livraison ?? 0);
 
@@ -1816,8 +1956,14 @@ Votre demande est maintenant en attente de traitement.";
     public function getPaymentStatus(Request $request, $reference): JsonResponse
     {
         try {
+            // Extraire la vraie référence s'il s'agit d'une modification
+            $baseReference = $reference;
+            if (str_contains($reference, '-MOD-')) {
+                $baseReference = explode('-MOD-', $reference)[0];
+            }
+
             // 1. Trouver la demande de mariage
-            $mariage = Mariage::where('reference', $reference)->first();
+            $mariage = Mariage::where('reference', $baseReference)->first();
 
             if (!$mariage) {
                 return response()->json(['status' => 'not_found', 'message' => 'Demande non trouvée'], 404);
@@ -2000,9 +2146,9 @@ Votre demande est maintenant en attente de traitement.";
      * NOUVEAU (Générique)
      * Affiche la page de redirection/statut après le paiement.
      */
-    public function showRedirectPage(Request $request)
+    public function showRedirectPage(Request $request, $transactionId = null)
     {
-        $transactionId = $request->input('transactionId') ?? $request->input('transaction_id');
+        $transactionId = $transactionId ?? $request->input('transactionId') ?? $request->input('transaction_id');
 
         if (!$transactionId) {
             return view('payments.redirect_to_app', ['transactionId' => null]);

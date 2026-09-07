@@ -8,6 +8,14 @@ class RedirectToAppController extends Controller
 {
     public function show(Request $request)
     {
+        $request->validate([
+            'cpm_trans_id' => 'nullable|string|max:255',
+            'transaction_id' => 'nullable|string|max:255',
+            'transactionId' => 'nullable|string|max:255',
+            'cancel' => 'nullable|string|max:255',
+            'cinetpay' => 'nullable|string|max:255',
+        ]);
+
         // Log pour debug
         Log::info('RedirectToAppController - Méthode: ' . $request->method(), [
             'all_inputs' => $request->all(),

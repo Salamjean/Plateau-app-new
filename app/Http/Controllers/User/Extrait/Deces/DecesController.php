@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Stripe\StripeClient;
 
 class DecesController extends Controller
 {
@@ -151,8 +152,11 @@ class DecesController extends Controller
         $reference = 'AD' . $randomDigits . $increment . $communeInitiale . $anneeCourante; // AD pour Acte de Decès
 
         // Récupérer les quantités selon le type de demande
-        $qtySimple = (int) $request->input('qty_simple', 0);
-        $qtyIntegral = (int) $request->input('qty_integral', 0);
+        $rawQtySimple = (string) $request->input('qty_simple', '0');
+        $qtySimple = preg_match('/^\d+$/', $rawQtySimple) && (int)$rawQtySimple >= 0 && (int)$rawQtySimple <= 10 ? (int)$rawQtySimple : 0;
+
+        $rawQtyIntegral = (string) $request->input('qty_integral', '0');
+        $qtyIntegral = preg_match('/^\d+$/', $rawQtyIntegral) && (int)$rawQtyIntegral >= 0 && (int)$rawQtyIntegral <= 10 ? (int)$rawQtyIntegral : 0;
 
         if ($request->type === 'simple') {
             $qtyIntegral = 0;
@@ -274,6 +278,24 @@ class DecesController extends Controller
 
                 Log::error('Échec de la création de la session Wave pour ' . $deces->reference);
                 return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'stripe') {
+                try {
+                    $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $deces->reference, $user, 'deces', 'Demande extrait de deces', $request->getSchemeAndHttpHost());
+
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => $checkoutUrl,
+                        ]);
+                    }
+
+                    return redirect($checkoutUrl);
+                } catch (\Throwable $e) {
+                    Log::error('Erreur Stripe (deces/store) : ' . $e->getMessage(), [
+                        'reference' => $deces->reference,
+                    ]);
+                    return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                }
             } elseif (strtolower($paymentMethod) === 'mtn') {
                 $mtnPhoneNumber = $request->input('mtn_number');
                 // Format number to international format (starting with 225)
@@ -315,6 +337,33 @@ class DecesController extends Controller
 
                 Log::error('Échec de la création de la session MTN pour ' . $deces->reference);
                 return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                $tresorPhone = $request->input('mtn_number');
+                $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                $tresorService = app(\App\Services\TresorPayService::class);
+                $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $deces->reference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                if ($response && ($response['success'] ?? false)) {
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                'reference' => $deces->reference,
+                                'type' => 'deces'
+                            ]),
+                            'reference' => $deces->reference,
+                        ]);
+                    }
+
+                    return redirect()->route('user.payment.tresorpay.waiting', [
+                        'reference' => $deces->reference,
+                        'type' => 'deces'
+                    ]);
+                }
+
+                Log::error('Échec de la création de la session TrésorPay pour ' . $deces->reference);
+                return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
             } else {
                 // Générer la session CinetPay
                 $channels = 'ALL';
@@ -430,8 +479,11 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         }
 
         // Quantities
-        $qty_simple = (int)$request->input('qty_simple', 0);
-        $qty_integral = (int)$request->input('qty_integral', 0);
+        $rawQtySimple = (string) $request->input('qty_simple', '0');
+        $qty_simple = preg_match('/^\d+$/', $rawQtySimple) && (int)$rawQtySimple >= 0 && (int)$rawQtySimple <= 10 ? (int)$rawQtySimple : 0;
+
+        $rawQtyIntegral = (string) $request->input('qty_integral', '0');
+        $qty_integral = preg_match('/^\d+$/', $rawQtyIntegral) && (int)$rawQtyIntegral >= 0 && (int)$rawQtyIntegral <= 10 ? (int)$rawQtyIntegral : 0;
         if ($request->type === 'simple') {
             $qty_integral = 0;
             if ($qty_simple <= 0) $qty_simple = 1;
@@ -616,8 +668,26 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         return redirect($checkoutSession['wave_launch_url']);
                     }
                     return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'stripe') {
+                    try {
+                        $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $transactionReference, $user, 'deces', 'Paiement complementaire extrait de deces', $request->getSchemeAndHttpHost());
+
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => $checkoutUrl,
+                            ]);
+                        }
+
+                        return redirect($checkoutUrl);
+                    } catch (\Throwable $e) {
+                        Log::error('Erreur Stripe (deces/modifierDemande) : ' . $e->getMessage(), [
+                            'reference' => $transactionReference,
+                        ]);
+                        return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                    }
                 } elseif (strtolower($paymentMethod) === 'mtn') {
-                    $mtnPhoneNumber = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $mtnPhoneNumber = $request->input('mtn_number');
                     $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
                     if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
                         $mtnPhoneNumber = '225' . $mtnPhoneNumber;
@@ -651,6 +721,30 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         ]);
                     }
                     return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                    $tresorPhone = $request->input('mtn_number');
+                    $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                    $tresorService = app(\App\Services\TresorPayService::class);
+                    $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                    if ($response && ($response['success'] ?? false)) {
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                    'reference' => $transactionReference,
+                                    'type' => 'deces'
+                                ]),
+                                'reference' => $transactionReference,
+                            ]);
+                        }
+                        return redirect()->route('user.payment.tresorpay.waiting', [
+                            'reference' => $transactionReference,
+                            'type' => 'deces'
+                        ]);
+                    }
+                    return redirect()->route('user.extrait.deces.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
                 } else {
                     $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
                     $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
@@ -735,5 +829,48 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             Log::error('Erreur lors de la suppression de la demande : ' . $e->getMessage());
             return redirect()->route('user.extrait.deces.index')->with('error', 'Une erreur est survenue lors de la suppression de la demande.');
         }
+    }
+
+    private function createStripeCheckoutUrl(float $amount, string $reference, $user, string $type, string $description, ?string $baseUrl = null): string
+    {
+        $secretKey = config('services.stripe.secret_key');
+        if (!$secretKey) {
+            throw new \RuntimeException('Configuration Stripe manquante (STRIPE_SECRET_KEY).');
+        }
+
+        $baseUrl = rtrim($baseUrl ?: config('app.url'), '/');
+        $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+        $cancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+
+        $stripe = new StripeClient($secretKey);
+        $session = $stripe->checkout->sessions->create([
+            'mode' => 'payment',
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'xof',
+                    'unit_amount' => (int) round($amount),
+                    'product_data' => [
+                        'name' => $description,
+                        'description' => 'Reference: ' . $reference,
+                    ],
+                ],
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => [
+                'reference' => $reference,
+                'demande_type' => $type,
+            ],
+            'client_reference_id' => $reference,
+            'customer_email' => $user?->email,
+        ]);
+
+        if (!isset($session->url) || !$session->url) {
+            throw new \RuntimeException('URL Stripe Checkout indisponible.');
+        }
+
+        return $session->url;
     }
 }

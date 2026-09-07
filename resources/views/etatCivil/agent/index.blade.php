@@ -217,6 +217,15 @@
         color: var(--secondary) !important;
     }
     
+    .table th, .table td {
+        white-space: nowrap;
+    }
+    
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    
     .table th {
         font-weight: 600;
         text-transform: uppercase;
@@ -288,7 +297,8 @@
         
         .table-responsive {
             border-radius: 10px;
-            overflow: hidden;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
         }
         
         .d-flex.justify-content-between {
@@ -299,6 +309,20 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    function safeRedirect(url) {
+        if (!url) return;
+        try {
+            const parsedUrl = new URL(url, window.location.origin);
+            if (parsedUrl.origin === window.location.origin) {
+                window.location.href = parsedUrl.href;
+            } else {
+                console.error('Untrusted redirect destination:', url);
+            }
+        } catch (e) {
+            console.error('Invalid URL:', url);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initialiser les tooltips Bootstrap
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -369,7 +393,7 @@
                     background: 'white',
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = '{{ route('register') }}';
+                        safeRedirect('{{ route('register') }}');
                     }
                 });
             @endif
@@ -380,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     
     if (!csrfToken) {
-        console.error('CSRF token not found');
+        console.warn('Configuration de sécurité manquante');
     }
 
     // Voir les détails de l'agent
@@ -388,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const url = this.getAttribute('data-url');
             if (url) {
-                window.location.href = url;
+                safeRedirect(url);
             } else {
                 console.error('URL not found for view agent');
             }
@@ -400,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const url = this.getAttribute('data-url');
             if (url) {
-                window.location.href = url;
+                safeRedirect(url);
             } else {
                 console.error('URL not found for edit agent');
             }

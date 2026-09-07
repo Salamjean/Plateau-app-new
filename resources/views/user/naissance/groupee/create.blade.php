@@ -1098,6 +1098,15 @@
                                     <small>Paiement instantané</small>
                                 </div>
                             </label>
+                            <label class="payment-option">
+                                <input type="radio" name="payment_method" value="tresorpay"
+                                    onchange="onPaymentMethodChange()">
+                                <div class="payment-option-content">
+                                    <img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" onerror="this.style.display='none'">
+                                    <h6>TrésorPay</h6>
+                                    <small>TrésorMoney</small>
+                                </div>
+                            </label>
                             <label class="payment-option" style="opacity: 0.5; cursor: not-allowed;" title="Indisponible">
                                 <input type="radio" name="payment_method" value="mtn" disabled
                                     onchange="onPaymentMethodChange()">
@@ -1115,16 +1124,6 @@
                                     <img src="{{ asset('assets/assets/img/orange.png') }}" alt="Orange"
                                         onerror="this.style.display='none'">
                                     <h6>Orange Money</h6>
-                                    <small>Via CinetPay</small>
-                                </div>
-                            </label>
-                            <label class="payment-option">
-                                <input type="radio" name="payment_method" value="moov"
-                                    onchange="onPaymentMethodChange()">
-                                <div class="payment-option-content">
-                                    <img src="{{ asset('assets/assets/img/moov.png') }}" alt="Moov"
-                                        onerror="this.style.display='none'">
-                                    <h6>Moov Money</h6>
                                     <small>Via CinetPay</small>
                                 </div>
                             </label>
@@ -1385,6 +1384,13 @@
                         const mtnNumber = document.querySelector('input[name="mtn_number"]').value.trim();
                         if (!/^05\d{8}$/.test(mtnNumber)) {
                             alert('Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
+                            return;
+                        }
+                    }
+                    if (method === 'tresorpay') {
+                        const mtnNumber = document.querySelector('input[name="mtn_number"]').value.trim();
+                        if (!mtnNumber || mtnNumber.length !== 10) {
+                            alert('Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.');
                             return;
                         }
                     }

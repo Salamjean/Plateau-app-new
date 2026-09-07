@@ -188,9 +188,9 @@
                     <div class="form-section-title"><i class="fas fa-credit-card"></i> Mode de paiement</div>
                     <div class="payment-grid">
                         <label class="payment-option"><input type="radio" name="payment_method" value="wave" checked onchange="onPaymentMethodChange()"><div class="payment-option-content"><img src="{{ asset('assets/assets/img/wave.png') }}" alt="Wave" onerror="this.style.display='none'"><h6>Wave</h6><small>Paiement instantané</small></div></label>
+                        <label class="payment-option"><input type="radio" name="payment_method" value="tresorpay" onchange="onPaymentMethodChange()"><div class="payment-option-content"><img src="{{ asset('assets/assets/img/tresormoney.png') }}" alt="TrésorMoney" onerror="this.style.display='none'"><h6>TrésorPay</h6><small>TrésorMoney</small></div></label>
                         <label class="payment-option" style="opacity: 0.5; cursor: not-allowed;" title="Indisponible"><input type="radio" name="payment_method" value="mtn" disabled onchange="onPaymentMethodChange()"><div class="payment-option-content"><img src="{{ asset('assets/assets/img/mtn.png') }}" alt="MTN" onerror="this.style.display='none'"><h6>MTN Money</h6><small>Indisponible</small></div></label>
                         <label class="payment-option"><input type="radio" name="payment_method" value="orange" onchange="onPaymentMethodChange()"><div class="payment-option-content"><img src="{{ asset('assets/assets/img/orange.png') }}" alt="Orange" onerror="this.style.display='none'"><h6>Orange Money</h6><small>Via CinetPay</small></div></label>
-                        <label class="payment-option"><input type="radio" name="payment_method" value="moov" onchange="onPaymentMethodChange()"><div class="payment-option-content"><img src="{{ asset('assets/assets/img/moov.png') }}" alt="Moov" onerror="this.style.display='none'"><h6>Moov Money</h6><small>Via CinetPay</small></div></label>
                     </div>
                     <div id="mtn-phone-block" style="display:none; margin-top: 1rem;">
                         <div class="input-group-custom">
@@ -353,9 +353,7 @@
 
             <!-- Détails du mariage (calque du formulaire existant) -->
             <div class="form-section-title" style="font-size: 0.95rem;">
-                <i class="fas fa-book"></i> Détails du mariage
-            </div>
-            <div class="row">
+                <i c            <div class="row">
                 <div class="col-md-6 mb-3">
                     <div class="input-group-custom">
                         <label>Commune de mariage : *</label>
@@ -374,6 +372,28 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="input-group-custom">
+                        <label>Numéro de registre : *</label>
+                        <div class="input-wrapper">
+                            <input type="text" name="lignes[${position}][numero_registre]" class="form-control-custom" placeholder="Numéro de registre" required>
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="input-group-custom">
+                        <label>Date de registre : *</label>
+                        <div class="input-wrapper">
+                            <input type="date" name="lignes[${position}][date_registre]" class="form-control-custom" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            ${blocConjoint}         </div>
             </div>
 
             ${blocConjoint}
@@ -485,6 +505,13 @@
                     const mtnNumber = document.querySelector('input[name="mtn_number"]').value.trim();
                     if (!/^05\d{8}$/.test(mtnNumber)) {
                         alert('Le numéro MTN Money doit comporter 10 chiffres et commencer par 05.');
+                        return;
+                    }
+                }
+                if (method === 'tresorpay') {
+                    const mtnNumber = document.querySelector('input[name="mtn_number"]').value.trim();
+                    if (!mtnNumber || mtnNumber.length !== 10) {
+                        alert('Le numéro TrésorPay est obligatoire et doit comporter exactement 10 chiffres.');
                         return;
                     }
                 }

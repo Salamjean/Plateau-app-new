@@ -190,7 +190,7 @@ class TimbreController extends Controller
   public function history(Request $request)
    {
       $financeId = Auth::guard('comptable')->user()->id;
-      $query = Timbre::with(['finance:id,name,prenom'])
+      $query = Timbre::with(['comptable:id,name,prenom', 'finance:id,name_respo'])
                   ->where('nombre_timbre', '<', 0)
                   ->where('comptable_id', $financeId);
       

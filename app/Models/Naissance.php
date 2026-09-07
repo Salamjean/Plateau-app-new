@@ -11,6 +11,7 @@ class Naissance extends Model
         'pour',
         'name',
         'prenom',
+        'date_naissance',
         'nom_prenoms_pere',
         'nom_prenoms_mere',
         'number',
@@ -94,7 +95,7 @@ class Naissance extends Model
      */
     public function scopePaye($query)
     {
-        return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente', 'en attente de paiement']);
+        return $query->whereNotIn('etat', ['non_paye', 'paiement_en_attente', 'en attente de paiement', 'paiement_echoue']);
     }
 
     /**
@@ -113,5 +114,19 @@ class Naissance extends Model
         } else {
             return 1;
         }
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($model) {
+            \App\Models\DeletedDemande::create([
+                'type_demande' => get_class($model),
+                'original_id' => $model->id,
+                'user_id' => $model->user_id,
+                'data' => $model->toJson(),
+            ]);
+        });
     }
 }

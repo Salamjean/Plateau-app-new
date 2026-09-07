@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Stripe\StripeClient;
 
 class MariageController extends Controller
 {
@@ -164,6 +165,8 @@ class MariageController extends Controller
         $mariage->quantite = $totalQuantity;
         $mariage->pieceIdentite = $uploadedPaths['pieceIdentite'] ?? null;
         $mariage->extraitMariage = $uploadedPaths['extraitMariage'] ?? null;
+        $mariage->numero_registre = $request->numero_registre;
+        $mariage->date_registre = $request->date_registre;
         $mariage->commune = $commune; // Utilisation de la commune spécifiée
         $mariage->commune_mariage = $request->commune_mariage;
         $mariage->choix_option = $request->choix_option;
@@ -244,6 +247,24 @@ class MariageController extends Controller
 
                 Log::error('Échec de la création de la session Wave pour ' . $mariage->reference);
                 return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'stripe') {
+                try {
+                    $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $mariage->reference, $user, 'mariage', 'Demande extrait de mariage', $request->getSchemeAndHttpHost());
+
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => $checkoutUrl,
+                        ]);
+                    }
+
+                    return redirect($checkoutUrl);
+                } catch (\Throwable $e) {
+                    Log::error('Erreur Stripe (mariage/store) : ' . $e->getMessage(), [
+                        'reference' => $mariage->reference,
+                    ]);
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                }
             } elseif (strtolower($paymentMethod) === 'mtn') {
                 $mtnPhoneNumber = $request->input('mtn_number');
                 // Format number to international format (starting with 225)
@@ -285,6 +306,33 @@ class MariageController extends Controller
 
                 Log::error('Échec de la création de la session MTN pour ' . $mariage->reference);
                 return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+            } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                $tresorPhone = $request->input('mtn_number');
+                $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                $tresorService = app(\App\Services\TresorPayService::class);
+                $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $mariage->reference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                if ($response && ($response['success'] ?? false)) {
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                'reference' => $mariage->reference,
+                                'type' => 'mariage'
+                            ]),
+                            'reference' => $mariage->reference,
+                        ]);
+                    }
+
+                    return redirect()->route('user.payment.tresorpay.waiting', [
+                        'reference' => $mariage->reference,
+                        'type' => 'mariage'
+                    ]);
+                }
+
+                Log::error('Échec de la création de la session TrésorPay pour ' . $mariage->reference);
+                return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
             } else {
                 // Générer la session CinetPay
                 $channels = 'ALL';
@@ -371,6 +419,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             'lieuNaissanceEpouse' => 'nullable|string|max:255',
             'commune' => 'required|string',
             'commune_mariage' => 'required|string|max:255',
+            'numero_registre' => 'required|string|max:255',
+            'date_registre' => 'required|date',
             'qty_simple' => 'nullable|integer|min:0|max:10',
             'qty_integral' => 'nullable|integer|min:0|max:10',
             'pieceIdentite' => $demande->pieceIdentite ? 'nullable|mimes:png,jpg,jpeg,pdf|max:25600' : 'required|mimes:png,jpg,jpeg,pdf|max:25600',
@@ -468,6 +518,8 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
         $pendingAttributes['prenomEpouse'] = $request->input('prenomEpouse');
         $pendingAttributes['dateNaissanceEpouse'] = $request->input('dateNaissanceEpouse');
         $pendingAttributes['lieuNaissanceEpouse'] = $request->input('lieuNaissanceEpouse');
+        $pendingAttributes['numero_registre'] = $request->input('numero_registre');
+        $pendingAttributes['date_registre'] = $request->input('date_registre');
         $pendingAttributes['commune'] = $request->input('commune');
         $pendingAttributes['commune_mariage'] = $request->input('commune_mariage');
         $pendingAttributes['qty_simple'] = $qtySimple;
@@ -638,8 +690,26 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         return redirect($checkoutSession['wave_launch_url']);
                     }
                     return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Wave. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'stripe') {
+                    try {
+                        $checkoutUrl = $this->createStripeCheckoutUrl($totalAmount, $transactionReference, $user, 'mariage', 'Paiement complementaire extrait de mariage', $request->getSchemeAndHttpHost());
+
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => $checkoutUrl,
+                            ]);
+                        }
+
+                        return redirect($checkoutUrl);
+                    } catch (\Throwable $e) {
+                        Log::error('Erreur Stripe (mariage/modifierDemande) : ' . $e->getMessage(), [
+                            'reference' => $transactionReference,
+                        ]);
+                        return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement Stripe. Veuillez réessayer.');
+                    }
                 } elseif (strtolower($paymentMethod) === 'mtn') {
-                    $mtnPhoneNumber = $request->input('mtn_number') ?: $demande->contact_destinataire;
+                    $mtnPhoneNumber = $request->input('mtn_number');
                     $mtnPhoneNumber = preg_replace('/[^0-9]/', '', $mtnPhoneNumber);
                     if (!str_starts_with($mtnPhoneNumber, '225') && strlen($mtnPhoneNumber) == 10) {
                         $mtnPhoneNumber = '225' . $mtnPhoneNumber;
@@ -673,6 +743,30 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
                         ]);
                     }
                     return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur lors de la préparation du paiement MTN. Veuillez réessayer.');
+                } elseif (strtolower($paymentMethod) === 'tresorpay') {
+                    $tresorPhone = $request->input('mtn_number');
+                    $tresorPhone = preg_replace('/[^0-9]/', '', $tresorPhone);
+
+                    $tresorService = app(\App\Services\TresorPayService::class);
+                    $response = $tresorService->initierPaiementDirect($tresorPhone, $totalAmount, $transactionReference, $user->name ?? 'Client', $user->prenoms ?? 'Plateau');
+
+                    if ($response && ($response['success'] ?? false)) {
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'redirect_url' => route('user.payment.tresorpay.waiting', [
+                                    'reference' => $transactionReference,
+                                    'type' => 'mariage'
+                                ]),
+                                'reference' => $transactionReference,
+                            ]);
+                        }
+                        return redirect()->route('user.payment.tresorpay.waiting', [
+                            'reference' => $transactionReference,
+                            'type' => 'mariage'
+                        ]);
+                    }
+                    return redirect()->route('user.extrait.mariage.index')->with('error', 'Erreur TrésorPay: ' . ($response['message'] ?? 'Erreur inconnue.'));
                 } else {
                     $cinetpayApiKey = env('CINETPAY_APIKEY', '521006956621e4e7a6a3d16.70681548');
                     $cinetpaySiteId = env('CINETPAY_SITE_ID', '935132');
@@ -758,5 +852,48 @@ Vous pouvez suivre l'état de votre demande en cliquant sur ce lien : https://pl
             // Rediriger avec un message d'erreur
             return redirect()->route('user.extrait.mariage.index')->with('error1', 'Une erreur est survenue lors de la suppression de la demande.');
         }
+    }
+
+    private function createStripeCheckoutUrl(float $amount, string $reference, $user, string $type, string $description, ?string $baseUrl = null): string
+    {
+        $secretKey = config('services.stripe.secret_key');
+        if (!$secretKey) {
+            throw new \RuntimeException('Configuration Stripe manquante (STRIPE_SECRET_KEY).');
+        }
+
+        $baseUrl = rtrim($baseUrl ?: config('app.url'), '/');
+        $successUrl = $baseUrl . '/user/payment/success?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+        $cancelUrl = $baseUrl . '/user/payment/cancel?reference=' . urlencode($reference) . '&type=' . urlencode($type) . '&provider=stripe';
+
+        $stripe = new StripeClient($secretKey);
+        $session = $stripe->checkout->sessions->create([
+            'mode' => 'payment',
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'xof',
+                    'unit_amount' => (int) round($amount),
+                    'product_data' => [
+                        'name' => $description,
+                        'description' => 'Reference: ' . $reference,
+                    ],
+                ],
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => [
+                'reference' => $reference,
+                'demande_type' => $type,
+            ],
+            'client_reference_id' => $reference,
+            'customer_email' => $user?->email,
+        ]);
+
+        if (!isset($session->url) || !$session->url) {
+            throw new \RuntimeException('URL Stripe Checkout indisponible.');
+        }
+
+        return $session->url;
     }
 }

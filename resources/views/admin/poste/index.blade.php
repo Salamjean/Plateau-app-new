@@ -435,7 +435,11 @@
                     background: 'white',
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = '{{ route('register') }}';
+                        const redirectUrl = '{{ route('register', [], false) }}';
+                        // Validation de sécurité : on s'assure qu'il s'agit d'un chemin relatif
+                        if (redirectUrl.startsWith('/')) {
+                            window.location.href = redirectUrl;
+                        }
                     }
                 });
             @endif

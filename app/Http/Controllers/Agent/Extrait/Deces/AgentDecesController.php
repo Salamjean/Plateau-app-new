@@ -47,7 +47,52 @@ class AgentDecesController extends Controller
         }
         $deces = $decesQuery->paginate(10);
 
+        foreach ($deces as $item) {
+            $this->applyDeliveryFallback($item);
+        }
+
         return view('agent.extraits.deces.deces', compact('deces'));
+    }
+
+    /**
+     * Complete missing delivery info from user profile or other requests if needed.
+     */
+    public function applyDeliveryFallback(Deces $decesItem)
+    {
+        if (empty($decesItem->nom_destinataire) && empty($decesItem->prenom_destinataire) && $decesItem->user) {
+            $decesItem->nom_destinataire = $decesItem->user->name;
+            $decesItem->prenom_destinataire = $decesItem->user->prenom;
+        }
+
+        if (empty($decesItem->contact_destinataire) && $decesItem->user) {
+            $decesItem->contact_destinataire = $decesItem->user->contact;
+        }
+
+        if (empty($decesItem->email_destinataire) && $decesItem->user) {
+            $decesItem->email_destinataire = $decesItem->user->email;
+        }
+
+        if (empty($decesItem->adresse_livraison)) {
+            $fallback = Deces::where('user_id', $decesItem->user_id)
+                ->where('choix_option', 'livraison')
+                ->where('id', '!=', $decesItem->id)
+                ->whereNotNull('adresse_livraison')
+                ->where('adresse_livraison', '!=', '')
+                ->latest()
+                ->first();
+
+            if ($fallback) {
+                $decesItem->nom_destinataire    = $decesItem->nom_destinataire    ?: $fallback->nom_destinataire;
+                $decesItem->prenom_destinataire = $decesItem->prenom_destinataire ?: $fallback->prenom_destinataire;
+                $decesItem->contact_destinataire = $decesItem->contact_destinataire ?: $fallback->contact_destinataire;
+                $decesItem->email_destinataire  = $decesItem->email_destinataire  ?: $fallback->email_destinataire;
+                $decesItem->adresse_livraison   = $decesItem->adresse_livraison   ?: $fallback->adresse_livraison;
+                $decesItem->ville               = $decesItem->ville               ?: $fallback->ville;
+                $decesItem->commune_livraison   = $decesItem->commune_livraison   ?: $fallback->commune_livraison;
+                $decesItem->quartier            = $decesItem->quartier            ?: $fallback->quartier;
+                $decesItem->code_postal         = $decesItem->code_postal         ?: $fallback->code_postal;
+            }
+        }
     }
 
     // Deces edit 
@@ -355,8 +400,10 @@ class AgentDecesController extends Controller
 
     public function downloadDeliveryInfo($id)
     {
-        // ... (votre code inchangé)
         $naissance = Deces::with(['user'])->findOrFail($id);
+
+        $this->applyDeliveryFallback($naissance);
+
         $data = [
             'naissance' => $naissance,
             'livraison' => $naissance->livraison,

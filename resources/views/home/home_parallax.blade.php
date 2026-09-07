@@ -1324,7 +1324,19 @@
                 behavior: 'smooth'
             });
         });
+
+        function checkOpening(event) {
+            event.preventDefault();
+            Swal.fire({
+                icon: 'info',
+                title: 'Information',
+                text: 'L\'ouverture de l\'espace citoyen est prévue pour ce lundi.',
+                confirmButtonColor: '#1f4083',
+                confirmButtonText: 'Compris'
+            });
+        }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

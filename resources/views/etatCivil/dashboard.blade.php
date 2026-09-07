@@ -289,6 +289,31 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .quick-actions-card {
+                flex-direction: column;
+            }
+            .stat-value {
+                font-size: 1.75rem;
+            }
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 
     <div class="dashboard-container">

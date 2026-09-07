@@ -48,6 +48,13 @@
     </a>
   </li>
 
+  <li class="nav-item">
+    <a class="nav-link" href="{{route('admin.deleted_demandes')}}">
+      <i class="fas fa-fw fa-trash"></i>
+      <span>Demandes Supprimées</span>
+    </a>
+  </li>
+
   <hr class="sidebar-divider">
 <hr class="sidebar-divider">
 <div class="sidebar-heading" style="font-size: 15px; text-align:center">

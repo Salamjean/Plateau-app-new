@@ -208,8 +208,8 @@
                             <tr>
                                 <th class="py-3 text-secondary text-center">DATE & HEURE</th>
                                 <th class="py-3 text-secondary text-center">RÉFÉRENCE</th>
-                                <th class="py-3 text-secondary text-center">DESTINATAIRE (TRÉSORPAY)</th>
-                                <th class="py-3 text-secondary text-center">MONTANT TIMBRE</th>
+                                <th class="py-3 text-secondary text-center">MÉTHODE</th>
+                                <th class="py-3 text-secondary text-center">MONTANT</th>
                                 <th class="py-3 text-secondary text-center">STATUT</th>
                             </tr>
                         </thead>
@@ -232,12 +232,17 @@
                                         <code class="text-secondary fw-semibold">{{ $t->reference }}</code>
                                     </td>
                                     <td class="text-center">
-                                        <span class="small fw-bold">{{ $t->destinataire }}</span>
+                                        <span class="small fw-bold text-uppercase badge bg-secondary">{{ $t->payment_method ?? 'N/A' }}</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold text-success">
-                                            {{ number_format($t->montant, 0, ',', ' ') }} FCFA
-                                        </span>
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span class="fw-bold text-success mb-1">
+                                                {{ number_format($t->montant, 0, ',', ' ') }} FCFA
+                                            </span>
+                                            <small class="text-muted" style="font-size: 0.7rem;">
+                                                Timbre: {{ number_format($t->part_timbre, 0, ',', ' ') }} | Liv: {{ number_format($t->part_livraison, 0, ',', ' ') }}
+                                            </small>
+                                        </div>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge rounded-pill px-3 py-2 badge-credit">

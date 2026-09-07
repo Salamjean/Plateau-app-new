@@ -246,6 +246,10 @@ class EtatCivilDashboard extends Controller
      */
     public function getStatsDetails(Request $request)
     {
+        $request->validate([
+            'periode' => ['nullable', 'string', 'in:3mois,6mois,12mois']
+        ]);
+
         $periode = $request->get('periode', '6mois');
 
         switch ($periode) {

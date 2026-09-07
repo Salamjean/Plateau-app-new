@@ -423,6 +423,10 @@
             @enderror
         </div>
 
+        <div class="forgot-password">
+            <a href="{{ route('agent.password.request') }}">Mot de passe oublié ?</a>
+        </div>
+
         <button type="submit" class="submit-btn animate__animated animate__pulse animate__infinite animate__slower">
             <i class="fas fa-sign-in-alt"></i> Se connecter
         </button>

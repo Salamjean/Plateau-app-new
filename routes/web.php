@@ -76,7 +76,7 @@ Route::prefix('/')->group(function () {
     // Route::get('home/death', [HomeController::class, 'death'])->name('home.death');
     // Route::get('home/wedding', [HomeController::class, 'wedding'])->name('home.wedding');
     // Route::get('home/rendezvous', [HomeController::class, 'rendezvous'])->name('home.rendezvous');
-    // Route::get('home/contact', [HomeController::class, 'contact'])->name('home.contact');
+    Route::get('home/contact', [HomeController::class, 'contact'])->name('home.contact');
 });
 
 //Les routes de gestion du @super @admin
@@ -88,7 +88,9 @@ Route::prefix('admin')->group(function () {
 Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminDashboard::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/rapports/download', [AdminDashboard::class, 'downloadRapport'])->name('admin.rapports.download');
+    Route::get('/admin/deleted-demandes', [AdminDashboard::class, 'deletedDemandes'])->name('admin.deleted_demandes');
     Route::get('/transactions', [AdminDashboard::class, 'transactions'])->name('admin.transactions');
+    Route::get('/transactions/all', [AdminDashboard::class, 'allTransactions'])->name('admin.transactions.all');
     Route::get('/logout', [AdminDashboard::class, 'logout'])->name('admin.logout');
 
     //Les routes pouvoir les demandes effectuées 
@@ -238,6 +240,8 @@ Route::middleware('etatCivil')->prefix('state')->group(function () {
 Route::prefix('civil-agent')->group(function () {
     Route::get('/', [AuthenticateAgent::class, 'login'])->name('agent.login');
     Route::post('/', [AuthenticateAgent::class, 'handleLogin'])->name('agent.handleLogin');
+    Route::get('/forgot-password', [AuthenticateAgent::class, 'showForgotForm'])->name('agent.password.request');
+    Route::post('/forgot-password', [AuthenticateAgent::class, 'sendResetLink'])->name('agent.password.email');
 });
 
 Route::middleware('agent')->prefix('agent')->group(function () {
@@ -442,7 +446,11 @@ Route::prefix('user')->group(function () {
 // Accès : https://plateau-apps.com/user/diag-google-auth?key=plateau2024diag
 // ============================================================
 Route::get('/user/diag-google-auth', function (\Illuminate\Http\Request $request) {
-    if ($request->get('key') !== 'plateau2024diag') {
+    $validated = $request->validate([
+        'key' => ['required', 'string'],
+    ]);
+
+    if ($validated['key'] !== 'plateau2024diag') {
         abort(403);
     }
 
@@ -600,6 +608,8 @@ Route::get('/user/payment/success', [\App\Http\Controllers\User\PaymentControlle
 Route::get('/user/payment/cancel', [\App\Http\Controllers\User\PaymentController::class, 'cancel'])->name('payment.cancel');
 Route::get('/user/payment/mtn-waiting', [\App\Http\Controllers\User\PaymentController::class, 'mtnWaiting'])->name('user.payment.mtn.waiting');
 Route::post('/user/payment/mtn-check', [\App\Http\Controllers\User\PaymentController::class, 'mtnCheck'])->name('user.payment.mtn.check');
+Route::get('/user/payment/tresorpay-waiting', [\App\Http\Controllers\User\PaymentController::class, 'tresorpayWaiting'])->name('user.payment.tresorpay.waiting');
+Route::post('/user/payment/tresorpay-check', [\App\Http\Controllers\User\PaymentController::class, 'tresorpayCheck'])->name('user.payment.tresorpay.check');
 
 //Les routes definition du accès 
 Route::get('/validate-mairie-account/{email}', [MairieAuthenticate::class, 'defineAccess']);
@@ -631,13 +641,13 @@ Route::post('/validate-dhl-account/{email}', [AuthenticateDhl::class, 'submitDef
 // Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app',[DemandeNaissanceController::class, 'showRedirectPage']);
 
 
-Route::match(['GET', 'POST'], '/deces/paiement/redirect-to-app', [DemandeDecesController::class, 'showRedirectPage'])
+Route::match(['GET', 'POST'], '/deces/paiement/{transaction_id?}', [DemandeDecesController::class, 'showRedirectPage'])
     ->name('deces.redirect_to_app');
 
-Route::match(['GET', 'POST'], '/mariage/paiement/redirect-to-app', [DemandeMariageController::class, 'showRedirectPage'])
+Route::match(['GET', 'POST'], '/mariage/paiement/{transaction_id?}', [DemandeMariageController::class, 'showRedirectPage'])
     ->name('mariage.redirect_to_app');
 
-Route::match(['GET', 'POST'], '/naissance/paiement/redirect-to-app', [DemandeNaissanceController::class, 'showRedirectPage'])
+Route::match(['GET', 'POST'], '/naissance/paiement/{transaction_id?}', [DemandeNaissanceController::class, 'showRedirectPage'])
     ->name('naissance.redirect_to_app');
 
 // Routes de demande de suppression de compte (Publiques)

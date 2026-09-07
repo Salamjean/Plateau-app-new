@@ -11,6 +11,12 @@ use Illuminate\Http\Request;
 class AdminExtraitController extends Controller
 {
     public function birth(Request $request){
+        $request->validate([
+            'demandeur' => 'nullable|string|max:255',
+            'reference' => 'nullable|string|max:255',
+            'month'     => 'nullable|string|date_format:Y-m',
+        ]);
+
         $searchDemandeur = $request->input('demandeur');
         $searchReference = $request->input('reference');
         $selectedMonth = $request->input('month');
@@ -45,6 +51,12 @@ class AdminExtraitController extends Controller
         return view('admin.extraits.naissance', compact('naissances', 'searchDemandeur', 'searchReference', 'selectedMonth', 'availableMonths'));
     }
     public function death(Request $request){
+        $request->validate([
+            'demandeur' => 'nullable|string|max:255',
+            'reference' => 'nullable|string|max:255',
+            'month'     => 'nullable|string|date_format:Y-m',
+        ]);
+
         $searchDemandeur = $request->input('demandeur');
         $searchReference = $request->input('reference');
         $selectedMonth = $request->input('month');
@@ -79,6 +91,12 @@ class AdminExtraitController extends Controller
         return view('admin.extraits.deces', compact('deces', 'searchDemandeur', 'searchReference', 'selectedMonth', 'availableMonths'));
     }
     public function mariage(Request $request){
+        $request->validate([
+            'demandeur' => 'nullable|string|max:255',
+            'reference' => 'nullable|string|max:255',
+            'month'     => 'nullable|string|date_format:Y-m',
+        ]);
+
         $searchDemandeur = $request->input('demandeur');
         $searchReference = $request->input('reference');
         $selectedMonth = $request->input('month');

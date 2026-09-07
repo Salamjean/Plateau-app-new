@@ -74,7 +74,7 @@
                 <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider">Liens Rapides</h5>
                 <ul class="list-unstyled d-flex flex-column gap-3 small">
                     <li><a href="{{ route('home') }}" class="text-white-50 text-decoration-none hover-link">A propos</a></li>
-                    <li><a href="{{ route('service.demande') }}" class="text-white-50 text-decoration-none hover-link">Services</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Services</a></li>
                     <li><a href="#" class="text-white-50 text-decoration-none hover-link">Départements</a></li>
                     <li><a href="#" class="text-white-50 text-decoration-none hover-link">Contact</a></li>
                 </ul>
@@ -87,11 +87,11 @@
             <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
                 <h5 class="fw-800 text-white mb-4 text-uppercase small tracking-wider">Nos Services</h5>
                 <ul class="list-unstyled d-flex flex-column gap-3 small">
-                    <li><a href="{{ route('home.birth') }}" class="text-white-50 text-decoration-none hover-link">Acte de naissance</a></li>
-                    <li><a href="{{ route('home.wedding') }}" class="text-white-50 text-decoration-none hover-link">Acte de mariage</a></li>
-                    <li><a href="{{ route('home.death') }}" class="text-white-50 text-decoration-none hover-link">Acte de décès</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Acte de naissance</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Acte de mariage</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Acte de décès</a></li>
                     <li><a href="#" class="text-white-50 text-decoration-none hover-link">CMU</a></li>
-                    <li><a href="{{ route('service.demande') }}" class="text-white-50 text-decoration-none hover-link">Légalisation</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none hover-link">Légalisation</a></li>
                     <li><a href="#" class="text-white-50 text-decoration-none hover-link">Urbanisme</a></li>
                 </ul>
             </div>

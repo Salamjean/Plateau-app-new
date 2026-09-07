@@ -26,7 +26,11 @@ class PaymentController extends Controller
     use HandlesFreeRequests;
     public function success(Request $request)
     {
-        $reference = $request->query('reference');
+        $validated = $request->validate([
+            'reference' => 'nullable|string|max:255',
+        ]);
+        $reference = $validated['reference'] ?? null;
+        $provider = strtolower((string) $request->query('provider', ''));
 
         Log::info("Page de succès paiement atteinte. Référence: {$reference}");
 
@@ -150,7 +154,11 @@ class PaymentController extends Controller
             }
 
             $operator = 'WAVE';
-            if (session()->has('mtn_ref_' . $reference) || session()->has('mtn_ref_' . $baseReference)) {
+            if ($provider === 'stripe') {
+                $operator = 'STRIPE';
+            } elseif ($provider === 'tresorpay') {
+                $operator = 'TRESORPAY';
+            } elseif (session()->has('mtn_ref_' . $reference) || session()->has('mtn_ref_' . $baseReference)) {
                 $operator = 'MTN';
             }
 
@@ -187,30 +195,6 @@ class PaymentController extends Controller
             // Pour un groupe : propager l'état aux lignes filles
             if ($isGroupe && method_exists($demande, 'lignes')) {
                 $demande->lignes()->update(['etat' => 'en attente']);
-            }
-
-            // --- SOLUTION 1 : Reversement automatique du timbre vers TrésorPay ---
-            try {
-                $user = User::find($demande->user_id);
-                $montantTimbre = (int) ($demande->montant_timbre ?? 500);
-
-                if ($montantTimbre > 0 && $user) {
-                    $tresorPayService = app(\App\Services\TresorPayService::class);
-                    $telephone = $user->contact;
-                    $nom = $user->name ?? 'Client';
-                    $referencePaiement = 'TP-AUTO-' . $demande->reference;
-
-                    Log::info("Déclenchement du reversement automatique TrésorPay pour {$demande->reference} (Fallback). Montant: {$montantTimbre}");
-                    $tresorPayService->initierReversementDirect(
-                        $telephone,
-                        $montantTimbre,
-                        $referencePaiement,
-                        $nom,
-                        'Mairie de Plateau'
-                    );
-                }
-            } catch (\Exception $e) {
-                Log::error("Erreur lors du reversement automatique TrésorPay en arrière-plan (Fallback): " . $e->getMessage());
             }
 
             // Incrémenter le compteur de demandes gratuites si applicable
@@ -275,7 +259,11 @@ class PaymentController extends Controller
 
     public function cancel(Request $request)
     {
-        $reference = $request->query('reference');
+        $validated = $request->validate([
+            'reference' => 'required|string|max:255',
+        ]);
+
+        $reference = $validated['reference'];
 
         Log::info("Page d'annulation paiement atteinte. Référence: {$reference}");
 
@@ -286,8 +274,12 @@ class PaymentController extends Controller
 
     public function mtnWaiting(Request $request)
     {
-        $reference = $request->query('reference');
-        $type = $request->query('type');
+        $validated = $request->validate([
+            'reference' => 'nullable|string|max:255',
+            'type'      => 'nullable|string|max:50',
+        ]);
+        $reference = $validated['reference'] ?? null;
+        $type = $validated['type'] ?? null;
 
         $mtnRef = session('mtn_ref_' . $reference);
 
@@ -304,9 +296,14 @@ class PaymentController extends Controller
 
     public function mtnCheck(Request $request)
     {
-        $reference = $request->input('reference');
-        $type = $request->input('type');
-        $mtnRef = $request->input('mtn_ref');
+        $validated = $request->validate([
+            'reference' => 'nullable|string|max:255',
+            'type'      => 'nullable|string|max:50',
+            'mtn_ref'   => 'nullable|string|max:255',
+        ]);
+        $reference = $validated['reference'] ?? null;
+        $type = $validated['type'] ?? null;
+        $mtnRef = $validated['mtn_ref'] ?? null;
 
         if (!$mtnRef) {
             return response()->json(['status' => 'ERROR', 'message' => 'No MTN ID provided']);
@@ -475,5 +472,43 @@ class PaymentController extends Controller
         }
 
         return response()->json(['status' => $status]); // PENDING
+    }
+
+    public function tresorpayWaiting(Request $request)
+    {
+        $reference = $request->query('reference');
+        $type = $request->query('type');
+
+        if (!$reference) {
+            return redirect()->route('user.extrait.index')->with('error', 'Référence TrésorPay introuvable.');
+        }
+
+        return view('user.payment.tresorpay-waiting', [
+            'reference' => $reference,
+            'type' => $type
+        ]);
+    }
+
+    public function tresorpayCheck(Request $request)
+    {
+        $reference = $request->input('reference');
+        $type = $request->input('type');
+
+        // On cherche si un paiement TrésorPay accepté existe en base pour cette transaction (créé par le Webhook)
+        $paiement = Paiement::where('transaction_id', $reference)
+            ->where('operator_id', 'TRESORPAY')
+            ->first();
+
+        Log::info("tresorpayCheck appelé pour la référence: {$reference}. Paiement trouvé: " . ($paiement ? 'OUI' : 'NON') . ". Status: " . ($paiement ? $paiement->status : 'N/A'));
+
+        if ($paiement && $paiement->status === 'ACCEPTED') {
+            return response()->json(['status' => 'SUCCESSFUL', 'redirect' => route('payment.success', ['reference' => $reference, 'type' => $type])]);
+        }
+
+        if ($paiement && $paiement->status === 'FAILED') {
+            return response()->json(['status' => 'FAILED', 'redirect' => route('payment.cancel', ['reference' => $reference, 'type' => $type])]);
+        }
+
+        return response()->json(['status' => 'PENDING']);
     }
 }

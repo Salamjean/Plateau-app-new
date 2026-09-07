@@ -919,7 +919,7 @@
                 const step = (timestamp) => {
                     if (!startTimestamp) startTimestamp = timestamp;
                     const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                    obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('fr-FR');
+                    obj.textContent = Math.floor(progress * (end - start) + start).toLocaleString('fr-FR');
                     if (progress < 1) {
                         window.requestAnimationFrame(step);
                     }

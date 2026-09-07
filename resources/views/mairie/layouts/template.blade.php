@@ -32,6 +32,20 @@
             .main-wrapper {
                 margin-left: 0 !important;
             }
+
+            /* Force table responsiveness on mobile */
+            .table-responsive {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+                display: block;
+                width: 100%;
+            }
+            .table-responsive table {
+                min-width: 800px;
+            }
+            .table-responsive th, .table-responsive td {
+                white-space: nowrap !important;
+            }
         }
     </style>
 </head>

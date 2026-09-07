@@ -53,11 +53,11 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="stat-icon">
-                            <i class="fas fa-city fa-2x" style="color: #6777ef;"></i>
+                            <i class="fas fa-users fa-2x" style="color: #6777ef;"></i>
                         </div>
                         <div class="ml-3">
-                            <h5 class="card-title mb-0">{{ $mairie }}</h5>
-                            <span class="text-muted">Mairies actives</span>
+                            <h5 class="card-title mb-0">{{ $utilisateurs }}</h5>
+                            <span class="text-muted">Utilisateurs inscrits</span>
                         </div>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
         </div>
     </div>
 
-    <!-- Section des statistiques financières - Modifiée pour 4 cartes -->
+    <!-- Section des statistiques financières -->
 <div class="row mt-4">
     <div class="col-md-4">
         <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
@@ -77,20 +77,20 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #28a745;">
             <div class="card-body text-center">
-                <h5 class="card-title">Déductions</h5>
-                <h3 class="text-danger">{{ number_format($soldeDebite, 0, ',', ' ') }} FCFA</h3>
-                <p class="text-muted">Total des déductions pour demandes</p>
+                <h5 class="card-title">Timbres gratuits sortis</h5>
+                <h3 class="text-success">{{ number_format($timbresGratuitsSortis, 0, ',', ' ') }}</h3>
+                <p class="text-muted">Nombre de timbres gratuits délivrés</p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
+        <div class="card" style="background-color: #ffffff; border-top: 3px solid #fc544b;">
             <div class="card-body text-center">
-                <h5 class="card-title">Solde Restant</h5>
-                <h3 class="text-success">{{ number_format($soldeRestant, 0, ',', ' ') }} FCFA</h3>
-                <p class="text-muted">Solde après déductions</p>
+                <h5 class="card-title">Timbres payants sortis</h5>
+                <h3 class="text-danger">{{ number_format($timbresPayantsSortis, 0, ',', ' ') }}</h3>
+                <p class="text-muted">Nombre de timbres payants délivrés</p>
             </div>
         </div>
     </div>
@@ -102,9 +102,27 @@
     <div class="col-md-6">
         <div class="card" style="background-color: #ffffff; border-top: 3px solid #6777ef;">
             <div class="card-body text-center">
-                <h5 class="card-title">Livraisons - Ce Mois</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Porte-feuille Livraisons</h5>
+                    <form action="" method="GET" class="form-inline">
+                        <select name="month" class="form-control form-control-sm mr-1">
+                            @php
+                                $moisList = ['01'=>'Janvier','02'=>'Février','03'=>'Mars','04'=>'Avril','05'=>'Mai','06'=>'Juin','07'=>'Juillet','08'=>'Août','09'=>'Septembre','10'=>'Octobre','11'=>'Novembre','12'=>'Décembre'];
+                            @endphp
+                            @foreach($moisList as $k => $v)
+                                <option value="{{ $k }}" {{ str_pad($month, 2, '0', STR_PAD_LEFT) == $k ? 'selected' : '' }}>{{ $v }}</option>
+                            @endforeach
+                        </select>
+                        <select name="year" class="form-control form-control-sm mr-1">
+                            @for($y=date('Y'); $y>=2020; $y--)
+                                <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary" style="background-color: #6777ef;">Filtrer</button>
+                    </form>
+                </div>
                 <h3 class="text-info">{{ number_format($soldeMoisEnCours, 0, ',', ' ') }} FCFA</h3>
-                <p class="text-muted">Solde du mois en cours</p>
+                <p class="text-muted">Solde du mois sélectionné</p>
                 <!-- Bouton pour télécharger les rapports -->
                 <button type="button" class="btn btn-primary mt-2" style="background-color: #6777ef; border-color: #6777ef;" data-toggle="modal" data-target="#rapportModal">
                     <i class="fas fa-download mr-2"></i>Télécharger Rapport
@@ -263,7 +281,7 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
-                                                @if(isset($activite->statut_livraison ))
+                                                @if(!empty($activite->statut_livraison))
                                                     <span class="badge 
                                                         @if($activite->statut_livraison == 'livré') badge-success
                                                         @elseif($activite->statut_livraison == 'en cours') badge-warning
@@ -272,7 +290,11 @@
                                                         {{ $activite->statut_livraison  }}
                                                     </span>
                                                 @else
-                                                    <span class="badge badge-secondary">En attente de livraison</span>
+                                                    @if(isset($activite->choix_option) && strtolower(trim($activite->choix_option)) === 'retrait sur place')
+                                                        <span class="badge badge-secondary">En attente de retrait</span>
+                                                    @else
+                                                        <span class="badge badge-secondary">En attente de livraison</span>
+                                                    @endif
                                                 @endif
                                             </td>
                                         </tr>
@@ -349,5 +371,10 @@
         const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
         document.getElementById('mois').value = currentMonth;
     });
+
+    // Actualisation automatique chaque 15 secondes
+    setTimeout(function() {
+        window.location.reload();
+    }, 15000);
 </script>
 @endsection

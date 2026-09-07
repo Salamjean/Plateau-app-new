@@ -1,0 +1,1 @@
+<?php echo json_encode(App\Models\Paiement::pluck("transaction_id")->toArray());
