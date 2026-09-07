@@ -66,6 +66,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/')->group(function () {
     Route::get('/', [HomeController::class, 'home'])->name('home');
     Route::match(['get', 'post'], 'home/search', [HomeController::class, 'recherche'])->name('recherche.demande');
+    Route::get('privacy', [HomeController::class, 'privacy'])->name('plateau.privacy');
     // Route::get('home/about', [HomeController::class, 'about'])->name('about.demande');
     // Route::get('home/service', [HomeController::class, 'service'])->name('service.demande');
     // Route::get('home/department', [HomeController::class, 'department'])->name('department.demande');
