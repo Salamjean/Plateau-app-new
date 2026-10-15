@@ -6,6 +6,7 @@ use App\Http\Controllers\User\ProfiluserController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeDecesController;
 use App\Http\Controllers\Api\Utilisateurs\DemandeNaissanceController;
 use App\Http\Controllers\Admin\AdminDashboard;
+use App\Http\Controllers\Admin\AdminReversementController;
 use App\Http\Controllers\Admin\AuthenticateAdmin;
 use App\Http\Controllers\Admin\Extrait\AdminExtraitController;
 use App\Http\Controllers\Admin\MaintenanceController;
@@ -40,6 +41,7 @@ use App\Http\Controllers\EtatCivil\RapportController;
 use App\Http\Controllers\Finance\AuthenticateFinance;
 use App\Http\Controllers\Finance\FinanceController;
 use App\Http\Controllers\Finance\FinanceDashboard;
+use App\Http\Controllers\Finance\FinanceReversementController;
 use App\Http\Controllers\Finance\Timbre\FinanceTimbreController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Mairie\Extrait\MairieDecesController;
@@ -136,6 +138,12 @@ Route::middleware('admin')->prefix('admin')->group(function () {
 
     // Page dédiée Demandes Gratuites
     Route::get('/free-requests', [MaintenanceController::class, 'freeRequestsIndex'])->name('admin.free_requests.index');
+
+    // Consultation des Reversements par l'Administrateur
+    Route::prefix('reversements')->group(function () {
+        Route::get('/', [AdminReversementController::class, 'index'])->name('admin.reversements.index');
+        Route::get('/{id}/recu', [AdminReversementController::class, 'showRecu'])->name('admin.reversements.recu');
+    });
 });
 
 //Les routes de gestion de la @mairie
@@ -315,6 +323,12 @@ Route::middleware('finance')->prefix('finance')->group(function () {
     Route::get('/portefeuille/export-pdf', [FinanceDashboard::class, 'exportPDF'])->name('finance.portefeuille.export_pdf');
     Route::post('/portefeuille/reverser', [FinanceDashboard::class, 'reverserPortefeuille'])->name('finance.portefeuille.reverser');
 
+    // Gestion des Reversements
+    Route::get('/reversements', [FinanceReversementController::class, 'index'])->name('finance.reversements.index');
+    Route::post('/reversements', [FinanceReversementController::class, 'store'])->name('finance.reversements.store');
+    Route::get('/reversements/historique', [FinanceReversementController::class, 'historique'])->name('finance.reversements.historique');
+    Route::get('/reversements/{id}/recu', [FinanceReversementController::class, 'showRecu'])->name('finance.reversements.recu');
+
     //les routes des financiers de la caisse
     Route::prefix('accounting')->group(function () {
         Route::get('/index', [ComptableController::class, 'index'])->name('comptable.index');
@@ -365,6 +379,12 @@ Route::middleware('comptable')->prefix('accounting')->group(function () {
     Route::get('/portefeuille/historique', [ComptableDashboard::class, 'historiqueReversements'])->name('comptable.portefeuille.historique');
     Route::get('/portefeuille/export-pdf', [ComptableDashboard::class, 'exportPDF'])->name('comptable.portefeuille.export_pdf');
     Route::post('/portefeuille/reverser', [ComptableDashboard::class, 'reverserPortefeuille'])->name('comptable.portefeuille.reverser');
+
+    // Gestion des Reversements
+    Route::get('/reversements', [FinanceReversementController::class, 'index'])->name('comptable.reversements.index');
+    Route::post('/reversements', [FinanceReversementController::class, 'store'])->name('comptable.reversements.store');
+    Route::get('/reversements/historique', [FinanceReversementController::class, 'historique'])->name('comptable.reversements.historique');
+    Route::get('/reversements/{id}/recu', [FinanceReversementController::class, 'showRecu'])->name('comptable.reversements.recu');
 });
 
 //Les routes de getsion de @postes 

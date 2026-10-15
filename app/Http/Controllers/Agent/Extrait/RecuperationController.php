@@ -49,7 +49,13 @@ class RecuperationController extends Controller
             return redirect()->route($successRoute)->with('error', 'Demande introuvable.');
         }
 
-        if ($demande->agent_id) {
+        // Si la demande est déjà assignée à cet agent précis (ex: soumission simultanée ou déjà dans sa liste)
+        if ($demande->agent_id && $demande->agent_id == $agent->id) {
+            return redirect()->route($successRoute)->with('success', "Demande de {$modelName} récupérée avec succès.");
+        }
+
+        // Si la demande a déjà été récupérée par un AUTRE agent
+        if ($demande->agent_id && $demande->agent_id != $agent->id) {
             return redirect()->route('agent.dashboard')->with('error', "Cette demande de {$modelName} a déjà été récupérée par un autre agent.");
         }
 

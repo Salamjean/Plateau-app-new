@@ -69,6 +69,14 @@
             <i class="material-icons">account_balance_wallet</i>
             <span>Portefeuille en ligne</span>
         </a>
+
+        <!-- Reversements -->
+        <a href="{{ route('finance.reversements.index') }}"
+            class="sidebar-link {{ request()->routeIs('finance.reversements.*') ? 'active' : '' }}"
+            title="Reversements">
+            <i class="material-icons">payments</i>
+            <span>Reversements</span>
+        </a>
     </nav>
 </aside>
 

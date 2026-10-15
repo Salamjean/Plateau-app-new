@@ -52,6 +52,14 @@
             <i class="material-icons">history</i>
             <span>Historique de ventes</span>
         </a>
+
+        <!-- Reversements -->
+        <a href="{{ route('comptable.reversements.index') }}"
+            class="sidebar-link {{ request()->routeIs('comptable.reversements.*') ? 'active' : '' }}"
+            title="Reversements">
+            <i class="material-icons">payments</i>
+            <span>Reversements</span>
+        </a>
     </nav>
 </aside>
 

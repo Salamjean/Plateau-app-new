@@ -145,7 +145,8 @@ class AgentDashboard extends Controller
         if (!$type || $type == 'naissance') {
             $naissancesQuery = Naissance::where('commune', $admin->communeM)
                 ->paye()
-                ->where('etat', 'en attente');
+                ->where('etat', 'en attente')
+                ->whereNull('agent_id');
             if ($month) $naissancesQuery->whereMonth('created_at', $month);
             if ($year) $naissancesQuery->whereYear('created_at', $year);
             $naissances = $naissancesQuery->orderBy('created_at', 'asc')->get();
@@ -154,7 +155,8 @@ class AgentDashboard extends Controller
         if (!$type || $type == 'deces') {
             $decesQuery = Deces::where('commune', $admin->communeM)
                 ->paye()
-                ->where('etat', 'en attente');
+                ->where('etat', 'en attente')
+                ->whereNull('agent_id');
             if ($month) $decesQuery->whereMonth('created_at', $month);
             if ($year) $decesQuery->whereYear('created_at', $year);
             $deces = $decesQuery->orderBy('created_at', 'asc')->get();
@@ -163,7 +165,8 @@ class AgentDashboard extends Controller
         if (!$type || $type == 'mariage') {
             $mariagesQuery = Mariage::where('commune', $admin->communeM)
                 ->paye()
-                ->where('etat', 'en attente');
+                ->where('etat', 'en attente')
+                ->whereNull('agent_id');
             if ($month) $mariagesQuery->whereMonth('created_at', $month);
             if ($year) $mariagesQuery->whereYear('created_at', $year);
             $mariages = $mariagesQuery->orderBy('created_at', 'asc')->get();

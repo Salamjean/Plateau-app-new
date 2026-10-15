@@ -41,10 +41,17 @@
     </a>
   </li>
 
-  <li class="nav-item">
+  <li class="nav-item {{ request()->routeIs('admin.transactions*') ? 'active' : '' }}">
     <a class="nav-link" href="{{route('admin.transactions')}}">
       <i class="fas fa-fw fa-exchange-alt"></i>
       <span>Transactions</span>
+    </a>
+  </li>
+
+  <li class="nav-item {{ request()->routeIs('admin.reversements.*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ route('admin.reversements.index') }}">
+      <i class="fas fa-fw fa-hand-holding-usd"></i>
+      <span>Reversements</span>
     </a>
   </li>
 

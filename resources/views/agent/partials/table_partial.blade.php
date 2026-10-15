@@ -70,7 +70,7 @@
                         </div>
                     </td>
                     <td class="text-center">
-                        <form action="{{ $actionRoute }}" method="POST" style="display:inline;">
+                        <form action="{{ $actionRoute }}" method="POST" style="display:inline;" onsubmit="const btn = this.querySelector('button'); if(btn.disabled) return false; btn.disabled = true; btn.innerHTML = '<i class=\'fas fa-spinner fa-spin\'></i> Traitement...';">
                             @csrf
                             @method('POST')
                             <button type="submit" class="btn-modern-action">
